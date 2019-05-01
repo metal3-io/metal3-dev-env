@@ -1,0 +1,80 @@
+---
+
+- set_fact:
+    generate_overcloud_nodes: "{{overcloud_nodes is not defined}}"
+
+- name: Define overcloud_nodes if not already defined
+  when: generate_overcloud_nodes
+  block:
+    - name: Generate overcloud_nodes for "{{num_masters}}" masters
+      set_fact:
+        overcloud_nodes: "{{overcloud_nodes|default([]) + [
+                            {'name': 'kube_master_%s'|format(item),
+                             'flavor': 'kube_master',
+                             'virtualbmc_port': virtualbmc_base_port+item}]}}"
+      loop: "{{ range(0, num_masters|int)|list }}"
+    
+    - name: Generate overcloud_nodes for "{{num_workers}}" workers
+      set_fact:
+        overcloud_nodes: "{{overcloud_nodes|default([]) + [
+                            {'name': 'kube_worker_%s'|format(item),
+                             'flavor': 'kube_worker',
+                             'virtualbmc_port': virtualbmc_base_port+num_masters|int+item} ]}}"
+      loop: "{{ range(0, num_workers|int)|list }}"
+
+# Describe our virtual networks.  These networks will be attached to
+# the undercloud node and to the overcloud nodes in the order in which
+# they are defined with the following caveats:
+#   *  If no networks are using forward_mode: 'nat', then the default libvirt
+#   network will be attached to the undercloud. This is required to ssh from the
+#   virt host to the undercloud
+#   *  The first bridge network defined will be used for pxe booting
+- set_fact:
+    generate_networks: "{{networks is not defined}}"
+- name: Define networks when not already defined
+  when: generate_networks
+  block:
+    - name: Generate dhcp entries on baremetal network for "{{num_masters}}" masters
+      set_fact:
+        dhcp_hosts: "{{dhcp_hosts|default([]) + [
+                       {'name': 'master-%s'|format(item),
+                        'ip': baremetal_network_cidr|nthhost(20+item)|string}]}}"
+      loop: "{{ range(0, num_masters|int)|list }}"
+    
+    - name: Generate dhcp entries on baremetal network for "{{num_workers}}" workers
+      set_fact:
+        dhcp_hosts: "{{dhcp_hosts|default([]) + [
+                       {'name': 'worker-%s'|format(item),
+                        'ip': baremetal_network_cidr|nthhost(20+num_masters|int+item)|string} ]}}"
+      loop: "{{ range(0, num_workers|int)|list }}"
+    
+    - name: Set fact for networks
+      set_fact:
+        networks:
+          - name: provisioning
+            bridge: provisioning
+            forward_mode: bridge
+          - name: baremetal
+            bridge: baremetal
+            forward_mode: "{% if manage_baremetal == 'y' %}nat{% else %}bridge{% endif %}"
+            address: "{{ baremetal_network_cidr|nthhost(1) }}"
+            netmask: "{{ baremetal_network_cidr|ipaddr('netmask') }}"
+            dhcp_range:
+              - "{{ baremetal_network_cidr|nthhost(20) }}"
+              - "{{ baremetal_network_cidr|nthhost(60) }}"
+            dhcp_hosts: "{{dhcp_hosts}}"
+            nat_port_range:
+              - 1024
+              - 65535
+            domain: "{{ cluster_domain }}"
+            dns:
+              hosts:
+                - ip: "{{ baremetal_network_cidr | nthhost(5) }}"
+                  hostnames:
+                    - "api"
+                - ip: "{{ baremetal_network_cidr | nthhost(2) }}"
+                  hostnames:
+                    - "ns1"
+              forwarders:
+                - domain: "apps.{{ cluster_domain }}"
+                  addr: "127.0.0.1"

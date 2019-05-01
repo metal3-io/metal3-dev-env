@@ -1,0 +1,13 @@
+dependencies:
+  - libvirt
+  - common
+  - libvirt/setup/common
+galaxy_info:
+  author: Red Hat, Inc.
+  license: Apache
+  description: libvirt setup overcloud
+  platforms:
+    - name: CentOS
+      versions:
+        - 7
+  min_ansible_version: 2.4

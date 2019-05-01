@@ -1,0 +1,12 @@
+# Include settings from the libvirt role, and include all the
+# `teardown/*` roles.  This means that when your playbook has:
+#
+#     roles:
+#       - libvirt/teardown
+#
+# You also get:
+#
+# - `libvirt/teardown/nodes`
+dependencies:
+  - role: libvirt
+  - role: teardown/nodes

@@ -1,0 +1,8 @@
+---
+- name: Teardown previous libvirt setup
+  hosts: virthost
+  connection: local
+  gather_facts: true
+  roles:
+    - common
+    - libvirt/teardown

@@ -1,0 +1,29 @@
+# We have identified this specific ipxe-roms-qemu-20130517 as having issues w/ timeouts. It is possible
+# that a virthost has a later valid version of ipxe-roms-qemu that will work.  At this time, let's only
+# remove the known bad version of ipxe-roms if it's found
+- name: Check for older iPXE rpm
+  shell: >
+    if rpm -q ipxe-roms-qemu-20130517; then
+       rpm -e --nodeps ipxe-roms-qemu-20130517 && echo "rpm removed";
+    fi;
+  become: true
+  register: old_ipxe
+  changed_when: '"rpm removed" in old_ipxe.stdout'
+
+# Install the packages required for our desired libvirt environment.
+# We store the list of packages in `libvirt_packages` so that in
+# theory we can support multiple distributions simply by passing in a
+# different list of packages.
+- name: Install packages for libvirt
+  package:
+    name: "{{ libvirt_packages }}"
+    state: present
+  become: true
+
+- name: Start libvirtd
+  service:
+    name: "{{ libvirtd_service }}"
+    state: started
+    enabled: true
+  become: true
+  when: not chrooted|bool

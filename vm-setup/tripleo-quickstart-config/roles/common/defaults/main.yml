@@ -1,0 +1,51 @@
+# this will define the user that ansible will connect with
+ssh_user: "{{ non_root_user }}"
+
+# base domain to use
+cluster_domain: "{{ lookup('env', 'CLUSTER_DOMAIN') | default('ostest.test.metalkube.org', true) }}"
+
+# allow the nic model to be overridden
+overcloud_libvirt_nic_model: virtio
+
+# These defaults are used if there are no flavor-specific
+# overrides configured.
+default_disk: 50
+default_memory: 16384
+default_vcpu: 4
+num_masters: 3
+num_workers: 1
+extradisks: false
+virtualbmc_base_port: 6230
+flavors:
+  kube_master:
+    memory: '{{kube_master_memory|default(default_memory)}}'
+    disk: '{{kube_master_disk|default(default_disk)}}'
+    vcpu: '{{kube_master_vcpu|default(default_vcpu)}}'
+    extradisks: '{{extradisks}}'
+
+  kube_worker:
+    memory: '{{kube_worker_memory|default(default_memory)}}'
+    disk: '{{kube_worker_disk|default(default_disk)}}'
+    vcpu: '{{kube_worker_vcpu|default(default_vcpu)}}'
+    extradisks: '{{extradisks}}'
+
+baremetal_network_cidr: "{{ lookup('env', 'EXTERNAL_SUBNET') | default('192.168.111.0/24', true) }}"
+
+# Enable the virt_bmc ( virtual baremetal controllers )
+enable_vbmc: true
+
+# Set this to `false` if you don't want your undercloud and overcloud vms
+# to have a VNC console available.
+enable_vnc_console: true
+
+# Path for volume storage
+libvirt_volume_path: "{{ working_dir }}/pool"
+
+libvirt_uri: qemu:///session
+
+# Whether to give permissive access to files owned by the non_root_user.
+# This is required if the non_root_user is not used to run libvirt tasks.
+# The most common case for this is when openvswitch is used for networks
+# on the virthost. This requires running libvirt tasks as the root user so
+# that they have sufficient privileges to connect to ovs bridges.
+non_root_chown: false

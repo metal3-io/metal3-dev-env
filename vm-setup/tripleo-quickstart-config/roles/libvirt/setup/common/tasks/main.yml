@@ -1,0 +1,54 @@
+# Create a libvirt volume pool.  This is where we'll be creating
+# images for the undercloud and overcloud.
+# Note: the virt_pool module is not working properly on rhel-7.2
+# https://bugs.launchpad.net/tripleo-quickstart/+bug/1597905
+- name: ensure libvirt volume path exists
+  become: true
+  file:
+    path: "{{ libvirt_volume_path }}"
+    state: directory
+    mode: 0755
+
+- name: Check volume pool
+  command: >
+    virsh pool-uuid "{{ libvirt_volume_pool }}"
+  register: pool_check
+  ignore_errors: true
+  changed_when: false
+  environment:
+    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+
+- name: create the volume pool xml file
+  template:
+    src: volume_pool.xml.j2
+    dest: "{{ working_dir }}/volume_pool.xml"
+  when: pool_check is failed
+
+- name: Define volume pool
+  command: "virsh pool-define {{ working_dir }}/volume_pool.xml"
+  when: pool_check is failed
+  environment:
+    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+
+- name: Start volume pool
+  virt_pool:
+    command: start
+    state: active
+    name: "{{ libvirt_volume_pool }}"
+    uri: "{{ libvirt_uri }}"
+
+# In some cases the pool_check can pass and the pool xml config is absent
+# In this case it is required to dump the xml and redefine the pool.
+- name: ensure tripleo-quickstart volume pool is defined
+  shell: >
+    virsh pool-dumpxml {{ libvirt_volume_pool }} |
+    virsh pool-define /dev/stdin
+  changed_when: true
+  environment:
+    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+
+- name: Mark volume pool for autostart
+  virt_pool:
+    name: "{{ libvirt_volume_pool }}"
+    autostart: "yes"
+    uri: "{{ libvirt_uri }}"

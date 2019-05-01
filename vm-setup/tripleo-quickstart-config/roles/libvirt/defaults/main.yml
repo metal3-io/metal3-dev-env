@@ -1,0 +1,42 @@
+# Which image should we download?
+release: queens
+undercloud_image_url: http://artifacts.ci.centos.org/rdo/images/{{ release }}/delorean/consistent/stable/undercloud.qcow2
+overcloud_image_url: http://artifacts.ci.centos.org/rdo/images/{{ release }}/delorean/consisten/stable/overcloud-full.tar
+ipa_image_url: http://artifacts.ci.centos.org/rdo/images/{{ release }}/delorean/consistent/stable/ironic-python-agent.tar
+
+# If `force_cached_image` is `true`, always use the most recent image
+# available locally rather than checking for updated images.
+force_cached_images: false
+
+# You can also control the caching behavior per-image by setting the
+# `force_cached` key.
+images:
+  - name: undercloud
+    url: "{{ undercloud_image_url }}"
+    type: qcow2
+
+# Which libvirt session should we use?  Using `qemu://session` does
+# not require privileged access (but does require the setup performed by the
+# `environment/setup` role).
+libvirt_volume_pool: oooq_pool
+libvirt_domain_type: kvm
+libvirt_diskdev: sda
+libvirt_diskbus: scsi
+libvirt_arch: x86_64
+libvirt_cpu_mode: host-model
+
+# how many times to try getting the undercloud ip
+# address before giving up.
+undercloud_ip_retries: 20
+
+# set to true if you want to inject additional overcloud
+# and ipa images. You will need to define the images and
+# mapping, and inject_images list as well
+use_external_images: false
+
+# how many disks should be created when using extradisks
+extradisks_list:
+  - vdb
+
+# size of the disks to create when using extradisks
+extradisks_size: 8G

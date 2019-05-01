@@ -15,3 +15,6 @@ tl;dr - Run `make`.
 The `Makefile` runs a series of scripts, described here:
 
 * `01_install_requirements.sh` - Installs all needed packages.
+
+* `02_configure_host.sh` - Create a set of VMs that will be managed as if they
+  were bare metal hosts.

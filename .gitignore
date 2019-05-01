@@ -1,1 +1,3 @@
 logs
+config_*.sh
+!config_example.sh

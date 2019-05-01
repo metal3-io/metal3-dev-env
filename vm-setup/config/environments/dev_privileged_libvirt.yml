@@ -1,0 +1,32 @@
+# If you prefer privileged VMs in order to use tools like virt-manager on the host
+# you can use these options.  This also makes VMs survive reboots \o/
+# This is particularly useful for local development environments
+non_root_chown: true
+undercloud_user: "{{ non_root_user }}"
+ssh_user: root
+libvirt_uri: qemu:///system
+
+# Below is the default_libvirt.yml values, so you can select this file via
+# -E and not lose these settings
+environment_type: libvirt
+
+# This allows one to browse to the tripleo-ui on the undercloud
+# This is only required in libvirt based deployments
+enable_port_forward_for_tripleo_ui: true
+# Setup for SSL access to the tripleo-ui.
+# Please consult the tripleo-quickstart documentation prior to enabling this option
+tripleo_ui_secure_access: true
+validate_ui_simple: true
+
+# Note this needs to be false for freeIPA
+# https://bugs.launchpad.net/tripleo/+bug/1709333
+nameserver_from_virthost: >-
+  {% if overcloud_cloud_domain is defined -%}
+  false
+  {%- else -%}
+  true
+  {%- endif -%}
+
+# standalone interface
+standalone_interface: eth1
+standalone_ip: 192.168.24.2
