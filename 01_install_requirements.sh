@@ -88,3 +88,13 @@ sudo yum -y install \
 sudo pip install \
   lolcat \
   yq
+
+if ! which minikube 2>/dev/null ; then
+    curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
+          && chmod +x minikube && sudo mv minikube /usr/local/bin/.
+fi
+
+if ! which kubectl 2>/dev/null ; then
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl \
+        && chmod +x kubectl && sudo mv kubectl /usr/local/bin/.
+fi
