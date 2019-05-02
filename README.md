@@ -30,3 +30,5 @@ The `Makefile` runs a series of scripts, described here:
 
 * `03_launch_mgmt_cluster.sh` - Launch a management cluster using `minikube` and
   run the `baremetal-operator` on that cluster.
+
+To tear down the environment, run `make clean`.
