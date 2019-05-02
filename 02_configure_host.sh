@@ -151,3 +151,44 @@ if [ "$MANAGE_BR_BRIDGE" == "y" ] ; then
     sudo systemctl restart NetworkManager
   fi
 fi
+
+for IMAGE_VAR in IRONIC_IMAGE IRONIC_INSPECTOR_IMAGE ; do
+    IMAGE=${!IMAGE_VAR}
+    sudo podman pull "$IMAGE"
+done
+
+for name in ironic ironic-inspector dnsmasq httpd mariadb; do
+    sudo podman ps | grep -w "$name$" && sudo podman kill $name
+    sudo podman ps --all | grep -w "$name$" && sudo podman rm $name -f
+done
+
+# Remove existing pod
+if  sudo podman pod exists ironic-pod ; then 
+    sudo podman pod rm ironic-pod -f
+fi
+
+# set password for mariadb
+mariadb_password=$(echo $(date;hostname)|sha256sum |cut -c-20)
+
+# Create pod
+sudo podman pod create -n ironic-pod 
+
+mkdir -p $IRONIC_DATA_DIR
+
+# Start dnsmasq, http, mariadb, and ironic containers using same image
+sudo podman run -d --net host --privileged --name dnsmasq  --pod ironic-pod \
+     -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/rundnsmasq ${IRONIC_IMAGE}
+
+sudo podman run -d --net host --privileged --name httpd --pod ironic-pod \
+     -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
+
+sudo podman run -d --net host --privileged --name mariadb --pod ironic-pod \
+     -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runmariadb \
+     --env MARIADB_PASSWORD=$mariadb_password ${IRONIC_IMAGE}
+
+sudo podman run -d --net host --privileged --name ironic --pod ironic-pod \
+     --env MARIADB_PASSWORD=$mariadb_password \
+     -v $IRONIC_DATA_DIR:/shared ${IRONIC_IMAGE}
+
+# Start Ironic Inspector
+sudo podman run -d --net host --privileged --name ironic-inspector --pod ironic-pod "${IRONIC_INSPECTOR_IMAGE}"
