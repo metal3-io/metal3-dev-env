@@ -24,6 +24,13 @@ pushd ${BMOPATH}
 popd
 
 minikube start --vm-driver kvm2
+# The interface doesn't appear in the minikube VM with --live,
+# so just attach it and make it reboot.
+sudo virsh attach-interface --domain minikube \
+    --model virtio --source provisioning \
+    --type network --config
+minikube stop
+minikube start --vm-driver kvm2
 
 DEPLOY_DIR=${BMOPATH}/deploy
 echo '{ "kind": "Namespace", "apiVersion": "v1", "metadata": { "name": "metal3", "labels": { "name": "metal3" } } }' | kubectl apply -f -
