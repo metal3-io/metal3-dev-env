@@ -8,6 +8,15 @@ Prerequisites:
  * Bare metal preferred, as we will be creating VMs to emulate bare metal hosts
  * run as a user with passwordless sudo access
 
+# Current Status
+
+This is still a work in progress.
+
+A management cluster will be launched with the `baremetal-operator`.  A set of
+`BareMetalHost` objects will be created for the set of VMs we’ve created to
+emulate bare metal servers.  Management of the hosts doesn’t work yet, as the
+`minikube` VM is lacking a network interface on the `provisioning` network.
+
 # Instructions
 
 tl;dr - Run `make`.
