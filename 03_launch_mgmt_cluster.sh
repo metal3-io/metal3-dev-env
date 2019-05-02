@@ -6,11 +6,15 @@ source utils/common.sh
 
 eval "$(go env)"
 
-BMOPATH="${GOPATH}/src/github.com/metal3-io/baremetal-operator"
+M3PATH="${GOPATH}/src/github.com/metal3-io"
+BMOPATH="${M3PATH}/baremetal-operator"
+
+if [ ! -d ${M3PATH} ] ; then
+    mkdir -p ${M3PATH}
+fi
 
 if [ ! -d ${BMOPATH} ] ; then
-    mkdir -p ${GOPATH}/src/github.com/metal3-io/
-    pushd ${BMOPATH}
+    pushd ${M3PATH}
     git clone https://github.com/metal3-io/baremetal-operator.git
     popd
 fi
