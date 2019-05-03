@@ -8,15 +8,6 @@ Prerequisites:
  * Bare metal preferred, as we will be creating VMs to emulate bare metal hosts
  * run as a user with passwordless sudo access
 
-# Current Status
-
-This is still a work in progress.
-
-A management cluster will be launched with the `baremetal-operator`.  A set of
-`BareMetalHost` objects will be created for the set of VMs we’ve created to
-emulate bare metal servers.  Management of the hosts doesn’t work yet, as the
-`minikube` VM is lacking a network interface on the `provisioning` network.
-
 # Instructions
 
 tl;dr - Run `make`.
@@ -32,6 +23,34 @@ The `Makefile` runs a series of scripts, described here:
   run the `baremetal-operator` on that cluster.
 
 To tear down the environment, run `make clean`.
+
+# Bare Metal Hosts
+
+This environment creates a set of VMs to manage as if they were bare metal
+hosts.  You can see the VMs using `virsh`.
+
+```
+sudo virsh list
+ Id    Name                           State
+----------------------------------------------------
+ 6     minikube                       running
+ 7     kube_master_1                  running
+ 8     kube_master_2                  running
+ 9     kube_worker_0                  running
+ 10    kube_master_0                  running
+```
+
+Each of the VMs (aside from the `minikube` management cluster VM) are
+represented by `BareMetalHost` objects in our management cluster.
+
+```
+$ kubectl get baremetalhosts -n metal3
+NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
+kube-master-0   OK       ready                           ipmi://192.168.111.1:6230   unknown            true     
+kube-master-1   OK       ready                           ipmi://192.168.111.1:6231   unknown            true     
+kube-master-2   OK       ready                           ipmi://192.168.111.1:6232   unknown            true     
+kube-worker-0   OK       ready                           ipmi://192.168.111.1:6233   unknown            true     
+```
 
 # Accessing the Ironic API
 
