@@ -152,6 +152,13 @@ if [ "$MANAGE_BR_BRIDGE" == "y" ] ; then
   fi
 fi
 
+mkdir -p "$IRONIC_DATA_DIR/html/images"
+pushd "$IRONIC_DATA_DIR/html/images"
+if [ ! -f ironic-python-agent.initramfs ]; then
+    curl --insecure --compressed -L https://images.rdoproject.org/master/rdo_trunk/current-tripleo-rdo/ironic-python-agent.tar | tar -xf -
+fi
+popd
+
 for IMAGE_VAR in IRONIC_IMAGE IRONIC_INSPECTOR_IMAGE ; do
     IMAGE=${!IMAGE_VAR}
     sudo podman pull "$IMAGE"
