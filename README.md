@@ -123,6 +123,22 @@ status:
     state: ready
 ```
 
+There is a helper script available to trigger provisioning of one of these
+hosts.  To provision a host with CentOS 7, run:
+
+```
+$ ./provision_host.sh kube-worker-0
+```
+
+The `BareMetalHost` will go through the provisioning process, and will
+eventually reboot into the operating system we wrote to disk.
+
+```
+kubectl get baremetalhost kube-worker-0 -n metal3
+NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
+kube-worker-0   OK       provisioned                     ipmi://192.168.111.1:6231   unknown            true     
+```
+
 # Accessing the Ironic API
 
 Sometimes you may want to look directly at Ironic to debug something.  You can
