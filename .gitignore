@@ -2,3 +2,4 @@ logs
 config_*.sh
 !config_example.sh
 bmhosts_crs.yaml
+operator.yaml
