@@ -10,9 +10,9 @@ overcloud_libvirt_nic_model: virtio
 # These defaults are used if there are no flavor-specific
 # overrides configured.
 default_disk: 50
-default_memory: 4096
+default_memory: 8192
 default_vcpu: 2
-num_masters: 3
+num_masters: 1
 num_workers: 1
 extradisks: false
 virtualbmc_base_port: 6230

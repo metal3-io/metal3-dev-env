@@ -42,7 +42,7 @@ WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
 NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/ironic_nodes.json"}
 NODES_PLATFORM=${NODES_PLATFORM:-"libvirt"}
 
-export NUM_MASTERS=${NUM_MASTERS:-"3"}
+export NUM_MASTERS=${NUM_MASTERS:-"1"}
 export NUM_WORKERS=${NUM_WORKERS:-"1"}
 export VM_EXTRADISKS=${VM_EXTRADISKS:-"false"}
 
