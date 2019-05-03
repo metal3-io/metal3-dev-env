@@ -38,7 +38,12 @@ kubectl apply -f ${DEPLOY_DIR}/service_account.yaml -n metal3
 kubectl apply -f ${DEPLOY_DIR}/role.yaml -n metal3
 kubectl apply -f ${DEPLOY_DIR}/role_binding.yaml
 kubectl apply -f ${DEPLOY_DIR}/crds/metal3_v1alpha1_baremetalhost_crd.yaml
-kubectl apply -f ${DEPLOY_DIR}/operator.yaml -n metal3
+
+# Pending merge of https://github.com/metal3-io/baremetal-operator/pull/178
+#kubectl apply -f ${DEPLOY_DIR}/operator.yaml -n metal3
+cp ${DEPLOY_DIR}/operator.yaml .
+sed -i -e 's/image:.*baremetal-operator/image: quay.io\/metal3-io\/baremetal-operator:master/' ./operator.yaml
+kubectl apply -f ./operator.yaml -n metal3
 
 function list_nodes() {
     # Includes -machine and -machine-namespace
