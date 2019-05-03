@@ -32,3 +32,29 @@ The `Makefile` runs a series of scripts, described here:
   run the `baremetal-operator` on that cluster.
 
 To tear down the environment, run `make clean`.
+
+# Accessing the Ironic API
+
+Sometimes you may want to look directly at Ironic to debug something.  You can
+do this with the `openstack` command.
+
+First you must set these environment variables:
+
+```
+export OS_TOKEN=fake-token
+export OS_URL=http://localhost:6385/
+```
+
+Example:
+
+```
+$ openstack baremetal node list
++--------------------------------------+---------------+---------------+-------------+--------------------+-------------+
+| UUID                                 | Name          | Instance UUID | Power State | Provisioning State | Maintenance |
++--------------------------------------+---------------+---------------+-------------+--------------------+-------------+
+| 882cf206-d688-43fa-bf4c-3282fcb00b12 | kube-master-0 | None          | None        | enroll             | False       |
+| 582c3ecf-6604-432f-9f73-1405a16234af | kube-master-1 | None          | None        | enroll             | False       |
+| 886c48fd-6291-4af7-a904-f0b1f5053f0d | kube-master-2 | None          | None        | enroll             | False       |
+| ac257479-d6c6-47c1-a649-64a88e6ff312 | kube-worker-0 | None          | None        | enroll             | False       |
++--------------------------------------+---------------+---------------+-------------+--------------------+-------------+
+```
