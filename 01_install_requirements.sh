@@ -3,6 +3,7 @@ set -ex
 
 source utils/logging.sh
 
+sudo yum install -y libselinux-utils
 if selinuxenabled ; then
     sudo setenforce permissive
     sudo sed -i "s/=enforcing/=permissive/g" /etc/selinux/config
