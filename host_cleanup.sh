@@ -45,3 +45,5 @@ if [ "$?" == "0" ]; then
      sudo virsh net-destroy provisioning
      sudo virsh net-undefine provisioning
 fi
+
+sudo rm -rf /root/.vbmc
