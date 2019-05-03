@@ -60,7 +60,7 @@ function list_nodes() {
 
 function make_bm_hosts() {
     while read name address user password mac; do
-        go run make-bmhost/main.go \
+        go run ${BMOPATH}/cmd/make-bm-worker/main.go \
            -address "$address" \
            -password "$password" \
            -user "$user" \
