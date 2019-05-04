@@ -36,6 +36,10 @@ INT_IF=${INT_IF:-}
 #Root disk to deploy coreOS - use /dev/sda on BM
 ROOT_DISK_NAME=${ROOT_DISK_NAME-"/dev/sda"}
 
+export EXTERNAL_SUBNET="192.168.111.0/24"
+
+export SSH_PUB_KEY=~/.ssh/id_rsa.pub
+
 FILESYSTEM=${FILESYSTEM:="/"}
 
 WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
