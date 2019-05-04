@@ -29,8 +29,8 @@ To tear down the environment, run `make clean`.
 This environment creates a set of VMs to manage as if they were bare metal
 hosts.  You can see the VMs using `virsh`.
 
-```
-sudo virsh list
+```sh
+$ sudo virsh list
  Id    Name                           State
 ----------------------------------------------------
  6     minikube                       running
@@ -41,7 +41,7 @@ sudo virsh list
 Each of the VMs (aside from the `minikube` management cluster VM) are
 represented by `BareMetalHost` objects in our management cluster.
 
-```
+```sh
 $ kubectl get baremetalhosts -n metal3
 NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
 kube-master-0   OK       ready                           ipmi://192.168.111.1:6230   unknown            true     
@@ -51,7 +51,7 @@ kube-worker-0   OK       ready                           ipmi://192.168.111.1:62
 You can also look at the details of a host, including the hardware information
 gathered by doing pre-deployment introspection.
 
-```
+```sh
 $ kubectl get baremetalhost -n metal3 -oyaml kube-worker-0
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
@@ -126,14 +126,14 @@ status:
 There is a helper script available to trigger provisioning of one of these
 hosts.  To provision a host with CentOS 7, run:
 
-```
+```sh
 $ ./provision_host.sh kube-worker-0
 ```
 
 The `BareMetalHost` will go through the provisioning process, and will
 eventually reboot into the operating system we wrote to disk.
 
-```
+```sh
 $ kubectl get baremetalhost kube-worker-0 -n metal3
 NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
 kube-worker-0   OK       provisioned                     ipmi://192.168.111.1:6231   unknown            true     
@@ -141,13 +141,13 @@ kube-worker-0   OK       provisioned                     ipmi://192.168.111.1:62
 
 There is another helper script to deprovision a host.
 
-```
+```sh
 $ ./deprovision_host.sh kube-worker-0
 ```
 
 You will then see the host go into a `deprovisioning` status:
 
-```
+```sh
 $ kubectl get baremetalhost kube-worker-0 -n metal3
 NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
 kube-worker-0   OK       deprovisioning                  ipmi://192.168.111.1:6231   unknown            true
@@ -160,14 +160,14 @@ do this with the `openstack` command.
 
 First you must set these environment variables:
 
-```
+```sh
 export OS_TOKEN=fake-token
 export OS_URL=http://localhost:6385/
 ```
 
 Example:
 
-```
+```sh
 $ openstack baremetal node list
 +--------------------------------------+---------------+---------------+-------------+--------------------+-------------+
 | UUID                                 | Name          | Instance UUID | Power State | Provisioning State | Maintenance |
