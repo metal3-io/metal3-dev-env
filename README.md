@@ -139,6 +139,24 @@ NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                    
 kube-worker-0   OK       provisioned                     ipmi://192.168.111.1:6231   unknown            true     
 ```
 
+`provision_host.sh` will inject your SSH public key into the VM. To find the IP
+address, you can check the DHCP leases on the `baremetal` libvirt network.
+
+```sh
+$ sudo virsh net-dhcp-leases baremetal
+
+ Expiry Time          MAC address        Protocol  IP address                Hostname        Client ID or DUID
+-------------------------------------------------------------------------------------------------------------------
+ 2019-05-06 19:03:46  00:1c:cc:c6:29:39  ipv4      192.168.111.20/24         master-0        -
+ 2019-05-06 19:04:18  00:1c:cc:c6:29:3d  ipv4      192.168.111.21/24         worker-0        -
+```
+
+The default user for the CentOS image is `centos`.
+
+```sh
+ssh centos@192.168.111.21
+```
+
 There is another helper script to deprovision a host.
 
 ```sh
