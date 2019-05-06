@@ -171,6 +171,27 @@ NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                    
 kube-worker-0   OK       deprovisioning                  ipmi://192.168.111.1:6231   unknown            true
 ```
 
+# Running a Custom baremetal-operator
+
+The `baremetal-operator` comes up running in the cluster by default, using an
+image built from the `metal3-io/baremetal-operator` github repository.  If
+you’d like to test changes to the `baremetal-operator`, you can follow this
+process.
+
+First, you must scale down the deployment of the `baremetal-operator` running
+in the cluster.
+
+```sh
+kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
+```
+
+Then you can run the `baremetal-operator` locally including any custom changes.
+
+```sh
+cd ~/go/src/github.com/metal3-io/baremetal-operator
+make run
+```
+
 # Accessing the Ironic API
 
 Sometimes you may want to look directly at Ironic to debug something.  You can
