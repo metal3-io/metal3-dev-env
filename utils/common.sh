@@ -8,14 +8,11 @@ USER=`whoami`
 # Get variables from the config file
 if [ -z "${CONFIG:-}" ]; then
     # See if there's a config_$USER.sh in the SCRIPTDIR
-    if [ -f ${SCRIPTDIR}/../config_${USER}.sh ]; then
-        echo "Using CONFIG ${SCRIPTDIR}/../config_${USER}.sh"
-        CONFIG="${SCRIPTDIR}/../config_${USER}.sh"
-    else
-        echo "Please run with a configuration environment set."
-        echo "eg CONFIG=config_example.sh ./01_all_in_one.sh"
-        exit 1
+    if [ ! -f ${SCRIPTDIR}/../config_${USER}.sh ]; then
+        cp ${SCRIPTDIR}/../config_example.sh ${SCRIPTDIR}/../config_${USER}.sh
+        echo "Automatically created config_${USER}.sh with default contents."
     fi
+    CONFIG="${SCRIPTDIR}/../config_${USER}.sh"
 fi
 source $CONFIG
 

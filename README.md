@@ -10,7 +10,7 @@ Prerequisites:
 
 # Instructions
 
-tl;dr - Copy `config_example.sh` to `config_${USER}.sh`, then run `make`.
+tl;dr - Run `make`.
 
 The `Makefile` runs a series of scripts, described here:
 
