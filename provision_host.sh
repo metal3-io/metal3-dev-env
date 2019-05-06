@@ -12,9 +12,43 @@ if [ -z "${BMHOST}" ] ; then
     exit 1
 fi
 
+#
+# Our virtual bare metal environment is created with two networks: NIC 1)
+# "provisioning" NIC 2) "baremetal"
+#
+# cloud-init based images will only bring up the first network interface by
+# default.  We need it to bring up our second interface, as well.
+#
+# TODO(russellb) - It would be nice to make this more dynamic and also not
+# platform specific.  cloud-init knows how to read a network_data.json file
+# from config drive.  Maybe we could have the baremetal-operator automatically
+# generate a network_data.json file that says to do DHCP on all interfaces that
+# we know about from introspection.
+#
+network_config_files() {
+    if echo ${IMAGE_NAME} | grep -qi centos 2>/dev/null ; then
+cat << EOF
+write_files:
+- path: /etc/sysconfig/network-scripts/ifcfg-eth1
+  owner: root:root
+  permissions: '0644'
+  content: |
+    BOOTPROTO=dhcp
+    DEVICE=eth1
+    ONBOOT=yes
+    TYPE=Ethernet
+    USERCTL=no
+runcmd:
+ - [ ifup, eth1 ]
+EOF
+    fi
+}
+
 user_data_secret() {
     printf "#cloud-config\n\nssh_authorized_keys:\n  - " > .userdata.tmp
     cat ${SSH_PUB_KEY} >> .userdata.tmp
+    printf "\n" >> .userdata.tmp
+    network_config_files >> .userdata.tmp
 cat << EOF
 apiVersion: v1
 data:
