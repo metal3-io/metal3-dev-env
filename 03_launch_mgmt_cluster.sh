@@ -8,21 +8,20 @@ eval "$(go env)"
 
 M3PATH="${GOPATH}/src/github.com/metal3-io"
 BMOPATH="${M3PATH}/baremetal-operator"
+CAPBMPATH="${M3PATH}/cluster-api-provider-baremetal"
 
 function clone_repos() {
-    if [ ! -d ${M3PATH} ] ; then
-        mkdir -p ${M3PATH}
-    fi
-
+    mkdir -p ${M3PATH}
     if [ ! -d ${BMOPATH} ] ; then
         pushd ${M3PATH}
         git clone https://github.com/metal3-io/baremetal-operator.git
         popd
     fi
-    pushd ${BMOPATH}
-    #git checkout master
-    #git pull -r
-    popd
+    if [ ! -d ${CAPBMPATH} ] ; then
+        pushd ${M3PATH}
+        git clone https://github.com/metal3-io/cluster-api-provider-baremetal.git
+        popd
+    fi
 }
 
 function launch_minikube() {
@@ -76,7 +75,17 @@ function apply_bm_hosts() {
     kubectl apply -f bmhosts_crs.yaml -n metal3
 }
 
+#
+# Launch the cluster-api controller manager in the metal3 namespace.
+#
+function launch_cluster_api() {
+    pushd ${CAPBMPATH}
+    make deploy
+    popd
+}
+
 clone_repos
 launch_minikube
 launch_baremetal_operator
 apply_bm_hosts
+launch_cluster_api
