@@ -39,7 +39,8 @@ $ sudo virsh list
 ```
 
 Each of the VMs (aside from the `minikube` management cluster VM) are
-represented by `BareMetalHost` objects in our management cluster.
+represented by `BareMetalHost` objects in our management cluster.  The yaml
+used to create these host objects is in `bmhosts_crs.yaml`.
 
 ```sh
 $ kubectl get baremetalhosts -n metal3
