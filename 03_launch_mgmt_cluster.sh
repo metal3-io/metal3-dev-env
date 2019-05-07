@@ -9,36 +9,42 @@ eval "$(go env)"
 M3PATH="${GOPATH}/src/github.com/metal3-io"
 BMOPATH="${M3PATH}/baremetal-operator"
 
-if [ ! -d ${M3PATH} ] ; then
-    mkdir -p ${M3PATH}
-fi
+function clone_repos() {
+    if [ ! -d ${M3PATH} ] ; then
+        mkdir -p ${M3PATH}
+    fi
 
-if [ ! -d ${BMOPATH} ] ; then
-    pushd ${M3PATH}
-    git clone https://github.com/metal3-io/baremetal-operator.git
+    if [ ! -d ${BMOPATH} ] ; then
+        pushd ${M3PATH}
+        git clone https://github.com/metal3-io/baremetal-operator.git
+        popd
+    fi
+    pushd ${BMOPATH}
+    #git checkout master
+    #git pull -r
     popd
-fi
-pushd ${BMOPATH}
-#git checkout master
-#git pull -r
-popd
+}
 
-minikube start --vm-driver kvm2
-# The interface doesn't appear in the minikube VM with --live,
-# so just attach it and make it reboot.
-sudo virsh attach-interface --domain minikube \
-    --model virtio --source provisioning \
-    --type network --config
-minikube stop
-minikube start --vm-driver kvm2
+function launch_minikube() {
+    minikube start --vm-driver kvm2
+    # The interface doesn't appear in the minikube VM with --live,
+    # so just attach it and make it reboot.
+    sudo virsh attach-interface --domain minikube \
+        --model virtio --source provisioning \
+        --type network --config
+    minikube stop
+    minikube start --vm-driver kvm2
+}
 
-DEPLOY_DIR=${BMOPATH}/deploy
-echo '{ "kind": "Namespace", "apiVersion": "v1", "metadata": { "name": "metal3", "labels": { "name": "metal3" } } }' | kubectl apply -f -
-kubectl apply -f ${DEPLOY_DIR}/service_account.yaml -n metal3
-kubectl apply -f ${DEPLOY_DIR}/role.yaml -n metal3
-kubectl apply -f ${DEPLOY_DIR}/role_binding.yaml
-kubectl apply -f ${DEPLOY_DIR}/crds/metal3_v1alpha1_baremetalhost_crd.yaml
-kubectl apply -f ${DEPLOY_DIR}/operator.yaml -n metal3
+function launch_baremetal_operator() {
+    DEPLOY_DIR=${BMOPATH}/deploy
+    echo '{ "kind": "Namespace", "apiVersion": "v1", "metadata": { "name": "metal3", "labels": { "name": "metal3" } } }' | kubectl apply -f -
+    kubectl apply -f ${DEPLOY_DIR}/service_account.yaml -n metal3
+    kubectl apply -f ${DEPLOY_DIR}/role.yaml -n metal3
+    kubectl apply -f ${DEPLOY_DIR}/role_binding.yaml
+    kubectl apply -f ${DEPLOY_DIR}/crds/metal3_v1alpha1_baremetalhost_crd.yaml
+    kubectl apply -f ${DEPLOY_DIR}/operator.yaml -n metal3
+}
 
 function list_nodes() {
     # Includes -machine and -machine-namespace
@@ -69,6 +75,12 @@ function make_bm_hosts() {
     done
 }
 
-list_nodes | make_bm_hosts > bmhosts_crs.yaml
+function apply_bm_hosts() {
+    list_nodes | make_bm_hosts > bmhosts_crs.yaml
+    kubectl apply -f bmhosts_crs.yaml -n metal3
+}
 
-kubectl apply -f bmhosts_crs.yaml -n metal3
+clone_repos
+launch_minikube
+launch_baremetal_operator
+apply_bm_hosts
