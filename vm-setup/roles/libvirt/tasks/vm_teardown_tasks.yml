@@ -1,0 +1,94 @@
+# NB: We use `virsh` here instead of the `virt` module because
+# these tasks may be called before the dependencies of the `virt`
+# module are satisfied.
+
+- name: Check if libvirt is available
+  command: >
+    virsh uri
+  ignore_errors: true
+  changed_when: false
+  register: libvirt_check
+  environment:
+    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+
+# If libvirt isn't available we can skip everything else.
+- when: libvirt_check is success
+  environment:
+    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+  block:
+
+    - when: vm_nodes
+      block:
+
+        # Check if the vm nodes exist.
+        - name: Check vm vms
+          command: >
+            virsh domid "{{ item.name }}"
+          with_items: "{{ vm_nodes }}"
+          ignore_errors: true
+          register: vm_check
+
+        # Destroy and undefine the vm nodes.
+        - name: Destroy vm vms
+          command:
+            virsh destroy "{{ item.item.name }}"
+          when: item is success
+          with_items: "{{ vm_check.results }}"
+          ignore_errors: true
+
+        - name: Undefine vm vms
+          command:
+            virsh undefine "{{ item.item.name }}"
+          when: item is success
+          with_items: "{{ vm_check.results }}"
+
+        # The `virsh vol-dumpxml ... > /dev/null` is here (and elsewhere) due to
+        # [1293804].
+        #
+        # [1293804]: https://bugzilla.redhat.com/show_bug.cgi?id=1293804
+        - name: Delete baremetal vm storage
+          shell: |
+            virsh vol-dumpxml --pool '{{ libvirt_volume_pool }}' \
+              '{{ item.name }}'.qcow2 2>&1 > /dev/null
+            virsh vol-delete --pool '{{ libvirt_volume_pool }}' \
+              '{{ item.name }}'.qcow2
+          with_items: "{{ vm_nodes }}"
+          ignore_errors: true
+
+    - name: Check volume pool
+      command: >
+        virsh pool-uuid "{{ libvirt_volume_pool }}"
+      register: pool_check
+      ignore_errors: true
+
+    # See https://www.redhat.com/archives/libvirt-users/2016-March/msg00123.html
+    # TL;DR: ensure that the pool really exists if the previous
+    # task says it does.
+    - name: Work around libvirt bug
+      shell: |
+        virsh pool-dumpxml "{{ libvirt_volume_pool }}" |
+        virsh pool-define /dev/stdin
+      when: pool_check is success
+
+    - name: Destroy volume pool
+      command: >
+        virsh pool-destroy "{{ libvirt_volume_pool }}"
+      when: pool_check is success
+      ignore_errors: true
+
+    - name: Undefine volume pool
+      command: >
+        virsh pool-undefine "{{ libvirt_volume_pool }}"
+      when: pool_check is success
+
+    - name: Get UID of pool user
+      command: id -u "{{ ansible_user_id }}"
+      register: pool_uid
+      changed_when: false
+      when: pool_check is success
+
+    - name: Destroy pool definition file
+      file:
+        path: "/run/user/{{ pool_uid.stdout }}/libvirt/storage/run/{{ libvirt_volume_pool }}.xml"
+        state: absent
+      when: pool_check is success

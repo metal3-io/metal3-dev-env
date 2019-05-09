@@ -1,0 +1,13 @@
+---
+- name: Setup dummy baremetal VMs
+  hosts: virthost
+  connection: local
+  gather_facts: true
+  tasks:
+    - import_role:
+        name: common
+    - import_role:
+        name: libvirt
+    - import_role:
+        name: virtbmc
+      when: vm_platform|default("libvirt") == "libvirt"

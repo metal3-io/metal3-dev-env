@@ -1,0 +1,13 @@
+- name: libvirt role setup tasks
+  block:
+    - include_tasks: install_setup_tasks.yml
+    - include_tasks: network_setup_tasks.yml
+    - include_tasks: vm_setup_tasks.yml
+      when: vm_platform == "libvirt"
+  when: libvirt_action == "setup"
+
+- name: libvirt role teardown tasks
+  block:
+    - include_tasks: network_teardown_tasks.yml
+    - include_tasks: vm_teardown_tasks.yml
+  when: libvirt_action == "teardown"

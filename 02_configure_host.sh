@@ -16,23 +16,16 @@ if sudo [ ! -f /root/.ssh/id_rsa_virt_power ]; then
   sudo cat /root/.ssh/id_rsa_virt_power.pub | sudo tee -a /root/.ssh/authorized_keys
 fi
 
-# This script will create some libvirt VMs do act as "dummy baremetal"
-# then configure python-virtualbmc to control them
-export ANSIBLE_LIBRARY=./vm-setup/library
-
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
-    -e "non_root_user=$USER" \
     -e "working_dir=$WORKING_DIR" \
-    -e "roles_path=$PWD/roles" \
     -e "num_masters=$NUM_MASTERS" \
     -e "num_workers=$NUM_WORKERS" \
     -e "extradisks=$VM_EXTRADISKS" \
     -e "virthost=$HOSTNAME" \
     -e "platform=$NODES_PLATFORM" \
     -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
-    -e @vm-setup/config/environments/dev_privileged_libvirt.yml \
-    -i vm-setup/tripleo-quickstart-config/metalkube-inventory.ini \
-    -b -vvv vm-setup/tripleo-quickstart-config/metalkube-setup-playbook.yml
+    -i vm-setup/inventory.ini \
+    -b -vvv vm-setup/setup-playbook.yml
 
 # Allow local non-root-user access to libvirt
 # Restart libvirtd service to get the new group membership loaded

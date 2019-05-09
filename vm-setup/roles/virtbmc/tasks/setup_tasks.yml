@@ -1,0 +1,79 @@
+---
+
+- name: Create VirtualBMC directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0750
+    owner: root
+    group: root
+  with_items:
+    - "/etc/virtualbmc"
+    - "/var/log/virtualbmc"
+  become: true
+
+- name: Create VirtualBMC configuration file
+  copy:
+    mode: 0750
+    dest: "/etc/virtualbmc/virtualbmc.conf"
+    content: |
+      [default]
+      config_dir=/root/.vbmc
+      [log]
+      logfile=/var/log/virtualbmc/virtualbmc.log
+      debug=True
+      [ipmi]
+      session_timout=20
+  become: true
+
+- name: get virthost non_root_user userid
+  command: id -u {{ non_root_user }}
+  register: non_root_user_uid
+
+- name: set fact on non_root_user_uid
+  set_fact:
+    non_root_user_uid: "{{ non_root_user_uid.stdout }}"
+
+# The first network defined with an address will be used for vbmc access.
+- name: set vbmc address if there is a (nat) network defined with an address
+  set_fact:
+    vbmc_address: "{{ networks|selectattr('address', 'defined')|map(attribute='address')|list|first }}"
+  when: networks|selectattr('address', 'defined')|map(attribute='name')|list|length > 0
+
+# The connection uri is slightly different when using qemu:///system
+# and requires the root user.
+- name: set qemu uri for qemu:///system usage
+  set_fact:
+    vbmc_libvirt_uri: "qemu+ssh://root@{{ vbmc_address }}/system?&keyfile=/root/.ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
+  when: libvirt_uri == "qemu:///system"
+
+- name: set qemu uri for qemu:///session usage
+  set_fact:
+    vbmc_libvirt_uri: "qemu+ssh://{{ non_root_user }}@{{ vbmc_address }}/session?socket=/run/user/{{ non_root_user_uid }}/libvirt/libvirt-sock&keyfile=/root/.ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
+  when: vbmc_libvirt_uri is not defined
+
+- name: Install VirtualBMC package
+  package:
+    name: "python2-virtualbmc"
+    state: present
+    use: yum
+  become: true
+
+- name: Start the Virtual BMCs (virtualbmc >= 1.4.0+)
+  service:
+    name: "virtualbmc"
+    state: started
+    enabled: true
+  become: true
+
+- name: Create the Virtual BMCs
+  command: "vbmc add {{ item.name }} --port {{ item.virtualbmc_port }} --libvirt-uri {{ vbmc_libvirt_uri }}"
+  args:
+    creates: /root/.vbmc/{{ item.name }}/config
+  with_items: "{{ vm_nodes }}"
+  become: true
+
+- name: Start the Virtual BMCs
+  script: vbmc_start.sh {{ item.name }}
+  with_items: "{{ vm_nodes }}"
+  become: true

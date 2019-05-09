@@ -1,0 +1,4 @@
+- include_tasks: setup_tasks.yml
+  when: virtbmc_action == "setup"
+- include_tasks: teardown_tasks.yml
+  when: virtbmc_action == "teardown"
