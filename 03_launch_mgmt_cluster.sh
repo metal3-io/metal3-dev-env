@@ -37,7 +37,7 @@ function launch_minikube() {
 }
 
 function launch_baremetal_operator() {
-    pushd ${CAPBMPATH}
+    pushd ${BMOPATH}
     make deploy
     popd
 }
