@@ -37,13 +37,9 @@ function launch_minikube() {
 }
 
 function launch_baremetal_operator() {
-    DEPLOY_DIR=${BMOPATH}/deploy
-    echo '{ "kind": "Namespace", "apiVersion": "v1", "metadata": { "name": "metal3", "labels": { "name": "metal3" } } }' | kubectl apply -f -
-    kubectl apply -f ${DEPLOY_DIR}/service_account.yaml -n metal3
-    kubectl apply -f ${DEPLOY_DIR}/role.yaml -n metal3
-    kubectl apply -f ${DEPLOY_DIR}/role_binding.yaml
-    kubectl apply -f ${DEPLOY_DIR}/crds/metal3_v1alpha1_baremetalhost_crd.yaml
-    kubectl apply -f ${DEPLOY_DIR}/operator.yaml -n metal3
+    pushd ${CAPBMPATH}
+    make deploy
+    popd
 }
 
 function list_nodes() {
