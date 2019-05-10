@@ -17,11 +17,17 @@ function clone_repos() {
         git clone https://github.com/metal3-io/baremetal-operator.git
         popd
     fi
+    pushd ${BMOPATH}
+    git pull -r
+    popd
     if [ ! -d ${CAPBMPATH} ] ; then
         pushd ${M3PATH}
         git clone https://github.com/metal3-io/cluster-api-provider-baremetal.git
         popd
     fi
+    pushd ${CAPBMPATH}
+    git pull -r
+    popd
 }
 
 function launch_minikube() {
