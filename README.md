@@ -3,12 +3,25 @@ Metal³ Development Environment
 
 This repository includes scripts to set up a Metal³ development environment.
 
-Prerequisites:
+   * [Instructions](#instructions)
+      * [Prerequisites](#prerequisites)
+      * [Setup](#setup)
+   * [Working with the Environment](#working-with-the-environment)
+      * [Bare Metal Hosts](#bare-metal-hosts)
+      * [Provisioning a Machine](#provisioning-a-machine)
+      * [Directly Provisioning Bare Metal Hosts](#directly-provisioning-bare-metal-hosts)
+      * [Running a Custom baremetal-operator](#running-a-custom-baremetal-operator)
+      * [Accessing the Ironic API](#accessing-the-ironic-api)
+
+# Instructions
+
+## Prerequisites
+
  * System with CentOS 7
  * Bare metal preferred, as we will be creating VMs to emulate bare metal hosts
  * run as a user with passwordless sudo access
 
-# Instructions
+## Setup
 
 tl;dr - Run `make`.
 
@@ -24,7 +37,9 @@ The `Makefile` runs a series of scripts, described here:
 
 To tear down the environment, run `make clean`.
 
-# Bare Metal Hosts
+# Working with the Environment
+
+## Bare Metal Hosts
 
 This environment creates a set of VMs to manage as if they were bare metal
 hosts.  You can see the VMs using `virsh`.
@@ -124,7 +139,7 @@ status:
     state: ready
 ```
 
-# Provisioning a Machine
+## Provisioning a Machine
 
 This section describes how to trigger provisioning of a host via `Machine`
 objects as part of the `cluster-api` integration.
@@ -224,7 +239,7 @@ kube-master-0   OK       ready                           ipmi://192.168.111.1:62
 kube-worker-0   OK       deprovisioning                  ipmi://192.168.111.1:6231   unknown            false    
 ```
 
-# Directly Provisioning Bare Metal Hosts
+## Directly Provisioning Bare Metal Hosts
 
 It’s also possible to provision via the `BareMetalHost` interface directly
 without using the `cluster-api` integration.
@@ -277,7 +292,7 @@ NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                    
 kube-worker-0   OK       deprovisioning                  ipmi://192.168.111.1:6231   unknown            true
 ```
 
-# Running a Custom baremetal-operator
+## Running a Custom baremetal-operator
 
 The `baremetal-operator` comes up running in the cluster by default, using an
 image built from the `metal3-io/baremetal-operator` github repository.  If
@@ -298,7 +313,7 @@ cd ~/go/src/github.com/metal3-io/baremetal-operator
 make run
 ```
 
-# Accessing the Ironic API
+## Accessing the Ironic API
 
 Sometimes you may want to look directly at Ironic to debug something.  You can
 do this with the `openstack` command.
