@@ -124,6 +124,111 @@ status:
     state: ready
 ```
 
+# Provisioning a Machine
+
+This section describes how to trigger provisioning of a host via `Machine`
+objects as part of the `cluster-api` integration.
+
+First, run the `create_machine.sh` script to create a `Machine`.  The argument
+is a name, and does not have any special meaning.
+
+```sh
+$ ./create_machine.sh centos
+
+secret/centos-user-data created
+machine.cluster.k8s.io/centos created
+```
+
+At this point, the `Machine` actuator will respond and try to claim a
+`BareMetalHost` for this `Machine`.  You can check the logs of the actuator
+here:
+
+```sh
+$ kubectl logs -n metal3 pod/cluster-api-provider-baremetal-controller-manager-0 -c manager
+
+{“level”:”info”,”ts”:1557509343.85325,”logger”:”baremetal-controller-manager”,”msg”:”Found API group metal3.io/v1alpha1”}
+{“level”:”info”,”ts”:1557509344.0471826,”logger”:”kubebuilder.controller”,”msg”:”Starting EventSource”,”controller”:”machine-controller”,”source”:”kind source: /, Kind=”}
+{“level”:”info”,”ts”:1557509344.14783,”logger”:”kubebuilder.controller”,”msg”:”Starting Controller”,”controller”:”machine-controller”}
+{“level”:”info”,”ts”:1557509344.248105,”logger”:”kubebuilder.controller”,”msg”:”Starting workers”,”controller”:”machine-controller”,”worker count”:1}
+2019/05/10 17:32:33 Checking if machine centos exists.
+2019/05/10 17:32:33 Machine centos does not exist.
+2019/05/10 17:32:33 Creating machine centos .
+2019/05/10 17:32:33 2 hosts available
+2019/05/10 17:32:33 Associating machine centos with host kube-worker-0
+2019/05/10 17:32:33 Finished creating machine centos .
+2019/05/10 17:32:33 Checking if machine centos exists.
+2019/05/10 17:32:33 Machine centos exists.
+2019/05/10 17:32:33 Updating machine centos .
+2019/05/10 17:32:33 Finished updating machine centos .
+```
+
+If you look at the yaml representation of the `Machine`, you will see a new
+annotation that identifies which `BareMetalHost` was chosen to satisfy this
+`Machine` request.
+
+```sh
+$ kubectl get machine centos -n metal3 -o yaml
+
+...
+  annotations:
+    metal3.io/BareMetalHost: metal3/kube-worker-0
+...
+```
+
+You can also see in the list of `BareMetalHosts` that one of the hosts is now
+provisioned and associated with a `Machine`.
+
+```sh
+$ kubectl get baremetalhosts -n metal3
+
+NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
+kube-master-0   OK       ready                           ipmi://192.168.111.1:6230   unknown            true     
+kube-worker-0   OK       provisioned           centos    ipmi://192.168.111.1:6231   unknown            true     
+```
+
+You should be able to ssh into your host once provisioning is complete.  See
+the libvirt DHCP leases to find the IP address for the host that was
+provisioned.  In this case, it’s `worker-0`.
+
+```sh
+$ sudo virsh net-dhcp-leases baremetal
+
+ Expiry Time          MAC address        Protocol  IP address                Hostname        Client ID or DUID
+-------------------------------------------------------------------------------------------------------------------
+ 2019-05-06 19:03:46  00:1c:cc:c6:29:39  ipv4      192.168.111.20/24         master-0        -
+ 2019-05-06 19:04:18  00:1c:cc:c6:29:3d  ipv4      192.168.111.21/24         worker-0        -
+```
+
+The default user for the CentOS image is `centos`.
+
+```sh
+ssh centos@192.168.111.21
+```
+
+Deprovisioning is done just by deleting the `Machine` object.
+
+```sh
+$ kubectl delete machine centos -n metal3
+
+machine.cluster.k8s.io "centos" deleted
+```
+
+At this point you can see that the `BareMetalHost` is going through a
+deprovisioning process.
+
+```sh
+$ kubectl get baremetalhosts -n metal3
+
+NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
+kube-master-0   OK       ready                           ipmi://192.168.111.1:6230   unknown            true     
+kube-worker-0   OK       deprovisioning                  ipmi://192.168.111.1:6231   unknown            false    
+```
+
+# Directly Provisioning Bare Metal Hosts
+
+It’s also possible to provision via the `BareMetalHost` interface directly
+without using the `cluster-api` integration.
+
 There is a helper script available to trigger provisioning of one of these
 hosts.  To provision a host with CentOS 7, run:
 
