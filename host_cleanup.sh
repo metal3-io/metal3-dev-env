@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -x
 
-source utils/logging.sh
-source utils/common.sh
+source lib/logging.sh
+source lib/common.sh
 
 # Kill and remove the running ironic containers
 for name in ironic ironic-inspector dnsmasq httpd mariadb; do

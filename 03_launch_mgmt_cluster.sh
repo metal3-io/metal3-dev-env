@@ -1,8 +1,8 @@
 #!/bin/bash
 set -xe
 
-source utils/logging.sh
-source utils/common.sh
+source lib/logging.sh
+source lib/common.sh
 
 eval "$(go env)"
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source utils/common.sh
+source lib/common.sh
 
 BMHOST=$1
 IMAGE_NAME=${2:-CentOS-7-x86_64-GenericCloud-1901.qcow2}

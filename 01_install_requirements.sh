@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -ex
 
-source utils/logging.sh
+source lib/logging.sh
 
 sudo yum install -y libselinux-utils
 if selinuxenabled ; then

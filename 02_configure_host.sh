@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -xe
 
-source utils/logging.sh
-source utils/common.sh
+source lib/logging.sh
+source lib/common.sh
 
 # Generate user ssh key
 if [ ! -f $HOME/.ssh/id_rsa.pub ]; then
