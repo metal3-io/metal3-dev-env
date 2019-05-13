@@ -313,6 +313,25 @@ cd ~/go/src/github.com/metal3-io/baremetal-operator
 make run
 ```
 
+## Running a Custom cluster-api-provider-baremetal
+
+There are two cluster-api related managers running in the cluster.  One
+includes set of generic controllers, and the other includes a custom Machine
+controller for baremetal.  If you want to try changes to
+`cluster-api-provider-baremetal`, you want to shut down the custom Machine
+controller manager first.
+
+```sh
+$ kubectl scale statefulset cluster-api-provider-baremetal-controller-manager -n metal3 --replicas=0
+```
+
+Then you can run the custom Machine controller manager out of your local git tree.
+
+```sh
+cd ~/go/src/github.com/metal3-io/cluster-api-provider-baremetal
+make run
+```
+
 ## Accessing the Ironic API
 
 Sometimes you may want to look directly at Ironic to debug something.  You can
