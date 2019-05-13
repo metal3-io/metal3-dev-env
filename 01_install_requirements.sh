@@ -104,3 +104,8 @@ if ! which kubectl 2>/dev/null ; then
     curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl \
         && chmod +x kubectl && sudo mv kubectl /usr/local/bin/.
 fi
+
+if ! which kustomize 2>/dev/null ; then
+    curl -Lo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v2.0.3/kustomize_2.0.3_linux_amd64 \
+          && chmod +x kustomize && sudo mv kustomize /usr/local/bin/.
+fi
