@@ -1,0 +1,45 @@
+non_root_user: "{{ lookup('env', 'USER') }}"
+
+# base domain to use
+cluster_domain: "{{ lookup('env', 'CLUSTER_DOMAIN') | default('ostest.test.metalkube.org', true) }}"
+
+# allow the nic model to be overridden
+libvirt_nic_model: virtio
+
+# These defaults are used if there are no flavor-specific
+# overrides configured.
+default_disk: 50
+default_memory: 8096
+default_vcpu: 4
+num_masters: 1
+num_workers: 1
+extradisks: false
+virtualbmc_base_port: 6230
+flavors:
+  master:
+    memory: '{{master_memory|default(default_memory)}}'
+    disk: '{{master_disk|default(default_disk)}}'
+    vcpu: '{{master_vcpu|default(default_vcpu)}}'
+    extradisks: '{{extradisks}}'
+
+  worker:
+    memory: '{{worker_memory|default(default_memory)}}'
+    disk: '{{worker_disk|default(default_disk)}}'
+    vcpu: '{{worker_vcpu|default(default_vcpu)}}'
+    extradisks: '{{extradisks}}'
+
+# For dev-scripts usage this currently needs to be set to "openshift_"
+ironic_prefix: ""
+
+baremetal_network_cidr: "{{ lookup('env', 'EXTERNAL_SUBNET') | default('192.168.111.0/24', true) }}"
+
+# Set this to `false` if you don't want your vms
+# to have a VNC console available.
+enable_vnc_console: true
+
+# Path for volume storage
+libvirt_volume_path: "{{ working_dir }}/pool"
+
+# These ensure we're using privileged virt, so VMs persist over reboot
+libvirt_uri: qemu:///system
+ssh_user: root

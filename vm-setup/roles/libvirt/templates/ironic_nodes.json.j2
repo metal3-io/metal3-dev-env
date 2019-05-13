@@ -1,0 +1,39 @@
+{% set lvars = { 'host_ip' : '192.168.122.1', 'pxe_network' : False} %}
+{% for network in networks %}
+{% if (not (network.forward_mode is defined and network.forward_mode == 'nat') and lvars['pxe_network'] == False) %}
+{% if lvars.update({'pxe_network' : network.name}) %}{% endif %}
+{% endif %}
+{% if network.address is defined and lvars['host_ip'] == '192.168.122.1' %}
+{% if lvars.update({'host_ip' : network.address}) %}{% endif %}
+{% endif %}
+{% endfor %}
+{
+  "nodes": [
+  {% for node in vm_nodes %}
+    {
+      "name": "{{ node.name|replace('_', '-') }}",
+      "driver": "ipmi",
+      "resource_class": "baremetal",
+      "driver_info": {
+        "ipmi_username": "admin",
+        "ipmi_password": "password",
+        "ipmi_address": "{{ lvars['host_ip'] }}",
+        "ipmi_port": "{{ node.virtualbmc_port }}",
+        "deploy_kernel": "http://172.22.0.1/images/ironic-python-agent.kernel",
+        "deploy_ramdisk": "http://172.22.0.1/images/ironic-python-agent.initramfs"
+      },
+      "ports": [{
+        "address": "{{ node_mac_map.get(node.name).get(lvars['pxe_network']) }}",
+        "pxe_enabled": true
+      }],
+      "properties": {
+        "local_gb": "{{ flavors[node.flavor].disk }}",
+        "cpu_arch": "{{ libvirt_arch }}"
+      }
+    }
+    {% if not loop.last %}
+    ,
+    {% endif %}
+  {% endfor %}
+  ]
+}

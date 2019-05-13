@@ -1,0 +1,15 @@
+- name: Stop libvirt networks
+  virt_net:
+    command: destroy
+    name: "{{ item.name }}"
+    state: inactive
+  with_items: "{{ networks }}"
+  become: true
+
+- name: Delete libvirt networks
+  virt_net:
+    command: undefine
+    state: absent
+    name: "{{ item.name }}"
+  with_items: "{{ networks }}"
+  become: true
