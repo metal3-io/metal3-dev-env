@@ -18,7 +18,7 @@ function clone_repos() {
         popd
     fi
     pushd ${BMOPATH}
-    git pull -r
+    git pull -r || true
     popd
     if [ ! -d ${CAPBMPATH} ] ; then
         pushd ${M3PATH}
@@ -26,7 +26,7 @@ function clone_repos() {
         popd
     fi
     pushd ${CAPBMPATH}
-    git pull -r
+    git pull -r || true
     popd
 }
 
