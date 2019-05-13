@@ -56,6 +56,9 @@ popd
 # Needed to get a recent python-virtualbmc package
 sudo tripleo-repos current-tripleo
 
+# Disable rdo-qemu-ev repo as there are issues running in nested virt currently
+sudo yum-config-manager --disable rdo-qemu-ev
+
 # There are some packages which are newer in the tripleo repos
 sudo yum -y update
 
