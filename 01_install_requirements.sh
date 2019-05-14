@@ -83,7 +83,8 @@ sudo yum -y install \
   qemu-kvm \
   virt-install \
   unzip \
-  yarn
+  yarn \
+  genisoimage
 
 # Install python packages not included as rpms
 sudo pip install \
