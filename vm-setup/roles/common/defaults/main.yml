@@ -20,13 +20,13 @@ flavors:
     memory: '{{master_memory|default(default_memory)}}'
     disk: '{{master_disk|default(default_disk)}}'
     vcpu: '{{master_vcpu|default(default_vcpu)}}'
-    extradisks: '{{extradisks}}'
+    extradisks: '{{extradisks|bool}}'
 
   worker:
     memory: '{{worker_memory|default(default_memory)}}'
     disk: '{{worker_disk|default(default_disk)}}'
     vcpu: '{{worker_vcpu|default(default_vcpu)}}'
-    extradisks: '{{extradisks}}'
+    extradisks: '{{extradisks|bool}}'
 
 # For dev-scripts usage this currently needs to be set to "openshift_"
 ironic_prefix: ""
