@@ -59,80 +59,84 @@ used to create these host objects is in `bmhosts_crs.yaml`.
 
 ```sh
 $ kubectl get baremetalhosts -n metal3
-NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
-kube-master-0   OK       ready                           ipmi://192.168.111.1:6230   unknown            true     
-kube-worker-0   OK       ready                           ipmi://192.168.111.1:6233   unknown            true     
+NAME       STATUS    PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE    ERROR
+master-0   OK        ready                           ipmi://192.168.111.1:6230   unknown            true      
+worker-0   OK        ready                           ipmi://192.168.111.1:6231   unknown            true      
 ```
 
 You can also look at the details of a host, including the hardware information
 gathered by doing pre-deployment introspection.
 
 ```sh
-$ kubectl get baremetalhost -n metal3 -oyaml kube-worker-0
+$ kubectl get baremetalhost -n metal3 -oyaml worker-0
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"metal3.io/v1alpha1","kind":"BareMetalHost","metadata":{"annotations":{},"name":"kube-worker-0","namespace":"metal3"},"spec":{"bmc":{"address":"ipmi://192.168.111.1:6233","credentialsName":"kube-worker-0-bmc-secret"},"bootMACAddress":"00:93:1e:b1:74:87","online":true}}
-  creationTimestamp: "2019-05-03T18:24:45Z"
+      {"apiVersion":"metal3.io/v1alpha1","kind":"BareMetalHost","metadata":{"annotations":{},"name":"worker-0","namespace":"metal3"},"spec":{"bmc":{"address":"ipmi://192.168.111.1:6231","credentialsName":"worker-0-bmc-secret"},"bootMACAddress":"00:c2:fc:3b:8e:b5","online":true}}
+  creationTimestamp: 2019-05-27T14:16:07Z
   finalizers:
   - baremetalhost.metal3.io
   generation: 2
-  name: kube-worker-0
+  name: worker-0
   namespace: metal3
-  resourceVersion: "1382"
-  selfLink: /apis/metal3.io/v1alpha1/namespaces/metal3/baremetalhosts/kube-worker-0
-  uid: ba1d5285-6dd0-11e9-86cf-4c9a6490472b
+  resourceVersion: "1180"
+  selfLink: /apis/metal3.io/v1alpha1/namespaces/metal3/baremetalhosts/worker-0
+  uid: f878526e-8089-11e9-93f1-3c93b777d2dc
 spec:
   bmc:
-    address: ipmi://192.168.111.1:6233
-    credentialsName: kube-worker-0-bmc-secret
-  bootMACAddress: 00:93:1e:b1:74:87
+    address: ipmi://192.168.111.1:6231
+    credentialsName: worker-0-bmc-secret
+  bootMACAddress: 00:c2:fc:3b:8e:b5
+  description: ""
   hardwareProfile: ""
   online: true
 status:
   errorMessage: ""
   goodCredentials:
     credentials:
-      name: kube-worker-0-bmc-secret
+      name: worker-0-bmc-secret
       namespace: metal3
-    credentialsVersion: "807"
+    credentialsVersion: "802"
   hardware:
     cpu:
-      count: 2
-      model: Intel(R) Core(TM) i7-7567U CPU @ 3.50GHz
-      speedGHz: 3.50401
+      count: 4
+      model: Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz
+      speedGHz: 2.199996
       type: x86_64
     nics:
-    - ip: 172.22.0.54
-      mac: 00:93:1e:b1:74:87
-      model: 0x1af4 0x0001
-      name: eth0
-      network: Pod Networking
-      speedGbps: 0
-    - ip: 192.168.111.23
-      mac: 00:93:1e:b1:74:89
+    - ip: 192.168.111.21
+      mac: 00:c2:fc:3b:8e:b7
       model: 0x1af4 0x0001
       name: eth1
       network: Pod Networking
       speedGbps: 0
-    ramGiB: 4
+    - ip: 172.22.0.32
+      mac: 00:c2:fc:3b:8e:b5
+      model: 0x1af4 0x0001
+      name: eth0
+      network: Pod Networking
+      speedGbps: 0
+    ramGiB: 7
     storage:
-    - model: QEMU QEMU HARDDISK
+    - hctl: "2:0:0:0"
+      model: QEMU HARDDISK
       name: /dev/sda
+      serialNumber: drive-scsi0-0-0-0
       sizeGiB: 50
       type: HDD
-    - model: '0x1af4 '
-      name: /dev/vda
-      sizeGiB: 8
-      type: HDD
+      vendor: QEMU
+    systemVendor:
+      manufacturer: Red Hat
+      productName: KVM
+      serialNumber: ""
   hardwareProfile: unknown
-  lastUpdated: "2019-05-03T18:29:58Z"
+  lastUpdated: 2019-05-27T14:20:27Z
   operationalStatus: OK
   poweredOn: true
   provisioning:
-    ID: c718759b-518e-446b-afd2-010374971f81
+    ID: 36dac1b9-a2ec-40b0-98b7-89dc13ca6e29
     image:
       checksum: ""
       url: ""
@@ -169,7 +173,7 @@ $ kubectl logs -n metal3 pod/cluster-api-provider-baremetal-controller-manager-0
 2019/05/10 17:32:33 Machine centos does not exist.
 2019/05/10 17:32:33 Creating machine centos .
 2019/05/10 17:32:33 2 hosts available
-2019/05/10 17:32:33 Associating machine centos with host kube-worker-0
+2019/05/10 17:32:33 Associating machine centos with host worker-0
 2019/05/10 17:32:33 Finished creating machine centos .
 2019/05/10 17:32:33 Checking if machine centos exists.
 2019/05/10 17:32:33 Machine centos exists.
@@ -186,7 +190,7 @@ $ kubectl get machine centos -n metal3 -o yaml
 
 ...
   annotations:
-    metal3.io/BareMetalHost: metal3/kube-worker-0
+    metal3.io/BareMetalHost: metal3/worker-0
 ...
 ```
 
@@ -196,9 +200,9 @@ provisioned and associated with a `Machine`.
 ```sh
 $ kubectl get baremetalhosts -n metal3
 
-NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
-kube-master-0   OK       ready                           ipmi://192.168.111.1:6230   unknown            true     
-kube-worker-0   OK       provisioned           centos    ipmi://192.168.111.1:6231   unknown            true     
+NAME       STATUS    PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE    ERROR
+master-0   OK        ready                           ipmi://192.168.111.1:6230   unknown            true      
+worker-0   OK        provisioning          centos    ipmi://192.168.111.1:6231   unknown            true      
 ```
 
 You should be able to ssh into your host once provisioning is complete.  See
@@ -234,9 +238,9 @@ deprovisioning process.
 ```sh
 $ kubectl get baremetalhosts -n metal3
 
-NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
-kube-master-0   OK       ready                           ipmi://192.168.111.1:6230   unknown            true     
-kube-worker-0   OK       deprovisioning                  ipmi://192.168.111.1:6231   unknown            false    
+NAME       STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
+master-0   OK       ready                           ipmi://192.168.111.1:6230   unknown            true     
+worker-0   OK       deprovisioning                  ipmi://192.168.111.1:6231   unknown            false    
 ```
 
 ## Directly Provisioning Bare Metal Hosts
@@ -248,16 +252,16 @@ There is a helper script available to trigger provisioning of one of these
 hosts.  To provision a host with CentOS 7, run:
 
 ```sh
-$ ./provision_host.sh kube-worker-0
+$ ./provision_host.sh worker-0
 ```
 
 The `BareMetalHost` will go through the provisioning process, and will
 eventually reboot into the operating system we wrote to disk.
 
 ```sh
-$ kubectl get baremetalhost kube-worker-0 -n metal3
-NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
-kube-worker-0   OK       provisioned                     ipmi://192.168.111.1:6231   unknown            true     
+$ kubectl get baremetalhost worker-0 -n metal3
+NAME       STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
+worker-0   OK       provisioned                     ipmi://192.168.111.1:6231   unknown            true     
 ```
 
 `provision_host.sh` will inject your SSH public key into the VM. To find the IP
@@ -281,15 +285,15 @@ ssh centos@192.168.111.21
 There is another helper script to deprovision a host.
 
 ```sh
-$ ./deprovision_host.sh kube-worker-0
+$ ./deprovision_host.sh worker-0
 ```
 
 You will then see the host go into a `deprovisioning` status:
 
 ```sh
-$ kubectl get baremetalhost kube-worker-0 -n metal3
-NAME            STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
-kube-worker-0   OK       deprovisioning                  ipmi://192.168.111.1:6231   unknown            true
+$ kubectl get baremetalhost worker-0 -n metal3
+NAME       STATUS   PROVISIONING STATUS   MACHINE   BMC                         HARDWARE PROFILE   ONLINE   ERROR
+worker-0   OK       deprovisioning                  ipmi://192.168.111.1:6231   unknown            true
 ```
 
 ## Running a Custom baremetal-operator
@@ -348,10 +352,10 @@ Example:
 
 ```sh
 $ openstack baremetal node list
-+--------------------------------------+---------------+---------------+-------------+--------------------+-------------+
-| UUID                                 | Name          | Instance UUID | Power State | Provisioning State | Maintenance |
-+--------------------------------------+---------------+---------------+-------------+--------------------+-------------+
-| 882cf206-d688-43fa-bf4c-3282fcb00b12 | kube-master-0 | None          | None        | enroll             | False       |
-| ac257479-d6c6-47c1-a649-64a88e6ff312 | kube-worker-0 | None          | None        | enroll             | False       |
++--------------------------------------+----------+---------------+-------------+--------------------+-------------+
+| UUID                                 | Name     | Instance UUID | Power State | Provisioning State | Maintenance |
++--------------------------------------+----------+---------------+-------------+--------------------+-------------+
+| 882cf206-d688-43fa-bf4c-3282fcb00b12 | master-0 | None          | None        | enroll             | False       |
+| ac257479-d6c6-47c1-a649-64a88e6ff312 | worker-0 | None          | None        | enroll             | False       |
 +--------------------------------------+---------------+---------------+-------------+--------------------+-------------+
 ```
