@@ -28,7 +28,7 @@ flavors:
     vcpu: '{{worker_vcpu|default(default_vcpu)}}'
     extradisks: '{{extradisks|bool}}'
 
-# For dev-scripts usage this currently needs to be set to "openshift_"
+# An optional prefix for node names
 ironic_prefix: ""
 
 baremetal_network_cidr: "{{ lookup('env', 'EXTERNAL_SUBNET') | default('192.168.111.0/24', true) }}"
