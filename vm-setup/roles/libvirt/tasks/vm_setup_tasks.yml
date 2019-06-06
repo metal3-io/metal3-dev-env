@@ -58,13 +58,6 @@
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
   block:
 
-    # ensure python-netaddr is installed for next task
-    - name: ensure python-netaddr
-      become: true
-      package:
-        name: python-netaddr
-        state: present
-
     # Create libvirt volumes for the vm hosts.
     - name: Check if vm volumes exist
       command: >
