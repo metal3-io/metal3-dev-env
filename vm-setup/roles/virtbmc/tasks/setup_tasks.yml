@@ -65,6 +65,8 @@
     creates: /root/.vbmc/{{ item.name }}/config
   with_items: "{{ vm_nodes }}"
   become: true
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
 
 - name: Start the Virtual BMCs
   script: vbmc_start.sh {{ item.name }}
