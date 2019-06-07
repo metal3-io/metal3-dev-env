@@ -21,11 +21,6 @@ if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
     fi
 fi
 
-# Work around a conflict with a newer zeromq from epel
-if ! grep -q zeromq /etc/yum.repos.d/epel.repo; then
-  sudo sed -i '/enabled=1/a exclude=zeromq*' /etc/yum.repos.d/epel.repo
-fi
-
 # Install required packages
 # python-{requests,setuptools} required for tripleo-repos install
 sudo yum -y install \
