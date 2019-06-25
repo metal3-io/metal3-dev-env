@@ -52,13 +52,6 @@
     vbmc_libvirt_uri: "qemu+ssh://{{ non_root_user }}@{{ vbmc_address }}/session?socket=/run/user/{{ non_root_user_uid }}/libvirt/libvirt-sock&keyfile=/root/.ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
   when: vbmc_libvirt_uri is not defined
 
-- name: Install VirtualBMC package
-  package:
-    name: "python2-virtualbmc"
-    state: present
-    use: yum
-  become: true
-
 - name: Start the Virtual BMCs (virtualbmc >= 1.4.0+)
   service:
     name: "virtualbmc"
@@ -72,6 +65,8 @@
     creates: /root/.vbmc/{{ item.name }}/config
   with_items: "{{ vm_nodes }}"
   become: true
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
 
 - name: Start the Virtual BMCs
   script: vbmc_start.sh {{ item.name }}
