@@ -121,16 +121,6 @@ if [ "$EXT_IF" ]; then
   sudo iptables -A FORWARD --in-interface baremetal -j ACCEPT
 fi
 
-# Add access to backend Facet server from remote locations
-if ! sudo iptables -C INPUT -p tcp --dport 8080 -j ACCEPT 2>/dev/null ; then
-  sudo iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
-fi
-
-# Add access to Yarn development server from remote locations
-if ! sudo iptables -C INPUT -p tcp --dport 3000 -j ACCEPT 2>/dev/null ; then
-  sudo iptables -I INPUT -p tcp --dport 3000 -j ACCEPT
-fi
-
 # Switch NetworkManager to internal DNS
 if [ "$MANAGE_BR_BRIDGE" == "y" ] ; then
   sudo mkdir -p /etc/NetworkManager/conf.d/
@@ -168,7 +158,7 @@ for name in ironic ironic-inspector dnsmasq httpd mariadb; do
 done
 
 # Remove existing pod
-if  sudo podman pod exists ironic-pod ; then 
+if  sudo podman pod exists ironic-pod ; then
     sudo podman pod rm ironic-pod -f
 fi
 
@@ -176,7 +166,7 @@ fi
 mariadb_password=$(echo $(date;hostname)|sha256sum |cut -c-20)
 
 # Create pod
-sudo podman pod create -n ironic-pod 
+sudo podman pod create -n ironic-pod
 
 mkdir -p $IRONIC_DATA_DIR
 
