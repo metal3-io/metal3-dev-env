@@ -54,10 +54,6 @@ sudo tripleo-repos current-tripleo
 # There are some packages which are newer in the tripleo repos
 sudo yum -y update
 
-# Setup yarn and nodejs repositories
-sudo curl -sL https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo
-curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -
-
 # make sure additional requirments are installed
 sudo yum -y install \
   ansible \
@@ -79,7 +75,6 @@ sudo yum -y install \
   redhat-lsb-core \
   virt-install \
   unzip \
-  yarn \
   genisoimage
 
 # Install python packages not included as rpms
