@@ -310,7 +310,7 @@ in the cluster.
 kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
 ```
 
-Then you can run the `baremetal-operator` locally including any custom changes.
+To be able to run `baremetal-operator` locally, you need to install `operator-sdk` https://github.com/operator-framework. After that, you can run the `baremetal-operator` including any custom changes.
 
 ```sh
 cd ~/go/src/github.com/metal3-io/baremetal-operator
