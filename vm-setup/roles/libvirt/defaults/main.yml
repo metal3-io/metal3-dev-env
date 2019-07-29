@@ -45,5 +45,19 @@ libvirt_packages_rhel8:
   - polkit-pkla-compat
   - python3-netaddr
 
+ubuntu_libvirt_packages:
+  - qemu-kvm
+  - libvirt-bin
+  - libvirt-clients
+  - libvirt-dev
+  - python-libvirt
+  - libguestfs-tools
+  - python-lxml
+  - gir1.2-polkit-1.0
+  - libpolkit-agent-1-0
+  - libpolkit-backend-1-0
+  - libpolkit-gobject-1-0
+
+
 # The name of the libvirt service.
 libvirtd_service: libvirtd

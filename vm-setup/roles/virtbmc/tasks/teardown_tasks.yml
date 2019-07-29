@@ -10,9 +10,17 @@
     - "/root/.vbmc/"
   become: true
 
-- name: Stop/disable the Virtual BMCs (virtualbmc >= 1.4.0+)
+- name: Stop/disable the Virtual BMCs (virtualbmc >= 1.4.0+) on CentOS
+  when:
+    - ansible_distribution == 'CentOS' or ansible_distribution == 'Fedora'
   service:
     name: "virtualbmc"
     state: "stopped" 
     enabled: false
+  become: true
+
+- name: Stop/disable the Virtual BMCs (virtualbmc >= 1.4.0+) on Ubuntu
+  when:
+    - ansible_distribution == 'Ubuntu' 
+  shell: pkill vbmcd || true
   become: true

@@ -29,10 +29,10 @@ sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
 # There was a bug in this file, it may need to be recreated.
 if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
     sudo ifdown provisioning || true
-    sudo rm -f /etc/sysconfig/network-scripts/ifcfg-provisioning
+    sudo rm -f /etc/sysconfig/network-scripts/ifcfg-provisioning || true
 fi
 # Leaving this around causes issues when the host is rebooted
 if [ "$MANAGE_BR_BRIDGE" == "y" ]; then
     sudo ifdown baremetal || true
-    sudo rm -f /etc/sysconfig/network-scripts/ifcfg-baremetal
+    sudo rm -f /etc/sysconfig/network-scripts/ifcfg-baremetal || true
 fi

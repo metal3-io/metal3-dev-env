@@ -100,11 +100,23 @@
 # connection, and we connect to the networks using the bridge names.
 #
 # [helper]: http://wiki.qemu.org/Features-Done/HelperNetworking
-- name: Whitelist bridges for unprivileged access
+- name: Whitelist bridges for unprivileged access on CentOS
   lineinfile:
     dest: '/etc/qemu-kvm/bridge.conf' # Needs to be /etc/qemu/bridge.conf if supporting Fedora
     line: "allow {{ item.bridge }}"
   with_items: "{{ networks }}"
+  when: 
+    - ansible_facts['distribution'] == "CentOS"
+  become: true
+
+- name: Whitelist bridges for unprivileged access on Ubuntu or Fedora
+  lineinfile:
+    dest: '/etc/qemu/bridge.conf' 
+    line: "allow {{ item.bridge }}"
+    create: yes
+  with_items: "{{ networks }}"
+  when: 
+    - (ansible_facts['distribution'] == "Ubuntu") or (ansible_facts['distribution'] == "Fedora") 
   become: true
 
 # We're going to want to store things in `working_dir` so ensure it

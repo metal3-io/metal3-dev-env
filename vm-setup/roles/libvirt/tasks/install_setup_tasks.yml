@@ -16,6 +16,14 @@
   become: true
   when: ansible_os_family == "RedHat" and ansible_lsb.major_release|int == 8
 
+- name: Install packages for libvirt on Ubuntu
+  when: 
+    - ansible_facts['distribution'] == "Ubuntu"
+  package:
+    name: "{{ ubuntu_libvirt_packages }}"
+    state: present
+  become: true
+
 - name: Start libvirtd
   service:
     name: "{{ libvirtd_service }}"

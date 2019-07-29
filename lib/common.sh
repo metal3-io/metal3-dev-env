@@ -67,14 +67,16 @@ if ! sudo -n uptime &> /dev/null ; then
 fi
 
 # Check OS
-if [[ ! $(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"') =~ ^(centos|rhel)$ ]]; then
+OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
+if [[ ! $OS =~ ^(centos|rhel|ubuntu)$ ]]; then
   echo "Unsupported OS"
   exit 1
 fi
 
 # Check CentOS version
-if [[ $(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"' | cut -f1 -d'.') -ne 7 ]]; then
-  echo "Required CentOS 7 or RHEL 7"
+os_version=$(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"' | cut -f1 -d'.')
+if [[ ${os_version} -ne 7 ]] && [[ ${os_version} -ne 18 ]]; then
+  echo "Required CentOS 7 or RHEL 7 or Ubuntu 18.04"
   exit 1
 fi
 

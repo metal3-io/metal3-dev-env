@@ -37,6 +37,15 @@ The `Makefile` runs a series of scripts, described here:
 
 To tear down the environment, run `make clean`.
 
+## Note
+If you see this error during the installation:
+
+```sh
+error: failed to connect to the hypervisor
+error: Failed to connect socket to '/var/run/libvirt/libvirt-sock': Permission denied
+```
+You may need to log out then login again, and run `make` again.
+
 # Working with the Environment
 
 ## Bare Metal Hosts
