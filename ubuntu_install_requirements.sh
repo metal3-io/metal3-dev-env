@@ -2,6 +2,7 @@
 set -ex
 
 source lib/logging.sh
+source lib/common.sh
 
 # sudo apt install -y libselinux-utils
 # if selinuxenabled ; then
@@ -41,6 +42,7 @@ sudo apt -y install \
   psmisc \
   python-pip \
   wget
+
 
 
 # Install pyenv
@@ -88,7 +90,6 @@ sudo apt -y install \
   jq \
   libguestfs-tools \
   nodejs \
-  podman \
   qemu-kvm \
   libvirt-bin libvirt-clients libvirt-dev \
   python-ironicclient \
@@ -98,6 +99,25 @@ sudo apt -y install \
   unzip \
   yarn \
   genisoimage
+
+
+if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
+  sudo apt -y install podman
+else
+  sudo apt -y install \
+    apt-transport-https \
+    ca-certificates \
+    gnupg-agent \
+    software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository \
+    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+    $(lsb_release -cs) \
+    stable"
+  sudo apt update
+  sudo apt install -y docker-ce docker-ce-cli containerd.io
+  sudo systemctl start docker
+fi
 
 # Install python packages not included as rpms
 sudo pip install \

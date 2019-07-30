@@ -32,6 +32,8 @@ MANAGE_INT_BRIDGE=${MANAGE_INT_BRIDGE:-y}
 INT_IF=${INT_IF:-}
 #Root disk to deploy coreOS - use /dev/sda on BM
 ROOT_DISK_NAME=${ROOT_DISK_NAME-"/dev/sda"}
+#Container runtime
+CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
 
 export EXTERNAL_SUBNET="192.168.111.0/24"
 
