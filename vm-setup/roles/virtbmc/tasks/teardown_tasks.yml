@@ -12,7 +12,7 @@
 
 - name: Stop/disable the Virtual BMCs (virtualbmc >= 1.4.0+) on CentOS
   when:
-    - ansible_distribution == 'CentOS' or ansible_distribution == 'Fedora'
+    - ansible_os_family == "RedHat"
   service:
     name: "virtualbmc"
     state: "stopped" 

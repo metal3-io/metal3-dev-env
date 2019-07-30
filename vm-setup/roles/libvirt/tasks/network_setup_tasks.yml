@@ -106,7 +106,7 @@
     line: "allow {{ item.bridge }}"
   with_items: "{{ networks }}"
   when: 
-    - ansible_facts['distribution'] == "CentOS"
+    - ansible_os_family == "RedHat"
   become: true
 
 - name: Whitelist bridges for unprivileged access on Ubuntu or Fedora
@@ -116,7 +116,7 @@
     create: yes
   with_items: "{{ networks }}"
   when: 
-    - (ansible_facts['distribution'] == "Ubuntu") or (ansible_facts['distribution'] == "Fedora") 
+    - ansible_facts['distribution'] == "Ubuntu"
   become: true
 
 # We're going to want to store things in `working_dir` so ensure it

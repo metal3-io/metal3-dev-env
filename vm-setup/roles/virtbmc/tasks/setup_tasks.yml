@@ -52,13 +52,13 @@
     vbmc_libvirt_uri: "qemu+ssh://{{ non_root_user }}@{{ vbmc_address }}/session?socket=/run/user/{{ non_root_user_uid }}/libvirt/libvirt-sock&keyfile=/root/.ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
   when: vbmc_libvirt_uri is not defined
 
-- name: Start the Virtual BMCs (virtualbmc >= 1.4.0+) on CentOS
+- name: Start the Virtual BMCs (virtualbmc >= 1.4.0+) on Redhat-family OSes
   service:
     name: "virtualbmc"
     state: started
     enabled: true
   when:
-    - ansible_facts['distribution'] == "CentOS"
+    - ansible_os_family == "RedHat"
   become: true
 
 - name: Start the Virtual BMCs (virtualbmc >= 1.4.0+) on ubuntu
