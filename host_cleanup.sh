@@ -11,8 +11,10 @@ for name in ironic ironic-inspector dnsmasq httpd mariadb; do
 done
 
 # Remove existing pod
-if  sudo ${CONTAINER_RUNTIME} pod exists ironic-pod ; then
-    sudo ${CONTAINER_RUNTIME} pod rm ironic-pod -f
+if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
+  if  sudo ${CONTAINER_RUNTIME} pod exists ironic-pod ; then
+      sudo ${CONTAINER_RUNTIME} pod rm ironic-pod -f
+  fi
 fi
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
