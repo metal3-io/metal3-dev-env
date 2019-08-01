@@ -10,22 +10,36 @@ M3PATH="${GOPATH}/src/github.com/metal3-io"
 BMOPATH="${M3PATH}/baremetal-operator"
 CAPBMPATH="${M3PATH}/cluster-api-provider-baremetal"
 
+BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
+BMOBRANCH="${BMOBRANCH:-master}"
+CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
+CAPBMBRANCH="${CAPBMBRANCH:-master}"
+FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
+
 function clone_repos() {
     mkdir -p ${M3PATH}
+    if [[ -d ${BMOPATH} && "${FORCE_REPO_UPDATE}"=="true" ]]; then
+      rm -rf ${BMOPATH}
+    fi
     if [ ! -d ${BMOPATH} ] ; then
         pushd ${M3PATH}
-        git clone https://github.com/metal3-io/baremetal-operator.git
+        git clone ${BMOREPO}
         popd
     fi
     pushd ${BMOPATH}
+    git checkout ${BMOBRANCH}
     git pull -r || true
     popd
+    if [[ -d ${CAPBMPATH} && "${FORCE_REPO_UPDATE}"=="true" ]]; then
+      rm -rf ${CAPBMPATH}
+    fi
     if [ ! -d ${CAPBMPATH} ] ; then
         pushd ${M3PATH}
-        git clone https://github.com/metal3-io/cluster-api-provider-baremetal.git
+        git clone ${CAPBMREPO}
         popd
     fi
     pushd ${CAPBMPATH}
+    git checkout ${CAPBMBRANCH}
     git pull -r || true
     popd
 }
