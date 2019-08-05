@@ -9,6 +9,9 @@ configure_host:
 launch_mgmt_cluster:
 	./03_launch_mgmt_cluster.sh
 
+verify:
+	./04_verify.sh
+
 clean: delete_mgmt_cluster host_cleanup
 
 delete_mgmt_cluster:
