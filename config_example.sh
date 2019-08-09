@@ -15,3 +15,34 @@
 # Default of ~/.ssh/id_rsa.pub is set in lib/common.sh
 #
 #export SSH_PUB_KEY=~/.ssh/id_rsa.pub
+
+#
+# Select the Container Runtime, can be "podman" or "docker"
+# Defaults to "podman"
+#
+#export CONTAINER_RUNTIME="podman"
+
+#
+# Set the Baremetal Operator repository to clone
+#
+#export BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
+
+#
+# Set the Baremetal Operator branch to checkout
+#
+#export BMOBRANCH="${BMOBRANCH:-master}"
+
+#
+# Set the Cluster Api baremetal provider repository to clone
+#
+#export CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
+
+#
+# Set the Cluster Api baremetal provider branch to checkout
+#
+#export CAPBMBRANCH="${CAPBMBRANCH:-master}"
+
+#
+# Force deletion of the BMO and CAPBM repositories before cloning them again
+#
+#export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
