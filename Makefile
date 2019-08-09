@@ -21,4 +21,4 @@ host_cleanup:
 	./host_cleanup.sh
 
 
-.PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup
+.PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify
