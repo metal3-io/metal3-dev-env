@@ -65,23 +65,6 @@ function launch_baremetal_operator() {
     popd
 }
 
-function list_nodes() {
-    # Includes -machine and -machine-namespace
-    cat $NODES_FILE | \
-        jq '.nodes[] | {
-           name,
-           driver,
-           address:.driver_info.ipmi_address,
-           port:.driver_info.ipmi_port,
-           user:.driver_info.ipmi_username,
-           password:.driver_info.ipmi_password,
-           mac: .ports[0].address
-           } |
-           .name + " " +
-           .driver + "://" + .address + (if .port then ":" + .port else "" end)  + " " +
-           .user + " " + .password + " " + .mac' \
-       | sed 's/"//g'
-}
 
 function make_bm_hosts() {
     while read name address user password mac; do
