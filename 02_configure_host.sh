@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 set -xe
 
+# shellcheck disable=SC1091
 source lib/logging.sh
+# shellcheck disable=SC1091
 source lib/common.sh
 
 # Generate user ssh key
-if [ ! -f $HOME/.ssh/id_rsa.pub ]; then
+if [ ! -f "$HOME/.ssh/id_rsa.pub" ]; then
     ssh-keygen -f ~/.ssh/id_rsa -P ""
 fi
 
@@ -29,8 +31,8 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
 
 # Allow local non-root-user access to libvirt
 # Restart libvirtd service to get the new group membership loaded
-if ! id $USER | grep -q libvirt; then
-  sudo usermod -a -G "libvirt" $USER
+if ! id "$USER" | grep -q libvirt; then
+  sudo usermod -a -G "libvirt" "$USER"
   sudo systemctl restart libvirtd
 fi
 # Usually virt-manager/virt-install creates this: https://www.redhat.com/archives/libvir-list/2008-August/msg00179.html
@@ -49,7 +51,9 @@ fi
 
 if [[ $OS == ubuntu ]]; then
   # source ubuntu_bridge_network_configuration.sh
+  # shellcheck disable=SC1091
   source ubuntu_bridge_network_configuration.sh
+  # shellcheck disable=SC1091
   source disable_apparmor_driver_libvirtd.sh
 else
   if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
@@ -64,9 +68,9 @@ else
 
       # Need to pass the provision interface for bare metal
       if [ "$PRO_IF" ]; then
-          echo -e "DEVICE=$PRO_IF\nTYPE=Ethernet\nONBOOT=yes\nNM_CONTROLLED=no\nBRIDGE=provisioning" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-$PRO_IF
-          sudo ifdown $PRO_IF || true
-          sudo ifup $PRO_IF
+          echo -e "DEVICE=$PRO_IF\nTYPE=Ethernet\nONBOOT=yes\nNM_CONTROLLED=no\nBRIDGE=provisioning" | sudo dd of="/etc/sysconfig/network-scripts/ifcfg-$PRO_IF"
+          sudo ifdown "$PRO_IF" || true
+          sudo ifup "$PRO_IF"
       fi
   fi
 
@@ -81,8 +85,8 @@ else
       # Add the internal interface to it if requests, this may also be the interface providing
       # external access so we need to make sure we maintain dhcp config if its available
       if [ "$INT_IF" ]; then
-          echo -e "DEVICE=$INT_IF\nTYPE=Ethernet\nONBOOT=yes\nNM_CONTROLLED=no\nBRIDGE=baremetal" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-$INT_IF
-          if sudo nmap --script broadcast-dhcp-discover -e $INT_IF | grep "IP Offered" ; then
+          echo -e "DEVICE=$INT_IF\nTYPE=Ethernet\nONBOOT=yes\nNM_CONTROLLED=no\nBRIDGE=baremetal" | sudo dd of="/etc/sysconfig/network-scripts/ifcfg-$INT_IF"
+          if sudo nmap --script broadcast-dhcp-discover -e "$INT_IF" | grep "IP Offered" ; then
               echo -e "\nBOOTPROTO=dhcp\n" | sudo tee -a /etc/sysconfig/network-scripts/ifcfg-baremetal
               sudo systemctl restart network
           else
@@ -96,7 +100,7 @@ else
       sudo virsh net-destroy baremetal
       sudo virsh net-start baremetal
       if [ "$INT_IF" ]; then #Need to bring UP the NIC after destroying the libvirt network
-          sudo ifup $INT_IF
+          sudo ifup "$INT_IF"
       fi
   fi
 fi
@@ -122,13 +126,13 @@ done
 
 # Need to route traffic from the provisioning host.
 if [ "$EXT_IF" ]; then
-  sudo iptables -t nat -A POSTROUTING --out-interface $EXT_IF -j MASQUERADE
+  sudo iptables -t nat -A POSTROUTING --out-interface "$EXT_IF" -j MASQUERADE
   sudo iptables -A FORWARD --in-interface baremetal -j ACCEPT
 fi
 
 # Switch NetworkManager to internal DNS
 
-if [ "$MANAGE_BR_BRIDGE" == "y" && $OS == "centos" ] ; then
+if [[ "$MANAGE_BR_BRIDGE" == "y" && $OS == "centos" ]] ; then
   sudo mkdir -p /etc/NetworkManager/conf.d/
   sudo crudini --set /etc/NetworkManager/conf.d/dnsmasq.conf main dns dnsmasq
   if [ "$ADDN_DNS" ] ; then
@@ -164,7 +168,7 @@ for name in ironic ironic-inspector dnsmasq httpd mariadb; do
 done
 
 # set password for mariadb
-mariadb_password=$(echo $(date;hostname)|sha256sum |cut -c-20)
+mariadb_password="$(echo "$(date;hostname)"|sha256sum |cut -c-20)"
 
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
@@ -179,22 +183,22 @@ else
   POD_NAME=""
 fi
 
-mkdir -p $IRONIC_DATA_DIR
+mkdir -p "$IRONIC_DATA_DIR"
 
 # Start dnsmasq, http, mariadb, and ironic containers using same image
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name dnsmasq  ${POD_NAME} \
-     -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/rundnsmasq ${IRONIC_IMAGE}
+     -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/rundnsmasq "${IRONIC_IMAGE}"
 
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd ${POD_NAME} \
-     -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runhttpd ${IRONIC_IMAGE}
+     -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd "${IRONIC_IMAGE}"
 
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name mariadb ${POD_NAME} \
-     -v $IRONIC_DATA_DIR:/shared --entrypoint /bin/runmariadb \
-     --env MARIADB_PASSWORD=$mariadb_password ${IRONIC_IMAGE}
+     -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runmariadb \
+     --env MARIADB_PASSWORD="$mariadb_password" "${IRONIC_IMAGE}"
 
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ironic ${POD_NAME} \
-     --env MARIADB_PASSWORD=$mariadb_password \
-     -v $IRONIC_DATA_DIR:/shared ${IRONIC_IMAGE}
+     --env MARIADB_PASSWORD="$mariadb_password" \
+     -v "$IRONIC_DATA_DIR":/shared "${IRONIC_IMAGE}"
 
 # Start Ironic Inspector
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ironic-inspector ${POD_NAME} "${IRONIC_INSPECTOR_IMAGE}"

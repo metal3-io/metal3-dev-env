@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -ex
 
+# shellcheck disable=SC1091
 source lib/logging.sh
+# shellcheck disable=SC1091
 source lib/common.sh
 
 # sudo apt install -y libselinux-utils
@@ -51,8 +53,12 @@ if [[  $(cat ~/.bashrc) != *PYENV_ROOT* ]]; then
   if ! [ -d "$HOME/.pyenv" ] ; then
      git clone git://github.com/yyuu/pyenv.git ~/.pyenv
   fi
+  # shellcheck disable=SC2016
+  # shellcheck disable=SC2129
   echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+  # shellcheck disable=SC2016
   echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+  # shellcheck disable=SC2016
   echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
 fi
 
@@ -144,7 +150,7 @@ if ! which docker-machine-driver-kvm2 >/dev/null ; then
 fi
 
 if ! which kubectl 2>/dev/null ; then
-    curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl \
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/"$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)"/bin/linux/amd64/kubectl \
         && chmod +x kubectl && sudo mv kubectl /usr/local/bin/.
 fi
 

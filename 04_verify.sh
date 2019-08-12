@@ -6,7 +6,9 @@ set -u
 # Workaround to avoid returning logs in functions
 exec 3>&1
 
+# shellcheck disable=SC1091
 source lib/logging.sh
+# shellcheck disable=SC1091
 source lib/common.sh
 
 
@@ -155,7 +157,7 @@ FAILS=$(process_status $? "Kubernetes cluster reachable")
 echo "" >&3
 
 # Verify that the CRDs exist
-CRDS="$(kubectl --kubeconfig ${KUBECONFIG} get crds)"
+CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 FAILS=$(process_status $? "Fetch CRDs")
 
 for name in ${EXPTD_CRDS}; do
@@ -166,7 +168,7 @@ echo "" >&3
 
 # Verify the baremetal hosts
 ## Fetch the BM CRs
-BM_HOSTS="$(kubectl --kubeconfig ${KUBECONFIG} get baremetalhosts -n metal3 -o json)"
+BM_HOSTS="$(kubectl --kubeconfig "${KUBECONFIG}" get baremetalhosts -n metal3 -o json)"
 FAILS=$(process_status $? "Fetch Baremetalhosts")
 ## Fetch the VMs
 BM_VMS="$(virsh list --all)"
