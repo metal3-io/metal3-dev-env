@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 set -x
 
+# shellcheck disable=SC1091
 source lib/logging.sh
+# shellcheck disable=SC1091
 source lib/common.sh
 
 # Kill and remove the running ironic containers
 for name in ironic ironic-inspector dnsmasq httpd mariadb; do
-    sudo ${CONTAINER_RUNTIME} ps | grep -w "$name$" && sudo ${CONTAINER_RUNTIME} kill $name
-    sudo ${CONTAINER_RUNTIME} ps --all | grep -w "$name$" && sudo ${CONTAINER_RUNTIME} rm $name -f
+    sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name
+    sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f
 done
 
 # Remove existing pod
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-  if  sudo ${CONTAINER_RUNTIME} pod exists ironic-pod ; then
-      sudo ${CONTAINER_RUNTIME} pod rm ironic-pod -f
+  if  sudo "${CONTAINER_RUNTIME}" pod exists ironic-pod ; then
+      sudo "${CONTAINER_RUNTIME}" pod rm ironic-pod -f
   fi
 fi
 

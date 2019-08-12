@@ -7,5 +7,5 @@ if [ -z "${BMHOST}" ] ; then
     exit 1
 fi
 
-kubectl patch baremetalhost ${BMHOST} -n metal3 --type merge \
+kubectl patch baremetalhost "${BMHOST}" -n metal3 --type merge \
     -p '{"spec":{"image":{"url":"","checksum":""}}}'

@@ -1,7 +1,9 @@
 #!/bin/bash
 set -xe
 
+# shellcheck disable=SC1091
 source lib/logging.sh
+# shellcheck disable=SC1091
 source lib/common.sh
 
 eval "$(go env)"
@@ -17,29 +19,29 @@ CAPBMBRANCH="${CAPBMBRANCH:-master}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
 
 function clone_repos() {
-    mkdir -p ${M3PATH}
-    if [[ -d ${BMOPATH} && "${FORCE_REPO_UPDATE}"=="true" ]]; then
-      rm -rf ${BMOPATH}
+    mkdir -p "${M3PATH}"
+    if [[ -d ${BMOPATH} && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+      rm -rf "${BMOPATH}"
     fi
-    if [ ! -d ${BMOPATH} ] ; then
-        pushd ${M3PATH}
-        git clone ${BMOREPO}
+    if [ ! -d "${BMOPATH}" ] ; then
+        pushd "${M3PATH}"
+        git clone "${BMOREPO}"
         popd
     fi
-    pushd ${BMOPATH}
-    git checkout ${BMOBRANCH}
+    pushd "${BMOPATH}"
+    git checkout "${BMOBRANCH}"
     git pull -r || true
     popd
-    if [[ -d ${CAPBMPATH} && "${FORCE_REPO_UPDATE}"=="true" ]]; then
-      rm -rf ${CAPBMPATH}
+    if [[ -d "${CAPBMPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+      rm -rf "${CAPBMPATH}"
     fi
-    if [ ! -d ${CAPBMPATH} ] ; then
-        pushd ${M3PATH}
-        git clone ${CAPBMREPO}
+    if [ ! -d "${CAPBMPATH}" ] ; then
+        pushd "${M3PATH}"
+        git clone "${CAPBMREPO}"
         popd
     fi
-    pushd ${CAPBMPATH}
-    git checkout ${CAPBMBRANCH}
+    pushd "${CAPBMPATH}"
+    git checkout "${CAPBMBRANCH}"
     git pull -r || true
     popd
 }
@@ -60,15 +62,15 @@ function launch_minikube() {
 }
 
 function launch_baremetal_operator() {
-    pushd ${BMOPATH}
+    pushd "${BMOPATH}"
     make deploy
     popd
 }
 
 
 function make_bm_hosts() {
-    while read name address user password mac; do
-        go run ${BMOPATH}/cmd/make-bm-worker/main.go \
+    while read -r name address user password mac; do
+        go run "${BMOPATH}"/cmd/make-bm-worker/main.go \
            -address "$address" \
            -password "$password" \
            -user "$user" \
@@ -86,7 +88,7 @@ function apply_bm_hosts() {
 # Launch the cluster-api controller manager in the metal3 namespace.
 #
 function launch_cluster_api() {
-    pushd ${CAPBMPATH}
+    pushd "${CAPBMPATH}"
     make deploy
     popd
 }
