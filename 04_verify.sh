@@ -194,6 +194,14 @@ FAILS=$(check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}")
 # Verify the Operators, Replica sets
 FAILS=$(check_k8s_rs "${EXPTD_DEPLOYMENTS}")
 
+if [[ "${BMO_RUN_LOCAL}" == true ]]; then
+  pgrep "operator-sdk" > /dev/null 2> /dev/null
+  FAILS=$(process_status $? "Baremetal operator locally running")
+fi
+if [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
+  pgrep -f "go run ./cmd/manager/main.go" > /dev/null 2> /dev/null
+  FAILS=$(process_status $? "CAPI operator locally running")
+fi
 
 #Verify Ironic containers are running
 for name in ironic ironic-inspector dnsmasq httpd mariadb; do
