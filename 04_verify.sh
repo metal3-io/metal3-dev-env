@@ -105,9 +105,12 @@ check_k8s_entity() {
     FAILS="$(process_status $? "${1} ${name} created")"
 
     # Check the replicas
-    FAILS="$(equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
-      "$(echo "${ENTITY}" | jq -r '.status.replicas')" \
-      "${name} ${1} replicas correct")"
+    if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPBM_RUN_LOCAL}" != true ]]
+    then
+      FAILS="$(equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
+        "$(echo "${ENTITY}" | jq -r '.status.replicas')" \
+        "${name} ${1} replicas correct")"
+    fi
   done
   echo "" >&3
   echo "${FAILS}"
@@ -122,9 +125,12 @@ check_k8s_rs() {
     FAILS="$(differs "${ENTITY}" "null" "Replica set ${name} created")"
 
     # Check the replicas
-    FAILS="$(equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
-      "$(echo "${ENTITY}" | jq -r '.status.replicas')" \
-      "${name} replicas correct")"
+    if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPBM_RUN_LOCAL}" != true ]]
+    then
+      FAILS="$(equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
+        "$(echo "${ENTITY}" | jq -r '.status.replicas')" \
+        "${name} replicas correct")"
+    fi
   done
   echo "" >&3
   echo "${FAILS}"
@@ -143,6 +149,9 @@ EXPTD_DEPLOYMENTS="metal3-baremetal-operator"
 BRIDGES="provisioning baremetal"
 
 FAILS=0
+BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
+CAPBM_RUN_LOCAL="${CAPBM_RUN_LOCAL:-false}"
+
 
 # Verify networking
 for bridge in ${BRIDGES}; do
@@ -185,6 +194,14 @@ FAILS=$(check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}")
 # Verify the Operators, Replica sets
 FAILS=$(check_k8s_rs "${EXPTD_DEPLOYMENTS}")
 
+if [[ "${BMO_RUN_LOCAL}" == true ]]; then
+  pgrep "operator-sdk" > /dev/null 2> /dev/null
+  FAILS=$(process_status $? "Baremetal operator locally running")
+fi
+if [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
+  pgrep -f "go run ./cmd/manager/main.go" > /dev/null 2> /dev/null
+  FAILS=$(process_status $? "CAPI operator locally running")
+fi
 
 #Verify Ironic containers are running
 for name in ironic ironic-inspector dnsmasq httpd mariadb; do

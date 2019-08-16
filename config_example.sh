@@ -46,3 +46,13 @@
 # Force deletion of the BMO and CAPBM repositories before cloning them again
 #
 #export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
+
+#
+# Run a local baremetal operator instead of deploying in Kubernetes
+#
+#export BMO_RUN_LOCAL=true
+
+#
+# Run a local CAPI operator instead of deploying in Kubernetes
+#
+#export CAPBM_RUN_LOCAL=true

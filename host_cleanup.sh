@@ -19,6 +19,19 @@ if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   fi
 fi
 
+# Kill the locally running operators
+if [ "${BMO_RUN_LOCAL}" = true ]; then
+  kill "$(pgrep "operator-sdk")" 2> /dev/null || true
+fi
+if [ "${CAPBM_RUN_LOCAL}" = true ]; then
+  CAPBM_PARENT_PID="$(pgrep -f "go run ./cmd/manager/main.go")"
+  if [[ "${CAPBM_PARENT_PID}" != "" ]]; then
+    CAPBM_GO_PID="$(pgrep -P "${CAPBM_PARENT_PID}" )"
+    kill "${CAPBM_GO_PID}"  2> /dev/null || true
+  fi
+fi
+
+
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "working_dir=$WORKING_DIR" \
     -e "num_masters=$NUM_MASTERS" \
