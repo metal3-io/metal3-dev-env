@@ -58,7 +58,9 @@ export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
 TEST_TIME_INTERVAL="${TEST_TIME_INTERVAL:-10}"
-TEST_MAX_TIME="${TEST_MAX_TIME:-60}"
+TEST_MAX_TIME="${TEST_MAX_TIME:-120}"
+FAILS=0
+RESULT_STR=""
 
 # Verify requisites/permissions
 # Connect to system libvirt
@@ -142,14 +144,15 @@ function list_nodes() {
 iterate(){
   local RUNS=0
   local COMMAND="$*"
-  # shellcheck disable=SC2068
-  local TMP_FAILS TMP_RET
-  TMP_FAILS="$(${COMMAND})"
-  TMP_RET="$?"
-  until [[ "${TMP_RET}" == 0 ]] || [[ "${SKIP_RETRIES}" == true ]]
+  local TMP_RET TMP_RET_CODE
+  TMP_RET="$(${COMMAND})"
+  TMP_RET_CODE="$?"
+
+  until [[ "${TMP_RET_CODE}" == 0 ]] || [[ "${SKIP_RETRIES}" == true ]]
   do
     if [[ "${RUNS}" == "0" ]]; then
-      echo -e "================\nErrors, retrying\n================" >&3
+      echo "   - Waiting for task completion (up to" \
+        "$((TEST_TIME_INTERVAL*TEST_MAX_TIME)) seconds)"
     fi
     RUNS="$((RUNS+1))"
     if [[ "${RUNS}" == "${TEST_MAX_TIME}" ]]; then
@@ -157,16 +160,12 @@ iterate(){
     fi
     sleep "${TEST_TIME_INTERVAL}"
     # shellcheck disable=SC2068
-    TMP_FAILS="$(${COMMAND})"
-    TMP_RET="$?"
+    TMP_RET="$(${COMMAND})"
+    TMP_RET_CODE="$?"
   done
-  if [[ "${TMP_RET}" != 0 ]]; then
-    echo -e "======\nFailed\n======\n" >&3
-  elif [[ "${RUNS}" != "0" ]]; then
-    echo -e "=========\nSucceeded\n=========\n" >&3
-  fi
-  echo "${TMP_FAILS}"
-  return "${TMP_RET}"
+  FAILS=$((FAILS+TMP_RET_CODE))
+  echo "${TMP_RET}"
+  return "${TMP_RET_CODE}"
 }
 
 
@@ -179,12 +178,11 @@ iterate(){
 #
 process_status(){
   if [[ "${1}" == 0 ]]; then
-    echo "OK - ${2}" >&3
-    echo "${FAILS}"
+    echo "OK - ${RESULT_STR}"
     return 0
   else
-    echo "FAIL - ${2}" >&3
-    echo "$((FAILS+1))"
+    echo "FAIL - ${RESULT_STR}"
+    FAILS=$((FAILS+1))
     return 1
   fi
 }
@@ -195,10 +193,9 @@ process_status(){
 # Inputs:
 # - first input to compare
 # - second input to compare
-# - message to print
 #
 equals(){
-  [[ "${1}" == "${2}" ]]; process_status "$?" "${3}"
+  [[ "${1}" == "${2}" ]]; process_status "$?"
 }
 
 #
@@ -207,10 +204,9 @@ equals(){
 # Inputs:
 # - Substring to look for
 # - String to look for the substring in
-# - message to print
 #
 is_in(){
-  [[ "${2}" == *"${1}"* ]]; process_status "$?" "${3}"
+  [[ "${2}" == *"${1}"* ]]; process_status "$?"
 }
 
 
@@ -220,8 +216,7 @@ is_in(){
 # Inputs:
 # - first input to compare
 # - second input to compare
-# - message to print
 #
 differs(){
-  [[ "${1}" != "${2}" ]]; process_status "$?" "${3}"
+  [[ "${1}" != "${2}" ]]; process_status "$?"
 }

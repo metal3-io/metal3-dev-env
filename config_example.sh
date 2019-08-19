@@ -56,3 +56,21 @@
 # Run a local CAPI operator instead of deploying in Kubernetes
 #
 #export CAPBM_RUN_LOCAL=true
+
+#
+# Do not retry on failure during verifications or tests of the environment
+# This should be true. It could only be set to false for verifications of a
+# dev env deployment that fully completed. Otherwise failures will appear as
+# resources are not ready.
+#
+#export SKIP_RETRIES=false
+
+#
+# Interval between retries after verification or test failure
+#
+#export TEST_TIME_INTERVAL=10
+
+#
+# Number of maximum verification or test retries
+#
+#export TEST_MAX_TIME=120

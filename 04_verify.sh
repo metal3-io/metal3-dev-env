@@ -2,10 +2,6 @@
 
 set -u
 
-# Redirect to stdout for logging
-# Workaround to avoid returning logs in functions
-exec 3>&1
-
 # shellcheck disable=SC1091
 source lib/logging.sh
 # shellcheck disable=SC1091
@@ -26,60 +22,63 @@ check_bm_hosts() {
     BM_VMS="$(virsh list --all)"
     BM_VMNAME="${NAME//-/_}"
     # Verify BM host exists
+    RESULT_STR="${NAME} Baremetalhost exist"
     echo "$BM_HOSTS" | grep -w "${NAME}"  > /dev/null
-    FAILS="$(process_status $? "${NAME} Baremetalhost exist")"
+    process_status $?
 
     BM_HOST="$(echo "${BM_HOSTS}" | \
       jq ' .items[] | select(.metadata.name=="'"${NAME}"'" )')"
 
     # Verify addresses of the host
-    FAILS="$(equals "$(echo "${BM_HOST}" | jq -r '.spec.bmc.address')" \
-      "${ADDRESS}" "${NAME} Baremetalhost address correct")"
+    RESULT_STR="${NAME} Baremetalhost address correct"
+    equals "$(echo "${BM_HOST}" | jq -r '.spec.bmc.address')" "${ADDRESS}"
 
-    FAILS="$(equals "$(echo "${BM_HOST}" | jq -r '.spec.bootMACAddress')" \
-      "${MAC}" "${NAME} Baremetalhost mac address correct")"
+    RESULT_STR="${NAME} Baremetalhost mac address correct"
+    equals "$(echo "${BM_HOST}" | jq -r '.spec.bootMACAddress')" \
+      "${MAC}"
 
     # Verify BM host status
-    FAILS="$(equals "$(echo "${BM_HOST}" | jq -r '.status.operationalStatus')" \
-      "OK" "${NAME} Baremetalhost status OK")"
+    RESULT_STR="${NAME} Baremetalhost status OK"
+    equals "$(echo "${BM_HOST}" | jq -r '.status.operationalStatus')" \
+      "OK"
 
     # Verify credentials exist
+    RESULT_STR="${NAME} Baremetalhost credentials secret exist"
     CRED_NAME="$(echo "${BM_HOST}" | jq -r '.spec.bmc.credentialsName')"
     CRED_SECRET="$(kubectl get secret "${CRED_NAME}" -n metal3 -o json | \
       jq '.data')"
-    FAILS="$(process_status $? \
-      "${NAME} Baremetalhost credentials secret exist")"
+    process_status $?
 
     # Verify credentials correct
-    FAILS="$(equals "$(echo "${CRED_SECRET}" | jq -r '.password' | \
-      base64 --decode)" \
-      "${PASSWORD}" "${NAME} Baremetalhost password correct")"
+    RESULT_STR="${NAME} Baremetalhost password correct"
+    equals "$(echo "${CRED_SECRET}" | jq -r '.password' | \
+      base64 --decode)" "${PASSWORD}"
 
-    FAILS="$(equals "$(echo "${CRED_SECRET}" | jq -r '.username' | \
-      base64 --decode)" \
-      "${USER}" "${NAME} Baremetalhost user correct")"
+    RESULT_STR="${NAME} Baremetalhost user correct"
+    equals "$(echo "${CRED_SECRET}" | jq -r '.username' | \
+      base64 --decode)" "${USER}"
 
     # Verify the VM was created
+    RESULT_STR="${NAME} Baremetalhost VM exist"
     echo "$BM_VMS "| grep -w "${BM_VMNAME}"  > /dev/null
-    FAILS="$(process_status $? "${NAME} Baremetalhost VM exist")"
+    process_status $?
 
     #Verify the VMs interfaces
     BM_VM_IFACES="$(virsh domiflist "${BM_VMNAME}")"
     for bridge in ${BRIDGES}; do
+      RESULT_STR="${NAME} Baremetalhost VM interface ${bridge} exist"
       echo "$BM_VM_IFACES" | grep -w "${bridge}"  > /dev/null
-      FAILS="$(process_status $? \
-        "${NAME} Baremetalhost VM interface ${bridge} exist")"
+      process_status $?
     done
 
     #Verify the instrospection completed successfully
-    FAILS="$(equals "$(echo "${BM_HOST}" | jq -r '.status.provisioning.state')" \
-      "ready" "${NAME} Baremetalhost introspecting completed")"
-    echo "" >&3
-    echo "${FAILS}"
-    if [[ "${FAILS_CHECK}" != "${FAILS}" ]]; then
-      return 1
-    fi
-    return 0
+    RESULT_STR="${NAME} Baremetalhost introspecting completed"
+    equals "$(echo "${BM_HOST}" | jq -r '.status.provisioning.state')" \
+      "ready"
+
+    echo ""
+
+    return "$((FAILS-FAILS_CHECK))"
 }
 
 
@@ -89,24 +88,21 @@ check_k8s_entity() {
   local ENTITY
   for name in ${2}; do
     # Check entity exists
+    RESULT_STR="${1} ${name} created"
     ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${1}" "${name}" \
       -n metal3 -o json)"
-    FAILS="$(process_status $? "${1} ${name} created")"
+    process_status $?
 
     # Check the replicas
     if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPBM_RUN_LOCAL}" != true ]]
     then
-      FAILS="$(equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
-        "$(echo "${ENTITY}" | jq -r '.status.replicas')" \
-        "${name} ${1} replicas correct")"
+      RESULT_STR="${name} ${1} replicas correct"
+      equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
+        "$(echo "${ENTITY}" | jq -r '.status.replicas')"
     fi
   done
-  echo "" >&3
-  echo "${FAILS}"
-  if [[ "${FAILS_CHECK}" != "${FAILS}" ]]; then
-    return 1
-  fi
-  return 0
+
+  return "$((FAILS-FAILS_CHECK))"
 }
 
 
@@ -118,29 +114,27 @@ check_k8s_rs() {
     # Check entity exists
     ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
       -l name="${name}" -n metal3 -o json | jq '.items[0]')"
-    FAILS="$(differs "${ENTITY}" "null" "Replica set ${name} created")"
+    RESULT_STR="Replica set ${name} created"
+    differs "${ENTITY}" "null"
 
     # Check the replicas
     if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPBM_RUN_LOCAL}" != true ]]
     then
-      FAILS="$(equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
-        "$(echo "${ENTITY}" | jq -r '.status.replicas')" \
-        "${name} replicas correct")"
+      RESULT_STR="${name} replicas correct"
+      equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
+        "$(echo "${ENTITY}" | jq -r '.status.replicas')"
     fi
   done
-  echo "" >&3
-  echo "${FAILS}"
-  if [[ "${FAILS_CHECK}" != "${FAILS}" ]]; then
-    return 1
-  fi
-  return 0
+
+  return "$((FAILS-FAILS_CHECK))"
 }
 
 #Verify a container is running
 check_container(){
   local NAME="$1"
+  RESULT_STR="Container ${NAME} running"
   sudo "${CONTAINER_RUNTIME}" ps | grep -w "$NAME$" > /dev/null
-  process_status $? "Container ${NAME} running"
+  process_status $?
   return $?
 }
 
@@ -163,65 +157,82 @@ CAPBM_RUN_LOCAL="${CAPBM_RUN_LOCAL:-false}"
 
 # Verify networking
 for bridge in ${BRIDGES}; do
+  RESULT_STR="Network ${bridge} exists"
   ip link show dev "${bridge}" > /dev/null
-  FAILS=$(process_status $? "Network ${bridge} exists")
+  process_status $? "Network ${bridge} exists"
 done
 
 
 #Verify Kubernetes cluster is reachable
+RESULT_STR="Kubernetes cluster reachable"
 kubectl version > /dev/null
-FAILS=$(process_status $? "Kubernetes cluster reachable")
-echo "" >&3
+process_status $?
+echo ""
 
 # Verify that the CRDs exist
+RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
-FAILS=$(process_status $? "Fetch CRDs")
+process_status $? "Fetch CRDs"
 
 for name in ${EXPTD_CRDS}; do
+  RESULT_STR="CRD ${name} created"
   echo "${CRDS}" | grep -w "${name}"  > /dev/null
-  FAILS=$(process_status $? "CRD ${name} created")
+  process_status $?
 done
-echo "" >&3
+echo ""
 
 
 # Verify the Operators, stateful sets
-FAILS=$(iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}")
+iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
 
 # Verify the Operators, Deployments
-FAILS=$(iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}")
+iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
 
 # Verify the Operators, Replica sets
-FAILS=$(iterate check_k8s_rs "${EXPTD_DEPLOYMENTS}")
+iterate check_k8s_rs "${EXPTD_DEPLOYMENTS}"
 
 # Verify the baremetal hosts
 ## Fetch the BM CRs
+RESULT_STR="Fetch Baremetalhosts"
 kubectl --kubeconfig "${KUBECONFIG}" get baremetalhosts -n metal3 -o json \
   > /dev/null
-FAILS=$(process_status $? "Fetch Baremetalhosts")
+process_status $?
+
 ## Fetch the VMs
+RESULT_STR="Fetch Baremetalhosts VMs"
 virsh list --all > /dev/null
-FAILS=$(process_status $? "Fetch Baremetalhosts VMs")
+process_status $?
+echo ""
+
 ## Verify
 while read -r name address user password mac; do
-  FAILS="$(iterate check_bm_hosts "${name}" "${address}" "${user}" \
-    "${password}" "${mac}")"
+  iterate check_bm_hosts "${name}" "${address}" "${user}" \
+    "${password}" "${mac}"
+  echo ""
 done <<< "$(list_nodes)"
 
+# Verify that the operator are running locally
 if [[ "${BMO_RUN_LOCAL}" == true ]]; then
+  RESULT_STR="Baremetal operator locally running"
   pgrep "operator-sdk" > /dev/null 2> /dev/null
-  FAILS=$(process_status $? "Baremetal operator locally running")
+  process_status $?
 fi
 if [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
+  # shellcheck disable=SC2034
+  RESULT_STR="CAPI operator locally running"
   pgrep -f "go run ./cmd/manager/main.go" > /dev/null 2> /dev/null
-  FAILS=$(process_status $? "CAPI operator locally running")
+  process_status $?
+fi
+if [[ "${BMO_RUN_LOCAL}" == true ]] || [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
+  echo ""
 fi
 
 #Verify Ironic containers are running
 for name in ironic ironic-inspector dnsmasq httpd mariadb; do
-  FAILS="$(iterate check_container "${name}")"
+  iterate check_container "${name}"
 done
-echo "" >&3
+echo ""
 
 
-echo -e "\nNumber of failures : $FAILS" >&3
+echo -e "\nNumber of failures : $FAILS"
 exit "${FAILS}"
