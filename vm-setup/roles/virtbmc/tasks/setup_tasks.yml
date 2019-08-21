@@ -8,19 +8,22 @@
     owner: root
     group: root
   with_items:
-    - "/etc/virtualbmc"
-    - "/var/log/virtualbmc"
+    - "{{ working_dir }}/virtualbmc"
+    - "{{ working_dir }}/virtualbmc/vbmc"
+    - "{{ working_dir }}/virtualbmc/vbmc/conf"
+    - "{{ working_dir }}/virtualbmc/vbmc/log"
+    - "{{ working_dir }}/virtualbmc/sushy-tools"
   become: true
 
 - name: Create VirtualBMC configuration file
   copy:
     mode: 0750
-    dest: "/etc/virtualbmc/virtualbmc.conf"
+    dest: "{{ working_dir }}/virtualbmc/vbmc/virtualbmc.conf"
     content: |
       [default]
-      config_dir=/root/.vbmc
+      config_dir=/root/.vbmc/conf/
       [log]
-      logfile=/var/log/virtualbmc/virtualbmc.log
+      logfile=/root/.vbmc/log/virtualbmc.log
       debug=True
       [ipmi]
       session_timout=20
@@ -44,40 +47,44 @@
 # and requires the root user.
 - name: set qemu uri for qemu:///system usage
   set_fact:
-    vbmc_libvirt_uri: "qemu+ssh://root@{{ vbmc_address }}/system?&keyfile=/root/.ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
+    vbmc_libvirt_uri: "qemu+ssh://root@{{ vbmc_address }}/system?&keyfile=/root/ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
   when: libvirt_uri == "qemu:///system"
 
 - name: set qemu uri for qemu:///session usage
   set_fact:
-    vbmc_libvirt_uri: "qemu+ssh://{{ non_root_user }}@{{ vbmc_address }}/session?socket=/run/user/{{ non_root_user_uid }}/libvirt/libvirt-sock&keyfile=/root/.ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
+    vbmc_libvirt_uri: "qemu+ssh://{{ non_root_user }}@{{ vbmc_address }}/session?socket=/run/user/{{ non_root_user_uid }}/libvirt/libvirt-sock&keyfile=/root/ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
   when: vbmc_libvirt_uri is not defined
 
-- name: Start the Virtual BMCs (virtualbmc >= 1.4.0+) on Redhat-family OSes
-  service:
-    name: "virtualbmc"
-    state: started
-    enabled: true
-  when:
-    - ansible_os_family == "RedHat"
+- name: Create VirtualBMC directories
+  file:
+    path: "{{ working_dir }}/virtualbmc/vbmc/conf/{{ item.name }}"
+    state: directory
+    mode: 0750
+    owner: root
+    group: root
+  with_items: "{{ vm_nodes }}"
   become: true
-
-- name: Start the Virtual BMCs (virtualbmc >= 1.4.0+) on ubuntu
-  shell: vbmcd || true
-  when:
-    - ansible_facts['distribution'] == "Ubuntu"
-  become: true
-
 
 - name: Create the Virtual BMCs
-  command: "vbmc add {{ item.name }} --port {{ item.virtualbmc_port }} --libvirt-uri {{ vbmc_libvirt_uri }}"
-  args:
-    creates: /root/.vbmc/{{ item.name }}/config
+  copy:
+    mode: 0750
+    dest: "{{ working_dir }}/virtualbmc/vbmc/conf/{{ item.name }}/config"
+    content: |
+      [VirtualBMC]
+      username = admin
+      password = password
+      domain_name = {{ item.name }}
+      libvirt_uri = {{ vbmc_libvirt_uri }}
+      address = ::
+      active = True
+      port = {{ item.virtualbmc_port }}
   with_items: "{{ vm_nodes }}"
   become: true
-  environment:
-    PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
 
-- name: Start the Virtual BMCs
-  script: vbmc_start.sh {{ item.name }}
-  with_items: "{{ vm_nodes }}"
+- name: Create the Redfish Virtual BMCs
+  copy:
+    mode: 0750
+    dest: "{{ working_dir }}/virtualbmc/sushy-tools/conf.py"
+    content: |
+      SUSHY_EMULATOR_LIBVIRT_URI = "{{ vbmc_libvirt_uri }}"
   become: true

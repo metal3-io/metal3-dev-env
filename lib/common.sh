@@ -50,6 +50,10 @@ export NUM_MASTERS=${NUM_MASTERS:-"1"}
 export NUM_WORKERS=${NUM_WORKERS:-"1"}
 export VM_EXTRADISKS=${VM_EXTRADISKS:-"false"}
 
+# VBMC and Redfish images
+export VBMC_IMAGE=${VBMC_IMAGE:-"vbmc"}
+export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"sushy-tools"}
+
 # Ironic vars
 export IRONIC_IMAGE=${IRONIC_IMAGE:-"quay.io/metal3-io/ironic:master"}
 export IRONIC_INSPECTOR_IMAGE=${IRONIC_INSPECTOR_IMAGE:-"quay.io/metal3-io/ironic-inspector"}

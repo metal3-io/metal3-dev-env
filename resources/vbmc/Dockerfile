@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM registry.hub.docker.com/library/python:3.7
 
 RUN apt update && \
     apt install -y libvirt-dev && \
