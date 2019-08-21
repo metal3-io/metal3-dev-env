@@ -3,18 +3,19 @@
 eval "$(go env)"
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-USER=`whoami`
+USER="$(whoami)"
 
 # Get variables from the config file
 if [ -z "${CONFIG:-}" ]; then
     # See if there's a config_$USER.sh in the SCRIPTDIR
-    if [ ! -f ${SCRIPTDIR}/../config_${USER}.sh ]; then
-        cp ${SCRIPTDIR}/../config_example.sh ${SCRIPTDIR}/../config_${USER}.sh
+    if [ ! -f "${SCRIPTDIR}/../config_${USER}.sh" ]; then
+        cp "${SCRIPTDIR}/../config_example.sh" "${SCRIPTDIR}/../config_${USER}.sh"
         echo "Automatically created config_${USER}.sh with default contents."
     fi
     CONFIG="${SCRIPTDIR}/../config_${USER}.sh"
 fi
-source $CONFIG
+# shellcheck disable=SC1090
+source "$CONFIG"
 
 # Set variables
 # Additional DNS
@@ -54,10 +55,17 @@ export IRONIC_IMAGE=${IRONIC_IMAGE:-"quay.io/metal3-io/ironic:master"}
 export IRONIC_INSPECTOR_IMAGE=${IRONIC_INSPECTOR_IMAGE:-"quay.io/metal3-io/ironic-inspector"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 
+# Test and verification related variables
+SKIP_RETRIES="${SKIP_RETRIES:-false}"
+TEST_TIME_INTERVAL="${TEST_TIME_INTERVAL:-10}"
+TEST_MAX_TIME="${TEST_MAX_TIME:-120}"
+FAILS=0
+RESULT_STR=""
+
 # Verify requisites/permissions
 # Connect to system libvirt
 export LIBVIRT_DEFAULT_URI=qemu:///system
-if [ "$USER" != "root" -a "${XDG_RUNTIME_DIR:-}" == "/run/user/0" ] ; then
+if [ "$USER" != "root" ] && [ "${XDG_RUNTIME_DIR:-}" == "/run/user/0" ] ; then
     echo "Please use a non-root user, WITH a login shell (e.g. su - USER)"
     exit 1
 fi
@@ -89,6 +97,7 @@ case ${FSTYPE} in
   'ext4'|'btrfs')
   ;;
   'xfs')
+    # shellcheck disable=SC2143
     if [[ $(xfs_info ${FILESYSTEM} | grep -q "ftype=1") ]]; then
       echo "Filesystem not supported"
       exit 1
@@ -109,7 +118,8 @@ fi
 
 function list_nodes() {
     # Includes -machine and -machine-namespace
-    cat $NODES_FILE | \
+    # shellcheck disable=SC2002
+    cat "$NODES_FILE" | \
         jq '.nodes[] | {
            name,
            driver,
@@ -123,4 +133,90 @@ function list_nodes() {
            .driver + "://" + .address + (if .port then ":" + .port else "" end)  + " " +
            .user + " " + .password + " " + .mac' \
        | sed 's/"//g'
+}
+
+#
+# Iterate a command until it runs successfully or exceeds the maximum retries
+#
+# Inputs:
+# - the command to run
+#
+iterate(){
+  local RUNS=0
+  local COMMAND="$*"
+  local TMP_RET TMP_RET_CODE
+  TMP_RET="$(${COMMAND})"
+  TMP_RET_CODE="$?"
+
+  until [[ "${TMP_RET_CODE}" == 0 ]] || [[ "${SKIP_RETRIES}" == true ]]
+  do
+    if [[ "${RUNS}" == "0" ]]; then
+      echo "   - Waiting for task completion (up to" \
+        "$((TEST_TIME_INTERVAL*TEST_MAX_TIME)) seconds)"
+    fi
+    RUNS="$((RUNS+1))"
+    if [[ "${RUNS}" == "${TEST_MAX_TIME}" ]]; then
+      break
+    fi
+    sleep "${TEST_TIME_INTERVAL}"
+    # shellcheck disable=SC2068
+    TMP_RET="$(${COMMAND})"
+    TMP_RET_CODE="$?"
+  done
+  FAILS=$((FAILS+TMP_RET_CODE))
+  echo "${TMP_RET}"
+  return "${TMP_RET_CODE}"
+}
+
+
+#
+# Check the return code
+#
+# Inputs:
+# - return code to check
+# - message to print
+#
+process_status(){
+  if [[ "${1}" == 0 ]]; then
+    echo "OK - ${RESULT_STR}"
+    return 0
+  else
+    echo "FAIL - ${RESULT_STR}"
+    FAILS=$((FAILS+1))
+    return 1
+  fi
+}
+
+#
+# Compare if the two inputs are the same and log
+#
+# Inputs:
+# - first input to compare
+# - second input to compare
+#
+equals(){
+  [[ "${1}" == "${2}" ]]; process_status "$?"
+}
+
+#
+# Compare the substring to the string and log
+#
+# Inputs:
+# - Substring to look for
+# - String to look for the substring in
+#
+is_in(){
+  [[ "${2}" == *"${1}"* ]]; process_status "$?"
+}
+
+
+#
+# Check if the two inputs differ and log
+#
+# Inputs:
+# - first input to compare
+# - second input to compare
+#
+differs(){
+  [[ "${1}" != "${2}" ]]; process_status "$?"
 }

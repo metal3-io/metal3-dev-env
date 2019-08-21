@@ -35,7 +35,13 @@ The `Makefile` runs a series of scripts, described here:
 * `03_launch_mgmt_cluster.sh` - Launch a management cluster using `minikube` and
   run the `baremetal-operator` on that cluster.
 
+* `04_verify.sh` - Runs a set of tests that verify that the deployment completed
+  successfully
+
 To tear down the environment, run `make clean`.
+
+You can also run some tests provisioning and deprovisioning machines by running
+`make test`
 
 ## Note
 If you see this error during the installation:

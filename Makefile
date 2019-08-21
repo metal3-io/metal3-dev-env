@@ -1,4 +1,4 @@
-all: install_requirements configure_host launch_mgmt_cluster
+all: install_requirements configure_host launch_mgmt_cluster verify
 
 install_requirements:
 	./01_install_requirements.sh
@@ -20,5 +20,8 @@ delete_mgmt_cluster:
 host_cleanup:
 	./host_cleanup.sh
 
+test:
+	./05_test.sh
 
-.PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify
+
+.PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test
