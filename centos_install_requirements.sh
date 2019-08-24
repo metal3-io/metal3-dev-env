@@ -27,28 +27,18 @@ fi
 # Install required packages
 # python-{requests,setuptools} required for tripleo-repos install
 sudo yum -y install \
-  crudini \
-  curl \
-  dnsmasq \
-  figlet \
-  golang \
-  NetworkManager \
-  nmap \
-  patch \
-  psmisc \
   python-pip \
-  python-requests \
-  python-setuptools \
-  vim-enhanced \
+  redhat-lsb-core \
   wget
 
 # We're reusing some tripleo pieces for this setup so clone them here
-cd
+pushd $HOME
 if [ ! -d tripleo-repos ]; then
   git clone https://git.openstack.org/openstack/tripleo-repos
 fi
 pushd tripleo-repos
 sudo python setup.py install
+popd
 popd
 
 # Needed to get a recent python-virtualbmc package
@@ -57,27 +47,10 @@ sudo tripleo-repos current-tripleo
 # There are some packages which are newer in the tripleo repos
 sudo yum -y update
 
+
 # make sure additional requirments are installed
 sudo yum -y install \
   ansible \
-  bind-utils \
-  jq \
-  libguestfs-tools \
-  libvirt \
-  libvirt-devel \
-  libvirt-daemon-kvm \
-  nodejs \
-  python-ironicclient \
-  python-ironic-inspector-client \
-  python-lxml \
-  python-netaddr \
-  python-openstackclient \
-  python-virtualbmc \
-  qemu-kvm \
-  redhat-lsb-core \
-  virt-install \
-  unzip \
-  genisoimage
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo yum -y install podman
@@ -93,30 +66,3 @@ else
 fi
 
 # Install python packages not included as rpms
-sudo pip install \
-  lolcat \
-  yq
-
-if ! which minikube 2>/dev/null ; then
-    curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-    chmod +x minikube
-    sudo mv minikube /usr/local/bin/.
-fi
-
-if ! which docker-machine-driver-kvm2 2>/dev/null ; then
-    curl -LO https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2
-    chmod +x docker-machine-driver-kvm2
-    sudo mv docker-machine-driver-kvm2 /usr/local/bin/.
-fi
-
-if ! which kubectl 2>/dev/null ; then
-    curl -LO https://storage.googleapis.com/kubernetes-release/release/"$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)"/bin/linux/amd64/kubectl
-    chmod +x kubectl
-    sudo mv kubectl /usr/local/bin/.
-fi
-
-if ! which kustomize 2>/dev/null ; then
-    curl -Lo kustomize "$(curl --silent -L https://github.com/kubernetes-sigs/kustomize/releases/latest 2>&1 | awk -F'"' '/linux_amd64/ { print "https://github.com"$2; exit }')"
-    chmod +x kustomize
-    sudo mv kustomize /usr/local/bin/.
-fi

@@ -1,0 +1,12 @@
+---
+- name: Install packages needed for the Dev-env
+  hosts: virthost
+  connection: local
+  gather_facts: true
+  vars_files:
+    - vars/packages_installation.yml
+  tasks:
+    - import_role:
+        name: packages_installation
+  vars: 
+    packages: "{{ packages_installation }}"

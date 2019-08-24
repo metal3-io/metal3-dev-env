@@ -145,23 +145,6 @@ if [[ "$MANAGE_BR_BRIDGE" == "y" && $OS == "centos" ]] ; then
   fi
 fi
 
-mkdir -p "$IRONIC_DATA_DIR/html/images"
-pushd "$IRONIC_DATA_DIR/html/images"
-if [ ! -f ironic-python-agent.initramfs ]; then
-    curl --insecure --compressed -L https://images.rdoproject.org/master/rdo_trunk/current-tripleo-rdo/ironic-python-agent.tar | tar -xf -
-fi
-CENTOS_IMAGE=CentOS-7-x86_64-GenericCloud-1901.qcow2
-if [ ! -f ${CENTOS_IMAGE} ] ; then
-    curl --insecure --compressed -O -L http://cloud.centos.org/centos/7/images/${CENTOS_IMAGE}
-    md5sum ${CENTOS_IMAGE} | awk '{print $1}' > ${CENTOS_IMAGE}.md5sum
-fi
-popd
-
-for IMAGE_VAR in IRONIC_IMAGE IRONIC_INSPECTOR_IMAGE ; do
-    IMAGE=${!IMAGE_VAR}
-    sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
-done
-
 for name in ironic ironic-inspector dnsmasq httpd mariadb; do
     sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name
     sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f

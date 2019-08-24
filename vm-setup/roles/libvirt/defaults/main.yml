@@ -22,41 +22,6 @@ extradisks_list:
 # size of the disks to create when using extradisks
 extradisks_size: 8G
 
-# The packages required to set up our desired libvirt environment.
-# (Tested on Centos 7)
-libvirt_packages:
-  - qemu-kvm
-  - libvirt
-  - libvirt-python
-  - libguestfs-tools
-  - python-lxml
-  - polkit-pkla-compat
-  - python-netaddr
-  - python2-virtualbmc
-
-# We expect virtualbmc to already be installed on rhel8 as a pre-req to running this,
-# as there's no rhel package available yet.
-libvirt_packages_rhel8:
-  - qemu-kvm
-  - libvirt
-  - python3-libvirt
-  - libguestfs-tools
-  - python3-lxml
-  - polkit-pkla-compat
-  - python3-netaddr
-
-ubuntu_libvirt_packages:
-  - qemu-kvm
-  - libvirt-bin
-  - libvirt-clients
-  - libvirt-dev
-  - python-libvirt
-  - libguestfs-tools
-  - python-lxml
-  - gir1.2-polkit-1.0
-  - libpolkit-agent-1-0
-  - libpolkit-backend-1-0
-  - libpolkit-gobject-1-0
 
 
 # The name of the libvirt service.

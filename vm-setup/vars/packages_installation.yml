@@ -1,0 +1,111 @@
+packages_installation:
+  ubuntu:
+    packages:
+     - crudini 
+     - curl 
+     - dnsmasq 
+     - figlet 
+     - golang 
+     - nmap 
+     - patch 
+     - psmisc 
+     - python-pip 
+     - wget
+     - libvirt-bin 
+     - libvirt-clients 
+     - libvirt-dev 
+     - jq 
+     - nodejs 
+     - golang-go 
+     - unzip 
+     - yarn 
+     - genisoimage 
+     - qemu-kvm
+     - libguestfs-tools
+     - gir1.2-polkit-1.0
+     - libpolkit-agent-1-0
+     - libpolkit-backend-1-0
+     - libpolkit-gobject-1-0
+    pip:
+     - ansible==2.8.2
+     - lolcat 
+     - yq 
+     - virtualbmc 
+     - python-ironicclient 
+     - python-ironic-inspector-client 
+     - lxml 
+     - netaddr 
+     - requests 
+     - setuptools 
+     - libvirt-python 
+  centos:
+    rhel7:
+        packages:
+         - crudini 
+         - curl 
+         - dnsmasq 
+         - figlet 
+         - golang 
+         - NetworkManager 
+         - nmap 
+         - patch 
+         - psmisc 
+         - python-pip 
+         - python-requests 
+         - python-setuptools 
+         - vim-enhanced 
+         - wget
+         - ansible 
+         - bind-utils 
+         - jq 
+         - libguestfs-tools 
+         - nodejs 
+         - python-ironicclient 
+         - python-ironic-inspector-client 
+         - python-openstackclient 
+         - redhat-lsb-core 
+         - unzip 
+         - genisoimage
+         - qemu-kvm
+         - libvirt
+         - libvirt-devel 
+         - libvirt-daemon-kvm 
+         - libvirt-python
+         - libguestfs-tools
+         - python-lxml
+         - polkit-pkla-compat
+         - python-netaddr
+         - python-virtualbmc
+         - virt-install 
+    rhel8:
+        package:
+         - curl 
+         - dnsmasq 
+         - golang 
+         - NetworkManager 
+         - nmap 
+         - patch 
+         - psmisc 
+         - vim-enhanced 
+         - wget
+         - ansible 
+         - bind-utils 
+         - jq 
+         - libguestfs-tools 
+         - nodejs 
+         - redhat-lsb-core 
+         - unzip 
+         - genisoimage
+         - qemu-kvm
+         - libvirt
+         - libvirt-devel 
+         - libvirt-daemon-kvm 
+         - python3-libvirt
+         - libguestfs-tools
+         - python3-lxml
+         - polkit-pkla-compat
+         - python3-netaddr
+         - virt-install 
+    pip:
+      - lolcat
+      - yq
