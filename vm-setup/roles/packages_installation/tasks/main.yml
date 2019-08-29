@@ -2,7 +2,7 @@
   block:
     - name: Install packages using standard package manager
       package:
-        name: "{{ packages.ubuntu.packages +  packages.ubuntu.libvirt }}"
+        name: "{{ packages.ubuntu.packages}}"
         state: present
       become: true
     - name: Install packages using pip
@@ -25,7 +25,7 @@
         - name: Install packages on rhel8
           when: ansible_lsb.major_release|int == 8
           package:
-             name: "{{ packages.centos.rhel8 }}"
+             name: "{{ packages.centos.rhel8.packages }}"
              state: present
       become: true
     - name: Install packages using pip

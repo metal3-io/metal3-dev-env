@@ -78,7 +78,7 @@ packages_installation:
          - python-virtualbmc
          - virt-install 
     rhel8:
-        package:
+        packages:
          - curl 
          - dnsmasq 
          - golang 
