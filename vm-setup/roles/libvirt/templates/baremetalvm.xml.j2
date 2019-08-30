@@ -6,7 +6,7 @@
   {{baremetal_vm_xml|default('')}}
 
   <os>
-    <type arch='{{ libvirt_arch }}'>hvm</type>
+    <type arch='{{ libvirt_arch }}' machine='q35'>hvm</type>
     <boot dev='network'/>
     <bootmenu enable='no'/>
   </os>
