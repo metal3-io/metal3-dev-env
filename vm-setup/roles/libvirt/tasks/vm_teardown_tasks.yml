@@ -38,7 +38,7 @@
 
         - name: Undefine vm vms
           command:
-            virsh undefine "{{ item.item.name }}"
+            virsh undefine --nvram "{{ item.item.name }}"
           when: item is success
           with_items: "{{ vm_check.results }}"
 

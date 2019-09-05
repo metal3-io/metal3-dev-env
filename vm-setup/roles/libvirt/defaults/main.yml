@@ -14,6 +14,7 @@ libvirt_diskdev: sda
 libvirt_diskbus: scsi
 libvirt_arch: x86_64
 libvirt_cpu_mode: host-model
+libvirt_firmware: bios
 
 # how many disks should be created when using extradisks
 extradisks_list:
