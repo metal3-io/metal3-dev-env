@@ -4,7 +4,6 @@ packages_installation:
      - crudini 
      - curl 
      - dnsmasq 
-     - figlet 
      - golang 
      - nmap 
      - patch 
@@ -28,7 +27,6 @@ packages_installation:
      - libpolkit-gobject-1-0
     pip:
      - ansible==2.8.2
-     - lolcat 
      - yq 
      - virtualbmc 
      - python-ironicclient 
@@ -44,7 +42,6 @@ packages_installation:
          - crudini 
          - curl 
          - dnsmasq 
-         - figlet 
          - golang 
          - NetworkManager 
          - nmap 
@@ -107,5 +104,4 @@ packages_installation:
          - python3-netaddr
          - virt-install 
     pip:
-      - lolcat
       - yq
