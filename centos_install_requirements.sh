@@ -15,12 +15,11 @@ fi
 # Update to latest packages first
 sudo yum -y update
 
-# Install EPEL required by some packages
+# Install additional repos as needed for each OS version
 if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
     if grep -q "Red Hat Enterprise Linux release 7" /etc/redhat-release ; then
         sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     elif grep -q "Red Hat Enterprise Linux release 8" /etc/redhat-release ; then
-        sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
         sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
         sudo alternatives --set python /usr/bin/python3
     else
