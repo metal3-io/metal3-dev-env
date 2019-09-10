@@ -105,6 +105,7 @@ packages:
          - python3-lxml
          - polkit-pkla-compat
          - python3-netaddr
+         - python3-virtualbmc
          - virt-install 
     pip:
       - yq
