@@ -17,8 +17,10 @@ sudo yum -y update
 
 # Install EPEL required by some packages
 if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
-    if grep -q "Red Hat Enterprise Linux" /etc/redhat-release ; then
-        sudo yum -y install http://mirror.centos.org/centos/7/extras/x86_64/Packages/epel-release-7-11.noarch.rpm
+    if grep -q "Red Hat Enterprise Linux release 7" /etc/redhat-release ; then
+        sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    elif grep -q "Red Hat Enterprise Linux release 8" /etc/redhat-release ; then
+        sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     else
         sudo yum -y install epel-release --enablerepo=extras
     fi
