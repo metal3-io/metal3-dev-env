@@ -45,7 +45,10 @@ popd
 popd
 
 # Needed to get a recent python-virtualbmc package
-sudo tripleo-repos current-tripleo
+# Use the explicit path because on RHEL8 it gets installed
+# to /usr/local/bin which isn't in the path for the sudo'd shell
+TRIPLEO_REPOS=$(which tripleo-repos)
+sudo $TRIPLEO_REPOS current-tripleo
 
 # There are some packages which are newer in the tripleo repos
 sudo yum -y update
