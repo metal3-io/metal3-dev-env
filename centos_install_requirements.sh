@@ -21,7 +21,8 @@ if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
         sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     elif grep -q "Red Hat Enterprise Linux release 8" /etc/redhat-release ; then
         sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-	sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
+        sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
+        sudo alternatives --set python /usr/bin/python3
     else
         sudo yum -y install epel-release --enablerepo=extras
     fi
