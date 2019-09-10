@@ -1,29 +1,3 @@
-# Install the packages required for our desired libvirt environment.
-# We store the list of packages in `libvirt_packages` so that in
-# theory we can support multiple distributions simply by passing in a
-# different list of packages.
-- name: Install packages for libvirt
-  package:
-    name: "{{ libvirt_packages }}"
-    state: present
-  become: true
-  when: ansible_os_family == "RedHat" and ansible_lsb.major_release|int == 7
-
-- name: Install packages for libvirt
-  package:
-    name: "{{ libvirt_packages_rhel8 }}"
-    state: present
-  become: true
-  when: ansible_os_family == "RedHat" and ansible_lsb.major_release|int == 8
-
-- name: Install packages for libvirt on Ubuntu
-  when: 
-    - ansible_facts['distribution'] == "Ubuntu"
-  package:
-    name: "{{ ubuntu_libvirt_packages }}"
-    state: present
-  become: true
-
 - name: Start libvirtd
   service:
     name: "{{ libvirtd_service }}"
