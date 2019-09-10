@@ -1,4 +1,4 @@
-packages_installation:
+packages:
   ubuntu:
     packages:
      - crudini 
