@@ -107,5 +107,6 @@ packages:
          - python3-netaddr
          - python3-virtualbmc
          - virt-install 
+         - network-scripts
     pip:
       - yq
