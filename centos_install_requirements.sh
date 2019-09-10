@@ -29,7 +29,7 @@ fi
 # Install required packages
 # python-{requests,setuptools} required for tripleo-repos install
 sudo yum -y install \
-  python-pip \
+  ansible \
   redhat-lsb-core \
   wget
 
@@ -50,10 +50,6 @@ sudo tripleo-repos current-tripleo
 sudo yum -y update
 
 
-# make sure additional requirments are installed
-sudo yum -y install \
-  ansible \
-
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo yum -y install podman
 else
@@ -66,5 +62,3 @@ else
   sudo yum install -y docker-ce docker-ce-cli containerd.io
   sudo systemctl start docker
 fi
-
-# Install python packages not included as rpms
