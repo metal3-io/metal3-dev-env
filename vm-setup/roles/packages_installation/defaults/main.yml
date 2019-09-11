@@ -76,6 +76,7 @@ packages:
          - virt-install 
     rhel8:
         packages:
+         - crudini 
          - curl 
          - dnsmasq 
          - golang 
