@@ -94,6 +94,9 @@ packages:
          - jq 
          - libguestfs-tools 
          - nodejs 
+         - python3-ironicclient 
+         - python3-ironic-inspector-client 
+         - python3-openstackclient
          - redhat-lsb-core 
          - unzip 
          - genisoimage
