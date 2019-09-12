@@ -16,14 +16,17 @@ fi
 sudo yum -y update
 
 # Install additional repos as needed for each OS version
+source /etc/os-release
+# VERSION_ID can be "7" or "8.x" so strip the minor version
+DISTRO="${ID}${VERSION_ID%.*}"
 if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
-    if grep -q "Red Hat Enterprise Linux release 7" /etc/redhat-release ; then
+    if [[ $DISTRO == "rhel7" ]]; then
         sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    elif grep -q "Red Hat Enterprise Linux release 8" /etc/redhat-release ; then
+    elif [[ $DISTRO == "rhel8" ]]; then
         sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
         sudo alternatives --set python /usr/bin/python3
     else
-        sudo yum -y install epel-release --enablerepo=extras
+        sudo yum -y install epel-release dnf --enablerepo=extras
     fi
 fi
 
@@ -34,21 +37,9 @@ sudo yum -y install \
   redhat-lsb-core \
   wget
 
-# We're reusing some tripleo pieces for this setup so clone them here
-pushd $HOME
-if [ ! -d tripleo-repos ]; then
-  git clone https://git.openstack.org/openstack/tripleo-repos
-fi
-pushd tripleo-repos
-sudo python setup.py install
-popd
-popd
-
-# Needed to get a recent python-virtualbmc package
-# Use the explicit path because on RHEL8 it gets installed
-# to /usr/local/bin which isn't in the path for the sudo'd shell
-TRIPLEO_REPOS=$(which tripleo-repos)
-sudo $TRIPLEO_REPOS current-tripleo
+# Install tripleo-repos, used to get a recent version of python-virtualbmc
+sudo dnf -y --repofrompath=current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo install "python*-tripleo-repos" --nogpgcheck
+sudo tripleo-repos current-tripleo
 
 # There are some packages which are newer in the tripleo repos
 sudo yum -y update
