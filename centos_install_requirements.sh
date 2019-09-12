@@ -22,12 +22,14 @@ DISTRO="${ID}${VERSION_ID%.*}"
 if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
     if [[ $DISTRO == "rhel7" ]]; then
         sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    elif [[ $DISTRO == "rhel8" ]]; then
-        sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
-        sudo alternatives --set python /usr/bin/python3
-    else
+    elif [[ $DISTRO == "centos7" ]]; then
         sudo yum -y install epel-release dnf --enablerepo=extras
     fi
+fi
+
+if [[ $DISTRO == "rhel8" ]]; then
+    sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
+    sudo alternatives --set python /usr/bin/python3
 fi
 
 # Install required packages
