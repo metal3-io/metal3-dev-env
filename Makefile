@@ -15,7 +15,7 @@ verify:
 clean: delete_mgmt_cluster host_cleanup
 
 delete_mgmt_cluster:
-	minikube delete
+	minikube delete || true
 
 host_cleanup:
 	./host_cleanup.sh
