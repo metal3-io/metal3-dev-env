@@ -195,7 +195,11 @@ process_status(){
 # - second input to compare
 #
 equals(){
-  [[ "${1}" == "${2}" ]]; process_status "$?"
+  [[ "${1}" == "${2}" ]]; RET_CODE="$?"
+  if ! process_status "$RET_CODE" ; then
+    echo "       expected ${2}, got ${1}"
+  fi
+  return $RET_CODE
 }
 
 #
@@ -206,7 +210,11 @@ equals(){
 # - String to look for the substring in
 #
 is_in(){
-  [[ "${2}" == *"${1}"* ]]; process_status "$?"
+  [[ "${2}" == *"${1}"* ]]; RET_CODE="$?"
+  if ! process_status "$RET_CODE" ; then
+    echo "       expected ${1} to be in ${2}"
+  fi
+  return $RET_CODE
 }
 
 
@@ -218,5 +226,9 @@ is_in(){
 # - second input to compare
 #
 differs(){
-  [[ "${1}" != "${2}" ]]; process_status "$?"
+  [[ "${1}" != "${2}" ]]; RET_CODE="$?"
+  if ! process_status "$RET_CODE" ; then
+    echo "       expected to be different from ${2}, got ${1}"
+  fi
+  return $RET_CODE
 }
