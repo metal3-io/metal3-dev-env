@@ -3,10 +3,6 @@
   hosts: virthost
   connection: local
   gather_facts: true
-  vars_files:
-    - vars/packages_installation.yml
   tasks:
     - import_role:
         name: packages_installation
-  vars: 
-    packages: "{{ packages_installation }}"

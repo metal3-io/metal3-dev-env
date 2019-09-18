@@ -15,42 +15,37 @@ fi
 # Update to latest packages first
 sudo yum -y update
 
-# Install EPEL required by some packages
+# Install additional repos as needed for each OS version
+source /etc/os-release
+# VERSION_ID can be "7" or "8.x" so strip the minor version
+DISTRO="${ID}${VERSION_ID%.*}"
 if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
-    if grep -q "Red Hat Enterprise Linux" /etc/redhat-release ; then
-        sudo yum -y install http://mirror.centos.org/centos/7/extras/x86_64/Packages/epel-release-7-11.noarch.rpm
-    else
-        sudo yum -y install epel-release --enablerepo=extras
+    if [[ $DISTRO == "rhel7" ]]; then
+        sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    elif [[ $DISTRO == "centos7" ]]; then
+        sudo yum -y install epel-release dnf --enablerepo=extras
     fi
+fi
+
+if [[ $DISTRO == "rhel8" ]]; then
+    sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
+    sudo alternatives --set python /usr/bin/python3
 fi
 
 # Install required packages
 # python-{requests,setuptools} required for tripleo-repos install
 sudo yum -y install \
-  python-pip \
+  ansible \
   redhat-lsb-core \
   wget
 
-# We're reusing some tripleo pieces for this setup so clone them here
-pushd $HOME
-if [ ! -d tripleo-repos ]; then
-  git clone https://git.openstack.org/openstack/tripleo-repos
-fi
-pushd tripleo-repos
-sudo python setup.py install
-popd
-popd
-
-# Needed to get a recent python-virtualbmc package
+# Install tripleo-repos, used to get a recent version of python-virtualbmc
+sudo dnf -y --repofrompath=current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo install "python*-tripleo-repos" --nogpgcheck
 sudo tripleo-repos current-tripleo
 
 # There are some packages which are newer in the tripleo repos
 sudo yum -y update
 
-
-# make sure additional requirments are installed
-sudo yum -y install \
-  ansible \
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo yum -y install podman
@@ -64,5 +59,3 @@ else
   sudo yum install -y docker-ce docker-ce-cli containerd.io
   sudo systemctl start docker
 fi
-
-# Install python packages not included as rpms

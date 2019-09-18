@@ -1,10 +1,9 @@
-packages_installation:
+packages:
   ubuntu:
     packages:
      - crudini 
      - curl 
      - dnsmasq 
-     - figlet 
      - golang 
      - nmap 
      - patch 
@@ -28,7 +27,6 @@ packages_installation:
      - libpolkit-gobject-1-0
     pip:
      - ansible==2.8.2
-     - lolcat 
      - yq 
      - virtualbmc 
      - python-ironicclient 
@@ -44,7 +42,6 @@ packages_installation:
          - crudini 
          - curl 
          - dnsmasq 
-         - figlet 
          - golang 
          - NetworkManager 
          - nmap 
@@ -79,6 +76,7 @@ packages_installation:
          - virt-install 
     rhel8:
         packages:
+         - crudini 
          - curl 
          - dnsmasq 
          - golang 
@@ -86,6 +84,9 @@ packages_installation:
          - nmap 
          - patch 
          - psmisc 
+         - python3-pip 
+         - python3-requests 
+         - python3-setuptools 
          - vim-enhanced 
          - wget
          - ansible 
@@ -93,6 +94,9 @@ packages_installation:
          - jq 
          - libguestfs-tools 
          - nodejs 
+         - python3-ironicclient 
+         - python3-ironic-inspector-client 
+         - python3-openstackclient
          - redhat-lsb-core 
          - unzip 
          - genisoimage
@@ -105,7 +109,8 @@ packages_installation:
          - python3-lxml
          - polkit-pkla-compat
          - python3-netaddr
+         - python3-virtualbmc
          - virt-install 
+         - network-scripts
     pip:
-      - lolcat
       - yq
