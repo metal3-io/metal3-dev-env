@@ -23,8 +23,12 @@ if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
     if [[ $DISTRO == "rhel7" ]]; then
         sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     elif [[ $DISTRO == "centos7" ]]; then
-        sudo yum -y install epel-release dnf --enablerepo=extras
+        sudo yum -y install epel-release --enablerepo=extras
     fi
+fi
+
+if [[ $DISTRO == "centos7" ]]; then
+    sudo yum -y install epel-release dnf --enablerepo=extras
 fi
 
 if [[ $DISTRO == "rhel8" ]]; then
