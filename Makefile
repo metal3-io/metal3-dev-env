@@ -1,7 +1,7 @@
 all: install_requirements configure_host launch_mgmt_cluster verify
 
 install_requirements:
-	./01_install_requirements.sh
+	./01_prepare_host.sh
 
 configure_host:
 	./02_configure_host.sh

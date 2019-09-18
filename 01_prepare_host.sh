@@ -59,3 +59,23 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -e "virthost=$HOSTNAME" \
   -i vm-setup/inventory.ini \
   -b -vvv vm-setup/install-package-playbook.yml
+
+function configure_minikube() {
+    minikube config set vm-driver kvm2
+}
+
+function init_minikube() {
+    #If the vm exists, it has already been initialized
+    if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
+      minikube start
+      # The interface doesn't appear in the minikube VM with --live,
+      # so just attach it and make it reboot.
+      sudo virsh attach-interface --domain minikube \
+          --model virtio --source provisioning \
+          --type network --config
+      minikube stop
+    fi
+}
+
+configure_minikube
+init_minikube
