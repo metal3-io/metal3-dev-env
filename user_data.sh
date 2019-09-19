@@ -46,10 +46,12 @@ EOF
 }
 
 user_data_secret() {
-    printf "#cloud-config\n\nssh_authorized_keys:\n  - " > .userdata.tmp
-    cat ${SSH_PUB_KEY} >> .userdata.tmp
-    printf "\n" >> .userdata.tmp
-    network_config_files >> .userdata.tmp
+  {
+    printf "#cloud-config\n\nssh_authorized_keys:\n  - "
+    cat "${SSH_PUB_KEY}"
+    printf "\n"
+    network_config_files
+  } > .userdata.tmp
 cat << EOF
 apiVersion: v1
 data:
