@@ -89,4 +89,4 @@ fi
 
 # Install python packages not included as rpms
 sudo pip install \
-  ansible==2.8.2 \
+  ansible==2.8.2

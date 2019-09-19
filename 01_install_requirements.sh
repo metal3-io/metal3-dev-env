@@ -21,13 +21,13 @@ if ! which docker-machine-driver-kvm2 2>/dev/null ; then
 fi
 
 if ! which kubectl 2>/dev/null ; then
-    curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
     chmod +x kubectl
     sudo mv kubectl /usr/local/bin/.
 fi
 
 if ! which kustomize 2>/dev/null ; then
-    curl -Lo kustomize $(curl --silent -L https://github.com/kubernetes-sigs/kustomize/releases/latest 2>&1 | awk -F'"' '/linux_amd64/ { print "https://github.com"$2; exit }')
+    curl -Lo kustomize "$(curl --silent -L https://github.com/kubernetes-sigs/kustomize/releases/latest 2>&1 | awk -F'"' '/linux_amd64/ { print "https://github.com"$2; exit }')"
     chmod +x kustomize
     sudo mv kustomize /usr/local/bin/.
 fi

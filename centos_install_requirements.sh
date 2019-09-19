@@ -16,6 +16,7 @@ fi
 sudo yum -y update
 
 # Install additional repos as needed for each OS version
+# shellcheck disable=SC1091
 source /etc/os-release
 # VERSION_ID can be "7" or "8.x" so strip the minor version
 DISTRO="${ID}${VERSION_ID%.*}"
@@ -44,7 +45,7 @@ sudo yum -y install \
   wget
 
 # Install tripleo-repos, used to get a recent version of python-virtualbmc
-sudo dnf -y --repofrompath=current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo install "python*-tripleo-repos" --nogpgcheck
+sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
 sudo tripleo-repos current-tripleo
 
 # There are some packages which are newer in the tripleo repos
