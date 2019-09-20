@@ -34,6 +34,7 @@ fi
 
 if [[ $DISTRO == "rhel8" ]]; then
     sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
+    sudo yum -y install python3
     sudo alternatives --set python /usr/bin/python3
 fi
 
