@@ -58,7 +58,9 @@
 #export CAPBM_RUN_LOCAL=true
 
 #Set Kubenetes cluster 
+
 #export K8S=${K8S:-"minikube"}
+#export K8S=${K8S:-"kinder"}
 
 #
 # Do not retry on failure during verifications or tests of the environment

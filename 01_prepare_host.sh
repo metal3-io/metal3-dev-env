@@ -105,14 +105,8 @@ else
   if [ ! -d ${GOPATH}/src/kubeadm ]; then
     pushd ${GOPATH}/src/
     git clone https://github.com/kubernetes/kubeadm.git
-    pushd kubeadm
-    popd
     popd
   fi
-  
-  # if [ ! -d ${GOPATH}/src/sigs.k8s.io/kind ]; then
-  #   GO111MODULE="on" go get -u sigs.k8s.io/kind@v0.4.0
-  # fi
   
   if [ ! -f ${GOPATH}/bin/kinder ]; then
     pushd $HOME/go/src/kubeadm/kinder
@@ -121,8 +115,6 @@ else
   fi
   
   sudo docker pull kindest/node:v1.15.0
-  
-  # sudo usermod -aG docker $USER
   
   if [[ $(cat ~/.bashrc) != *go/bin* ]]; then
     echo "export PATH=$GOPATH/bin:$PATH" >> ~/.bashrc

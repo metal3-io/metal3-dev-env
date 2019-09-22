@@ -75,8 +75,6 @@ function launch_kinder() {
     mkdir -p ${HOME}/.kube/
     sudo mv $kinder_kubeconfig_path ${HOME}/.kube/config
     sudo chown ${USER}:${USER} ${HOME}/.kube/config
-    #TODO: Attach `provisioning` interface to node which runs Ironic service.
-  fi
 }
 
 function launch_baremetal_operator() {
