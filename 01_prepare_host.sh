@@ -13,19 +13,7 @@ else
   # shellcheck disable=SC1091
   source centos_install_requirements.sh
 fi
-
-if ! which minikube 2>/dev/null ; then
-    curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-    chmod +x minikube
-    sudo mv minikube /usr/local/bin/.
-fi
-
-if ! which docker-machine-driver-kvm2 2>/dev/null ; then
-    curl -LO https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2
-    chmod +x docker-machine-driver-kvm2
-    sudo mv docker-machine-driver-kvm2 /usr/local/bin/.
-fi
-
+  
 if ! which kubectl 2>/dev/null ; then
     curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
     chmod +x kubectl
@@ -79,6 +67,9 @@ fi
 function configure_minikube() {
     minikube config set vm-driver kvm2
 }
+# Create Go directory
+eval $(go env)
+mkdir -p ${GOPATH}/{bin,src,pkg/mod} 
 
 function init_minikube() {
     #If the vm exists, it has already been initialized
@@ -95,5 +86,48 @@ function init_minikube() {
     fi
 }
 
-configure_minikube
-init_minikube
+if [ $K8S == "minikube" ]; then
+  if ! which minikube 2>/dev/null ; then
+      curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+      chmod +x minikube
+      sudo mv minikube /usr/local/bin/.
+  fi
+  
+  if ! which docker-machine-driver-kvm2 2>/dev/null ; then
+      curl -LO https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2
+      chmod +x docker-machine-driver-kvm2
+      sudo mv docker-machine-driver-kvm2 /usr/local/bin/.
+  fi
+  configure_minikube
+  init_minikube
+else
+# Install kinder to replace minikube
+  if [ ! -d ${GOPATH}/src/kubeadm ]; then
+    pushd ${GOPATH}/src/
+    git clone https://github.com/kubernetes/kubeadm.git
+    pushd kubeadm
+    popd
+    popd
+  fi
+  
+  # if [ ! -d ${GOPATH}/src/sigs.k8s.io/kind ]; then
+  #   GO111MODULE="on" go get -u sigs.k8s.io/kind@v0.4.0
+  # fi
+  
+  if [ ! -f ${GOPATH}/bin/kinder ]; then
+    pushd $HOME/go/src/kubeadm/kinder
+    GO111MODULE=on go install
+    popd
+  fi
+  
+  sudo docker pull kindest/node:v1.15.0
+  
+  # sudo usermod -aG docker $USER
+  
+  if [[ $(cat ~/.bashrc) != *go/bin* ]]; then
+    echo "export PATH=$GOPATH/bin:$PATH" >> ~/.bashrc
+  fi
+  if [[ $PATH != *go/bin*  ]]; then
+    export PATH=$GOPATH/bin:$PATH 
+  fi
+fi

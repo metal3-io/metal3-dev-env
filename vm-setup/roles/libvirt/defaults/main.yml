@@ -23,7 +23,5 @@ extradisks_list:
 # size of the disks to create when using extradisks
 extradisks_size: 8G
 
-
-
 # The name of the libvirt service.
 libvirtd_service: libvirtd

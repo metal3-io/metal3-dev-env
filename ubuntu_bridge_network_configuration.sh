@@ -45,6 +45,6 @@ if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
      sudo virsh net-destroy baremetal
      sudo virsh net-start baremetal
      if [ "$INT_IF" ]; then #Need to bring UP the NIC after destroying the libvirt network
-         sudo ifup "$INT_IF"
+         sudo ip link set "$INT_IF" up
      fi
  fi

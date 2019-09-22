@@ -65,6 +65,20 @@ function clone_repos() {
 }
 
 
+function launch_kinder() {
+  kinder="${GOPATH}/bin/kinder"
+  if [[ $(sudo $kinder get clusters) == "" ]]; then
+    sudo $kinder create cluster
+    sudo $kinder do kubeadm-init
+    kinder_kubeconfig_path="$(sudo $kinder get kubeconfig-path)"
+    sudo rm -f ${HOME}/.kube/config
+    mkdir -p ${HOME}/.kube/
+    sudo mv $kinder_kubeconfig_path ${HOME}/.kube/config
+    sudo chown ${USER}:${USER} ${HOME}/.kube/config
+    #TODO: Attach `provisioning` interface to node which runs Ironic service.
+  fi
+}
+
 function launch_baremetal_operator() {
     pushd "${BMOPATH}"
     if [ "${BMO_RUN_LOCAL}" = true ]; then
@@ -114,7 +128,12 @@ function launch_cluster_api() {
 }
 
 clone_repos
-sudo su -l -c 'minikube start' "${USER}"
+if [[ $K8S == "minikube"  ]]; then
+    sudo su -l -c 'minikube start' "${USER}"
+else
+  launch_kinder
+fi
+
 launch_baremetal_operator
 apply_bm_hosts
 launch_cluster_api

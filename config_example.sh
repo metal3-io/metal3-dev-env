@@ -57,6 +57,9 @@
 #
 #export CAPBM_RUN_LOCAL=true
 
+#Set Kubenetes cluster 
+#export K8S=${K8S:-"minikube"}
+
 #
 # Do not retry on failure during verifications or tests of the environment
 # This should be true. It could only be set to false for verifications of a

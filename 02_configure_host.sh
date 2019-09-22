@@ -57,14 +57,14 @@ else
       if [ ! -e /etc/sysconfig/network-scripts/ifcfg-provisioning ] ; then
           echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no\nBOOTPROTO=static\nIPADDR=172.22.0.1\nNETMASK=255.255.255.0" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
       fi
-      sudo ifdown provisioning || true
-      sudo ifup provisioning
+      sudo ip link set provisioning down || true
+      sudo ip link set provisioning up || true
 
       # Need to pass the provision interface for bare metal
       if [ "$PRO_IF" ]; then
           echo -e "DEVICE=$PRO_IF\nTYPE=Ethernet\nONBOOT=yes\nNM_CONTROLLED=no\nBRIDGE=provisioning" | sudo dd of="/etc/sysconfig/network-scripts/ifcfg-$PRO_IF"
-          sudo ifdown "$PRO_IF" || true
-          sudo ifup "$PRO_IF"
+          sudo ip link set "$PRO_IF" down || true
+          sudo ip link set "$PRO_IF" up || true
       fi
   fi
 
@@ -73,8 +73,8 @@ else
       if [ ! -e /etc/sysconfig/network-scripts/ifcfg-baremetal ] ; then
           echo -e "DEVICE=baremetal\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-baremetal
       fi
-      sudo ifdown baremetal || true
-      sudo ifup baremetal
+      sudo ip link set baremetal down || true
+      sudo ip link set baremetal up || true
 
       # Add the internal interface to it if requests, this may also be the interface providing
       # external access so we need to make sure we maintain dhcp config if its available
@@ -94,7 +94,7 @@ else
       sudo virsh net-destroy baremetal
       sudo virsh net-start baremetal
       if [ "$INT_IF" ]; then #Need to bring UP the NIC after destroying the libvirt network
-          sudo ifup "$INT_IF"
+          sudo ip link set "$INT_IF" up || true
       fi
   fi
 fi

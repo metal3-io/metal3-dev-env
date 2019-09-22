@@ -46,12 +46,12 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
 if [[ $OS == "centos" ]]; then
   sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
   if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
-      sudo ifdown provisioning || true
+      sudo ip link set provisioning down || true
       sudo rm -f /etc/sysconfig/network-scripts/ifcfg-provisioning || true
   fi
   # Leaving this around causes issues when the host is rebooted
   if [ "$MANAGE_BR_BRIDGE" == "y" ]; then
-      sudo ifdown baremetal || true
+      sudo ip link set baremetal down || true
       sudo rm -f /etc/sysconfig/network-scripts/ifcfg-baremetal || true
   fi
 fi
