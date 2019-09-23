@@ -60,6 +60,13 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -i vm-setup/inventory.ini \
   -b -vvv vm-setup/install-package-playbook.yml
 
+# Allow local non-root-user access to libvirt
+# Restart libvirtd service to get the new group membership loaded
+if ! id "$USER" | grep -q libvirt; then
+  sudo usermod -a -G "libvirt" "$USER"
+  sudo systemctl restart libvirtd
+fi
+
 function configure_minikube() {
     minikube config set vm-driver kvm2
 }
@@ -69,7 +76,9 @@ function init_minikube() {
     if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
       minikube start
       # The interface doesn't appear in the minikube VM with --live,
-      # so just attach it and make it reboot.
+      # so just attach it and make it reboot. As long as the
+      # 02_configure_host.sh script does not run, the provisioning network does
+      # not exist. Attempting to start Minikube will fail until it is created.
       sudo virsh attach-interface --domain minikube \
           --model virtio --source provisioning \
           --type network --config

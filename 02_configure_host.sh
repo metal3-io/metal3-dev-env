@@ -29,12 +29,6 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/setup-playbook.yml
 
-# Allow local non-root-user access to libvirt
-# Restart libvirtd service to get the new group membership loaded
-if ! id "$USER" | grep -q libvirt; then
-  sudo usermod -a -G "libvirt" "$USER"
-  sudo systemctl restart libvirtd
-fi
 # Usually virt-manager/virt-install creates this: https://www.redhat.com/archives/libvir-list/2008-August/msg00179.html
 if ! virsh pool-uuid default > /dev/null 2>&1 ; then
     virsh pool-define /dev/stdin <<EOF
