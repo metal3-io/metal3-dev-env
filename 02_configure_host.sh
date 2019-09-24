@@ -177,5 +177,13 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ironic ${POD_N
      --env MARIADB_PASSWORD="$mariadb_password" \
      -v "$IRONIC_DATA_DIR":/shared "${IRONIC_IMAGE}"
 
+sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name vbmc ${POD_NAME} \
+     -v "$WORKING_DIR/virtualbmc/vbmc":/root/.vbmc -v "/root/.ssh":/root/ssh \
+     "${VBMC_IMAGE}"
+
+sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name sushy-tools ${POD_NAME} \
+     -v "$WORKING_DIR/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
+     "${SUSHY_TOOLS_IMAGE}"
+
 # Start Ironic Inspector
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ironic-inspector ${POD_NAME} "${IRONIC_INSPECTOR_IMAGE}"
