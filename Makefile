@@ -1,4 +1,4 @@
-all: install_requirements configure_host launch_mgmt_cluster verify
+all: clean install_requirements configure_host launch_mgmt_cluster verify
 
 install_requirements:
 	./01_prepare_host.sh
