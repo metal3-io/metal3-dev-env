@@ -81,7 +81,7 @@ function configure_minikube() {
 function init_minikube() {
     #If the vm exists, it has already been initialized
     if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
-      minikube start
+      sudo su -l -c "minikube start" "$USER"
       # The interface doesn't appear in the minikube VM with --live,
       # so just attach it and make it reboot. As long as the
       # 02_configure_host.sh script does not run, the provisioning network does
@@ -89,7 +89,7 @@ function init_minikube() {
       sudo virsh attach-interface --domain minikube \
           --model virtio --source provisioning \
           --type network --config
-      minikube stop
+      sudo su -l -c "minikube stop" "$USER"
     fi
 }
 

@@ -19,7 +19,7 @@ check_bm_hosts() {
     MAC="${5}"
     BM_HOSTS="$(kubectl --kubeconfig "${KUBECONFIG}" get baremetalhosts\
       -n metal3 -o json)"
-    BM_VMS="$(virsh list --all)"
+    BM_VMS="$(sudo virsh list --all)"
     BM_VMNAME="${NAME//-/_}"
     # Verify BM host exists
     RESULT_STR="${NAME} Baremetalhost exist"
@@ -64,7 +64,7 @@ check_bm_hosts() {
     process_status $?
 
     #Verify the VMs interfaces
-    BM_VM_IFACES="$(virsh domiflist "${BM_VMNAME}")"
+    BM_VM_IFACES="$(sudo virsh domiflist "${BM_VMNAME}")"
     for bridge in ${BRIDGES}; do
       RESULT_STR="${NAME} Baremetalhost VM interface ${bridge} exist"
       echo "$BM_VM_IFACES" | grep -w "${bridge}"  > /dev/null
@@ -200,7 +200,7 @@ process_status $?
 
 ## Fetch the VMs
 RESULT_STR="Fetch Baremetalhosts VMs"
-virsh list --all > /dev/null
+sudo virsh list --all > /dev/null
 process_status $?
 echo ""
 

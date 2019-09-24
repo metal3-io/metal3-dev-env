@@ -30,8 +30,8 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -b -vvv vm-setup/setup-playbook.yml
 
 # Usually virt-manager/virt-install creates this: https://www.redhat.com/archives/libvir-list/2008-August/msg00179.html
-if ! virsh pool-uuid default > /dev/null 2>&1 ; then
-    virsh pool-define /dev/stdin <<EOF
+if ! sudo virsh pool-uuid default > /dev/null 2>&1 ; then
+    sudo virsh pool-define /dev/stdin <<EOF
 <pool type='dir'>
   <name>default</name>
   <target>
@@ -39,8 +39,8 @@ if ! virsh pool-uuid default > /dev/null 2>&1 ; then
   </target>
 </pool>
 EOF
-    virsh pool-start default
-    virsh pool-autostart default
+    sudo virsh pool-start default
+    sudo virsh pool-autostart default
 fi
 
 if [[ $OS == ubuntu ]]; then
