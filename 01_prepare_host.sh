@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
+set -xe
+
+# shellcheck disable=SC1091
+source lib/logging.sh
+# shellcheck disable=SC1091
+source lib/common.sh
+
 if [[ $OS == ubuntu ]]; then
   # shellcheck disable=SC1091
   source ubuntu_install_requirements.sh
@@ -60,10 +66,10 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -i vm-setup/inventory.ini \
   -b -vvv vm-setup/install-package-playbook.yml
 
-pushd resources/vbmc
+pushd ${SCRIPTDIR}/resources/vbmc
 sudo "${CONTAINER_RUNTIME}" build -t "${VBMC_IMAGE}" .
 popd
-pushd resources/sushy-tools
+pushd ${SCRIPTDIR}/resources/sushy-tools
 sudo "${CONTAINER_RUNTIME}" build -t "${SUSHY_TOOLS_IMAGE}" .
 popd
 
