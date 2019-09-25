@@ -66,12 +66,8 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -i vm-setup/inventory.ini \
   -b -vvv vm-setup/install-package-playbook.yml
 
-pushd ${SCRIPTDIR}/resources/vbmc
-sudo "${CONTAINER_RUNTIME}" build -t "${VBMC_IMAGE}" .
-popd
-pushd ${SCRIPTDIR}/resources/sushy-tools
-sudo "${CONTAINER_RUNTIME}" build -t "${SUSHY_TOOLS_IMAGE}" .
-popd
+sudo "${CONTAINER_RUNTIME}" pull "${VBMC_IMAGE}"
+sudo "${CONTAINER_RUNTIME}" pull "${SUSHY_TOOLS_IMAGE}"
 
 # Allow local non-root-user access to libvirt
 # Restart libvirtd service to get the new group membership loaded
