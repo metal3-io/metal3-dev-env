@@ -2,17 +2,17 @@
 
 eval "$(go env)"
 
-SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 USER="$(whoami)"
 
 # Get variables from the config file
 if [ -z "${CONFIG:-}" ]; then
     # See if there's a config_$USER.sh in the SCRIPTDIR
-    if [ ! -f "${SCRIPTDIR}/../config_${USER}.sh" ]; then
-        cp "${SCRIPTDIR}/../config_example.sh" "${SCRIPTDIR}/../config_${USER}.sh"
+    if [ ! -f "${SCRIPTDIR}/config_${USER}.sh" ]; then
+        cp "${SCRIPTDIR}/config_example.sh" "${SCRIPTDIR}/config_${USER}.sh"
         echo "Automatically created config_${USER}.sh with default contents."
     fi
-    CONFIG="${SCRIPTDIR}/../config_${USER}.sh"
+    CONFIG="${SCRIPTDIR}/config_${USER}.sh"
 fi
 # shellcheck disable=SC1090
 source "$CONFIG"
@@ -81,7 +81,7 @@ if ! sudo -n uptime &> /dev/null ; then
 fi
 
 # Check OS
-OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
+export OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
 if [[ ! $OS =~ ^(centos|rhel|ubuntu)$ ]]; then
   echo "Unsupported OS"
   exit 1
