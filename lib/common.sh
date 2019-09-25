@@ -127,14 +127,14 @@ function list_nodes() {
         jq '.nodes[] | {
            name,
            driver,
-           address:.driver_info.ipmi_address,
-           port:.driver_info.ipmi_port,
-           user:.driver_info.ipmi_username,
-           password:.driver_info.ipmi_password,
+           address:.driver_info.address,
+           port:.driver_info.port,
+           user:.driver_info.username,
+           password:.driver_info.password,
            mac: .ports[0].address
            } |
            .name + " " +
-           .driver + "://" + .address + (if .port then ":" + .port else "" end)  + " " +
+           .address + " " +
            .user + " " + .password + " " + .mac' \
        | sed 's/"//g'
 }

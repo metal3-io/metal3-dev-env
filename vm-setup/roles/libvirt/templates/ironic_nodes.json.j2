@@ -12,13 +12,18 @@
   {% for node in vm_nodes %}
     {
       "name": "{{ node.name|replace('_', '-') }}",
-      "driver": "ipmi",
+      "driver": "{{ vm_driver }}", 
       "resource_class": "baremetal",
       "driver_info": {
-        "ipmi_username": "admin",
-        "ipmi_password": "password",
-        "ipmi_address": "{{ lvars['host_ip'] }}",
-        "ipmi_port": "{{ node.virtualbmc_port }}",
+        "username": "admin",
+        "password": "password",
+        {% if vm_driver =='redfish' -%}
+        "port": "8000",
+        "address": "{{vm_driver}}+http://{{ lvars['host_ip'] }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        {% else -%}
+        "port": "{{ node.virtualbmc_port }}",
+        "address": "{{vm_driver}}://{{lvars['host_ip']}}:{{node.virtualbmc_port}}",
+        {% endif -%}
         "deploy_kernel": "http://172.22.0.1/images/ironic-python-agent.kernel",
         "deploy_ramdisk": "http://172.22.0.1/images/ironic-python-agent.initramfs"
       },
