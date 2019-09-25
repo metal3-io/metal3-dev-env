@@ -112,6 +112,23 @@
       when: item is failed
       with_items: "{{ vm_extradisks_check.results }}"
 
+    # Get the uuid of VMs for setting system-id in redfish URL
+    - name: Get vm uuid
+      command: >
+        virsh domuuid "{{ item.name }}"
+      register: vm_uuid
+      with_items: "{{ vm_nodes }}"
+    
+    - name: set_fact
+      set_fact:
+        vm_id: "{{ vm_id|default({}) | combine ( {item.item.name: item.stdout} ) }}"
+      with_items: "{{ vm_uuid.results }}"
+
+- name: set_fact BMC Driver
+  set_fact:
+    vm_driver: "{{ lookup('env', 'BMC_DRIVER') | default('ipmi', true) }}"
+
+
 # Generate the ironic node inventory files.  Note that this
 # task *must* occur after the above vm tasks, because if
 # `vm_nodes` is defined the template depends on the
