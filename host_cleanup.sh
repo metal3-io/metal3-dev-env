@@ -7,7 +7,7 @@ source lib/logging.sh
 source lib/common.sh
 
 # Kill and remove the running ironic containers
-for name in ironic ironic-inspector dnsmasq httpd mariadb vbmc sushy-tools; do
+for name in ipa-downloader ironic ironic-inspector dnsmasq httpd mariadb vbmc sushy-tools; do
     sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name
     sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f
 done

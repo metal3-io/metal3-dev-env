@@ -36,6 +36,12 @@ ROOT_DISK_NAME=${ROOT_DISK_NAME-"/dev/sda"}
 #Container runtime
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
 
+if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
+  export POD_NAME="--pod ironic-pod"
+else
+  export POD_NAME=""
+fi
+
 export EXTERNAL_SUBNET="192.168.111.0/24"
 
 export SSH_PUB_KEY=~/.ssh/id_rsa.pub
@@ -55,9 +61,13 @@ export VBMC_IMAGE=${VBMC_IMAGE:-"quay.io/metal3-io/vbmc"}
 export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"quay.io/metal3-io/sushy-tools"}
 
 # Ironic vars
+export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"quay.io/metal3-io/ironic-ipa-downloader:master"}
 export IRONIC_IMAGE=${IRONIC_IMAGE:-"quay.io/metal3-io/ironic:master"}
-export IRONIC_INSPECTOR_IMAGE=${IRONIC_INSPECTOR_IMAGE:-"quay.io/metal3-io/ironic-inspector"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
+export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
+
+# Config for OpenStack CLI
+export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"

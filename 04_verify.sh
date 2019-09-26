@@ -227,12 +227,7 @@ if [[ "${BMO_RUN_LOCAL}" == true ]] || [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
   echo ""
 fi
 
-#Verify Ironic containers are running
-for name in ironic ironic-inspector dnsmasq httpd mariadb; do
-  iterate check_container "${name}"
-done
-echo ""
-
+iterate check_container httpd
 
 echo -e "\nNumber of failures : $FAILS"
 exit "${FAILS}"
