@@ -156,7 +156,8 @@ iterate(){
   do
     if [[ "${RUNS}" == "0" ]]; then
       echo "   - Waiting for task completion (up to" \
-        "$((TEST_TIME_INTERVAL*TEST_MAX_TIME)) seconds)"
+        "$((TEST_TIME_INTERVAL*TEST_MAX_TIME)) seconds)" \
+        " - Command: '${COMMAND}'"
     fi
     RUNS="$((RUNS+1))"
     if [[ "${RUNS}" == "${TEST_MAX_TIME}" ]]; then
