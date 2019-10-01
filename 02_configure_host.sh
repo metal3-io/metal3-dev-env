@@ -145,6 +145,7 @@ for name in ironic ironic-inspector dnsmasq httpd mariadb; do
 done
 
 # set password for mariadb
+# shellcheck disable=SC2005
 mariadb_password="$(echo "$(date;hostname)"|sha256sum |cut -c-20)"
 
 
