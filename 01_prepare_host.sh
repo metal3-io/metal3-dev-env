@@ -84,14 +84,19 @@ function init_minikube() {
     #If the vm exists, it has already been initialized
     if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
       sudo su -l -c "minikube start" "$USER"
-      # The interface doesn't appear in the minikube VM with --live,
-      # so just attach it and make it reboot. As long as the
-      # 02_configure_host.sh script does not run, the provisioning network does
-      # not exist. Attempting to start Minikube will fail until it is created.
+      sudo su -l -c "minikube stop" "$USER"
+    fi
+
+    MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"
+
+    # The interface doesn't appear in the minikube VM with --live,
+    # so just attach it before next boot. As long as the
+    # 02_configure_host.sh script does not run, the provisioning network does
+    # not exist. Attempting to start Minikube will fail until it is created.
+    if ! echo "$MINIKUBE_IFACES" | grep -w provisioning  > /dev/null ; then
       sudo virsh attach-interface --domain minikube \
           --model virtio --source provisioning \
           --type network --config
-      sudo su -l -c "minikube stop" "$USER"
     fi
 }
 
