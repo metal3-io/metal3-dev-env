@@ -81,7 +81,8 @@ if ! sudo -n uptime &> /dev/null ; then
 fi
 
 # Check OS
-export OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
+OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
+export OS
 if [[ ! $OS =~ ^(centos|rhel|ubuntu)$ ]]; then
   echo "Unsupported OS"
   exit 1
@@ -95,14 +96,14 @@ if [[ ${os_version} -ne 7 ]] && [[ ${os_version} -ne 8 ]] && [[ ${os_version} -n
 fi
 
 # Check d_type support
-FSTYPE=$(df ${FILESYSTEM} --output=fstype | grep -v Type)
+FSTYPE=$(df "${FILESYSTEM}" --output=fstype | grep -v Type)
 
 case ${FSTYPE} in
   'ext4'|'btrfs')
   ;;
   'xfs')
     # shellcheck disable=SC2143
-    if [[ $(xfs_info ${FILESYSTEM} | grep -q "ftype=1") ]]; then
+    if [[ $(xfs_info "${FILESYSTEM}" | grep -q "ftype=1") ]]; then
       echo "Filesystem not supported"
       exit 1
     fi
