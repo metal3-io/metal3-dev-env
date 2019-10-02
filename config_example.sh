@@ -79,3 +79,7 @@
 # Set the driver. The default value is 'ipmi'
 #
 #export BMC_DRIVER="redfish"
+
+# Install v1alpha2 controllers and CRDs
+#
+#export V1ALPHA2_SWITCH=false

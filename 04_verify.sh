@@ -112,10 +112,12 @@ check_k8s_entity() {
 check_k8s_rs() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
+  local LABEL="${1}"
+  shift
   for name in "${@}"; do
     # Check entity exists
     ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
-      -l name="${name}" -n metal3 -o json | jq '.items[0]')"
+      -l "${LABEL}"="${name}" -n metal3 -o json | jq '.items[0]')"
     RESULT_STR="Replica set ${name} created"
     differs "${ENTITY}" "null"
 
@@ -147,9 +149,19 @@ EXPTD_CRDS="baremetalhosts.metal3.io \
   machinedeployments.cluster.k8s.io \
   machines.cluster.k8s.io \
   machinesets.cluster.k8s.io"
+EXPTD_V1ALPHA2_CRDS="clusters.cluster.x-k8s.io \
+  kubeadmconfigs.bootstrap.cluster.x-k8s.io \
+  kubeadmconfigtemplates.bootstrap.cluster.x-k8s.io \
+  machinedeployments.cluster.x-k8s.io \
+  machines.cluster.x-k8s.io \
+  machinesets.cluster.x-k8s.io"
 EXPTD_STATEFULSETS="cluster-api-controller-manager \
   cluster-api-provider-baremetal-controller-manager"
 EXPTD_DEPLOYMENTS="metal3-baremetal-operator"
+EXPTD_V1ALPHA2_DEPLOYMENTS="cabpk-controller-manager \
+capi-controller-manager"
+EXPTD_V1ALPHA2_RS="cabpk-controller-manager \
+cluster-api-controller-manager"
 BRIDGES="provisioning baremetal"
 
 FAILS=0
@@ -183,6 +195,15 @@ for name in ${EXPTD_CRDS}; do
 done
 echo ""
 
+if [ "${V1ALPHA2_SWITCH}" == true ]; then
+  for name in ${EXPTD_V1ALPHA2_CRDS}; do
+    RESULT_STR="CRD ${name} created"
+    echo "${CRDS}" | grep -w "${name}"  > /dev/null
+    process_status $?
+  done
+  echo ""
+fi
+
 
 # Verify the Operators, stateful sets
 iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
@@ -191,8 +212,13 @@ iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
 iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
 
 # Verify the Operators, Replica sets
-iterate check_k8s_rs "${EXPTD_DEPLOYMENTS}"
+iterate check_k8s_rs name "${EXPTD_DEPLOYMENTS}"
 
+if [ "${V1ALPHA2_SWITCH}" == true ]; then
+  # Verify the v1alph2 Operators, Deployments, Repllicasets
+  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA2_DEPLOYMENTS}"
+  iterate check_k8s_rs control-plane "${EXPTD_V1ALPHA2_RS}"
+fi
 # Verify the baremetal hosts
 ## Fetch the BM CRs
 RESULT_STR="Fetch Baremetalhosts"
