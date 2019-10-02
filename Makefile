@@ -24,6 +24,6 @@ test:
 	./05_test.sh
 
 lint:
-	shellcheck -s bash *.sh
+	./hack/shellcheck.sh
 
 .PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint
