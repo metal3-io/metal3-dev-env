@@ -81,7 +81,7 @@ function configure_minikube() {
 }
 
 function init_minikube() {
-    #If the vm exists, it has already been initialized
+    # If the vm exists, it has already been initialized
     if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
       sudo su -l -c "minikube start" "$USER"
       # The interface doesn't appear in the minikube VM with --live,
