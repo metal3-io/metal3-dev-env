@@ -86,17 +86,19 @@ check_bm_hosts() {
 check_k8s_entity() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
-  for name in ${2}; do
+  local TYPE="${1}"
+  shift
+  for name in "${@}"; do
     # Check entity exists
-    RESULT_STR="${1} ${name} created"
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${1}" "${name}" \
+    RESULT_STR="${TYPE} ${name} created"
+    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
       -n metal3 -o json)"
     process_status $?
 
     # Check the replicas
     if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPBM_RUN_LOCAL}" != true ]]
     then
-      RESULT_STR="${name} ${1} replicas correct"
+      RESULT_STR="${name} ${TYPE} replicas correct"
       equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
         "$(echo "${ENTITY}" | jq -r '.status.replicas')"
     fi
@@ -110,7 +112,7 @@ check_k8s_entity() {
 check_k8s_rs() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
-  for name in ${1}; do
+  for name in "${@}"; do
     # Check entity exists
     ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
       -l name="${name}" -n metal3 -o json | jq '.items[0]')"
