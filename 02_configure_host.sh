@@ -159,16 +159,10 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name sushy-tools ${
 # Create openstack clouds.yaml
 if [[ ! -f "$OPENSTACK_CONFIG" ]]
 then
-  mkdir -p "$HOME/.config/openstack"
-  echo "clouds:" > "$HOME/.config/openstack/clouds.yaml"
+  mkdir -p "$(dirname "$OPENSTACK_CONFIG")"
+  echo "clouds:" > "$OPENSTACK_CONFIG"
 fi
 
-if ! grep -qi metal3 "$OPENSTACK_CONFIG"
-then
-  cat <<EOF >>"$OPENSTACK_CONFIG"
-  metal3:
-    auth_type: none
-    baremetal_endpoint_override: http://172.22.0.2:6385
-    baremetal_introspection_endpoint_override: http://172.22.0.2:5050
-EOF
-fi
+# Merge metal3-dev-env clouds.yaml with user's existing clouds.yaml
+OPENSTACK_CONFIG_MERGED=$(yq -y -s '.[0] * .[1]' "$OPENSTACK_CONFIG" clouds.yaml)
+echo "$OPENSTACK_CONFIG_MERGED" > "$OPENSTACK_CONFIG"
