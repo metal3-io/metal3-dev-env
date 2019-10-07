@@ -115,6 +115,7 @@ function launch_cluster_api() {
 
 clone_repos
 sudo su -l -c 'minikube start' "${USER}"
+sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
 launch_baremetal_operator
 apply_bm_hosts
 launch_cluster_api

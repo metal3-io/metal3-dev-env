@@ -38,20 +38,31 @@ if ! command -v kustomize 2>/dev/null ; then
     sudo mv kustomize /usr/local/bin/.
 fi
 
-# Download Ironic binary and Ironic inspector image
+# Clean-up any old ironic containers
+for name in ironic ironic-inspector dnsmasq httpd mariadb ipa-downloader; do
+    sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name
+    sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f
+done
 
-mkdir -p "$IRONIC_DATA_DIR/html/images"
-pushd "$IRONIC_DATA_DIR/html/images"
-if [ ! -f ironic-python-agent.initramfs ]; then
-    curl --insecure --compressed -L https://images.rdoproject.org/master/rdo_trunk/current-tripleo-rdo/ironic-python-agent.tar | tar -xf -
-fi
+# Clean-up existing pod, if podman
+case $CONTAINER_RUNTIME in
+podman)
+  if  sudo "${CONTAINER_RUNTIME}" pod exists ironic-pod ; then
+      sudo "${CONTAINER_RUNTIME}" pod rm ironic-pod -f
+  fi
+  sudo "${CONTAINER_RUNTIME}" pod create -n ironic-pod
+  ;;
+esac
 
-for IMAGE_VAR in IRONIC_IMAGE IRONIC_INSPECTOR_IMAGE ; do
+# Pull images we'll need
+for IMAGE_VAR in IRONIC_IMAGE IPA_DOWNLOADER_IMAGE VBMC_IMAGE SUSHY_TOOLS_IMAGE; do
     IMAGE=${!IMAGE_VAR}
     sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
 done
 
-## Download centos 7 qcow2 image
+# Download IPA and CentOS 7 Images
+mkdir -p "$IRONIC_IMAGE_DIR"
+pushd "$IRONIC_IMAGE_DIR"
 
 CENTOS_IMAGE=CentOS-7-x86_64-GenericCloud-1901.qcow2
 if [ ! -f ${CENTOS_IMAGE} ] ; then
@@ -65,9 +76,6 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -e "virthost=$HOSTNAME" \
   -i vm-setup/inventory.ini \
   -b -vvv vm-setup/install-package-playbook.yml
-
-sudo "${CONTAINER_RUNTIME}" pull "${VBMC_IMAGE}"
-sudo "${CONTAINER_RUNTIME}" pull "${SUSHY_TOOLS_IMAGE}"
 
 # Allow local non-root-user access to libvirt
 # Restart libvirtd service to get the new group membership loaded
@@ -96,6 +104,12 @@ function init_minikube() {
     if ! echo "$MINIKUBE_IFACES" | grep -w provisioning  > /dev/null ; then
       sudo virsh attach-interface --domain minikube \
           --model virtio --source provisioning \
+          --type network --config
+    fi
+
+    if ! echo "$MINIKUBE_IFACES" | grep -w baremetal  > /dev/null ; then
+      sudo virsh attach-interface --domain minikube \
+          --model virtio --source baremetal \
           --type network --config
     fi
 }

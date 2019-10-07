@@ -11,6 +11,15 @@ if [ ! -f "$HOME/.ssh/id_rsa.pub" ]; then
     ssh-keygen -f ~/.ssh/id_rsa -P ""
 fi
 
+# Start image downloader and httpd containers
+sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ipa-downloader ${POD_NAME} \
+     -v "$IRONIC_DATA_DIR":/shared "${IPA_DOWNLOADER_IMAGE}" /usr/local/bin/get-resource.sh
+
+sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd ${POD_NAME} \
+     -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd "${IRONIC_IMAGE}"
+
+sudo "${CONTAINER_RUNTIME}" wait ipa-downloader
+
 # root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
 if sudo [ ! -f /root/.ssh/id_rsa_virt_power ]; then
@@ -125,7 +134,6 @@ if [ "$EXT_IF" ]; then
 fi
 
 # Switch NetworkManager to internal DNS
-
 if [[ "$MANAGE_BR_BRIDGE" == "y" && $OS == "centos" ]] ; then
   sudo mkdir -p /etc/NetworkManager/conf.d/
   sudo crudini --set /etc/NetworkManager/conf.d/dnsmasq.conf main dns dnsmasq
@@ -139,45 +147,7 @@ if [[ "$MANAGE_BR_BRIDGE" == "y" && $OS == "centos" ]] ; then
   fi
 fi
 
-for name in ironic ironic-inspector dnsmasq httpd mariadb; do
-    sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name
-    sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f
-done
-
-# set password for mariadb
-# shellcheck disable=SC2005
-mariadb_password="$(echo "$(date;hostname)"|sha256sum |cut -c-20)"
-
-
-if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-  # Remove existing pod
-  if  sudo "${CONTAINER_RUNTIME}" pod exists ironic-pod ; then
-      sudo "${CONTAINER_RUNTIME}" pod rm ironic-pod -f
-  fi
-  # Create pod
-  sudo "${CONTAINER_RUNTIME}" pod create -n ironic-pod
-  POD_NAME="--pod ironic-pod"
-else
-  POD_NAME=""
-fi
-
-mkdir -p "$IRONIC_DATA_DIR"
-
-# Start dnsmasq, http, mariadb, and ironic containers using same image
-sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name dnsmasq  ${POD_NAME} \
-     -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/rundnsmasq "${IRONIC_IMAGE}"
-
-sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd ${POD_NAME} \
-     -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd "${IRONIC_IMAGE}"
-
-sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name mariadb ${POD_NAME} \
-     -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runmariadb \
-     --env MARIADB_PASSWORD="$mariadb_password" "${IRONIC_IMAGE}"
-
-sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ironic ${POD_NAME} \
-     --env MARIADB_PASSWORD="$mariadb_password" \
-     -v "$IRONIC_DATA_DIR":/shared "${IRONIC_IMAGE}"
-
+# Start vbmc and sushy containers
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name vbmc ${POD_NAME} \
      -v "$WORKING_DIR/virtualbmc/vbmc":/root/.vbmc -v "/root/.ssh":/root/ssh \
      "${VBMC_IMAGE}"
@@ -186,5 +156,19 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name sushy-tools ${
      -v "$WORKING_DIR/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
      "${SUSHY_TOOLS_IMAGE}"
 
-# Start Ironic Inspector
-sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ironic-inspector ${POD_NAME} "${IRONIC_INSPECTOR_IMAGE}"
+# Create openstack clouds.yaml
+if [[ ! -f "$OPENSTACK_CONFIG" ]]
+then
+  mkdir -p "$HOME/.config/openstack"
+  echo "clouds:" > "$HOME/.config/openstack/clouds.yaml"
+fi
+
+if ! grep -qi metal3 "$OPENSTACK_CONFIG"
+then
+  cat <<EOF >>"$OPENSTACK_CONFIG"
+  metal3:
+    auth_type: none
+    baremetal_endpoint_override: http://172.22.0.2:6385
+    baremetal_introspection_endpoint_override: http://172.22.0.2:5050
+EOF
+fi
