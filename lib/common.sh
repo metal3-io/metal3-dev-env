@@ -72,7 +72,7 @@ export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
 TEST_TIME_INTERVAL="${TEST_TIME_INTERVAL:-10}"
-TEST_MAX_TIME="${TEST_MAX_TIME:-120}"
+TEST_MAX_TIME="${TEST_MAX_TIME:-240}"
 FAILS=0
 RESULT_STR=""
 
