@@ -155,20 +155,3 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name vbmc ${POD_NAM
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name sushy-tools ${POD_NAME} \
      -v "$WORKING_DIR/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
      "${SUSHY_TOOLS_IMAGE}"
-
-# Create openstack clouds.yaml
-if [[ ! -f "$OPENSTACK_CONFIG" ]]
-then
-  mkdir -p "$HOME/.config/openstack"
-  echo "clouds:" > "$HOME/.config/openstack/clouds.yaml"
-fi
-
-if ! grep -qi metal3 "$OPENSTACK_CONFIG"
-then
-  cat <<EOF >>"$OPENSTACK_CONFIG"
-  metal3:
-    auth_type: none
-    baremetal_endpoint_override: http://172.22.0.2:6385
-    baremetal_introspection_endpoint_override: http://172.22.0.2:5050
-EOF
-fi

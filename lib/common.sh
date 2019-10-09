@@ -66,9 +66,6 @@ export IRONIC_IMAGE=${IRONIC_IMAGE:-"quay.io/metal3-io/ironic:master"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 
-# Config for OpenStack CLI
-export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
-
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
 TEST_TIME_INTERVAL="${TEST_TIME_INTERVAL:-10}"
