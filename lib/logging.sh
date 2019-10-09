@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Log output automatically
 LOGDIR="$(dirname "$0")/logs"
 if [ ! -d "$LOGDIR" ]; then
