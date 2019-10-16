@@ -35,9 +35,9 @@ BMOBRANCH="${BMOBRANCH:-master}"
 CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 CAPBMBRANCH="${CAPBMBRANCH:-master}"
 
-CAPIREPO="${CAPIREPO:-https://github.com/kubernetes-sigs/cluster-api.git}" 
+CAPIREPO="${CAPIREPO:-https://github.com/kubernetes-sigs/cluster-api.git}"
 CAPIBRANCH="${CAPIBRANCH:-master}"
-CABPKREPO="${CABPKREPO:-https://github.com/kubernetes-sigs/cluster-api-bootstrap-provider-kubeadm.git}" 
+CABPKREPO="${CABPKREPO:-https://github.com/kubernetes-sigs/cluster-api-bootstrap-provider-kubeadm.git}"
 CABPKBRANCH="${CABPKBRANCH:-master}"
 
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
@@ -171,6 +171,7 @@ function launch_cluster_api_bootstrap_provider_kubeadm() {
 }
 
 clone_repos
+init_minikube
 sudo su -l -c 'minikube start' "${USER}"
 sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
 launch_baremetal_operator
