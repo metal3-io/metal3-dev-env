@@ -84,6 +84,12 @@ if ! id "$USER" | grep -q libvirt; then
   sudo systemctl restart libvirtd
 fi
 
+# Start image downloader container
+sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ipa-downloader ${POD_NAME} \
+     -v "$IRONIC_DATA_DIR":/shared "${IPA_DOWNLOADER_IMAGE}" /usr/local/bin/get-resource.sh
+
+sudo "${CONTAINER_RUNTIME}" wait ipa-downloader
+
 function configure_minikube() {
     minikube config set vm-driver kvm2
 }
