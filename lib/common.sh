@@ -108,6 +108,13 @@ if [[ ${os_version} -ne 7 ]] && [[ ${os_version} -ne 8 ]] && [[ ${os_version} -n
   exit 1
 fi
 
+# Use firewalld on CentOS/RHEL, iptables everywhere else
+export USE_FIREWALLD=False
+if [[ ($OS == "rhel" || $OS = "centos") && ${os_version} == 8 ]]
+then
+  export USE_FIREWALLD=True
+fi
+
 # Check d_type support
 FSTYPE=$(df "${FILESYSTEM}" --output=fstype | grep -v Type)
 

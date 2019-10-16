@@ -1,0 +1,10 @@
+- name: "firewalld"
+  include: firewalld.yaml
+  become: true
+  when: use_firewalld
+
+- name: "iptables"
+  include: iptables.yaml
+  become: true
+  when: not use_firewalld
+

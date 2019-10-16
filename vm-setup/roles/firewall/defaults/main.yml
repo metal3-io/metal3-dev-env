@@ -1,0 +1,19 @@
+use_firewalld: true
+baremetal_interface: baremetal
+provisioning_interface: provisioning
+vbmc_port_range: "6230:6235"
+ironic_ports:
+  - "6180"
+  - "5050"
+  - "6385"
+  - "9999"
+provisioning_host_ports:
+  # Caching HTTP Server
+  - "80"
+  # Container image registry
+  - "5000"
+pxe_udp_ports:
+  - "5353"
+  - "67"
+  - "68"
+  - "69"

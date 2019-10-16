@@ -108,39 +108,10 @@ else
   fi
 fi
 
-# Add firewall rules to ensure the IPA ramdisk can reach httpd, Ironic and the
-# Inspector API on the cluster, and ironic can reach the agent (9999)
-for port in 6180 5050 6385 9999; do
-    if ! sudo iptables -C FORWARD -i provisioning -o provisioning -p tcp \
-      -m tcp --dport $port -j ACCEPT > /dev/null 2>&1; then
-        sudo iptables -I FORWARD -i provisioning -o provisioning -p tcp -m tcp \
-          --dport $port -j ACCEPT
-    fi
-    if ! sudo iptables -C FORWARD -i provisioning -o provisioning -p tcp \
-      -m tcp --sport $port -j ACCEPT > /dev/null 2>&1; then
-        sudo iptables -I FORWARD -i provisioning -o provisioning -p tcp -m tcp \
-          --sport $port -j ACCEPT
-    fi
-done
-
-# Add firewall rules to ensure the IPA ramdisk can reach httpd on the host
-if ! sudo iptables -C INPUT -i provisioning -p tcp -m tcp --dport 80 -j ACCEPT > /dev/null 2>&1; then
-    sudo iptables -I INPUT -i provisioning -p tcp -m tcp --dport 80 -j ACCEPT
-fi
-
-# Allow ipmi to the virtual bmc processes that we just started
-if ! sudo iptables -C INPUT -i baremetal -p udp -m udp --dport 6230:6235 -j ACCEPT 2>/dev/null ; then
-    sudo iptables -I INPUT -i baremetal -p udp -m udp --dport 6230:6235 -j ACCEPT
-fi
-
-#Allow access to dhcp and tftp server for pxeboot
-for port in 67 68 69 5353; do
-    if ! sudo iptables -C FORWARD -i provisioning -o provisioning -p udp \
-      --dport $port -j ACCEPT 2>/dev/null ; then
-        sudo iptables -I FORWARD -i provisioning -o provisioning -p udp \
-          --dport $port -j ACCEPT
-    fi
-done
+ANSIBLE_FORCE_COLOR=true ansible-playbook \
+    -e "{use_firewalld: $USE_FIREWALLD}" \
+    -i vm-setup/inventory.ini \
+    -b -vvv vm-setup/firewall.yml
 
 # Need to route traffic from the provisioning host.
 if [ "$EXT_IF" ]; then
