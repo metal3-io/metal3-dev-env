@@ -33,11 +33,20 @@ CABPKPATH="${M3PATH}/cluster-api-bootstrap-provider-kubeadm"
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
 CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
-CAPBMBRANCH="${CAPBMBRANCH:-master}"
 
-CAPIREPO="${CAPIREPO:-https://github.com/kubernetes-sigs/cluster-api.git}"
-CAPIBRANCH="${CAPIBRANCH:-master}"
-CABPKREPO="${CABPKREPO:-https://github.com/kubernetes-sigs/cluster-api-bootstrap-provider-kubeadm.git}"
+if [ "${V1ALPHA2_SWITCH}" == true ]; then
+  CAPBMBRANCH="${CAPBMBRANCH:-v1alpha2}"
+else 
+  CAPBMBRANCH="${CAPBMBRANCH:-master}"
+fi
+
+CAPIREPO="${CAPIREPO:-https://github.com/kubernetes-sigs/cluster-api.git}" 
+
+if [ "${V1ALPHA2_SWITCH}" == true ]; then
+  CAPIBRANCH="${CAPIBRANCH:-release-0.2}"
+fi
+
+CABPKREPO="${CABPKREPO:-https://github.com/kubernetes-sigs/cluster-api-bootstrap-provider-kubeadm.git}" 
 CABPKBRANCH="${CABPKBRANCH:-master}"
 
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
@@ -72,30 +81,33 @@ function clone_repos() {
     git pull -r || true
     popd
 
-    if [[ -d "${CAPIPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
-      rm -rf "${CAPIPATH}"
+    
+    if [ "${V1ALPHA2_SWITCH}" == true ]; then  
+      if [[ -d "${CAPIPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+        rm -rf "${CAPIPATH}"
+      fi
+      if [ ! -d "${CAPIPATH}" ] ; then
+          pushd "${M3PATH}"
+          git clone "${CAPIREPO}"
+          popd
+      fi
+      pushd "${CAPIPATH}"
+      git checkout "${CAPIBRANCH}"
+      git pull -r || true
+      popd
+      if [[ -d "${CABPKPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+        rm -rf "${CABPKPATH}"
+      fi
+      if [ ! -d "${CABPKPATH}" ] ; then
+          pushd "${M3PATH}"
+          git clone "${CABPKREPO}"
+          popd
+      fi
+      pushd "${CABPKPATH}"
+      git checkout "${CABPKBRANCH}"
+      git pull -r || true
+      popd
     fi
-    if [ ! -d "${CAPIPATH}" ] ; then
-        pushd "${M3PATH}"
-        git clone "${CAPIREPO}"
-        popd
-    fi
-    pushd "${CAPIPATH}"
-    git checkout "${CAPIBRANCH}"
-    git pull -r || true
-    popd
-    if [[ -d "${CABPKPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
-      rm -rf "${CABPKPATH}"
-    fi
-    if [ ! -d "${CABPKPATH}" ] ; then
-        pushd "${M3PATH}"
-        git clone "${CABPKREPO}"
-        popd
-    fi
-    pushd "${CABPKPATH}"
-    git checkout "${CABPKBRANCH}"
-    git pull -r || true
-    popd
 }
 
 
@@ -135,7 +147,13 @@ function apply_bm_hosts() {
 #
 function launch_cluster_api_provider_baremetal() {
     pushd "${CAPBMPATH}"
-    if [ "${CAPBM_RUN_LOCAL}" = true ]; then
+    
+    if [ "${V1ALPHA2_SWITCH}" == true ]; then
+      touch capbm.out.log
+      touch capbm.err.log
+      make install 
+      nohup make run >> capbm.out.log 2>> capbm.err.log &
+    elif [ "${CAPBM_RUN_LOCAL}" == true ]; then
       touch capbm.out.log
       touch capbm.err.log
       make deploy
@@ -144,7 +162,7 @@ function launch_cluster_api_provider_baremetal() {
     else
       make deploy
     fi
-    popd
+    popd 
 }
 
 #
@@ -176,8 +194,10 @@ sudo su -l -c 'minikube start' "${USER}"
 sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
 launch_baremetal_operator
 apply_bm_hosts
-launch_cluster_api_provider_baremetal
+
 if [ "${V1ALPHA2_SWITCH}" == true ]; then
   launch_core_cluster_api
   launch_cluster_api_bootstrap_provider_kubeadm
 fi
+
+launch_cluster_api_provider_baremetal

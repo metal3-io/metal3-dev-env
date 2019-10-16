@@ -76,6 +76,18 @@ export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 # v1alpha2 var
 export V1ALPHA2_SWITCH=${V1ALPHA2_SWITCH:-"false"}
 
+# Cluster.
+export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
+export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.16.0"}
+
+# Image url and checksum
+export IMAGE_NAME=${2:-CentOS-7-x86_64-GenericCloud-1901.qcow2}
+export IMAGE_URL=http://172.22.0.1/images/${IMAGE_NAME}
+export IMAGE_CHECKSUM=http://172.22.0.1/images/${IMAGE_NAME}.md5sum
+
+#Path to CRs
+export V1ALPHA2_CR_PATH=../../crs/v1alpha2/
+
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
 TEST_TIME_INTERVAL="${TEST_TIME_INTERVAL:-10}"
