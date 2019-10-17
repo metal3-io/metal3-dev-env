@@ -43,7 +43,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -b -vvv vm-setup/teardown-playbook.yml
 
 # There was a bug in this file, it may need to be recreated.
-if [[ $OS == "centos" ]]; then
+if [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
   if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
       sudo ifdown provisioning || true
