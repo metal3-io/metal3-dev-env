@@ -18,7 +18,6 @@ sudo apt -y update
 # Install required packages
 
 sudo apt -y install \
-  python-pip \
   zlib1g-dev \
   libssl1.0-dev \
   wget
@@ -46,9 +45,10 @@ if [[ $PATH != *pyenv* ]]; then
   fi
 fi
 
-pyenv install -s 2.7.5
+pyenv install -s 3.7.5
 pyenv versions
-pyenv global 2.7.5
+pyenv global 3.7.5  
+
 # There are some packages which are newer in the tripleo repos
 
 # Setup yarn and nodejs repositories
@@ -88,5 +88,5 @@ else
 fi
 
 # Install python packages not included as rpms
-sudo pip install \
+sudo pip3 install \
   ansible==2.8.2

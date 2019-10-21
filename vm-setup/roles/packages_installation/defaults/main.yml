@@ -8,7 +8,6 @@ packages:
      - nmap 
      - patch 
      - psmisc 
-     - python-pip 
      - wget
      - libvirt-bin 
      - libvirt-clients 
@@ -25,8 +24,7 @@ packages:
      - libpolkit-agent-1-0
      - libpolkit-backend-1-0
      - libpolkit-gobject-1-0
-    pip:
-     - ansible==2.8.2
+    pip3:
      - yq 
      - virtualbmc 
      - python-ironicclient 
@@ -35,7 +33,8 @@ packages:
      - netaddr 
      - requests 
      - setuptools 
-     - libvirt-python 
+     - libvirt-python
+     - python-openstackclient
   centos:
     rhel7:
         packages:
