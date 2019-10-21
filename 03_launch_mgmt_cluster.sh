@@ -26,6 +26,7 @@ export GOPATH
 M3PATH="${GOPATH}/src/github.com/metal3-io"
 BMOPATH="${M3PATH}/baremetal-operator"
 CAPBMPATH="${M3PATH}/cluster-api-provider-baremetal"
+KUSTOMIZE_FILE_PATH=${CAPBMPATH}/examples/provider-components/kustomization.yaml
 
 CAPIPATH="${M3PATH}/cluster-api"
 CABPKPATH="${M3PATH}/cluster-api-bootstrap-provider-kubeadm"
@@ -80,36 +81,7 @@ function clone_repos() {
     git checkout "${CAPBMBRANCH}"
     git pull -r || true
     popd
-
-    
-    if [ "${V1ALPHA2_SWITCH}" == true ]; then  
-      if [[ -d "${CAPIPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
-        rm -rf "${CAPIPATH}"
-      fi
-      if [ ! -d "${CAPIPATH}" ] ; then
-          pushd "${M3PATH}"
-          git clone "${CAPIREPO}"
-          popd
-      fi
-      pushd "${CAPIPATH}"
-      git checkout "${CAPIBRANCH}"
-      git pull -r || true
-      popd
-      if [[ -d "${CABPKPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
-        rm -rf "${CABPKPATH}"
-      fi
-      if [ ! -d "${CABPKPATH}" ] ; then
-          pushd "${M3PATH}"
-          git clone "${CABPKREPO}"
-          popd
-      fi
-      pushd "${CABPKPATH}"
-      git checkout "${CABPKBRANCH}"
-      git pull -r || true
-      popd
-    fi
 }
-
 
 function launch_baremetal_operator() {
     pushd "${BMOPATH}"
@@ -148,16 +120,15 @@ function apply_bm_hosts() {
 function launch_cluster_api_provider_baremetal() {
     pushd "${CAPBMPATH}"
     
-    if [ "${V1ALPHA2_SWITCH}" == true ]; then
-      touch capbm.out.log
-      touch capbm.err.log
-      make install 
-      nohup make run >> capbm.out.log 2>> capbm.err.log &
-    elif [ "${CAPBM_RUN_LOCAL}" == true ]; then
+    if [ "${CAPBM_RUN_LOCAL}" == true ]; then
       touch capbm.out.log
       touch capbm.err.log
       make deploy
-      kubectl scale statefulset cluster-api-provider-baremetal-controller-manager -n metal3 --replicas=0
+      if [ "${V1ALPHA2_SWITCH}" == true ]; then
+        kubectl scale -n metal3 deployment.v1.apps capbm-controller-manager --replicas 0
+      else
+        kubectl scale statefulset cluster-api-provider-baremetal-controller-manager -n metal3 --replicas=0
+      fi
       nohup make run >> capbm.out.log 2>> capbm.err.log &
     else
       make deploy
@@ -165,39 +136,18 @@ function launch_cluster_api_provider_baremetal() {
     popd 
 }
 
-#
-# Launch the cluster-api-controller manager (v1alpha2) in the system namespace.
-#
-
-function launch_core_cluster_api() {
-    pushd "${CAPIPATH}"
-      make generate
-      sed -i'' 's/capi-system/metal3/' config/default/kustomization.yaml
-      kustomize build config/default | kubectl apply -f -
-    popd
-}
-
-#
-# Launch the cluster-api-bootstrap-provider-kubeadm-controller manager (v1alpha2) in the metal3 namespace.
-#
-
-function launch_cluster_api_bootstrap_provider_kubeadm() {
-    pushd "${CABPKPATH}"
-      sed -i'' 's/cabpk-system/metal3/' config/default/kustomization.yaml
-      make deploy
-    popd
-}
-
 clone_repos
+
+if grep -q "namespace:*" "${KUSTOMIZE_FILE_PATH}"
+then
+    sed -i '/namespace/c\namespace: metal3\' "${KUSTOMIZE_FILE_PATH}"
+else
+    echo 'namespace: metal3' >> ${KUSTOMIZE_FILE_PATH}
+fi
+
 init_minikube
 sudo su -l -c 'minikube start' "${USER}"
 sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
 launch_baremetal_operator
 apply_bm_hosts
-
-if [ "${V1ALPHA2_SWITCH}" == true ]; then
-  launch_core_cluster_api
-  launch_cluster_api_bootstrap_provider_kubeadm
-fi
-
 launch_cluster_api_provider_baremetal
