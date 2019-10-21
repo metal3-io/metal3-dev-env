@@ -10,6 +10,12 @@
         name: "{{ packages.ubuntu.pip }}"
         state: present
       become: true
+    - name: Install packages using pip3
+      pip:
+        executable: "pip3"
+        name: "{{ packages.ubuntu.pip3 }}"
+        state: present
+      become: true
   when: ansible_facts['distribution'] == "Ubuntu"
 
 

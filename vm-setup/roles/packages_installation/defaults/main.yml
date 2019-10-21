@@ -9,6 +9,7 @@ packages:
      - patch 
      - psmisc 
      - python-pip 
+     - python3-pip
      - wget
      - libvirt-bin 
      - libvirt-clients 
@@ -36,6 +37,8 @@ packages:
      - requests 
      - setuptools 
      - libvirt-python 
+    pip3:
+     - python-openstackclient
   centos:
     rhel7:
         packages:
