@@ -28,9 +28,6 @@ BMOPATH="${M3PATH}/baremetal-operator"
 CAPBMPATH="${M3PATH}/cluster-api-provider-baremetal"
 KUSTOMIZE_FILE_PATH=${CAPBMPATH}/examples/provider-components/kustomization.yaml
 
-CAPIPATH="${M3PATH}/cluster-api"
-CABPKPATH="${M3PATH}/cluster-api-bootstrap-provider-kubeadm"
-
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
 CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
@@ -40,15 +37,6 @@ if [ "${V1ALPHA2_SWITCH}" == true ]; then
 else 
   CAPBMBRANCH="${CAPBMBRANCH:-master}"
 fi
-
-CAPIREPO="${CAPIREPO:-https://github.com/kubernetes-sigs/cluster-api.git}" 
-
-if [ "${V1ALPHA2_SWITCH}" == true ]; then
-  CAPIBRANCH="${CAPIBRANCH:-release-0.2}"
-fi
-
-CABPKREPO="${CABPKREPO:-https://github.com/kubernetes-sigs/cluster-api-bootstrap-provider-kubeadm.git}" 
-CABPKBRANCH="${CABPKBRANCH:-master}"
 
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
 
@@ -140,9 +128,9 @@ clone_repos
 
 if grep -q "namespace:*" "${KUSTOMIZE_FILE_PATH}"
 then
-    sed -i '/namespace/c\namespace: metal3\' "${KUSTOMIZE_FILE_PATH}"
+    sed -i '/namespace/c\namespace: metal3' "${KUSTOMIZE_FILE_PATH}"
 else
-    echo 'namespace: metal3' >> ${KUSTOMIZE_FILE_PATH}
+    echo 'namespace: metal3' >> "${KUSTOMIZE_FILE_PATH}"
 fi
 
 init_minikube
