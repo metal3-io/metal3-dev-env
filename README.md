@@ -1,7 +1,7 @@
 Metal³ Development Environment
 ==============================
 
-This repository includes scripts to set up a Metal³ development environment.
+This TEST repository includes scripts to set up a Metal³ development environment.
 
 Instructions
 ------------
