@@ -30,8 +30,8 @@ CAPBMPATH="${M3PATH}/cluster-api-provider-baremetal"
 CAPIPATH="${M3PATH}/cluster-api"
 CABPKPATH="${M3PATH}/cluster-api-bootstrap-provider-kubeadm"
 
-BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-BMOBRANCH="${BMOBRANCH:-master}"
+BMOREPO="https://github.com/stbenjam/baremetal-operator.git"
+BMOBRANCH="config-map"
 CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 CAPBMBRANCH="${CAPBMBRANCH:-master}"
 
