@@ -6,21 +6,13 @@
 - name: Define vm_nodes if not already defined
   when: generate_vm_nodes
   block:
-    - name: Generate vm_nodes for "{{num_masters}}" masters
+    - name: Generate vm_nodes for "{{num_nodes}}" nodes
       set_fact:
         vm_nodes: "{{vm_nodes|default([]) + [
-                     {'name': ironic_prefix + 'master_%s'|format(item),
-                      'flavor': 'master',
+                     {'name': ironic_prefix + 'node_%s'|format(item),
+                      'flavor': 'node',
                       'virtualbmc_port': virtualbmc_base_port+item}]}}"
-      loop: "{{ range(0, num_masters|int)|list }}"
-    
-    - name: Generate vm_nodes for "{{num_workers}}" workers
-      set_fact:
-        vm_nodes: "{{vm_nodes|default([]) + [
-                     {'name': ironic_prefix + 'worker_%s'|format(item),
-                      'flavor': 'worker',
-                      'virtualbmc_port': virtualbmc_base_port+num_masters|int+item} ]}}"
-      loop: "{{ range(0, num_workers|int)|list }}"
+      loop: "{{ range(0, num_nodes|int)|list }}"
 
 # Describe our virtual networks.  These networks will be attached to
 # the vm nodes in the order in which they are defined with the following caveats:
@@ -30,19 +22,12 @@
 - name: Define networks when not already defined
   when: generate_networks
   block:
-    - name: Generate dhcp entries on baremetal network for "{{num_masters}}" masters
+    - name: Generate dhcp entries on baremetal network for "{{num_nodes}}" nodes
       set_fact:
         dhcp_hosts: "{{dhcp_hosts|default([]) + [
-                       {'name': 'master-%s'|format(item),
+                       {'name': 'node-%s'|format(item),
                         'ip': baremetal_network_cidr|nthhost(20+item)|string}]}}"
-      loop: "{{ range(0, num_masters|int)|list }}"
-    
-    - name: Generate dhcp entries on baremetal network for "{{num_workers}}" workers
-      set_fact:
-        dhcp_hosts: "{{dhcp_hosts|default([]) + [
-                       {'name': 'worker-%s'|format(item),
-                        'ip': baremetal_network_cidr|nthhost(20+num_masters|int+item)|string} ]}}"
-      loop: "{{ range(0, num_workers|int)|list }}"
+      loop: "{{ range(0, num_nodes|int)|list }}"
     
     - name: Set fact for networks
       set_fact:

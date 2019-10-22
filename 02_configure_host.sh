@@ -24,8 +24,7 @@ fi
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "working_dir=$WORKING_DIR" \
-    -e "num_masters=$NUM_MASTERS" \
-    -e "num_workers=$NUM_WORKERS" \
+    -e "num_nodes=$NUM_NODES" \
     -e "extradisks=$VM_EXTRADISKS" \
     -e "virthost=$HOSTNAME" \
     -e "platform=$NODES_PLATFORM" \
