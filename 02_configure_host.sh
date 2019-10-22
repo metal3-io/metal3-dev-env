@@ -11,10 +11,6 @@ if [ ! -f "$HOME/.ssh/id_rsa.pub" ]; then
     ssh-keygen -f ~/.ssh/id_rsa -P ""
 fi
 
-# Start httpd container
-sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd ${POD_NAME} \
-     -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd "${IRONIC_IMAGE}"
-
 # root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
 if sudo [ ! -f /root/.ssh/id_rsa_virt_power ]; then
@@ -127,6 +123,41 @@ if [[ "$MANAGE_BR_BRIDGE" == "y" && $OS == "centos" ]] ; then
     sudo systemctl restart NetworkManager
   fi
 fi
+
+# Needed if we're going to use any locally built images
+reg_state=$(sudo "$CONTAINER_RUNTIME" inspect registry --format  "{{.State.Status}}" || echo "error")
+if [[ "$reg_state" != "running" ]]; then
+ sudo "${CONTAINER_RUNTIME}" rm registry -f || true
+ sudo "${CONTAINER_RUNTIME}" run -d -p 5000:5000 --name registry "$DOCKER_REGISTRY_IMAGE"
+fi
+
+# Support for building local images
+for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
+  IMAGE=${!IMAGE_VAR}
+
+  # Is it a git repo?
+  if [[ "$IMAGE" =~ "://" ]] ; then
+    REPOPATH=~/${IMAGE##*/}
+    # Clone to ~ if not there already
+    [ -e "$REPOPATH" ] || git clone "$IMAGE" "$REPOPATH"
+    cd "$REPOPATH" || exit
+    #shellcheck disable=SC2086
+    export $IMAGE_VAR="${IMAGE##*/}:latest"
+    #shellcheck disable=SC2086
+    export $IMAGE_VAR="192.168.111.1:5000/localimages/${!IMAGE_VAR}"
+    sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" .
+    cd - || exit
+    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${!IMAGE_VAR}" "${!IMAGE_VAR}"
+  fi
+done
+
+IRONIC_IMAGE=${IRONIC_LOCAL_IMAGE:-$IRONIC_IMAGE}
+VMBC_IMAGE=${VBMC_LOCAL_IMAGE:-$VMBC_IMAGE}
+SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_LOCAL_IMAGE:-$SUSHY_TOOLS_IMAGE}
+
+# Start httpd container
+sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd ${POD_NAME} \
+     -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd "${IRONIC_IMAGE}"
 
 # Start vbmc and sushy containers
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name vbmc ${POD_NAME} \
