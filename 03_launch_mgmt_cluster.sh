@@ -126,11 +126,13 @@ function launch_cluster_api_provider_baremetal() {
 
 clone_repos
 
-if grep -q "namespace:*" "${KUSTOMIZE_FILE_PATH}"
-then
-    sed -i '/namespace/c\namespace: metal3' "${KUSTOMIZE_FILE_PATH}"
-else
-    echo 'namespace: metal3' >> "${KUSTOMIZE_FILE_PATH}"
+if [ "${V1ALPHA2_SWITCH}" == true ]; then
+  if grep -q "namespace:*" "${KUSTOMIZE_FILE_PATH}"
+  then
+      sed -i '/namespace/c\namespace: metal3' "${KUSTOMIZE_FILE_PATH}"
+  else
+      echo 'namespace: metal3' >> "${KUSTOMIZE_FILE_PATH}"
+  fi
 fi
 
 init_minikube
