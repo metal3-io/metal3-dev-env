@@ -24,6 +24,9 @@ packages:
      - libpolkit-agent-1-0
      - libpolkit-backend-1-0
      - libpolkit-gobject-1-0
+    pip: # ansible uses these packages in python2 to run on the local machine
+     - libvirt-python
+     - lxml
     pip3:
      - yq 
      - virtualbmc 

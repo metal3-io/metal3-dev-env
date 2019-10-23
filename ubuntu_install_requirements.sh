@@ -17,37 +17,14 @@ sudo apt -y update
 
 # Install required packages
 
+# ansible uses default python2 (python-pip) to run on the local machine 
 sudo apt -y install \
+  python3-pip \
+  python-pip \
+  python-setuptools \
   zlib1g-dev \
   libssl1.0-dev \
   wget
-
-# Install pyenv
-
-if [[  $(cat ~/.bashrc) != *PYENV_ROOT* ]]; then
-  if ! [ -d "$HOME/.pyenv" ] ; then
-     git clone git://github.com/yyuu/pyenv.git ~/.pyenv
-  fi
-  # shellcheck disable=SC2016
-  # shellcheck disable=SC2129
-  echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-  # shellcheck disable=SC2016
-  echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-  # shellcheck disable=SC2016
-  echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
-fi
-
-if [[ $PATH != *pyenv* ]]; then
-  export PYENV_ROOT="$HOME/.pyenv"
-  export PATH="$PYENV_ROOT/bin:$PATH"
-  if command -v pyenv 1>/dev/null 2>&1; then
-    eval "$(pyenv init -)"
-  fi
-fi
-
-pyenv install -s 3.7.5
-pyenv versions
-pyenv global 3.7.5  
 
 # There are some packages which are newer in the tripleo repos
 
@@ -89,4 +66,5 @@ fi
 
 # Install python packages not included as rpms
 sudo pip3 install \
-  ansible==2.8.2
+  ansible==2.8.2 \
+  python-apt
