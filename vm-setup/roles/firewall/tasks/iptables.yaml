@@ -1,0 +1,45 @@
+- name: "iptables: Firewalld service stopped"
+  service:
+    name: firewalld
+    state: stopped
+    enabled: no
+  ignore_errors: True
+
+- name: "iptables: VBMC Ports"
+  iptables:
+    chain: INPUT
+    in_interface: "{{ baremetal_interface }}"
+    protocol: udp
+    match: udp
+    destination_port: "{{ vbmc_port_range }}"
+    jump: ACCEPT
+
+- name: "iptables: Ironic Ports"
+  iptables:
+    chain: FORWARD
+    in_interface: "{{ provisioning_interface }}"
+    protocol: tcp
+    match: tcp
+    destination_port: "{{ item }}"
+    jump: ACCEPT
+  loop: "{{ ironic_ports }}"
+
+- name: "iptables: Provisioning host ports"
+  iptables:
+    chain: INPUT
+    in_interface: "{{ provisioning_interface }}"
+    protocol: tcp
+    match: tcp
+    destination_port: "{{ item }}"
+    jump: ACCEPT
+  loop: "{{ provisioning_host_ports }}"
+
+- name: "iptables: PXE Ports"
+  iptables:
+    chain: FORWARD
+    in_interface: "{{ provisioning_interface }}"
+    protocol: udp
+    match: udp
+    destination_port: "{{ item }}"
+    jump: ACCEPT
+  loop: "{{ pxe_udp_ports }}"

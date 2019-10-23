@@ -1,0 +1,45 @@
+- firewalld:
+    zone: libvirt
+    interface: "{{ item }}"
+    permanent: yes
+    state: enabled
+  loop:
+    - "{{ provisioning_interface }}"
+    - "{{ baremetal_interface }}"
+
+- name: "firewalld: Provisioning host ports"
+  firewalld:
+    zone: libvirt
+    port: "{{ item }}/tcp"
+    permanent: yes
+    state: enabled
+  loop: "{{ provisioning_host_ports }}"
+
+- name: "firewalld: Ironic Ports"
+  firewalld:
+    zone: libvirt
+    port: "{{ item }}/tcp"
+    permanent: yes
+    state: enabled
+  loop: "{{ ironic_ports }}"
+
+- name: "firewalld: PXE Ports"
+  firewalld:
+    zone: libvirt
+    port: "{{ item }}/udp"
+    permanent: yes
+    state: enabled
+  loop: "{{ pxe_udp_ports }}"
+
+- name: "firewalld: VBMC Ports"
+  firewalld:
+    zone: libvirt
+    port: "{{ vbmc_port_range | regex_replace(':', '-') }}/udp"
+    permanent: yes
+    state: enabled
+
+- name: "firewalld: Firewalld service"
+  service:
+    name: firewalld
+    state: restarted
+    enabled: yes
