@@ -148,7 +148,7 @@ get_vm_ip(){
 for name in $MACHINES_LIST; do
   # Create the machines
   RESULT_STR="${name} machine CR created"
-  ./create_machine.sh "${name}" > /dev/null
+  ./scripts/v1alpha1/create_machine.sh "${name}" > /dev/null
   process_status "$?" || SKIP_RETRIES=true
 done
 
