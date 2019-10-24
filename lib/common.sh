@@ -88,6 +88,9 @@ export IMAGE_CHECKSUM=http://172.22.0.1/images/${IMAGE_NAME}.md5sum
 #Path to CRs
 export V1ALPHA2_CR_PATH=../../crs/v1alpha2/
 
+#Kustomize version
+export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}
+
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
 TEST_TIME_INTERVAL="${TEST_TIME_INTERVAL:-10}"
