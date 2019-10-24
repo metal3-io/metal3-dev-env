@@ -56,6 +56,9 @@ export NUM_MASTERS=${NUM_MASTERS:-"1"}
 export NUM_WORKERS=${NUM_WORKERS:-"1"}
 export VM_EXTRADISKS=${VM_EXTRADISKS:-"false"}
 
+# Docker registry for local images
+export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"docker.io/registry:latest"}
+
 # VBMC and Redfish images
 export VBMC_IMAGE=${VBMC_IMAGE:-"quay.io/metal3-io/vbmc"}
 export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"quay.io/metal3-io/sushy-tools"}
@@ -281,7 +284,7 @@ differs(){
 function init_minikube() {
     #If the vm exists, it has already been initialized
     if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
-      sudo su -l -c "minikube start" "$USER"
+      sudo su -l -c "minikube start --insecure-registry 192.168.111.1:5000" "$USER"
       # Pre-pull the image to reduce pod initialization time
       for IMAGE_VAR in IRONIC_IMAGE IPA_DOWNLOADER_IMAGE IRONIC_INSPECTOR_IMAGE BAREMETAL_OPERATOR_IMAGE; do
         IMAGE=${!IMAGE_VAR}

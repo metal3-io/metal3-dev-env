@@ -71,16 +71,46 @@ function clone_repos() {
     popd
 }
 
+function kustomize_overlay() {
+  overlay_path=$1
+cat <<EOF> "$overlay_path/kustomization.yaml"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- $(realpath --relative-to="$overlay_path" "$BMOPATH/deploy")
+EOF
+}
+
 function launch_baremetal_operator() {
     pushd "${BMOPATH}"
+    kustomize_overlay_path=$(mktemp -d bmo-XXXXXXXXXX)
+    kustomize_overlay "$kustomize_overlay_path"
+    pushd "$kustomize_overlay_path"
+
+    # Add custom images in overlay
+    for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
+       IMAGE=${!IMAGE_VAR}
+       if [[ "$IMAGE" =~ "://" ]] ; then
+         #shellcheck disable=SC2086
+         IMAGE_NAME="${IMAGE##*/}:latest"
+         LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
+       fi
+
+       OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
+       OLD_IMAGE=${!OLD_IMAGE_VAR}
+       #shellcheck disable=SC2086
+       kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
+     done
+     popd
+
     if [ "${BMO_RUN_LOCAL}" = true ]; then
       touch bmo.out.log
       touch bmo.err.log
-      make deploy
+      kustomize build "$kustomize_overlay_path" | kubectl apply -f-
       kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
       nohup make run >> bmo.out.log 2>>bmo.err.log &
     else
-      make deploy
+      kustomize build "$kustomize_overlay_path" | kubectl apply -f-
     fi
     popd
 }
