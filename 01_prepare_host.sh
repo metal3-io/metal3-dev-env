@@ -33,7 +33,7 @@ if ! command -v kubectl 2>/dev/null ; then
 fi
 
 if ! command -v kustomize 2>/dev/null ; then
-    curl -Lo kustomize "$(curl --silent -L https://github.com/kubernetes-sigs/kustomize/releases/latest 2>&1 | awk -F'"' '/linux_amd64/ { print "https://github.com"$2; exit }')"
+    curl -Lo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F"${KUSTOMIZE_VERSION}"/kustomize_kustomize."${KUSTOMIZE_VERSION}"_linux_amd64
     chmod +x kustomize
     sudo mv kustomize /usr/local/bin/.
 fi
