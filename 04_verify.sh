@@ -163,6 +163,7 @@ capi-controller-manager"
 EXPTD_V1ALPHA2_RS="cabpk-controller-manager \
 cluster-api-controller-manager"
 BRIDGES="provisioning baremetal"
+EXPTD_CONTAINERS="httpd registry vbmc sushy-tools"
 
 FAILS=0
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
@@ -255,7 +256,10 @@ if [[ "${BMO_RUN_LOCAL}" == true ]] || [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
   echo ""
 fi
 
-iterate check_container httpd
+for container in ${EXPTD_CONTAINERS}; do
+  iterate check_container "$container"
+done
+
 
 echo -e "\nNumber of failures : $FAILS"
 exit "${FAILS}"
