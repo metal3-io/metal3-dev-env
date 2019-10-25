@@ -64,10 +64,9 @@ done
 mkdir -p "$IRONIC_IMAGE_DIR"
 pushd "$IRONIC_IMAGE_DIR"
 
-CENTOS_IMAGE=CentOS-7-x86_64-GenericCloud-1901.qcow2
-if [ ! -f ${CENTOS_IMAGE} ] ; then
-    curl --insecure --compressed -O -L http://cloud.centos.org/centos/7/images/${CENTOS_IMAGE}
-    md5sum ${CENTOS_IMAGE} | awk '{print $1}' > ${CENTOS_IMAGE}.md5sum
+if [ ! -f "${IMAGE_NAME}" ] ; then
+    curl --insecure --compressed -O -L "http://cloud.centos.org/centos/7/images/${IMAGE_NAME}"
+    md5sum "${IMAGE_NAME}" | awk '{print $1}' > "${IMAGE_NAME}.md5sum"
 fi
 popd
 

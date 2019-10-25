@@ -23,4 +23,4 @@ make_machine() {
     fi
 }
 
-make_machine | kubectl apply -n metal3 -f -
+make_machine | kubectl delete -n metal3 -f -
