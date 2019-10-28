@@ -14,6 +14,9 @@ if [ -z "$MACHINE_TYPE" ]; then
     exit 1
 fi
 
+SSH_PUB_KEY_CONTENT="$(cat "${SSH_PUB_KEY}")"
+export SSH_PUB_KEY_CONTENT
+
 make_machine() {
     if [ "${MACHINE_TYPE}" == controlplane ]; then
         envsubst < "${V1ALPHA2_CR_PATH}${CONTROLPLANE_YAML}"
