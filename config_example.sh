@@ -83,3 +83,31 @@
 # Install v1alpha2 controllers and CRDs
 #
 #export V1ALPHA2_SWITCH=false
+
+# Image OS (can be "Cirros", "Ubuntu", "Centos", overriden by IMAGE_* if set)
+#
+#export IMAGE_OS="Cirros"
+
+# Image for target hosts deployment
+#
+#export IMAGE_NAME="cirros-0.4.0-x86_64-disk.img"
+
+# Location of the image to download
+#
+#export IMAGE_LOCATION="http://download.cirros-cloud.net/0.4.0"
+
+# Image username for ssh
+#
+#export IMAGE_USERNAME="cirros"
+
+# Container image for ironic pod
+#
+# export IRONIC_IMAGE="quay.io/metal3-io/ironic"
+
+# Container image for vbmc container
+#
+#export VBMC_IMAGE="quay.io/metal3-io/vbmc"
+
+# Container image for sushy-tools container
+#
+#export SUSHY_TOOLS_IMAGE="quay.io/metal3-io/sushy-tools"

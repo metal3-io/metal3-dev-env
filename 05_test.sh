@@ -182,7 +182,7 @@ for name in $MACHINES_LIST; do
   process_status "$?" || SKIP_RETRIES=true
 
   # Check ssh connection to BMH
-  if ! iterate ssh_to_machine "centos" "${VM_IP}" "${name}"; then
+  if ! iterate ssh_to_machine "${IMAGE_USERNAME}" "${VM_IP}" "${name}"; then
     SKIP_RETRIES=true
   fi
 
