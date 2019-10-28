@@ -70,6 +70,9 @@ if [ ! -f "${IMAGE_NAME}" ] ; then
 fi
 popd
 
+# Install requirements
+ansible-galaxy install -r vm-setup/requirements.yml
+
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -e "working_dir=$WORKING_DIR" \
   -e "virthost=$HOSTNAME" \

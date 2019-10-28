@@ -4,7 +4,6 @@ packages:
      - crudini 
      - curl 
      - dnsmasq 
-     - golang 
      - nmap 
      - patch 
      - psmisc 
@@ -14,7 +13,6 @@ packages:
      - libvirt-dev 
      - jq 
      - nodejs 
-     - golang-go 
      - unzip 
      - yarn 
      - genisoimage 
@@ -44,7 +42,6 @@ packages:
          - crudini 
          - curl 
          - dnsmasq 
-         - golang 
          - NetworkManager 
          - nmap 
          - patch 
@@ -81,7 +78,6 @@ packages:
          - crudini 
          - curl 
          - dnsmasq 
-         - golang 
          - NetworkManager 
          - nmap 
          - patch 
