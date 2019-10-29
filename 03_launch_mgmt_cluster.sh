@@ -34,7 +34,7 @@ CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-bareme
 
 if [ "${V1ALPHA2_SWITCH}" == true ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-v1alpha2}"
-else 
+else
   CAPBMBRANCH="${CAPBMBRANCH:-master}"
 fi
 
@@ -137,7 +137,7 @@ function apply_bm_hosts() {
 #
 function launch_cluster_api_provider_baremetal() {
     pushd "${CAPBMPATH}"
-    
+
     if [ "${CAPBM_RUN_LOCAL}" == true ]; then
       touch capbm.out.log
       touch capbm.err.log
@@ -151,7 +151,7 @@ function launch_cluster_api_provider_baremetal() {
     else
       make deploy
     fi
-    popd 
+    popd
 }
 
 clone_repos
@@ -166,7 +166,7 @@ if [ "${V1ALPHA2_SWITCH}" == true ]; then
 fi
 
 init_minikube
-sudo su -l -c 'minikube start' "${USER}"
+sudo su -l -c 'minikube start --docker-opt="default-ulimit=nofile=102400:102400"' "${USER}"
 sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
 launch_baremetal_operator
 apply_bm_hosts
