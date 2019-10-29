@@ -287,7 +287,7 @@ differs(){
 function init_minikube() {
     #If the vm exists, it has already been initialized
     if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
-      sudo su -l -c "minikube start --insecure-registry 192.168.111.1:5000" "$USER"
+      sudo su -l -c 'minikube start --insecure-registry 192.168.111.1:5000 --docker-opt="default-ulimit=nofile=102400:102400"' "$USER"
       # Pre-pull the image to reduce pod initialization time
       for IMAGE_VAR in IRONIC_IMAGE IPA_DOWNLOADER_IMAGE IRONIC_INSPECTOR_IMAGE BAREMETAL_OPERATOR_IMAGE; do
         IMAGE=${!IMAGE_VAR}
