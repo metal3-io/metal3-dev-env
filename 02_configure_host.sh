@@ -6,11 +6,6 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 
-# Generate user ssh key
-if [ ! -f "$HOME/.ssh/id_rsa.pub" ]; then
-    ssh-keygen -f ~/.ssh/id_rsa -P ""
-fi
-
 # root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
 if sudo [ ! -f /root/.ssh/id_rsa_virt_power ]; then
