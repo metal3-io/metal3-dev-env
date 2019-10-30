@@ -65,7 +65,7 @@ mkdir -p "$IRONIC_IMAGE_DIR"
 pushd "$IRONIC_IMAGE_DIR"
 
 if [ ! -f "${IMAGE_NAME}" ] ; then
-    curl --insecure --compressed -O -L "http://cloud.centos.org/centos/7/images/${IMAGE_NAME}"
+    curl --insecure --compressed -O -L "${IMAGE_LOCATION}/${IMAGE_NAME}"
     md5sum "${IMAGE_NAME}" | awk '{print $1}' > "${IMAGE_NAME}.md5sum"
 fi
 popd
