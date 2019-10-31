@@ -86,7 +86,7 @@ export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.16.0"}
 
 # Image url and checksum
-IMAGE_OS=${IMAGE_OS:-Cirros}
+IMAGE_OS=${IMAGE_OS:-Centos}
 if [[ "${IMAGE_OS}" == "Ubuntu" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-bionic-server-cloudimg-amd64.img}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://cloud-images.ubuntu.com/bionic/current}

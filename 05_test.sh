@@ -132,6 +132,18 @@ check_bmh_status(){
 }
 
 #
+# Checks if an ip is in a range
+#
+# Inputs:
+# - IP address to check (X.X.X.X)
+# - IP range (X.X.X.X,X.X.X.X)
+#
+# Usage ip_in_range ip start end
+ip_in_range() {
+  python ip_range_check.py "$1" "$2"
+}
+
+#
 # Get the IP of a vm from the dhcp leases
 #
 # Inputs:
@@ -139,10 +151,21 @@ check_bmh_status(){
 #
 get_vm_ip(){
   local BMH_NAME="${1}"
-  sudo virsh net-dhcp-leases baremetal | grep "${BMH_NAME}" | awk '{print $5}' \
-    | cut -d '/' -f1
-}
+  local DHCP_RANGE
+  local CONFIGMAP
 
+  # Get configmap for ironic operator
+  CONFIGMAP=$(kubectl get configmap -n metal3 | grep ironic-bmo-configmap | awk '{print $1}')
+
+  # Get the DHCP start and end values
+  DHCP_RANGE=$(kubectl get configmap -n metal3 "$CONFIGMAP" -o jsonpath='{.data.DHCP_RANGE}')
+  #Compare the bmh ips to the dhcp range
+  for ip in $(kubectl get bmh -n metal3 "${BMH_NAME}" -o yaml | grep "ip:" | awk '{print $3}'); do
+    if ip_in_range "$ip" "$DHCP_RANGE"; then
+      echo "$ip"
+    fi
+  done
+}
 
 # provision the machines
 for name in $MACHINES_LIST; do
