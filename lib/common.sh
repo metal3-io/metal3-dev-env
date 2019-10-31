@@ -130,24 +130,34 @@ if ! sudo -n uptime &> /dev/null ; then
   exit 1
 fi
 
-# Check OS
+# Check OS type and version
 OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
 export OS
-if [[ ! $OS =~ ^(centos|rhel|ubuntu)$ ]]; then
-  echo "Unsupported OS"
-  exit 1
-fi
-
-# Check CentOS version
-os_version=$(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"' | cut -f1 -d'.')
-if [[ ${os_version} -ne 7 ]] && [[ ${os_version} -ne 8 ]] && [[ ${os_version} -ne 18 ]]; then
-  echo "Required CentOS 7 or RHEL 7/8 or Ubuntu 18.04"
+OS_VERSION=$(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"' | cut -f1 -d'.')
+export OS_VERSION
+if [[ $OS == centos ]]; then
+  if [[ ${OS_VERSION} -ne 7 ]]; then
+    echo "Required CentOS 7 or RHEL 8 or Ubuntu 18.04"
+    exit 1
+  fi
+elif [[ $OS == rhel ]]; then
+  if [[ ${OS_VERSION} -ne 8 ]]; then
+    echo "Required CentOS 7 or RHEL 8 or Ubuntu 18.04"
+    exit 1
+  fi
+elif [[ $OS == ubuntu ]]; then
+  if [[ ${OS_VERSION} -ne 18 ]]; then
+    echo "Required CentOS 7 or RHEL 8 or Ubuntu 18.04"
+    exit 1
+  fi
+else
+  echo "Unsupported OS: $OS"
   exit 1
 fi
 
 # Use firewalld on CentOS/RHEL, iptables everywhere else
 export USE_FIREWALLD=False
-if [[ ($OS == "rhel" || $OS = "centos") && ${os_version} == 8 ]]
+if [[ ($OS == "rhel" || $OS = "centos") && ${OS_VERSION} == 8 ]]
 then
   export USE_FIREWALLD=True
 fi
