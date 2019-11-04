@@ -1,2 +1,3 @@
 - src: https://github.com/metal3-io/ansible-role-golang.git
   verison: master
+  name: fubarhouse.golang
