@@ -106,6 +106,7 @@ export IMAGE_CHECKSUM=http://172.22.0.1/images/${IMAGE_NAME}.md5sum
 #Path to CRs
 export V1ALPHA2_CR_PATH=${SCRIPTDIR}/crs/v1alpha2/
 
+
 #Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}
 
