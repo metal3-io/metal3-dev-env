@@ -5,6 +5,10 @@ METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../.."
 # shellcheck disable=SC1090
 source "${METAL3_DIR}/lib/common.sh"
 
+V1ALPHA1_SCRIPTS_PATH="$(dirname "$(readlink -f "${0}")")/"
+USER_DATA_SCRIPT_NAME="user_data.sh"
+SCRIPT_PATH="${V1ALPHA1_SCRIPTS_PATH}""${USER_DATA_SCRIPT_NAME}"
+
 MACHINE_NAME=$1
 IMAGE_NAME=${2:-${IMAGE_NAME}}
 IMAGE_URL=http://172.22.0.1/images/${IMAGE_NAME}
@@ -41,6 +45,7 @@ if echo "${IMAGE_NAME}" | grep -qi centos 2>/dev/null ; then
 else
     OS_TYPE=unknown
 fi
-./user_data.sh "${MACHINE_NAME}" "${OS_TYPE}" | kubectl apply -n metal3 -f -
+
+"${SCRIPT_PATH}" "${MACHINE_NAME}" "${OS_TYPE}" | kubectl apply -n metal3 -f -
 
 make_machine | kubectl apply -n metal3 -f -
