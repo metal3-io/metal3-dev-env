@@ -81,6 +81,9 @@ export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 # v1alpha2 var
 export V1ALPHA2_SWITCH=${V1ALPHA2_SWITCH:-"false"}
 
+#default hosts memory
+export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-8192}
+
 # Cluster.
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.16.0"}
