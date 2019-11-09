@@ -341,3 +341,27 @@ function init_minikube() {
           --type network --config
     fi
 }
+
+
+#
+# Create the CRs for v1alpha2 deployments
+#
+# Inputs:
+# - machine type (controlplane or workers)
+#
+make_v1alpha2_machine() {
+    MACHINE_TYPE=$1
+
+    SSH_PUB_KEY_CONTENT="$(cat "${SSH_PUB_KEY}")"
+    export SSH_PUB_KEY_CONTENT
+
+    if [ "${IMAGE_OS}" == Ubuntu ]; then
+      CR_YAML="${MACHINE_TYPE}_ubuntu.yaml"
+    elif [ "${IMAGE_OS}" == Centos ]; then
+      CR_YAML="${MACHINE_TYPE}_centos.yaml"
+    else
+      echo "Incorrect OS image type"
+      exit 1
+    fi
+    envsubst < "${V1ALPHA2_CR_PATH}${CR_YAML}"
+}
