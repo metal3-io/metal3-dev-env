@@ -25,6 +25,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "extradisks=$VM_EXTRADISKS" \
     -e "virthost=$HOSTNAME" \
     -e "platform=$NODES_PLATFORM" \
+    -e "default_memory=$DEFAULT_HOSTS_MEMORY" \
     -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/setup-playbook.yml

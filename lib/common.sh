@@ -81,6 +81,9 @@ export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 # v1alpha2 var
 export V1ALPHA2_SWITCH=${V1ALPHA2_SWITCH:-"false"}
 
+#default hosts memory
+export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-8192}
+
 # Cluster.
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.16.0"}
@@ -105,6 +108,7 @@ export IMAGE_CHECKSUM=http://172.22.0.1/images/${IMAGE_NAME}.md5sum
 
 #Path to CRs
 export V1ALPHA2_CR_PATH=${SCRIPTDIR}/crs/v1alpha2/
+
 
 #Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}
@@ -339,4 +343,28 @@ function init_minikube() {
           --model virtio --source baremetal \
           --type network --config
     fi
+}
+
+
+#
+# Create the CRs for v1alpha2 deployments
+#
+# Inputs:
+# - machine type (controlplane or workers)
+#
+make_v1alpha2_machine() {
+    MACHINE_TYPE=$1
+
+    SSH_PUB_KEY_CONTENT="$(cat "${SSH_PUB_KEY}")"
+    export SSH_PUB_KEY_CONTENT
+
+    if [ "${IMAGE_OS}" == Ubuntu ]; then
+      CR_YAML="${MACHINE_TYPE}_ubuntu.yaml"
+    elif [ "${IMAGE_OS}" == Centos ]; then
+      CR_YAML="${MACHINE_TYPE}_centos.yaml"
+    else
+      echo "Incorrect OS image type"
+      exit 1
+    fi
+    envsubst < "${V1ALPHA2_CR_PATH}${CR_YAML}"
 }
