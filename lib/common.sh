@@ -345,7 +345,6 @@ function init_minikube() {
     fi
 }
 
-
 #
 # Create the CRs for v1alpha2 deployments
 #
@@ -368,3 +367,7 @@ make_v1alpha2_machine() {
     fi
     envsubst < "${V1ALPHA2_CR_PATH}${CR_YAML}"
 }
+
+# Temporary
+export IRONIC_LOCAL_IMAGE=https://github.com/stbenjam/metalkube-ironic.git
+export IRONIC_INSPECTOR_LOCAL_IMAGE=https://github.com/stbenjam/ironic-inspector-image.git

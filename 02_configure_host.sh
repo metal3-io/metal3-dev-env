@@ -148,7 +148,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     export $IMAGE_VAR="192.168.111.1:5000/localimages/${!IMAGE_VAR}"
     sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" .
     cd - || exit
-    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${!IMAGE_VAR}" "${!IMAGE_VAR}"
+    sudo "${CONTAINER_RUNTIME}" push "${!IMAGE_VAR}" "${!IMAGE_VAR}"
   fi
 done
 
