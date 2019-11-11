@@ -60,7 +60,7 @@ an update of Cloud-init. An updated image can be downloaded
 You can replace the existing centos image with the following commands :
 
 ```sh
-curl -O http://artifactory.nordix.org/artifactory/airship/images/centos.qcow2
+curl -LO http://artifactory.nordix.org/artifactory/airship/images/centos.qcow2
 mv centos.qcow2 /opt/metal3-dev-env/ironic/html/images/centos-updated.qcow2
 md5sum /opt/metal3-dev-env/ironic/html/images/centos-updated.qcow2 | \
 awk '{print $1}' > \
