@@ -25,6 +25,7 @@ export GOPATH
 
 M3PATH="${GOPATH}/src/github.com/metal3-io"
 BMOPATH="${M3PATH}/baremetal-operator"
+RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 CAPBMPATH="${M3PATH}/cluster-api-provider-baremetal"
 KUSTOMIZE_FILE_PATH=${CAPBMPATH}/examples/provider-components/kustomization.yaml
 
@@ -108,6 +109,7 @@ function launch_baremetal_operator() {
       touch bmo.err.log
       kustomize build "$kustomize_overlay_path" | kubectl apply -f-
       kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
+      ${RUN_LOCAL_IRONIC_SCRIPT}
       nohup make run >> bmo.out.log 2>>bmo.err.log &
     else
       kustomize build "$kustomize_overlay_path" | kubectl apply -f-
