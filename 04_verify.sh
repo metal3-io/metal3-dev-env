@@ -112,22 +112,42 @@ check_k8s_entity() {
 check_k8s_rs() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
-  local LABEL="${1}"
-  shift
   for name in "${@}"; do
     # Check entity exists
+    LABEL=$(echo "$name" | cut -f1 -d:);
+    NAME=$(echo "$name" | cut -f2 -d:);
+
     ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
-      -l "${LABEL}"="${name}" -n metal3 -o json | jq '.items[0]')"
-    RESULT_STR="Replica set ${name} created"
+      -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+    RESULT_STR="Replica set ${NAME} created"
     differs "${ENTITY}" "null"
 
     # Check the replicas
     if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPBM_RUN_LOCAL}" != true ]]
     then
-      RESULT_STR="${name} replicas correct"
+      RESULT_STR="${NAME} replicas correct"
       equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
         "$(echo "${ENTITY}" | jq -r '.status.replicas')"
     fi
+  done
+
+  return "$((FAILS-FAILS_CHECK))"
+}
+
+
+#Verify that a resource exists in a type
+check_k8s_pods() {
+  local FAILS_CHECK="${FAILS}"
+  local ENTITY
+  for name in "${@}"; do
+    # Check entity exists
+    LABEL=$(echo "$name" | cut -f1 -d:);
+    NAME=$(echo "$name" | cut -f2 -d:);
+
+    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get pods \
+      -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+    RESULT_STR="Pod ${NAME} created"
+    differs "${ENTITY}" "null"
   done
 
   return "$((FAILS-FAILS_CHECK))"
@@ -154,14 +174,27 @@ EXPTD_V1ALPHA2_CRDS="clusters.cluster.x-k8s.io \
   kubeadmconfigtemplates.bootstrap.cluster.x-k8s.io \
   machinedeployments.cluster.x-k8s.io \
   machines.cluster.x-k8s.io \
-  machinesets.cluster.x-k8s.io"
+  machinesets.cluster.x-k8s.io \
+  baremetalclusters.infrastructure.cluster.x-k8s.io \
+  baremetalhosts.metal3.io \
+  baremetalmachines.infrastructure.cluster.x-k8s.io \
+  baremetalmachinetemplates.infrastructure.cluster.x-k8s.io"
 EXPTD_STATEFULSETS="cluster-api-controller-manager \
   cluster-api-provider-baremetal-controller-manager"
 EXPTD_DEPLOYMENTS="metal3-baremetal-operator"
+EXPTD_RS="name:metal3-baremetal-operator"
 EXPTD_V1ALPHA2_DEPLOYMENTS="cabpk-controller-manager \
-capi-controller-manager"
-EXPTD_V1ALPHA2_RS="cabpk-controller-manager \
-cluster-api-controller-manager"
+  capbm-controller-manager \
+  capi-controller-manager \
+  metal3-baremetal-operator"
+EXPTD_V1ALPHA2_RS="control-plane:cabpk-controller-manager \
+  control-plane:capbm-controller-manager \
+  control-plane:cluster-api-controller-manager \
+  name:metal3-baremetal-operator"
+EXPTD_V1ALPHA2_PODS="control-plane:cabpk-controller-manager \
+  control-plane:capbm-controller-manager \
+  control-plane:cluster-api-controller-manager \
+  name:metal3-baremetal-operator"
 BRIDGES="provisioning baremetal"
 EXPTD_CONTAINERS="httpd registry vbmc sushy-tools"
 
@@ -189,15 +222,15 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-for name in ${EXPTD_CRDS}; do
-  RESULT_STR="CRD ${name} created"
-  echo "${CRDS}" | grep -w "${name}"  > /dev/null
-  process_status $?
-done
-echo ""
-
 if [ "${V1ALPHA2_SWITCH}" == true ]; then
   for name in ${EXPTD_V1ALPHA2_CRDS}; do
+    RESULT_STR="CRD ${name} created"
+    echo "${CRDS}" | grep -w "${name}"  > /dev/null
+    process_status $?
+  done
+  echo ""
+else
+  for name in ${EXPTD_CRDS}; do
     RESULT_STR="CRD ${name} created"
     echo "${CRDS}" | grep -w "${name}"  > /dev/null
     process_status $?
@@ -206,19 +239,16 @@ if [ "${V1ALPHA2_SWITCH}" == true ]; then
 fi
 
 
-# Verify the Operators, stateful sets
-iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
-
-# Verify the Operators, Deployments
-iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
-
-# Verify the Operators, Replica sets
-iterate check_k8s_rs name "${EXPTD_DEPLOYMENTS}"
-
 if [ "${V1ALPHA2_SWITCH}" == true ]; then
-  # Verify the v1alph2 Operators, Deployments, Repllicasets
+  # Verify the v1alph2 Pods, Operators, Deployments, Replicasets
+  iterate check_k8s_pods "${EXPTD_V1ALPHA2_PODS}"
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA2_DEPLOYMENTS}"
-  iterate check_k8s_rs control-plane "${EXPTD_V1ALPHA2_RS}"
+  iterate check_k8s_rs "${EXPTD_V1ALPHA2_RS}"
+else
+  # Verify the v1alph1 Operators, Statefulsets, Deployments, Replicasets
+  iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
+  iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
+  iterate check_k8s_rs "${EXPTD_RS}"
 fi
 # Verify the baremetal hosts
 ## Fetch the BM CRs
