@@ -35,7 +35,7 @@ spec:
     nodeRegistration:
       name: '{{ ds.meta_data.name }}'
       kubeletExtraArgs:
-        node-labels: 'metal3.io/uuid={{ ds.meta_data.uuid }},metal3.io/namespace={{ ds.meta_data.metal3-namespace }},metal3.io/name={{ ds.meta_data.metal3-name }}'
+        node-labels: 'metal3.io/uuid={{ ds.meta_data.uuid }}'
   preKubeadmCommands:
     - ip link set dev enp2s0 up
     - dhclient enp2s0
