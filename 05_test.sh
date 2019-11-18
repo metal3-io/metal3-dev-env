@@ -74,7 +74,7 @@ check_bmh_association(){
     jq -r '.metadata.annotations["metal3.io/BareMetalHost"]' | \
     tr '/' ' ' | awk '{print $2}')"
   RESULT_STR="${MACHINE_NAME} Baremetalhost associated"
-  is_in "${BMH_NAME}" "master-0 worker-0"
+  is_in "${BMH_NAME}" "node-0 node-1"
 
   # Fail fast if they are not associated as we cannot get the BMH name
   if [[ "${FAILS_CHECK}" != "${FAILS}" ]]; then
