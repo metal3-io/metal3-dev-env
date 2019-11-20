@@ -30,6 +30,7 @@ ssh_to_machine() {
   ssh -o ConnectTimeout=2 \
     -o StrictHostKeyChecking=no \
     -o UserKnownHostsFile=/dev/null \
+    -i "${SSH_KEY}" \
     "${USER}"@"${SERVER}" echo "SSH to host is up" > /dev/null 2>&1
   process_status "$?"
   return "$?"
