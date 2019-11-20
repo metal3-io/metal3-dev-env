@@ -5,22 +5,14 @@
 
 - name: Define vm_nodes if not already defined
   when: generate_vm_nodes
-  block:
-    - name: Generate vm_nodes for "{{num_masters}}" masters
-      set_fact:
-        vm_nodes: "{{vm_nodes|default([]) + [
-                     {'name': ironic_prefix + 'master_%s'|format(item),
-                      'flavor': 'master',
-                      'virtualbmc_port': virtualbmc_base_port+item}]}}"
-      loop: "{{ range(0, num_masters|int)|list }}"
-    
-    - name: Generate vm_nodes for "{{num_workers}}" workers
-      set_fact:
-        vm_nodes: "{{vm_nodes|default([]) + [
-                     {'name': ironic_prefix + 'worker_%s'|format(item),
-                      'flavor': 'worker',
-                      'virtualbmc_port': virtualbmc_base_port+num_masters|int+item} ]}}"
-      loop: "{{ range(0, num_workers|int)|list }}"
+  include_tasks: vm_nodes_tasks.yml
+  loop: "{{flavors|dict2items}}"
+  loop_control: 
+    loop_var: flavor
+
+- debug:
+    var: vm_nodes
+  when: generate_vm_nodes
 
 # Describe our virtual networks.  These networks will be attached to
 # the vm nodes in the order in which they are defined with the following caveats:
@@ -30,20 +22,6 @@
 - name: Define networks when not already defined
   when: generate_networks
   block:
-    - name: Generate dhcp entries on baremetal network for "{{num_masters}}" masters
-      set_fact:
-        dhcp_hosts: "{{dhcp_hosts|default([]) + [
-                       {'name': 'master-%s'|format(item),
-                        'ip': baremetal_network_cidr|nthhost(20+item)|string}]}}"
-      loop: "{{ range(0, num_masters|int)|list }}"
-    
-    - name: Generate dhcp entries on baremetal network for "{{num_workers}}" workers
-      set_fact:
-        dhcp_hosts: "{{dhcp_hosts|default([]) + [
-                       {'name': 'worker-%s'|format(item),
-                        'ip': baremetal_network_cidr|nthhost(20+num_masters|int+item)|string} ]}}"
-      loop: "{{ range(0, num_workers|int)|list }}"
-    
     - name: Set fact for networks
       set_fact:
         networks:
@@ -58,7 +36,6 @@
             dhcp_range:
               - "{{ baremetal_network_cidr|nthhost(20) }}"
               - "{{ baremetal_network_cidr|nthhost(60) }}"
-            dhcp_hosts: "{{dhcp_hosts}}"
             nat_port_range:
               - 1024
               - 65535

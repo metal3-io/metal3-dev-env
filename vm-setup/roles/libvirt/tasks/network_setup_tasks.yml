@@ -24,7 +24,6 @@
   register: node_mac_map
   when: vm_nodes
 
-
 # Create the global, root-managed libvirt networks to which we will
 # attach the undercoud and vm virtual machines.
 - name: Create libvirt networks

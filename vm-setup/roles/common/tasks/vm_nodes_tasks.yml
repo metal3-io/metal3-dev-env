@@ -1,0 +1,14 @@
+---
+# We maintain a persistent index over the nested loop iterations
+# of the tasks via set_fact, ansible doesn't appear to provide
+# a facility like j2 namespaces to enable this.
+- set_fact:
+    vm_nodes_index: "{{vm_nodes_index|default(0)|int}}"
+- set_fact:
+    vm_nodes: "{{vm_nodes|default([]) + [
+                 {'name': ironic_prefix + '%s_%s'|format(flavor.key, item),
+                  'flavor': flavor.key,
+                  'virtualbmc_port': virtualbmc_base_port+vm_nodes_index|int+item} ]}}"
+  loop: "{{ range(0, lookup('vars', 'num_' + flavor.key + 's')|int)|list }}"
+- set_fact:
+    vm_nodes_index: "{{vm_nodes_index|int + lookup('vars', 'num_' + flavor.key + 's')|int }}"
