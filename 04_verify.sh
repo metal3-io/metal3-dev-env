@@ -73,8 +73,8 @@ check_bm_hosts() {
 
     #Verify the instrospection completed successfully
     RESULT_STR="${NAME} Baremetalhost introspecting completed"
-    equals "$(echo "${BM_HOST}" | jq -r '.status.provisioning.state')" \
-      "ready"
+    is_in "$(echo "${BM_HOST}" | jq -r '.status.provisioning.state')" \
+      "ready available"
 
     echo ""
 
