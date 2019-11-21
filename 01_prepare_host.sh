@@ -54,6 +54,8 @@ podman)
   ;;
 esac
 
+echo "TEST DNM test with new https://quay.io/repository/metal3-io/ironic"
+
 # Pull images we'll need
 for IMAGE_VAR in IRONIC_IMAGE IPA_DOWNLOADER_IMAGE VBMC_IMAGE SUSHY_TOOLS_IMAGE DOCKER_REGISTRY_IMAGE; do
     IMAGE=${!IMAGE_VAR}
