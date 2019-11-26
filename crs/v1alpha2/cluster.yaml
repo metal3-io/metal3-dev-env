@@ -21,7 +21,4 @@ metadata:
   name: ${CLUSTER_NAME}
 spec:
  apiEndpoint: http://192.168.111.249:6443
-# spec:
-#   cloudName: ${CLUSTER_NAME}
-#   cloudsSecret:
-#     name: cloud-config
+ noCloudProvider: true

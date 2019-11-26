@@ -58,7 +58,6 @@ spec:
     - mkdir -p /home/centos/.kube
     - cp /etc/kubernetes/admin.conf /home/centos/.kube/config
     - chown centos:centos /home/centos/.kube/config
-    - kubectl --kubeconfig /home/centos/.kube/config patch nodes {{ ds.meta_data.name }} --patch "{\"spec\":{\"providerID\":\"metal3://{{ ds.meta_data.uuid }}\"{{ '}}' }}"
   files:
     - path: /etc/keepalived/keepalived.conf
       content: |
