@@ -62,7 +62,6 @@ spec:
     - mkdir -p /home/ubuntu/.kube
     - cp /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
     - chown ubuntu:ubuntu /home/ubuntu/.kube/config
-    - kubectl --kubeconfig /home/ubuntu/.kube/config patch nodes {{ ds.meta_data.name }} --patch "{\"spec\":{\"providerID\":\"metal3://{{ ds.meta_data.uuid }}\"{{ '}}' }}"
   files:
       - path: /etc/keepalived/keepalived.conf
         content: |
