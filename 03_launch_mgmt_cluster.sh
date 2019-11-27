@@ -72,6 +72,29 @@ function clone_repos() {
     popd
 }
 
+# Creates the overlay for kustomize to override the various settings
+# needed for IPv6
+function kustomize_ipv6_overlay() {
+  overlay_path=$1
+  cat <<EOF> "$overlay_path/kustomization.yaml"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+configMapGenerator:
+- behavior: merge
+  literals:
+  - PROVISIONING_IP=fd2e:6f44:5dd8:b856::2
+  - DHCP_RANGE=fd2e:6f44:5dd8:b856::3,fd2e:6f44:5dd8:b856::ff
+  - DEPLOY_KERNEL_URL=http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.kernel
+  - DEPLOY_RAMDISK_URL=http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.initramfs
+  - IRONIC_ENDPOINT=http://[fd2e:6f44:5dd8:b856::2]:6385/v1/
+  - IRONIC_INSPECTOR_ENDPOINT=http://[fd2e:6f44:5dd8:b856::2]:5050/v1/
+  - CACHEURL=http://[fd2e:6f44:5dd8:b856::1]/images
+  name: ironic-bmo-configmap
+resources:
+- $(realpath --relative-to="$overlay_path" "$BMOPATH/deploy")
+EOF
+}
+
 function kustomize_overlay() {
   overlay_path=$1
 cat <<EOF> "$overlay_path/kustomization.yaml"
@@ -85,7 +108,13 @@ EOF
 function launch_baremetal_operator() {
     pushd "${BMOPATH}"
     kustomize_overlay_path=$(mktemp -d bmo-XXXXXXXXXX)
-    kustomize_overlay "$kustomize_overlay_path"
+
+    if [[ "${PROVISIONING_IPV6}" == "true" ]]
+    then
+      kustomize_ipv6_overlay "$kustomize_overlay_path"
+    else
+      kustomize_overlay "$kustomize_overlay_path"
+    fi
     pushd "$kustomize_overlay_path"
 
     # Add custom images in overlay
@@ -114,9 +143,10 @@ function launch_baremetal_operator() {
     else
       kustomize build "$kustomize_overlay_path" | kubectl apply -f-
     fi
+
+    rm -rf "$kustomize_overlay_path"
     popd
 }
-
 
 function make_bm_hosts() {
     while read -r name address user password mac; do
@@ -169,7 +199,12 @@ fi
 
 init_minikube
 sudo su -l -c 'minikube start' "${USER}"
-sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
+if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
+  sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"${IPV6_ADDR_PREFIX}::2/64"' dev eth2"' "${USER}"
+else
+  sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
+fi
+
 launch_baremetal_operator
 apply_bm_hosts
 launch_cluster_api_provider_baremetal

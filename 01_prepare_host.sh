@@ -88,6 +88,7 @@ fi
 
 # Start image downloader container
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ipa-downloader ${POD_NAME} \
+     -e IPA_BASEURI="$IPA_BASEURI" \
      -v "$IRONIC_DATA_DIR":/shared "${IPA_DOWNLOADER_IMAGE}" /usr/local/bin/get-resource.sh
 
 sudo "${CONTAINER_RUNTIME}" wait ipa-downloader

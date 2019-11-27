@@ -45,13 +45,39 @@ EOF
     fi
 }
 
+ignition_config() {
+cat <<EOF
+{
+  "ignition": { "version": "2.2.0" },
+  "passwd": {
+    "users": [
+      {
+        "name": "core",
+        "sshAuthorizedKeys": [
+          "$SSH_PUB_KEY"
+        ]
+      }
+    ]
+  }
+}
+EOF
+}
+
+cloud_config() {
+  printf "#cloud-config\n\nssh_authorized_keys:\n  - "
+  cat "${SSH_PUB_KEY}"
+  printf "\n"
+  network_config_files
+}
+
 user_data_secret() {
-  {
-    printf "#cloud-config\n\nssh_authorized_keys:\n  - "
-    cat "${SSH_PUB_KEY}"
-    printf "\n"
-    network_config_files
-  } > .userdata.tmp
+  if [[ "$IMAGE_OS" == "FCOS" ]]
+  then
+    ignition_config > .userdata.tmp
+  else
+    cloud_config > .userdata.tmp
+  fi
+
 cat << EOF
 apiVersion: v1
 data:
