@@ -104,17 +104,17 @@
     dest: '/etc/qemu-kvm/bridge.conf' # Needs to be /etc/qemu/bridge.conf if supporting Fedora
     line: "allow {{ item.bridge }}"
   with_items: "{{ networks }}"
-  when: 
+  when:
     - ansible_os_family == "RedHat"
   become: true
 
 - name: Whitelist bridges for unprivileged access on Ubuntu or Fedora
   lineinfile:
-    dest: '/etc/qemu/bridge.conf' 
+    dest: '/etc/qemu/bridge.conf'
     line: "allow {{ item.bridge }}"
     create: yes
   with_items: "{{ networks }}"
-  when: 
+  when:
     - ansible_facts['distribution'] == "Ubuntu"
   become: true
 

@@ -74,5 +74,7 @@ fi
 
 # Install python packages not included as rpms
 sudo pip3 install \
-  ansible==2.8.2 \
-  python-apt
+  ansible==2.9.1 \
+  python-apt \
+  openshift \
+  pyYAML
