@@ -1,3 +1,9 @@
+- name: "firewalld: Firewalld service"
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
 - firewalld:
     zone: libvirt
     interface: "{{ item }}"
@@ -37,9 +43,3 @@
     port: "{{ vbmc_port_range | regex_replace(':', '-') }}/udp"
     permanent: yes
     state: enabled
-
-- name: "firewalld: Firewalld service"
-  service:
-    name: firewalld
-    state: restarted
-    enabled: yes
