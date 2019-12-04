@@ -110,7 +110,7 @@ function launch_baremetal_operator() {
       kustomize build "$kustomize_overlay_path" | kubectl apply -f-
       kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
       ${RUN_LOCAL_IRONIC_SCRIPT}
-      nohup make run >> bmo.out.log 2>>bmo.err.log &
+      nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
     else
       kustomize build "$kustomize_overlay_path" | kubectl apply -f-
     fi
