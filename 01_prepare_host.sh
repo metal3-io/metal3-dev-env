@@ -95,6 +95,7 @@ sudo "${CONTAINER_RUNTIME}" wait ipa-downloader
 function configure_minikube() {
     minikube config set vm-driver kvm2
     minikube config set memory 4096
+    minikube config set cpus 4
 }
 
 configure_minikube
