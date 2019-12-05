@@ -36,3 +36,29 @@ libvirt_volume_path: "{{ working_dir }}/pool"
 # These ensure we're using privileged virt, so VMs persist over reboot
 libvirt_uri: qemu:///system
 ssh_user: root
+
+# Describe our virtual networks.  These networks will be attached to
+# the vm nodes in the order in which they are defined with the following caveats:
+#   *  The first bridge network defined will be used for pxe booting
+manage_baremetal: 'y'
+networks:
+  - name: provisioning
+    bridge: provisioning
+    forward_mode: bridge
+  - name: baremetal
+    bridge: baremetal
+    forward_mode: "{% if manage_baremetal == 'y' %}nat{% else %}bridge{% endif %}"
+    address: "{{ baremetal_network_cidr|nthhost(1) }}"
+    netmask: "{{ baremetal_network_cidr|ipaddr('netmask') }}"
+    dhcp_range:
+      - "{{ baremetal_network_cidr|nthhost(20) }}"
+      - "{{ baremetal_network_cidr|nthhost(60) }}"
+    nat_port_range:
+      - 1024
+      - 65535
+    domain: "{{ cluster_domain }}"
+    dns:
+      hosts: "{{dns_extrahosts | default([])}}"
+      forwarders:
+        - domain: "apps.{{ cluster_domain }}"
+          addr: "127.0.0.1"
