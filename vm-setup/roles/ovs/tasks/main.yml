@@ -1,0 +1,14 @@
+---
+- name: Install Openvswitch package
+  package:
+    name: "{{ ovs_package }}"
+    state: present
+  become: true
+
+- name: Start Openvswitch
+  service:
+    name: "{{ ovs_service }}"
+    state: started
+    enabled: true
+  become: true
+

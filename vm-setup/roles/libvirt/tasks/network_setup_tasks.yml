@@ -5,7 +5,7 @@
   # Install OVS dependencies
   - name: Install OVS dependencies
     include_role:
-      name: 'parts/ovs'
+      name: 'ovs'
 
   # Create any OVS Bridges that have been defined
   - name: Create OVS Bridges
