@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -xe
 
+echo "SHDEBUG test"
+
 # shellcheck disable=SC1091
 source lib/logging.sh
 # shellcheck disable=SC1091
