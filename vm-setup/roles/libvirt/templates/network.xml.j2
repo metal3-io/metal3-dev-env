@@ -57,4 +57,17 @@
   </dns>
 {% endif %}
 {% endif %}
+{% if item.portgroup is defined %}
+  {% for portgroup in item.portgroup %}
+  <portgroup name='{{ portgroup.name }}'>
+  {% if portgroup.vlan is defined %}
+    <vlan>
+    {% for vlan in portgroup.vlan %}
+      <tag id='{{ vlan.tag }}'/>
+    {% endfor %}
+    </vlan>
+  {% endif %}
+  </portgroup>
+  {% endfor %}
+{% endif %}
 </network>
