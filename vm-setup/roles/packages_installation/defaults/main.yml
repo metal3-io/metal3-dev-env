@@ -4,7 +4,8 @@ packages:
      - crudini 
      - curl 
      - dnsmasq 
-     - nmap 
+     - nmap
+     - ovmf
      - patch 
      - psmisc 
      - wget
@@ -43,7 +44,8 @@ packages:
          - curl 
          - dnsmasq 
          - NetworkManager 
-         - nmap 
+         - nmap
+         - OVMF
          - patch 
          - psmisc 
          - python-pip 
@@ -77,7 +79,8 @@ packages:
         packages:
          - crudini 
          - curl 
-         - dnsmasq 
+         - dnsmasq
+         - edk2-ovmf
          - NetworkManager 
          - nmap 
          - patch 

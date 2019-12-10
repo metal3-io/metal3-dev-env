@@ -1,4 +1,5 @@
 #!/bin/bash
+set -xe
 
 METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../.."
 # shellcheck disable=SC1091
@@ -11,8 +12,9 @@ SCRIPT_PATH="${V1ALPHA1_SCRIPTS_PATH}""${USER_DATA_SCRIPT_NAME}"
 
 MACHINE_NAME=$1
 IMAGE_NAME=${2:-${IMAGE_NAME}}
-IMAGE_URL=http://172.22.0.1/images/${IMAGE_NAME}
-IMAGE_CHECKSUM=http://172.22.0.1/images/${IMAGE_NAME}.md5sum
+
+IMAGE_URL=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}
+IMAGE_CHECKSUM=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}.md5sum
 
 if [ -z "$MACHINE_NAME" ] ; then
     echo "Usage: create_machine.sh <machine name> [image name]"

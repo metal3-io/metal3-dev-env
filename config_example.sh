@@ -84,6 +84,9 @@
 #
 #export V1ALPHA2_SWITCH=false
 
+# Configure provisioning network for single-stack ipv6
+#PROVISIONING_IPV6=false
+
 # Image OS (can be "Cirros", "Ubuntu", "Centos", overriden by IMAGE_* if set)
 #
 #export IMAGE_OS="Cirros"
