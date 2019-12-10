@@ -53,18 +53,16 @@ spec:
             node-labels: 'metal3.io/uuid={{ ds.meta_data.uuid }}'
       preKubeadmCommands:
         - ifup eth1
-        - yum check-update
         - yum update -y
-        - yum install -y yum-utils device-mapper-persistent-data lvm2
+        - yum install yum-utils device-mapper-persistent-data lvm2 -y
         - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-        - yum install docker-ce-18.09.9 docker-ce-cli-18.09.9 containerd.io -y
-        - usermod -aG docker centos
-        - systemctl start docker
-        - systemctl enable docker
         - setenforce 0
         - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-        - yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-        - systemctl enable --now kubelet
+        - >-
+          yum install docker-ce-18.09.9 docker-ce-cli-18.09.9 containerd.io
+          kubelet kubeadm kubectl --disableexcludes=kubernetes -y
+        - usermod -aG docker centos
+        - systemctl enable --now docker kubelet
       files:
         - path: /etc/sysconfig/network-scripts/ifcfg-eth1
           owner: root:root

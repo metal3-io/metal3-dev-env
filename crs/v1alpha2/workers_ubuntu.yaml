@@ -57,17 +57,17 @@ spec:
         - mv /tmp/akeys /home/ubuntu/.ssh/authorized_keys
         - chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
         - apt update -y
-        - apt install apt-transport-https ca-certificates curl gnupg-agent software-properties-common -y
+        - >-
+          apt install apt-transport-https ca-certificates
+          curl gnupg-agent software-properties-common -y
         - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
         - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        - apt update -y
-        - apt install docker-ce docker-ce-cli containerd.io -y
-        - usermod -aG docker ubuntu
         - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
         - echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list
-        - apt update
-        - apt install -y kubelet kubeadm kubectl
-        - systemctl enable --now kubelet
+        - apt update -y
+        - apt install docker-ce docker-ce-cli containerd.io kubelet kubeadm kubectl -y
+        - systemctl enable --now docker kubelet
+        - usermod -aG docker ubuntu
       files:
         - path: /etc/network/interfaces
           owner: root:root
