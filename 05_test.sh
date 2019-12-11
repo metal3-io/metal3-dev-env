@@ -53,7 +53,7 @@ check_provisioning_status(){
   BMH="$(kubectl get bmh -n metal3 -o json "${BMH_NAME}")"
 
   RESULT_STR="${MACHINE_NAME} baremetal host in correct state : ${EXPECTED_STATE}"
-  equals "$(echo "${BMH}" | jq -r '.status.provisioning.state')" \
+  is_in "$(echo "${BMH}" | jq -r '.status.provisioning.state')" \
     "${EXPECTED_STATE}"
   return "$((FAILS-FAILS_CHECK))"
 }
@@ -231,7 +231,7 @@ for name in $MACHINES_LIST; do
   process_status $?
 
   # Check the status fields of the BMH previously associated
-  if check_bmh_status "${name}" "${BMH_NAME}" "null" "ready"; then
+  if check_bmh_status "${name}" "${BMH_NAME}" "null" "ready available"; then
     SKIP_RETRIES=true
   fi
 
