@@ -34,9 +34,9 @@ BMOBRANCH="${BMOBRANCH:-master}"
 CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 
 if [ "${V1ALPHA2_SWITCH}" == true ]; then
-  CAPBMBRANCH="${CAPBMBRANCH:-v1alpha2}"
-else
   CAPBMBRANCH="${CAPBMBRANCH:-master}"
+else
+  CAPBMBRANCH="${CAPBMBRANCH:-v1alpha1}"
 fi
 
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
