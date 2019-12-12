@@ -99,8 +99,13 @@ export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"quay.io/metal3-io/b
 # Config for OpenStack CLI
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
-# v1alpha2 var
+# CAPI version
 export V1ALPHA2_SWITCH=${V1ALPHA2_SWITCH:-"false"}
+if [ "${V1ALPHA2_SWITCH}" == true ]; then
+  export CAPI_VERSION=${CAPI_VERSION:-"v1alpha2"}
+else
+  export CAPI_VERSION=${CAPI_VERSION:-"v1alpha1"}
+fi
 
 #default hosts memory
 export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-8192}

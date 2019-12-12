@@ -222,14 +222,14 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-if [ "${V1ALPHA2_SWITCH}" == true ]; then
+if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   for name in ${EXPTD_V1ALPHA2_CRDS}; do
     RESULT_STR="CRD ${name} created"
     echo "${CRDS}" | grep -w "${name}"  > /dev/null
     process_status $?
   done
   echo ""
-else
+elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   for name in ${EXPTD_CRDS}; do
     RESULT_STR="CRD ${name} created"
     echo "${CRDS}" | grep -w "${name}"  > /dev/null
@@ -239,12 +239,12 @@ else
 fi
 
 
-if [ "${V1ALPHA2_SWITCH}" == true ]; then
+if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   # Verify the v1alph2 Pods, Operators, Deployments, Replicasets
   iterate check_k8s_pods "${EXPTD_V1ALPHA2_PODS}"
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA2_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA2_RS}"
-else
+elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   # Verify the v1alph1 Operators, Statefulsets, Deployments, Replicasets
   iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
   iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"

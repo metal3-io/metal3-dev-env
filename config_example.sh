@@ -80,9 +80,11 @@
 #
 #export BMC_DRIVER="redfish"
 
-# Install v1alpha2 controllers and CRDs
+# Select the Cluster API version
+# Accepted values : v1alpha1 v1alpha2
+# default: v1alpha2
 #
-#export V1ALPHA2_SWITCH=false
+#export CAPI_VERSION=v1alpha2
 
 # Configure provisioning network for single-stack ipv6
 #PROVISIONING_IPV6=false
