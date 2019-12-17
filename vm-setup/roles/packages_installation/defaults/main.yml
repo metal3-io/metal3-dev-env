@@ -1,22 +1,22 @@
 packages:
   ubuntu:
     packages:
-     - crudini 
-     - curl 
-     - dnsmasq 
+     - crudini
+     - curl
+     - dnsmasq
      - nmap
      - ovmf
-     - patch 
-     - psmisc 
+     - patch
+     - psmisc
      - wget
-     - libvirt-bin 
-     - libvirt-clients 
-     - libvirt-dev 
-     - jq 
-     - nodejs 
-     - unzip 
-     - yarn 
-     - genisoimage 
+     - libvirt-bin
+     - libvirt-clients
+     - libvirt-dev
+     - jq
+     - nodejs
+     - unzip
+     - yarn
+     - genisoimage
      - qemu-kvm
      - libguestfs-tools
      - gir1.2-polkit-1.0
@@ -27,85 +27,124 @@ packages:
      - libvirt-python
      - lxml
     pip3:
-     - yq 
-     - virtualbmc 
-     - python-ironicclient 
-     - python-ironic-inspector-client 
-     - lxml 
-     - netaddr 
-     - requests 
-     - setuptools 
+     - yq
+     - virtualbmc
+     - python-ironicclient
+     - python-ironic-inspector-client
+     - lxml
+     - netaddr
+     - requests
+     - setuptools
      - libvirt-python
      - python-openstackclient
   centos7:
     packages:
-     - crudini 
-     - curl 
-     - dnsmasq 
-     - NetworkManager 
+     - crudini
+     - curl
+     - dnsmasq
+     - NetworkManager
      - nmap
      - OVMF
-     - patch 
-     - psmisc 
-     - python-pip 
-     - python-requests 
-     - python-setuptools 
-     - vim-enhanced 
+     - patch
+     - psmisc
+     - python-pip
+     - python-requests
+     - python-setuptools
+     - vim-enhanced
      - wget
-     - ansible 
-     - bind-utils 
-     - jq 
-     - libguestfs-tools 
-     - nodejs 
-     - python-ironicclient 
-     - python-ironic-inspector-client 
-     - python-openstackclient 
-     - redhat-lsb-core 
-     - unzip 
+     - ansible
+     - bind-utils
+     - jq
+     - libguestfs-tools
+     - nodejs
+     - python-ironicclient
+     - python-ironic-inspector-client
+     - python-openstackclient
+     - redhat-lsb-core
+     - unzip
      - genisoimage
      - qemu-kvm
      - libvirt
-     - libvirt-devel 
-     - libvirt-daemon-kvm 
+     - libvirt-devel
+     - libvirt-daemon-kvm
      - libvirt-python
      - libguestfs-tools
      - python-lxml
      - polkit-pkla-compat
      - python-netaddr
      - python-virtualbmc
-     - virt-install 
+     - virt-install
   rhel8:
     packages:
-     - curl 
+     - curl
      - dnsmasq
      - edk2-ovmf
-     - NetworkManager 
-     - nmap 
-     - patch 
-     - psmisc 
-     - python3-pip 
-     - python3-requests 
-     - python3-setuptools 
-     - vim-enhanced 
+     - NetworkManager
+     - nmap
+     - patch
+     - psmisc
+     - python3-pip
+     - python3-requests
+     - python3-setuptools
+     - vim-enhanced
      - wget
-     - ansible 
-     - bind-utils 
-     - jq 
-     - libguestfs-tools 
-     - nodejs 
-     - redhat-lsb-core 
-     - unzip 
+     - ansible
+     - bind-utils
+     - jq
+     - libguestfs-tools
+     - nodejs
+     - redhat-lsb-core
+     - unzip
      - genisoimage
      - qemu-kvm
      - libvirt
-     - libvirt-devel 
-     - libvirt-daemon-kvm 
+     - libvirt-devel
+     - libvirt-daemon-kvm
      - python3-libvirt
      - libguestfs-tools
      - python3-lxml
      - polkit-pkla-compat
      - python3-netaddr
-     - virt-install 
+     - virt-install
+     - network-scripts
+    pip3:
+     - yq
+     - python-ironicclient
+     - python-ironic-inspector-client
+     - python-openstackclient
+  centos8:
+    packages:
+     - crudini
+     - curl
+     - dnsmasq
+     - edk2-ovmf
+     - NetworkManager
+     - nmap
+     - patch
+     - psmisc
+     - python3-pip
+     - python3-requests
+     - python3-setuptools
+     - vim-enhanced
+     - wget
+     - ansible
+     - bind-utils
+     - jq
+     - libguestfs-tools
+     - nodejs
+     - redhat-lsb-core
+     - unzip
+     - genisoimage
+     - qemu-kvm
+     - libvirt
+     - libvirt-devel
+     - libvirt-daemon-kvm
+     - python3-libvirt
+     - libguestfs-tools
+     - python3-lxml
+     - polkit-pkla-compat
+     - python3-netaddr
+     - virt-install
      - network-scripts
     pip3:
      - yq
