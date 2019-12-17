@@ -34,24 +34,21 @@ fi
 
 if [[ $DISTRO == "rhel8" ]]; then
     sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
-    sudo yum -y install python3
+    sudo dnf -y install python3
     sudo alternatives --set python /usr/bin/python3
+else
+  # Install tripleo-repos, used to get a more recent version of some packages on CentOS7
+  sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
+  sudo tripleo-repos current-tripleo
+  # There are some packages which are newer in the tripleo repos
+  sudo yum -y update
 fi
 
 # Install required packages
-# python-{requests,setuptools} required for tripleo-repos install
 sudo yum -y install \
   ansible \
   redhat-lsb-core \
   wget
-
-# Install tripleo-repos, used to get a recent version of python-virtualbmc
-sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
-sudo tripleo-repos current-tripleo
-
-# There are some packages which are newer in the tripleo repos
-sudo yum -y update
-
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo yum -y install podman

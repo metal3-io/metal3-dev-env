@@ -19,24 +19,26 @@
   when: ansible_facts['distribution'] == "Ubuntu"
 
 
-- name: Install packages on CentOS
+- name: Install packages on CentOS 7
   block:
-    - name: Install packages using standard package manager
-      block: 
-        - name: Install packages on rhel7
-          when: ansible_lsb.major_release|int == 7
-          package:
-             name: "{{ packages.centos.rhel7.packages }}"
-             state: present
-        - name: Install packages on rhel8
-          when: ansible_lsb.major_release|int == 8
-          package:
-             name: "{{ packages.centos.rhel8.packages }}"
-             state: present
-      become: true
+    - package:
+         name: "{{ packages.centos7.packages }}"
+         state: present
     - name: Install packages using pip
       pip:
-        name: "{{ packages.centos.pip }}"
+        name: "{{ packages.centos7.pip }}"
         state: present
-      become: true
-  when: ansible_os_family == "RedHat"
+  become: true
+  when: ansible_os_family == "RedHat" and ansible_lsb.major_release|int == 7
+
+- name: Install packages on RHEL8
+  block:
+    - package:
+         name: "{{ packages.rhel8.packages }}"
+         state: present
+    - pip:
+        executable: "pip3"
+        name: "{{ packages.rhel8.pip3 }}"
+        state: present
+  become: true
+  when: ansible_os_family == "RedHat" and ansible_lsb.major_release|int == 8
