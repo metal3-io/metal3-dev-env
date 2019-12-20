@@ -56,4 +56,4 @@ network_address dhcp_range_end "$PROVISIONING_NETWORK" 100
 
 export CLUSTER_DHCP_RANGE=${CLUSTER_DHCP_RANGE:-"$dhcp_range_start,$dhcp_range_end"}
 
-export EXTERNAL_SUBNET="192.168.111.0/24"
+export EXTERNAL_SUBNET=${EXTERNAL_SUBNET:-"192.168.111.0/24"}
