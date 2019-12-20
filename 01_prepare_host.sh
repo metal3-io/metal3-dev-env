@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
+
 set -xe
 
 # shellcheck disable=SC1091
 source lib/logging.sh
+
 # shellcheck disable=SC1091
 source lib/common.sh
 
