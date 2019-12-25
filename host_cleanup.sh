@@ -24,6 +24,7 @@ fi
 
 # Kill the locally running operators
 if [ "${BMO_RUN_LOCAL}" = true ]; then
+  kill "$(pgrep "run-bmo-loop.sh")" 2> /dev/null || true
   kill "$(pgrep "operator-sdk")" 2> /dev/null || true
 fi
 if [ "${CAPBM_RUN_LOCAL}" = true ]; then
