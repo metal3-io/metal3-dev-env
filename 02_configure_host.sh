@@ -131,6 +131,8 @@ if [[ "$reg_state" != "running" ]]; then
  sudo "${CONTAINER_RUNTIME}" run -d -p 5000:5000 --name registry "$DOCKER_REGISTRY_IMAGE"
 fi
 
+export IRONIC_LOCAL_IMAGE="https://github.com/elfosardo/ironic-image"
+
 # Support for building local images
 for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   IMAGE=${!IMAGE_VAR}

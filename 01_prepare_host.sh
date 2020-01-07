@@ -60,7 +60,7 @@ for IMAGE_VAR in IRONIC_IMAGE IPA_DOWNLOADER_IMAGE VBMC_IMAGE SUSHY_TOOLS_IMAGE 
     sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
 done
 
-# Download IPA and CentOS 7 Images
+# Download IPA and CentOS 8 Images
 mkdir -p "$IRONIC_IMAGE_DIR"
 pushd "$IRONIC_IMAGE_DIR"
 
