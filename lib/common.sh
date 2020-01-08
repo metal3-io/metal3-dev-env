@@ -56,8 +56,10 @@ fi
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   export POD_NAME="--pod ironic-pod"
+  export POD_NAME_INFRA="--pod infra-pod"
 else
   export POD_NAME=""
+  export POD_NAME_INFRA=""
 fi
 
 export EXTERNAL_SUBNET="192.168.111.0/24"

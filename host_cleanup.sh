@@ -7,7 +7,7 @@ source lib/logging.sh
 source lib/common.sh
 
 # Kill and remove the running ironic containers
-for name in ipa-downloader ironic ironic-inspector dnsmasq httpd mariadb vbmc sushy-tools; do
+for name in ipa-downloader ironic ironic-inspector dnsmasq httpd mariadb vbmc sushy-tools httpd-infra; do
     sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name
     sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f
 done
@@ -16,6 +16,9 @@ done
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   if  sudo "${CONTAINER_RUNTIME}" pod exists ironic-pod ; then
       sudo "${CONTAINER_RUNTIME}" pod rm ironic-pod -f
+  fi
+  if  sudo "${CONTAINER_RUNTIME}" pod exists infra-pod ; then
+      sudo "${CONTAINER_RUNTIME}" pod rm infra-pod -f
   fi
 fi
 
