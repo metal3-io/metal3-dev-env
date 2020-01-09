@@ -47,10 +47,12 @@ done
 # Clean-up existing pod, if podman
 case $CONTAINER_RUNTIME in
 podman)
-  if  sudo "${CONTAINER_RUNTIME}" pod exists ironic-pod ; then
-      sudo "${CONTAINER_RUNTIME}" pod rm ironic-pod -f
-  fi
-  sudo "${CONTAINER_RUNTIME}" pod create -n ironic-pod
+  for pod in ironic-pod infra-pod; do
+    if  sudo "${CONTAINER_RUNTIME}" pod exists "${pod}" ; then
+        sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
+    fi
+    sudo "${CONTAINER_RUNTIME}" pod create -n "${pod}"
+  done
   ;;
 esac
 
