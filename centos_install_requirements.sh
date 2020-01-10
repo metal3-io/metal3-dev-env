@@ -62,6 +62,13 @@ else
   sudo yum-config-manager \
     --add-repo \
     https://download.docker.com/linux/centos/docker-ce.repo
+    cat <<EOF > daemon.json
+{
+  "insecure-registries" : ["192.168.111.1:5000"]
+}
+EOF
+  sudo chown root:root daemon.json
   sudo yum install -y docker-ce docker-ce-cli containerd.io
+  sudo mv daemon.json /etc/docker
   sudo systemctl start docker
 fi
