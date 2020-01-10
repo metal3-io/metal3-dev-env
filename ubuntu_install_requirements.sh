@@ -68,7 +68,7 @@ EOF
   sudo chown root:root daemon.json
   sudo apt install -y docker-ce docker-ce-cli containerd.io
   sudo mv daemon.json /etc/docker
-  sudo systemctl start docker
+  sudo systemctl restart docker
 fi
 
 # Install python packages not included as rpms
