@@ -1,7 +1,14 @@
 {% set nat_port_range = item.nat_port_range|default([1024, 65535]) %}
 {% set netmask = item.netmask|default("") %}
 {% set prefix = item.prefix|default("") %}
+{% if item.dns.options is defined %}
+<network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
+  <dnsmasq:options>
+    <dnsmasq:option value='{{ item.dns.options }}'/>
+  </dnsmasq:options>
+{% else %}
 <network>
+{% endif %}
   <name>{{ item.name }}</name>
   <bridge name='{{ item.bridge }}'/>
 {% if item.forward_mode is defined %}
