@@ -10,7 +10,7 @@ source lib/common.sh
 
 check_bm_hosts() {
     local FAILS_CHECK="${FAILS}"
-    local NAME ADDRESS USER PASSWORD MAC CRED_NAME CRED_SECRET\
+    local NAME ADDRESS USER PASSWORD MAC CRED_NAME CRED_SECRET \
       BM_HOSTS BM_HOST BM_VMS BM_VMNAME BM_VM_IFACES
     NAME="${1}"
     ADDRESS="${2}"
@@ -71,7 +71,7 @@ check_bm_hosts() {
       process_status $?
     done
 
-    #Verify the instrospection completed successfully
+    #Verify the introspection completed successfully
     RESULT_STR="${NAME} Baremetalhost introspecting completed"
     is_in "$(echo "${BM_HOST}" | jq -r '.status.provisioning.state')" \
       "ready available"
