@@ -17,7 +17,7 @@ sudo apt -y update
 
 # Install required packages
 
-# ansible uses default python2 (python-pip) to run on the local machine 
+# ansible uses default python2 (python-pip) to run on the local machine
 sudo apt -y install \
   python3-pip \
   python-pip \
@@ -60,7 +60,14 @@ else
     $(lsb_release -cs) \
     stable"
   sudo apt update
+  cat <<EOF > daemon.json
+{
+  "insecure-registries" : ["192.168.111.1:5000"]
+}
+EOF
+  sudo chown root:root daemon.json
   sudo apt install -y docker-ce docker-ce-cli containerd.io
+  sudo mv daemon.json /etc/docker
   sudo systemctl start docker
 fi
 
