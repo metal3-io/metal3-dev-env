@@ -67,7 +67,8 @@ else
 EOF
   sudo chown root:root daemon.json
   sudo apt install -y docker-ce docker-ce-cli containerd.io
-  sudo mv daemon.json /etc/docker
+  sudo mkdir -p /etc/docker
+  sudo mv daemon.json /etc/docker/daemon.json
   sudo systemctl restart docker
 fi
 
