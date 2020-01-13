@@ -37,28 +37,6 @@ ssh_to_machine() {
 }
 
 #
-# Checks the provisioning status of the baremetal host
-#
-# Inputs:
-# - machine name
-# - Baremetal host name
-# - Expected state
-#
-check_provisioning_status(){
-  local MACHINE_NAME="${1}"
-  local BMH_NAME="${2}"
-  local FAILS_CHECK
-  local EXPECTED_STATE="${3}"
-  FAILS_CHECK="${FAILS}"
-  BMH="$(kubectl get bmh -n metal3 -o json "${BMH_NAME}")"
-
-  RESULT_STR="${MACHINE_NAME} baremetal host in correct state : ${EXPECTED_STATE}"
-  is_in "$(echo "${BMH}" | jq -r '.status.provisioning.state')" \
-    "${EXPECTED_STATE}"
-  return "$((FAILS-FAILS_CHECK))"
-}
-
-#
 # Check that the machine and baremetal host CRs are cross-referencing
 #
 # Inputs:
@@ -112,11 +90,14 @@ check_bmh_status(){
   local FAILS_CHECK
   FAILS_CHECK="${FAILS}"
 
-  # Verify the provisioning state of the BMH
-  iterate check_provisioning_status "${MACHINE_NAME}" "${BMH_NAME}" \
-    "${PROVISIONED_STATUS}"
-
+  RESULT_STR="Get BMH ${BMH_NAME}"
   BMH="$(kubectl get bmh -n metal3 -o json "${BMH_NAME}")"
+  process_status $?
+
+  # Verify the provisioning state of the BMH
+  RESULT_STR="${MACHINE_NAME} baremetal host in correct state : ${PROVISIONED_STATUS}"
+  is_in "$(echo "${BMH}" | jq -r '.status.provisioning.state')" \
+    "${PROVISIONED_STATUS}"
 
   #Check the image
   RESULT_STR="${MACHINE_NAME} Baremetal host correct image"
@@ -181,28 +162,28 @@ for name in $MACHINES_LIST; do
 
   # Verify the machine CR exists
   RESULT_STR="${name} machine CR exist"
-  kubectl get machine -n metal3 -o json "${name}" > /dev/null
+  iterate kubectl get machine -n metal3 -o json "${name}" > /dev/null
   process_status "$?" || SKIP_RETRIES=true
 
   #Verify that the machine has a bmh associated
   iterate check_bmh_association "${name}" || SKIP_RETRIES=true
 
   # Get the machine and BMH
-  MACHINE="$(kubectl get machine -n metal3 -o json "${name}")"
+  MACHINE="$(iterate kubectl get machine -n metal3 -o json "${name}")"
   BMH_NAME="$(echo "${MACHINE}" | \
     jq -r '.metadata.annotations["metal3.io/BareMetalHost"]' | \
     tr '/' ' ' | awk '{print $2}')"
-  BMH="$(kubectl get bmh -n metal3 -o json "${BMH_NAME}")"
+  BMH="$(iterate kubectl get bmh -n metal3 -o json "${BMH_NAME}")"
   # shellcheck disable=SC2181
   [[ "$?" == 0 ]] || SKIP_RETRIES=true
 
   # Check the baremetal hosts status fields
-  check_bmh_status "${name}" "${BMH_NAME}" "$(echo "${MACHINE}" | \
+  iterate check_bmh_status "${name}" "${BMH_NAME}" "$(echo "${MACHINE}" | \
     jq -r '.spec.providerSpec.value.image.url')" "provisioned"
 
   # Get the IP of the BMH
   RESULT_STR="${name} get baremetal host IP"
-  VM_IP="$(get_vm_ip "${BMH_NAME}")"
+  VM_IP="$(iterate get_vm_ip "${BMH_NAME}")"
   process_status "$?" || SKIP_RETRIES=true
 
   # Check ssh connection to BMH
@@ -217,7 +198,7 @@ SKIP_RETRIES="${SKIP_RETRIES_USER}"
 #Test deprovisioning
 for name in $MACHINES_LIST; do
   # Get the machine and BMH
-  MACHINE="$(kubectl get machine -n metal3 -o json "${name}")"
+  MACHINE="$(iterate kubectl get machine -n metal3 -o json "${name}")"
   BMH_NAME="$(echo "${MACHINE}" | \
     jq -r '.metadata.annotations["metal3.io/BareMetalHost"]' | \
     tr '/' ' ' | awk '{print $2}')"
@@ -227,11 +208,11 @@ for name in $MACHINES_LIST; do
   # Deprovision the machine
   # shellcheck disable=SC2034
   RESULT_STR="${name} machine CR deleted"
-  kubectl delete machine -n metal3 "${name}" > /dev/null
+  iterate kubectl delete machine -n metal3 "${name}" > /dev/null
   process_status $?
 
   # Check the status fields of the BMH previously associated
-  if check_bmh_status "${name}" "${BMH_NAME}" "null" "ready available"; then
+  if iterate check_bmh_status "${name}" "${BMH_NAME}" "null" "ready available"; then
     SKIP_RETRIES=true
   fi
 

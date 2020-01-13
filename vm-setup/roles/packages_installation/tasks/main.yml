@@ -22,7 +22,7 @@
 - name: Install packages on CentOS
   block:
     - name: Install packages using standard package manager
-      block: 
+      block:
         - name: Install packages on rhel7
           when: ansible_lsb.major_release|int == 7
           package:
@@ -33,10 +33,5 @@
           package:
              name: "{{ packages.centos.rhel8.packages }}"
              state: present
-      become: true
-    - name: Install packages using pip
-      pip:
-        name: "{{ packages.centos.pip }}"
-        state: present
       become: true
   when: ansible_os_family == "RedHat"
