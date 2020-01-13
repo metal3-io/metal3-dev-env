@@ -1,22 +1,22 @@
 packages:
   ubuntu:
     packages:
-     - crudini 
-     - curl 
-     - dnsmasq 
+     - crudini
+     - curl
+     - dnsmasq
      - nmap
      - ovmf
-     - patch 
-     - psmisc 
+     - patch
+     - psmisc
      - wget
-     - libvirt-bin 
-     - libvirt-clients 
-     - libvirt-dev 
-     - jq 
-     - nodejs 
-     - unzip 
-     - yarn 
-     - genisoimage 
+     - libvirt-bin
+     - libvirt-clients
+     - libvirt-dev
+     - jq
+     - nodejs
+     - unzip
+     - yarn
+     - genisoimage
      - qemu-kvm
      - libguestfs-tools
      - gir1.2-polkit-1.0
@@ -27,91 +27,88 @@ packages:
      - libvirt-python
      - lxml
     pip3:
-     - yq 
-     - virtualbmc 
-     - python-ironicclient 
-     - python-ironic-inspector-client 
-     - lxml 
-     - netaddr 
-     - requests 
-     - setuptools 
+     - virtualbmc
+     - python-ironicclient
+     - python-ironic-inspector-client
+     - lxml
+     - netaddr
+     - requests
+     - setuptools
      - libvirt-python
      - python-openstackclient
   centos:
     rhel7:
         packages:
-         - crudini 
-         - curl 
-         - dnsmasq 
-         - NetworkManager 
+         - crudini
+         - curl
+         - dnsmasq
+         - NetworkManager
          - nmap
          - OVMF
-         - patch 
-         - psmisc 
-         - python-pip 
-         - python-requests 
-         - python-setuptools 
-         - vim-enhanced 
+         - patch
+         - psmisc
+         - python-pip
+         - python-requests
+         - python-setuptools
+         - vim-enhanced
          - wget
-         - ansible 
-         - bind-utils 
-         - jq 
-         - libguestfs-tools 
-         - nodejs 
-         - python-ironicclient 
-         - python-ironic-inspector-client 
-         - python-openstackclient 
-         - redhat-lsb-core 
-         - unzip 
+         - ansible
+         - bind-utils
+         - jq
+         - libguestfs-tools
+         - nodejs
+         - python-ironicclient
+         - python-ironic-inspector-client
+         - python-openstackclient
+         - redhat-lsb-core
+         - unzip
          - genisoimage
          - qemu-kvm
          - libvirt
-         - libvirt-devel 
-         - libvirt-daemon-kvm 
+         - libvirt-devel
+         - libvirt-daemon-kvm
          - libvirt-python
          - libguestfs-tools
          - python-lxml
          - polkit-pkla-compat
          - python-netaddr
          - python-virtualbmc
-         - virt-install 
+         - virt-install
     rhel8:
         packages:
-         - crudini 
-         - curl 
+         - crudini
+         - curl
          - dnsmasq
          - edk2-ovmf
-         - NetworkManager 
-         - nmap 
-         - patch 
-         - psmisc 
-         - python3-pip 
-         - python3-requests 
-         - python3-setuptools 
-         - vim-enhanced 
+         - NetworkManager
+         - nmap
+         - patch
+         - psmisc
+         - python3-pip
+         - python3-requests
+         - python3-setuptools
+         - vim-enhanced
          - wget
-         - ansible 
-         - bind-utils 
-         - jq 
-         - libguestfs-tools 
-         - nodejs 
-         - python3-ironicclient 
-         - python3-ironic-inspector-client 
+         - ansible
+         - bind-utils
+         - jq
+         - libguestfs-tools
+         - nodejs
+         - python3-ironicclient
+         - python3-ironic-inspector-client
          - python3-openstackclient
-         - redhat-lsb-core 
-         - unzip 
+         - redhat-lsb-core
+         - unzip
          - genisoimage
          - qemu-kvm
          - libvirt
-         - libvirt-devel 
-         - libvirt-daemon-kvm 
+         - libvirt-devel
+         - libvirt-daemon-kvm
          - python3-libvirt
          - libguestfs-tools
          - python3-lxml
          - polkit-pkla-compat
          - python3-netaddr
          - python3-virtualbmc
-         - virt-install 
+         - virt-install
          - network-scripts
-    pip:
-      - yq
