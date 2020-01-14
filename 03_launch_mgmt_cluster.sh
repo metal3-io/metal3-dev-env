@@ -170,12 +170,13 @@ function apply_bm_hosts() {
 
 function kustomize_overlay_capbm() {
   overlay_path=$1
+  provider_cmpt=$2
 cat <<EOF> "$overlay_path/kustomization.yaml"
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: metal3
 resources:
-- $(realpath --relative-to="$overlay_path" "$CAPBMPATH/examples/provider-components")
+- $(realpath --relative-to="$overlay_path" "$provider_cmpt")
 EOF
 }
 
@@ -185,20 +186,24 @@ EOF
 #
 function launch_cluster_api_provider_baremetal() {
     pushd "${CAPBMPATH}"
+    kustomize_overlay_path=$(mktemp -d capbm-XXXXXXXXXX)
+
+
     if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
       ./examples/generate.sh -f
-
-      kustomize_overlay_path=$(mktemp -d capbm-XXXXXXXXXX)
-      kustomize_overlay_capbm "$kustomize_overlay_path"
-      pushd "$kustomize_overlay_path"
-
-      update_images
-      popd
-      kustomize build "$kustomize_overlay_path" | kubectl apply -f-
-
+      kustomize_overlay_capbm "$kustomize_overlay_path" "$CAPBMPATH/examples/provider-components"
     elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-      make deploy
+      make manifests
+      cp "$CAPBMPATH/provider-components.yaml" "${kustomize_overlay_path}/provider-components.yaml"
+      kustomize_overlay_capbm "$kustomize_overlay_path" "${kustomize_overlay_path}/provider-components.yaml"
     fi
+
+    pushd "$kustomize_overlay_path"
+    update_images
+    popd
+    kustomize build "$kustomize_overlay_path" | kubectl apply -f-
+
+    rm -rf "$kustomize_overlay_path"
 
     if [ "${CAPBM_RUN_LOCAL}" == true ]; then
       touch capbm.out.log
