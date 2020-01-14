@@ -27,7 +27,6 @@ M3PATH="${GOPATH}/src/github.com/metal3-io"
 BMOPATH="${M3PATH}/baremetal-operator"
 RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 CAPBMPATH="${M3PATH}/cluster-api-provider-baremetal"
-KUSTOMIZE_FILE_PATH=${CAPBMPATH}/examples/provider-components/kustomization.yaml
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
@@ -72,9 +71,26 @@ function clone_repos() {
     popd
 }
 
+# Modifies the images to use the ones built locally
+function update_images(){
+  for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
+    IMAGE=${!IMAGE_VAR}
+    if [[ "$IMAGE" =~ "://" ]] ; then
+     #shellcheck disable=SC2086
+     IMAGE_NAME="${IMAGE##*/}:latest"
+     LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
+    fi
+
+    OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
+    OLD_IMAGE=${!OLD_IMAGE_VAR}
+    #shellcheck disable=SC2086
+    kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
+  done
+}
+
 # Creates the overlay for kustomize to override the various settings
 # needed for IPv6
-function kustomize_ipv6_overlay() {
+function kustomize_ipv6_overlay_bmo() {
   overlay_path=$1
   cat <<EOF> "$overlay_path/kustomization.yaml"
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -95,7 +111,7 @@ resources:
 EOF
 }
 
-function kustomize_overlay() {
+function kustomize_overlay_bmo() {
   overlay_path=$1
 cat <<EOF> "$overlay_path/kustomization.yaml"
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -111,27 +127,15 @@ function launch_baremetal_operator() {
 
     if [[ "${PROVISIONING_IPV6}" == "true" ]]
     then
-      kustomize_ipv6_overlay "$kustomize_overlay_path"
+      kustomize_ipv6_overlay_bmo "$kustomize_overlay_path"
     else
-      kustomize_overlay "$kustomize_overlay_path"
+      kustomize_overlay_bmo "$kustomize_overlay_path"
     fi
     pushd "$kustomize_overlay_path"
 
     # Add custom images in overlay
-    for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
-       IMAGE=${!IMAGE_VAR}
-       if [[ "$IMAGE" =~ "://" ]] ; then
-         #shellcheck disable=SC2086
-         IMAGE_NAME="${IMAGE##*/}:latest"
-         LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
-       fi
-
-       OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
-       OLD_IMAGE=${!OLD_IMAGE_VAR}
-       #shellcheck disable=SC2086
-       kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
-     done
-     popd
+    update_images
+    popd
 
     if [ "${BMO_RUN_LOCAL}" = true ]; then
       touch bmo.out.log
@@ -164,38 +168,53 @@ function apply_bm_hosts() {
     kubectl apply -f bmhosts_crs.yaml -n metal3
 }
 
+function kustomize_overlay_capbm() {
+  overlay_path=$1
+cat <<EOF> "$overlay_path/kustomization.yaml"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: metal3
+resources:
+- $(realpath --relative-to="$overlay_path" "$CAPBMPATH/examples/provider-components")
+EOF
+}
+
+
 #
 # Launch the cluster-api controller manager (v1alpha1) in the metal3 namespace.
 #
 function launch_cluster_api_provider_baremetal() {
     pushd "${CAPBMPATH}"
+    if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+      ./examples/generate.sh -f
+
+      kustomize_overlay_path=$(mktemp -d capbm-XXXXXXXXXX)
+      kustomize_overlay_capbm "$kustomize_overlay_path"
+      pushd "$kustomize_overlay_path"
+
+      update_images
+      popd
+      kustomize build "$kustomize_overlay_path" | kubectl apply -f-
+
+    elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
+      make deploy
+    fi
 
     if [ "${CAPBM_RUN_LOCAL}" == true ]; then
       touch capbm.out.log
       touch capbm.err.log
-      make deploy
-      if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-        kubectl scale -n metal3 deployment.v1.apps capbm-controller-manager --replicas 0
-      elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
+      if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
         kubectl scale statefulset cluster-api-provider-baremetal-controller-manager -n metal3 --replicas=0
+      elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+        kubectl scale -n metal3 deployment.v1.apps capbm-controller-manager --replicas 0
       fi
       nohup make run >> capbm.out.log 2>> capbm.err.log &
-    else
-      make deploy
     fi
     popd
 }
 
 clone_repos
 
-if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-  if grep -q "namespace:*" "${KUSTOMIZE_FILE_PATH}"
-  then
-      sed -i '/namespace/c\namespace: metal3' "${KUSTOMIZE_FILE_PATH}"
-  else
-      echo 'namespace: metal3' >> "${KUSTOMIZE_FILE_PATH}"
-  fi
-fi
 
 init_minikube
 sudo su -l -c 'minikube start' "${USER}"
