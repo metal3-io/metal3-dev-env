@@ -82,9 +82,9 @@
 
 # Select the Cluster API version
 # Accepted values : v1alpha1 v1alpha2
-# default: v1alpha2
+# default: v1alpha1
 #
-#export CAPI_VERSION=v1alpha2
+#export CAPI_VERSION=v1alpha1
 
 # Configure provisioning network for single-stack ipv6
 #PROVISIONING_IPV6=false
