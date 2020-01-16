@@ -133,7 +133,9 @@ fi
 
 # Support for building local images
 for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
-  IMAGE=${!IMAGE_VAR}
+  BRANCH_IMAGE_VAR="${IMAGE_VAR}_BRANCH"
+  IMAGE="${!IMAGE_VAR}"
+  BRANCH="${!BRANCH_IMAGE_VAR:-master}"
 
   case ${IMAGE_VAR%_LOCAL_IMAGE} in
     'BAREMETAL_OPERATOR')
@@ -148,8 +150,14 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   if [[ "$IMAGE" =~ "://" ]] ; then
     REPOPATH=~/${IMAGE##*/}
     # Clone to ~ if not there already
-    [ -e "$REPOPATH" ] || git clone "$IMAGE" "$REPOPATH"
-    cd "$REPOPATH" || exit
+    if [ -e "${REPOPATH}" ]; then
+       cd "${REPOPATH}" || exit
+    else
+      git clone "${IMAGE}" "${REPOPATH}"
+      cd "${REPOPATH}" || exit
+      [ "${BRANCH}" = "master" ] || git checkout "${BRANCH}"
+    fi
+
     #shellcheck disable=SC2086
     export $IMAGE_VAR="${IMAGE##*/}:latest"
     #shellcheck disable=SC2086
