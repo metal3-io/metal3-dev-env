@@ -38,7 +38,7 @@
 {% for num in range(0, numflavor) %}
 {% set ironic_name = ironic_prefix + flavor + "_" + num|string %}
 {% if item.address|ipv6 != False %}
-      <host id='01:{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{flavor}}-{{num}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
+      <host id='00:03:00:01:{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{flavor}}-{{num}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
 {% else %}
       <host mac='{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{flavor}}-{{num}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
 {% endif %}
