@@ -1,0 +1,133 @@
+---
+  - name: Wait until cluster becomes provisioned.
+    shell: "kubectl get cluster -n metal3 -o json | jq -r '.items[] | .status.phase'"
+    register: provisioned_cluster
+    retries: 100
+    delay: 20
+    until: provisioned_cluster.stdout == "provisioned"
+
+  - name: Wait until both bmhs become provisioned.
+    shell: |
+        kubectl get bmh -n metal3 -o json | jq -r '.items[]
+        | select (.status.provisioning.state == "provisioned")
+        | .metadata.name'
+    register: provisioned_bmh
+    retries: 100
+    delay: 20
+    until: provisioned_bmh.stdout_lines ==  ["node-0", "node-1"]
+
+  - name: Get the IP of controlplane node
+    shell: |
+        kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '.items[]
+        | select (.spec.consumerRef.name == "{{ CLUSTER_NAME }}-controlplane-0")
+        | .status.hardware.nics[] | select (.name == "eth1") | .ip'
+    register: controlplane_ip
+
+  - name: Define variable for controlplane_node IP
+    set_fact:
+      bmh_ip: "{{ controlplane_ip.stdout }}"
+
+  - name: Define username variable for Ubuntu node
+    set_fact:
+      username: ubuntu
+    when: IMAGE_OS == "Ubuntu"
+
+  - name: Define username variable for target CentOS node
+    set_fact:
+      username: centos
+    when: (IMAGE_OS == "Centos") or
+          (IMAGE_OS == "")
+
+  - name: Verification test
+    delegate_to: "{{ bmh_ip }}"
+    vars:
+      ansible_user: "{{ username }}"
+      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
+      ansible_python_interpreter: /usr/bin/python3
+    become: yes
+    become_user: "{{ username }}"
+    block:
+      - name: Install python-pip3
+        package:
+          name: python3-pip
+          state: present
+          update_cache: yes
+        become: yes
+        become_user: root
+
+      - name: Install packages using pip3
+        pip:
+          executable: "pip3"
+          name: openshift
+          state: present
+        become: true
+        become_user: root
+
+      - name: Install jq
+        apt:
+          name: jq
+          state: present
+        become: yes
+        become_user: root
+        when:
+          ansible_distribution == "Ubuntu"
+
+      - name: Install jq
+        yum:
+          name: jq
+          state: present
+        become: yes
+        become_user: root
+        when:
+          ansible_distribution == "CentOS"
+
+      # Install Calico
+      - name: Download Calico manifest
+        get_url:
+          url: https://docs.projectcalico.org/v3.9/manifests/calico.yaml
+          dest: /tmp/
+          mode: '664'
+        register: calico_manifest
+
+      - name: Replace the POD_CIDR in calico config
+        replace:
+          path: /tmp/calico.yaml
+          regexp: "192.168.0.0/16"
+          replace: '{{ pod_cidr }}'
+        register: updated_manifest
+
+      - name: Apply Calico manifest
+        k8s:
+          state: present
+          src: "/tmp/calico.yaml"
+          namespace: "{{ NAMESPACE }}"
+        environment:
+          ansible_python_interpreter: /usr/bin/python3
+        register: install_cni
+
+      # Check for pods & nodes on the target cluster
+      - name: Check if pods in running state
+        shell: "kubectl get pods -A -o json | jq -r '.items[].status.phase' | grep -v Running"
+        environment:
+          KUBECONFIG: "{{ KUBECONFIG_PATH }}"
+        retries: 150
+        delay: 3
+        register: running_pods
+        failed_when: >
+          (running_pods.stderr != "") or
+          (running_pods.rc > 1) or
+          (running_pods.stdout != "")
+        until: running_pods.stdout == ""
+
+      - name: Check if nodes in ready state
+        shell: kubectl get nodes | grep -w Ready | wc -l
+        environment:
+          KUBECONFIG: "{{ KUBECONFIG_PATH }}"
+        retries: 150
+        delay: 3
+        register: ready_nodes
+        failed_when: >
+          (ready_nodes.stderr != "") or
+          (ready_nodes.rc != 0) or
+          (ready_nodes.stdout != "2")
+        until: ready_nodes.stdout == "2"

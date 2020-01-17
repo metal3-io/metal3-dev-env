@@ -6,6 +6,7 @@ eval "$(go env)"
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 USER="$(whoami)"
+export USER=${USER}
 
 # Get variables from the config file
 if [ -z "${CONFIG:-}" ]; then
@@ -143,6 +144,8 @@ export IMAGE_CHECKSUM=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}.md5sum
 #Path to CRs
 export V1ALPHA2_CR_PATH=${SCRIPTDIR}/crs/v1alpha2/
 
+# Target node username
+export NODE_USERNAME=${IMAGE_USERNAME}
 
 #Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}

@@ -191,10 +191,6 @@ EXPTD_V1ALPHA2_RS="control-plane:cabpk-controller-manager \
   control-plane:capbm-controller-manager \
   control-plane:cluster-api-controller-manager \
   name:metal3-baremetal-operator"
-EXPTD_V1ALPHA2_PODS="control-plane:cabpk-controller-manager \
-  control-plane:capbm-controller-manager \
-  control-plane:cluster-api-controller-manager \
-  name:metal3-baremetal-operator"
 BRIDGES="provisioning baremetal"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 
@@ -240,12 +236,11 @@ fi
 
 
 if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-  # Verify the v1alph2 Pods, Operators, Deployments, Replicasets
-  iterate check_k8s_pods "${EXPTD_V1ALPHA2_PODS}"
+  # Verify v1alpha2 Operators, Deployments, Replicasets
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA2_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA2_RS}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-  # Verify the v1alph1 Operators, Statefulsets, Deployments, Replicasets
+  # Verify v1alpha1 Operators, Statefulsets, Deployments, Replicasets
   iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
   iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_RS}"
@@ -279,8 +274,13 @@ fi
 if [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
   # shellcheck disable=SC2034
   RESULT_STR="CAPI operator locally running"
-  pgrep -f "go run ./cmd/manager/main.go" > /dev/null 2> /dev/null
-  process_status $?
+  if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+    pgrep -f "go run ./main.go" > /dev/null 2> /dev/null
+    process_status $?
+  elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
+    pgrep -f "go run ./cmd/manager/main.go" > /dev/null 2> /dev/null
+    process_status $?
+  fi
 fi
 if [[ "${BMO_RUN_LOCAL}" == true ]] || [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
   echo ""

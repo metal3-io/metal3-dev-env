@@ -12,7 +12,7 @@
   {% for node in vm_nodes %}
     {
       "name": "{{ node.name|replace('_', '-') }}",
-      "driver": "{{ vm_driver }}", 
+      "driver": "{{ vm_driver }}",
       "resource_class": "baremetal",
       "driver_info": {
         "username": "admin",

@@ -43,6 +43,7 @@ fi
 sudo yum -y install \
   ansible \
   redhat-lsb-core \
+  python3-pip \
   wget
 
 # Install tripleo-repos, used to get a recent version of python-virtualbmc
