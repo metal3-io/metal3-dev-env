@@ -6,7 +6,10 @@ set -u
 source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
-
+# shellcheck disable=SC1091
+source lib/network.sh
+# shellcheck disable=SC1091
+source lib/images.sh
 
 check_bm_hosts() {
     local FAILS_CHECK="${FAILS}"

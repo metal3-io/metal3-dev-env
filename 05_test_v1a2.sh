@@ -5,6 +5,10 @@ set -xe
 source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
+# shellcheck disable=SC1091
+source lib/network.sh
+# shellcheck disable=SC1091
+source lib/images.sh
 
 # Disable SSH trong authentication
 export ANSIBLE_HOST_KEY_CHECKING=False

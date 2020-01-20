@@ -2,11 +2,15 @@
 
 # shellcheck disable=SC1091
 source lib/common.sh
+# shellcheck disable=SC1091
+source lib/network.sh
+# shellcheck disable=SC1091
+source lib/images.sh
 
 BMHOST=$1
 IMAGE_NAME=${2:-${IMAGE_NAME}}
-IMAGE_URL=http://172.22.0.1/images/${IMAGE_NAME}
-IMAGE_CHECKSUM=http://172.22.0.1/images/${IMAGE_NAME}.md5sum
+IMAGE_URL=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}
+IMAGE_CHECKSUM=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}.md5sum
 
 if [ -z "${BMHOST}" ] ; then
     echo "Usage: provision_host.sh <BareMetalHost-name> [image-name]"

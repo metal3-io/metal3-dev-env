@@ -23,7 +23,10 @@ extradisks_list:
 # size of the disks to create when using extradisks
 extradisks_size: 8G
 
-
-
 # The name of the libvirt service.
 libvirtd_service: libvirtd
+
+# The host that has images for provisioning, this should be in the
+# format of a URL host, e.g. with IPv6, it should be surrounded
+# by brackets
+provisioning_url_host: 172.22.0.1
