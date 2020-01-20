@@ -69,16 +69,17 @@ spec:
         - systemctl enable --now docker kubelet
         - usermod -aG docker ubuntu
       files:
-        - path: /etc/network/interfaces
+        - path: /etc/netplan/50-cloud-init.yaml
           owner: root:root
           permissions: '0644'
           content: |
-            # interfaces(5) file used by ifup(8) and ifdown(8)
-            auto lo
-            iface lo inet loopback
-            ## To configure a dynamic IP address
-            auto enp2s0
-            iface enp2s0 inet dhcp
+            network:
+                ethernets:
+                    enp1s0:
+                        dhcp4: true                  
+                    enp2s0:
+                        dhcp4: true
+                version: 2
         - path: /tmp/akeys
           owner: root:root
           permissions: '0644'
