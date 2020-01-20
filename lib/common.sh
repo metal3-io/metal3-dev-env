@@ -161,7 +161,7 @@ then
 fi
 
 # Check d_type support
-FSTYPE=$(df "${FILESYSTEM}" --output=fstype | grep -v Type)
+FSTYPE=$(df "${FILESYSTEM}" --output=fstype | tail -n 1)
 
 case ${FSTYPE} in
   'ext4'|'btrfs')
@@ -169,7 +169,7 @@ case ${FSTYPE} in
   'xfs')
     # shellcheck disable=SC2143
     if [[ $(xfs_info "${FILESYSTEM}" | grep -q "ftype=1") ]]; then
-      echo "Filesystem not supported"
+      echo "XFS filesystem must have ftype set to 1"
       exit 1
     fi
   ;;
