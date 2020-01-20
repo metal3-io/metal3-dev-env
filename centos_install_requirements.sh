@@ -47,8 +47,13 @@ sudo yum -y install \
   wget
 
 # Install tripleo-repos, used to get a recent version of python-virtualbmc
-sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
-sudo tripleo-repos current-tripleo
+if [[ $DISTRO == "centos8" ]]; then
+  sudo dnf -y --repofrompath="current,https://trunk.rdoproject.org/${DISTRO}-master/current" install "python*-tripleo-repos" --nogpgcheck
+  sudo tripleo-repos current
+else
+  sudo yum -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
+  sudo tripleo-repos current-tripleo
+fi
 
 # There are some packages which are newer in the tripleo repos
 sudo yum -y update
