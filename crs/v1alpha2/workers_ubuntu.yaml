@@ -75,6 +75,8 @@ spec:
           content: | 
             network:
                 ethernets:
+                    enp1s0:
+                        dhcp4: true
                     enp2s0:
                         dhcp4: true
                 version: 2
