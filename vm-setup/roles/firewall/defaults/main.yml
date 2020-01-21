@@ -17,3 +17,6 @@ pxe_udp_ports:
   - "67"
   - "68"
   - "69"
+ironic_keepalived_proto:
+  - "112"
+  - "icmp"

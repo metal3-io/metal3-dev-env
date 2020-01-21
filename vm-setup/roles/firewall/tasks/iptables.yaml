@@ -51,3 +51,11 @@
     destination_port: "{{ item }}"
     jump: ACCEPT
   loop: "{{ pxe_udp_ports }}"
+
+- name: "iptables: Ironic Endpoint Keepalived"
+  iptables:
+    chain: FORWARD
+    in_interface: "{{ provisioning_interface }}"
+    protocol: "{{ item }}"
+    jump: ACCEPT
+  loop: "{{ ironic_keepalived_proto }}"
