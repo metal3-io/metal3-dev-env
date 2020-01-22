@@ -104,6 +104,7 @@ export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.17.0"}
 
 #Path to CRs
 export V1ALPHA2_CR_PATH=${SCRIPTDIR}/crs/v1alpha2/
+export V1ALPHA3_CR_PATH=${SCRIPTDIR}/crs/v1alpha3/
 
 #Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}
@@ -342,13 +343,14 @@ function init_minikube() {
 
 
 #
-# Create the CRs for v1alpha2 deployments
+# Create the CRs for v1alpha2 or v1alpha3 deployments
 #
 # Inputs:
 # - machine type (controlplane or workers)
 #
-make_v1alpha2_machine() {
+make_v1alphaX_machine() {
     MACHINE_TYPE=$1
+    ALPHA_VERSION=$2
 
     SSH_PUB_KEY_CONTENT="$(cat "${SSH_PUB_KEY}")"
     export SSH_PUB_KEY_CONTENT
@@ -361,5 +363,13 @@ make_v1alpha2_machine() {
       echo "Incorrect OS image type"
       exit 1
     fi
-    envsubst < "${V1ALPHA2_CR_PATH}${CR_YAML}"
+
+    if [ "${ALPHA_VERSION}" == "v1alpha2" ]; then
+      envsubst < "${V1ALPHA2_CR_PATH}${CR_YAML}"
+    elif [ "${ALPHA_VERSION}" == "v1alpha3" ]; then
+      envsubst < "${V1ALPHA3_CR_PATH}${CR_YAML}"
+    else
+      echo "Incorrect alpha version ${ALPHA_VERSION}"
+      exit 1
+    fi
 }

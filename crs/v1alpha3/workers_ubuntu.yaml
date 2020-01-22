@@ -1,0 +1,84 @@
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: MachineDeployment
+metadata:
+  name: ${CLUSTER_NAME}-md-0
+  labels:
+    cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+    nodepool: nodepool-0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+      nodepool: nodepool-0
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+        nodepool: nodepool-0
+    spec:
+      version: ${KUBERNETES_VERSION}
+      bootstrap:
+        configRef:
+          name: ${CLUSTER_NAME}-md-0
+          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+          kind: KubeadmConfigTemplate
+      infrastructureRef:
+        name: ${CLUSTER_NAME}-md-0
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+        kind: BareMetalMachineTemplate
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: BareMetalMachineTemplate
+metadata:
+  name: ${CLUSTER_NAME}-md-0
+spec:
+  template:
+    spec:
+      image:
+        url: ${IMAGE_URL}
+        checksum: ${IMAGE_CHECKSUM}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: KubeadmConfigTemplate
+metadata:
+  name: ${CLUSTER_NAME}-md-0
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          name: '{{ ds.meta_data.name }}'
+          kubeletExtraArgs:
+            node-labels: 'metal3.io/uuid={{ ds.meta_data.uuid }}'
+      preKubeadmCommands:
+        - ip link set dev enp2s0 up
+        - dhclient enp2s0
+        - mv /tmp/akeys /home/ubuntu/.ssh/authorized_keys
+        - chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
+        - apt update -y
+        - >-
+          apt install apt-transport-https ca-certificates
+          curl gnupg-agent software-properties-common -y
+        - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+        - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+        - echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list
+        - apt update -y
+        - apt install docker-ce docker-ce-cli containerd.io kubelet kubeadm kubectl -y
+        - systemctl enable --now docker kubelet
+        - usermod -aG docker ubuntu
+      files:
+        - path : /etc/netplan/50-cloud-init.yaml
+          owner: root:root
+          permissions: '0644'
+          content: | 
+            network:
+                ethernets:
+                    enp2s0:
+                        dhcp4: true
+                version: 2
+        - path: /tmp/akeys
+          owner: root:root
+          permissions: '0644'
+          content: ${SSH_PUB_KEY_CONTENT}

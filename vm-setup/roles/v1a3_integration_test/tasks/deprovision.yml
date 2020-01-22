@@ -1,0 +1,74 @@
+---
+  - name: Deprovision cluster
+    k8s:
+      state: absent
+      src: "/tmp/cluster.yaml"
+      namespace: "{{ NAMESPACE }}"
+    register: deprovision_cluster
+
+  - name: Deprovisioning
+    block:
+      - name: Deprovision Ubuntu machines
+        k8s:
+          state: absent
+          src: "/tmp/{{ item }}_ubuntu.yaml"
+          namespace: "{{ NAMESPACE }}"
+        loop:
+           - controlplane
+           - workers
+        register: deprovision_ubuntu_machines
+
+      - name: Remove Ubuntu node crs
+        file:
+          path: "/tmp/{{ item }}.yaml"
+          state: absent
+        with_items:
+          - controlplane_ubuntu
+          - workers_ubuntu
+    when: IMAGE_OS == "Ubuntu"
+
+  - name: Deprovisioning
+    block:
+      - name: Deprovision CentOS machines
+        k8s:
+          state: absent
+          src: "/tmp/{{ item }}_centos.yaml"
+          namespace: "{{ NAMESPACE }}"
+        loop:
+           - controlplane
+           - workers
+        when: (IMAGE_OS == "Centos") or
+              (IMAGE_OS == "")
+        register: deprovision_centos_machines
+
+      - name: Remove CentOS node crs
+        file:
+          path: "/tmp/{{ item }}.yaml"
+          state: absent
+        with_items:
+          - controlplane_centos
+          - workers_centos
+    when: IMAGE_OS == "Centos"
+
+  - name: Remove cluster crs
+    file:
+      path: "/tmp/cluster.yaml"
+      state: absent
+
+  - name: Check if cluster deprovisioning started.
+    shell: "kubectl get cluster -n {{ NAMESPACE }} -o json | jq -r '.items[] | .status.phase'"
+    register: deprovision_cluster
+    retries: 2
+    delay: 20
+    until: (deprovision_cluster.stdout == "deleting") or
+           (deprovision_cluster.stdout == "")
+
+  - name: Wait until both bmh becomes ready again.
+    shell: |
+        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '.items[] |
+        select (.status.provisioning.state == "ready") |
+        .metadata.name'
+    register: deprovisioned_nodes
+    retries: 150
+    delay: 3
+    until: deprovisioned_nodes.stdout_lines ==  ["node-0", "node-1"]

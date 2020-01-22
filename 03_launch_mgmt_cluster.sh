@@ -40,6 +40,10 @@ elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-release-0.2}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-v1alpha1}"
+elif [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  CAPBMBRANCH="${CAPBMBRANCH:-v1alpha3}"
+  # v1alpha3 branch not yet in upstream. Once it is, below Nordix repo line is removed
+  CAPBMREPO="https://github.com/Nordix/cluster-api-provider-baremetal.git"
 fi
 
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
@@ -49,7 +53,7 @@ CAPBM_RUN_LOCAL="${CAPBM_RUN_LOCAL:-false}"
 
 function clone_repos() {
     mkdir -p "${M3PATH}"
-    if [[ -d ${BMOPATH} && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+    if [[ -d "${BMOPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
       rm -rf "${BMOPATH}"
     fi
     if [ ! -d "${BMOPATH}" ] ; then
@@ -212,6 +216,15 @@ function launch_cluster_api_provider_baremetal() {
     popd
 }
 
+function apply_cert_manager() {
+  if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+    kubectl create namespace cert-manager
+    kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.12.0/cert-manager.yaml
+    sleep 60
+  fi
+}
+
+clone_repos
 
 #
 # Write out a clouds.yaml for this environment
@@ -234,6 +247,7 @@ else
 
 fi
 
+apply_cert_manager
 launch_baremetal_operator
 apply_bm_hosts
 launch_cluster_api_provider_baremetal

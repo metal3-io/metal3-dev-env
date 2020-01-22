@@ -190,8 +190,14 @@ EXPTD_V1ALPHA2_DEPLOYMENTS="cabpk-controller-manager \
   capbm-controller-manager \
   capi-controller-manager \
   metal3-baremetal-operator"
+EXPTD_V1ALPHA3_DEPLOYMENTS="capbm-controller-manager \
+  capi-controller-manager \
+  metal3-baremetal-operator"
 EXPTD_V1ALPHA2_RS="control-plane:cabpk-controller-manager \
   control-plane:capbm-controller-manager \
+  control-plane:cluster-api-controller-manager \
+  name:metal3-baremetal-operator"
+EXPTD_V1ALPHA3_RS="control-plane:capbm-controller-manager \
   control-plane:cluster-api-controller-manager \
   name:metal3-baremetal-operator"
 BRIDGES="provisioning baremetal"
@@ -221,7 +227,7 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
   for name in ${EXPTD_V1ALPHA2_CRDS}; do
     RESULT_STR="CRD ${name} created"
     echo "${CRDS}" | grep -w "${name}"  > /dev/null
@@ -242,6 +248,10 @@ if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   # Verify v1alpha2 Operators, Deployments, Replicasets
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA2_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA2_RS}"
+elif [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  # Verify v1alpha2 Operators, Deployments, Replicasets
+  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
+  iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   # Verify v1alpha1 Operators, Statefulsets, Deployments, Replicasets
   iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
@@ -277,7 +287,7 @@ fi
 if [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
   # shellcheck disable=SC2034
   RESULT_STR="CAPI operator locally running"
-  if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+  if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
     pgrep -f "go run ./main.go" > /dev/null 2> /dev/null
     process_status $?
   elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
