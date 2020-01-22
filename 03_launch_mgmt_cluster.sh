@@ -40,6 +40,10 @@ elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-release-0.2}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-v1alpha1}"
+elif [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  CAPBMBRANCH="${CAPBMBRANCH:-v1alpha3}"
+  # v1alpha3 branch not yet in upstream. Once it is, below Nordix repo line is removed
+  CAPBMREPO="https://github.com/Nordix/cluster-api-provider-baremetal.git"
 fi
 
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
@@ -49,7 +53,7 @@ CAPBM_RUN_LOCAL="${CAPBM_RUN_LOCAL:-false}"
 
 function clone_repos() {
     mkdir -p "${M3PATH}"
-    if [[ -d ${BMOPATH} && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+    if [[ -d "${BMOPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
       rm -rf "${BMOPATH}"
     fi
     if [ ! -d "${BMOPATH}" ] ; then
@@ -158,6 +162,15 @@ function apply_bm_hosts() {
 function kustomize_overlay_capbm() {
   overlay_path=$1
   provider_cmpt=$2
+
+if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+cat <<EOF> "$overlay_path/kustomization.yaml"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- $(realpath --relative-to="$overlay_path" "$provider_cmpt")
+EOF
+else
 cat <<EOF> "$overlay_path/kustomization.yaml"
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -165,6 +178,7 @@ namespace: metal3
 resources:
 - $(realpath --relative-to="$overlay_path" "$provider_cmpt")
 EOF
+fi
 }
 
 
@@ -176,8 +190,7 @@ function launch_cluster_api_provider_baremetal() {
     kustomize_overlay_path=$(mktemp -d capbm-XXXXXXXXXX)
 
 
-    if [ "${CAPI_VERSION}" == "v1alpha2" ] || \
-      [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+    if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
       ./examples/generate.sh -f
       kustomize_overlay_capbm "$kustomize_overlay_path" \
         "$CAPBMPATH/examples/provider-components"
@@ -201,8 +214,7 @@ function launch_cluster_api_provider_baremetal() {
       touch capbm.err.log
       if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
         kubectl scale statefulset cluster-api-provider-baremetal-controller-manager -n metal3 --replicas=0
-      elif [ "${CAPI_VERSION}" == "v1alpha2" ] || \
-        [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+      elif [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
         kubectl scale -n metal3 deployment.v1.apps capbm-controller-manager --replicas 0
       fi
       nohup make run >> capbm.out.log 2>> capbm.err.log &
@@ -210,6 +222,15 @@ function launch_cluster_api_provider_baremetal() {
     popd
 }
 
+function apply_cert_manager() {
+  if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+    kubectl create namespace cert-manager
+    kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.13.0/cert-manager.yaml
+    sleep 60
+  fi
+}
+
+clone_repos
 
 #
 # Write out a clouds.yaml for this environment
@@ -218,7 +239,6 @@ function create_clouds_yaml() {
   sed -e "s/__CLUSTER_URL_HOST__/$CLUSTER_URL_HOST/g" clouds.yaml.template > clouds.yaml
 }
 
-clone_repos
 create_clouds_yaml
 init_minikube
 sudo su -l -c 'minikube start' "${USER}"
@@ -228,6 +248,7 @@ else
   sudo su -l -c "minikube ssh sudo ip addr add $CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR dev eth2" "${USER}"
 fi
 
+apply_cert_manager
 launch_baremetal_operator
 apply_bm_hosts
 launch_cluster_api_provider_baremetal

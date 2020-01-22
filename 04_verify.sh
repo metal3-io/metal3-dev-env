@@ -90,12 +90,19 @@ check_k8s_entity() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
   local TYPE="${1}"
+  i=0
   shift
   for name in "${@}"; do
     # Check entity exists
     RESULT_STR="${TYPE} ${name} created"
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
+    if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
+        -n ${EXPTD_NS[$i]} -o json)"
+      i=$((i+1))
+    else
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
       -n metal3 -o json)"
+    fi
     process_status $?
 
     # Check the replicas
@@ -115,13 +122,20 @@ check_k8s_entity() {
 check_k8s_rs() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
+  i=0
   for name in "${@}"; do
     # Check entity exists
     LABEL=$(echo "$name" | cut -f1 -d:);
     NAME=$(echo "$name" | cut -f2 -d:);
 
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
-      -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+    if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+        -l "${LABEL}"="${NAME}" -n ${EXPTD_NS[$i]} -o json | jq '.items[0]')"
+      i=$((i+1))
+    else
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+        -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+    fi
     RESULT_STR="Replica set ${NAME} created"
     differs "${ENTITY}" "null"
 
@@ -142,13 +156,14 @@ check_k8s_rs() {
 check_k8s_pods() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
+  local NS="${2:-metal3}"
   for name in "${@}"; do
     # Check entity exists
     LABEL=$(echo "$name" | cut -f1 -d:);
     NAME=$(echo "$name" | cut -f2 -d:);
 
     ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get pods \
-      -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+      -l "${LABEL}"="${NAME}" -n ${NS} -o json | jq '.items[0]')"
     RESULT_STR="Pod ${NAME} created"
     differs "${ENTITY}" "null"
   done
@@ -190,8 +205,17 @@ EXPTD_V1ALPHA2_DEPLOYMENTS="cabpk-controller-manager \
   capbm-controller-manager \
   capi-controller-manager \
   metal3-baremetal-operator"
+EXPTD_V1ALPHA3_DEPLOYMENTS="capbm-controller-manager \
+  capi-controller-manager \
+  metal3-baremetal-operator"
+EXPTD_NS=("capbm-system" \
+	"capi-system" \
+	"metal3")
 EXPTD_V1ALPHA2_RS="control-plane:cabpk-controller-manager \
   control-plane:capbm-controller-manager \
+  control-plane:cluster-api-controller-manager \
+  name:metal3-baremetal-operator"
+EXPTD_V1ALPHA3_RS="control-plane:capbm-controller-manager \
   control-plane:cluster-api-controller-manager \
   name:metal3-baremetal-operator"
 BRIDGES="provisioning baremetal"
@@ -221,7 +245,7 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
   for name in ${EXPTD_V1ALPHA2_CRDS}; do
     RESULT_STR="CRD ${name} created"
     echo "${CRDS}" | grep -w "${name}"  > /dev/null
@@ -242,6 +266,10 @@ if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   # Verify v1alpha2 Operators, Deployments, Replicasets
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA2_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA2_RS}"
+elif [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  # Verify v1alpha2 Operators, Deployments, Replicasets
+  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
+  iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   # Verify v1alpha1 Operators, Statefulsets, Deployments, Replicasets
   iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
@@ -277,7 +305,7 @@ fi
 if [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
   # shellcheck disable=SC2034
   RESULT_STR="CAPI operator locally running"
-  if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+  if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
     pgrep -f "go run ./main.go" > /dev/null 2> /dev/null
     process_status $?
   elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
