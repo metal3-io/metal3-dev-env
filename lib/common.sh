@@ -39,22 +39,6 @@ ROOT_DISK_NAME=${ROOT_DISK_NAME-"/dev/sda"}
 #Container runtime
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
 
-# Enables single-stack IPv6
-PROVISIONING_IPV6=${PROVISIONING_IPV6:-false}
-IPV6_ADDR_PREFIX=${IPV6_ADDR_PREFIX:-"fd2e:6f44:5dd8:b856"}
-
-if [[ "${PROVISIONING_IPV6}" == "true" ]];
-then
-  export LIBVIRT_FIRMWARE=uefi
-  export PROVISIONING_IP="fd2e:6f44:5dd8:b856::1"
-  export PROVISIONING_URL_HOST="[$PROVISIONING_IP]"
-else
-  export LIBVIRT_FIRMWARE=bios
-  export PROVISIONING_IP="172.22.0.1"
-  export PROVISIONING_URL_HOST="$PROVISIONING_IP"
-fi
-
-
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   export POD_NAME="--pod ironic-pod"
   export POD_NAME_INFRA="--pod infra-pod"
@@ -62,9 +46,6 @@ else
   export POD_NAME=""
   export POD_NAME_INFRA=""
 fi
-
-export EXTERNAL_SUBNET="192.168.111.0/24"
-
 export SSH_KEY=${SSH_KEY:-"${HOME}/.ssh/id_rsa"}
 export SSH_PUB_KEY=${SSH_PUB_KEY:-"${SSH_KEY}.pub"}
 # Generate user ssh key
@@ -119,33 +100,8 @@ export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-8192}
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.17.0"}
 
-# Image url and checksum
-IMAGE_OS=${IMAGE_OS:-Centos}
-if [[ "${IMAGE_OS}" == "Ubuntu" ]]; then
-  export IMAGE_NAME=${IMAGE_NAME:-bionic-server-cloudimg-amd64.img}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://cloud-images.ubuntu.com/bionic/current}
-  export IMAGE_USERNAME=${IMAGE_USERNAME:-ubuntu}
-elif [[ "${IMAGE_OS}" == "FCOS" ]]; then
-  export IMAGE_NAME=${IMAGE_NAME:-fedora-coreos-30.20191014.0-openstack.x86_64.qcow2}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://builds.coreos.fedoraproject.org/prod/streams/testing/builds/30.20191014.0/x86_64/}
-  export IMAGE_USERNAME=${IMAGE_USERNAME:-core}
-elif [[ "${IMAGE_OS}" == "Centos" ]]; then
-  export IMAGE_NAME=${IMAGE_NAME:-CentOS-7-x86_64-GenericCloud-1907.qcow2}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-http://cloud.centos.org/centos/7/images}
-  export IMAGE_USERNAME=${IMAGE_USERNAME:-centos}
-else
-  export IMAGE_NAME=${IMAGE_NAME:-cirros-0.4.0-x86_64-disk.img}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-http://download.cirros-cloud.net/0.4.0}
-  export IMAGE_USERNAME=${IMAGE_USERNAME:-cirros}
-fi
-export IMAGE_URL=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}
-export IMAGE_CHECKSUM=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}.md5sum
-
 #Path to CRs
 export V1ALPHA2_CR_PATH=${SCRIPTDIR}/crs/v1alpha2/
-
-# Target node username
-export NODE_USERNAME=${IMAGE_USERNAME}
 
 #Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}

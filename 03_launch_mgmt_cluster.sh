@@ -5,6 +5,8 @@ set -xe
 source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
+# shellcheck disable=SC1091
+source lib/network.sh
 
 eval "$(go env)"
 export GOPATH
@@ -88,34 +90,22 @@ function update_images(){
   done
 }
 
-# Creates the overlay for kustomize to override the various settings
-# needed for IPv6
-function kustomize_ipv6_overlay_bmo() {
-  overlay_path=$1
-  cat <<EOF> "$overlay_path/kustomization.yaml"
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-configMapGenerator:
-- behavior: merge
-  literals:
-  - PROVISIONING_IP=fd2e:6f44:5dd8:b856::2
-  - DHCP_RANGE=fd2e:6f44:5dd8:b856::3,fd2e:6f44:5dd8:b856::ff
-  - DEPLOY_KERNEL_URL=http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.kernel
-  - DEPLOY_RAMDISK_URL=http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.initramfs
-  - IRONIC_ENDPOINT=http://[fd2e:6f44:5dd8:b856::2]:6385/v1/
-  - IRONIC_INSPECTOR_ENDPOINT=http://[fd2e:6f44:5dd8:b856::2]:5050/v1/
-  - CACHEURL=http://[fd2e:6f44:5dd8:b856::1]/images
-  name: ironic-bmo-configmap
-resources:
-- $(realpath --relative-to="$overlay_path" "$BMOPATH/deploy")
-EOF
-}
-
 function kustomize_overlay_bmo() {
   overlay_path=$1
 cat <<EOF> "$overlay_path/kustomization.yaml"
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+configMapGenerator:
+- behavior: merge
+  literals:
+  - PROVISIONING_IP=$CLUSTER_PROVISIONING_IP
+  - DHCP_RANGE=$CLUSTER_DHCP_RANGE
+  - DEPLOY_KERNEL_URL=http://$CLUSTER_URL_HOST:6180/images/ironic-python-agent.kernel
+  - DEPLOY_RAMDISK_URL=http://$CLUSTER_URL_HOST:6180/images/ironic-python-agent.initramfs
+  - IRONIC_ENDPOINT=http://$CLUSTER_URL_HOST:6385/v1/
+  - IRONIC_INSPECTOR_ENDPOINT=http://$CLUSTER_URL_HOST:5050/v1/
+  - CACHEURL=http://$PROVISIONING_URL_HOST/images
+  name: ironic-bmo-configmap
 resources:
 - $(realpath --relative-to="$overlay_path" "$BMOPATH/deploy")
 EOF
@@ -125,12 +115,7 @@ function launch_baremetal_operator() {
     pushd "${BMOPATH}"
     kustomize_overlay_path=$(mktemp -d bmo-XXXXXXXXXX)
 
-    if [[ "${PROVISIONING_IPV6}" == "true" ]]
-    then
-      kustomize_ipv6_overlay_bmo "$kustomize_overlay_path"
-    else
-      kustomize_overlay_bmo "$kustomize_overlay_path"
-    fi
+    kustomize_overlay_bmo "$kustomize_overlay_path"
     pushd "$kustomize_overlay_path"
 
     # Add custom images in overlay
@@ -218,15 +203,22 @@ function launch_cluster_api_provider_baremetal() {
     popd
 }
 
+
+#
+# Write out a clouds.yaml for this environment
+#
+function create_clouds_yaml() {
+  sed -e "s/__CLUSTER_URL_HOST__/$CLUSTER_URL_HOST/g" clouds.yaml.template > clouds.yaml
+}
+
 clone_repos
-
-
+create_clouds_yaml
 init_minikube
 sudo su -l -c 'minikube start' "${USER}"
 if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
-  sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"${IPV6_ADDR_PREFIX}::2/64"' dev eth2"' "${USER}"
+  sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"$CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR"' dev eth2"' "${USER}"
 else
-  sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
+  sudo su -l -c "minikube ssh sudo ip addr add $CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR dev eth2" "${USER}"
 fi
 
 launch_baremetal_operator

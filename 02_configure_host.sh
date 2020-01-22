@@ -5,6 +5,8 @@ set -xe
 source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
+# shellcheck disable=SC1091
+source lib/network.sh
 
 # root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
@@ -22,6 +24,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "libvirt_firmware=$LIBVIRT_FIRMWARE" \
     -e "default_memory=$DEFAULT_HOSTS_MEMORY" \
     -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
+    -e "provisioning_url_host=$PROVISIONING_URL_HOST" \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/setup-playbook.yml
 
@@ -52,9 +55,9 @@ else
       # the IP address here
       if [ ! -e /etc/sysconfig/network-scripts/ifcfg-provisioning ] ; then
         if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
-          echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no\nIPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=${IPV6_ADDR_PREFIX}::1/64" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
+          echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no\nIPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=$PROVISIONING_IP/$PROVISIONING_CIDR" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
         else
-          echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no\nBOOTPROTO=static\nIPADDR=172.22.0.1\nNETMASK=255.255.255.0" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
+          echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no\nBOOTPROTO=static\nIPADDR=$PROVISIONING_IP\nNETMASK=$PROVISIONING_NETMASK" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
      	  fi
       fi
       sudo ifdown provisioning || true
@@ -103,6 +106,12 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "{use_firewalld: $USE_FIREWALLD}" \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/firewall.yml
+
+# FIXME(stbenjam): ansbile firewalld module doesn't seem to be doing the right thing
+if [ "$USE_FIREWALLD" == "True" ]; then
+  sudo firewall-cmd --zone=libvirt --change-interface=provisioning
+  sudo firewall-cmd --zone=libvirt --change-interface=baremetal
+fi
 
 # Need to route traffic from the provisioning host.
 if [ "$EXT_IF" ]; then

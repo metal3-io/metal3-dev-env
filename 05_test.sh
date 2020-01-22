@@ -6,6 +6,11 @@ set -u
 source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
+# shellcheck disable=SC1091
+source lib/network.sh
+# shellcheck disable=SC1091
+source lib/images.sh
+
 
 FAILS=0
 SKIP_RETRIES_USER="${SKIP_RETRIES:-false}"

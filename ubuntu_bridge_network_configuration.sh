@@ -14,7 +14,7 @@ if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
      sudo brctl addbr provisioning
      # sudo ifconfig provisioning 172.22.0.1 netmask 255.255.255.0 up
      # Use ip command. ifconfig commands are deprecated now.
-     sudo ip addr add dev provisioning 172.22.0.1/24
+     sudo ip addr add dev provisioning "$PROVISIONING_IP"/"$PROVISIONING_CIDR"
      sudo ip link set provisioning up
 
      # Need to pass the provision interface for bare metal

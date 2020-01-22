@@ -24,8 +24,8 @@
         "port": "{{ node.virtualbmc_port }}",
         "address": "{{vm_driver}}://{{lvars['host_ip']}}:{{node.virtualbmc_port}}",
         {% endif -%}
-        "deploy_kernel": "http://172.22.0.1/images/ironic-python-agent.kernel",
-        "deploy_ramdisk": "http://172.22.0.1/images/ironic-python-agent.initramfs"
+        "deploy_kernel": "http://{{ provisioning_url_host }}/images/ironic-python-agent.kernel",
+        "deploy_ramdisk": "http://{{ provisioning_url_host }}/images/ironic-python-agent.initramfs"
       },
       "ports": [{
         "address": "{{ node_mac_map.get(node.name).get(lvars['pxe_network']) }}",

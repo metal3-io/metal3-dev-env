@@ -4,6 +4,7 @@ config_*.sh
 bmhosts_crs.yaml
 *.bk
 *.tmp
+clouds.yaml
 
 *.swp
 ipv6-*/
