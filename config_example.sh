@@ -116,3 +116,12 @@
 # Container image for sushy-tools container
 #
 #export SUSHY_TOOLS_IMAGE="quay.io/metal3-io/sushy-tools"
+
+# APIEndpoint IP for target cluster
+#export CLUSTER_APIENDPOINT_IP="192.168.111.249"
+
+# Cluster provisioning Interface
+#export CLUSTER_PROVISIONING_INTERFACE="ironicendpoint"
+
+# POD CIDR
+# export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"

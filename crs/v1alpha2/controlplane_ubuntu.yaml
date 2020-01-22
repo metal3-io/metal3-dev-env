@@ -42,21 +42,25 @@ spec:
     - mv /tmp/akeys /home/ubuntu/.ssh/authorized_keys
     - chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
     - apt update -y
+    - netplan apply
     - >-
-      apt install net-tools gcc linux-headers-$(uname -r) keepalived
+      apt install net-tools gcc linux-headers-$(uname -r) bridge-utils
       apt-transport-https ca-certificates curl gnupg-agent
       software-properties-common -y
+    - apt install -y keepalived && systemctl stop keepalived
     - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
     - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
     - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
     - echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list
     - apt update -y
     - apt install docker-ce docker-ce-cli containerd.io kubelet kubeadm kubectl -y
-    - systemctl enable --now docker keepalived kubelet
+    - systemctl enable --now docker kubelet
+    - if (curl -sk --max-time 10 https://${CLUSTER_APIENDPOINT_IP}:6443/healthz); then echo "keepalived already running";else systemctl start keepalived; fi
     - usermod -aG docker ubuntu
   postKubeadmCommands:
     - mkdir -p /home/ubuntu/.kube
     - cp /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+    - systemctl enable --now keepalived
     - chown ubuntu:ubuntu /home/ubuntu/.kube/config
   files:
       - path: /etc/keepalived/keepalived.conf
@@ -71,14 +75,14 @@ spec:
               smtp_server localhost
               smtp_connect_timeout 30
           }
-          vrrp_instance VI_1 {
+          vrrp_instance VI_2 {
               state MASTER
               interface enp2s0
-              virtual_router_id 1
+              virtual_router_id 2
               priority 101
               advert_int 1
               virtual_ipaddress {
-                  192.168.111.249
+                  ${CLUSTER_APIENDPOINT_HOST}
               }
           }
       - path : /etc/netplan/50-cloud-init.yaml
@@ -87,8 +91,6 @@ spec:
         content: | 
           network:
               ethernets:
-                  enp1s0:
-                      dhcp4: true
                   enp2s0:
                       dhcp4: true
               version: 2
@@ -96,3 +98,15 @@ spec:
         owner: root:root
         permissions: '0644'
         content: ${SSH_PUB_KEY_CONTENT}
+      - path : /etc/netplan/60-ironicendpoint.yaml
+        owner: root:root
+        permissions: '0644'
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            bridges:
+              ironicendpoint:
+                interfaces: [enp1s0]
+                dhcp4: yes
+
