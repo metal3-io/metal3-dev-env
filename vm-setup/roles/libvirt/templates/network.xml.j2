@@ -1,6 +1,14 @@
 {% set nat_port_range = item.nat_port_range|default([1024, 65535]) %}
-{% set netmask = item.netmask|default('255.255.255.0') %}
+{% set netmask = item.netmask|default("") %}
+{% set prefix = item.prefix|default("") %}
+{% if item.dns.options is defined %}
+<network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
+  <dnsmasq:options>
+    <dnsmasq:option value='{{ item.dns.options }}'/>
+  </dnsmasq:options>
+{% else %}
 <network>
+{% endif %}
   <name>{{ item.name }}</name>
   <bridge name='{{ item.bridge }}'/>
 {% if item.forward_mode is defined %}
@@ -16,7 +24,11 @@
       <virtualport type='{{ item.virtualport_type }}'/>
 {% endif %}
 {% if item.address is defined  and item.forward_mode != 'bridge' %}
+{% if item.address|ipv6 != False %}
+  <ip family="ipv6" address='{{ item.address }}' prefix='{{ prefix }}'>
+{% else %}
   <ip address='{{ item.address }}' netmask='{{ netmask }}'>
+{% endif %}
 {% if item.dhcp_range is defined %}
     <dhcp>
       <range start='{{ item.dhcp_range[0] }}' end='{{ item.dhcp_range[1] }}'/>
@@ -25,7 +37,11 @@
 {% set numflavor = lookup('vars', 'num_' + flavor + 's')|default(0)|int %}
 {% for num in range(0, numflavor) %}
 {% set ironic_name = ironic_prefix + flavor + "_" + num|string %}
+{% if item.address|ipv6 != False %}
+      <host id='00:03:00:01:{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{flavor}}-{{num}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
+{% else %}
       <host mac='{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{flavor}}-{{num}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
+{% endif %}
 {% set ns.index = ns.index + 1 %}
 {% endfor %}
 {% endfor %}
