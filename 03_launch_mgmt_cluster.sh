@@ -34,8 +34,10 @@ BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
 CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 
-if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-master}"
+elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+  CAPBMBRANCH="${CAPBMBRANCH:-release-0.2}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-v1alpha1}"
 fi
@@ -174,13 +176,17 @@ function launch_cluster_api_provider_baremetal() {
     kustomize_overlay_path=$(mktemp -d capbm-XXXXXXXXXX)
 
 
-    if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+    if [ "${CAPI_VERSION}" == "v1alpha2" ] || \
+      [ "${CAPI_VERSION}" == "v1alpha3" ]; then
       ./examples/generate.sh -f
-      kustomize_overlay_capbm "$kustomize_overlay_path" "$CAPBMPATH/examples/provider-components"
+      kustomize_overlay_capbm "$kustomize_overlay_path" \
+        "$CAPBMPATH/examples/provider-components"
     elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
       make manifests
-      cp "$CAPBMPATH/provider-components.yaml" "${kustomize_overlay_path}/provider-components.yaml"
-      kustomize_overlay_capbm "$kustomize_overlay_path" "${kustomize_overlay_path}/provider-components.yaml"
+      cp "$CAPBMPATH/provider-components.yaml" \
+        "${kustomize_overlay_path}/provider-components.yaml"
+      kustomize_overlay_capbm "$kustomize_overlay_path" \
+        "${kustomize_overlay_path}/provider-components.yaml"
     fi
 
     pushd "$kustomize_overlay_path"
@@ -195,7 +201,8 @@ function launch_cluster_api_provider_baremetal() {
       touch capbm.err.log
       if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
         kubectl scale statefulset cluster-api-provider-baremetal-controller-manager -n metal3 --replicas=0
-      elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+      elif [ "${CAPI_VERSION}" == "v1alpha2" ] || \
+        [ "${CAPI_VERSION}" == "v1alpha3" ]; then
         kubectl scale -n metal3 deployment.v1.apps capbm-controller-manager --replicas 0
       fi
       nohup make run >> capbm.out.log 2>> capbm.err.log &
