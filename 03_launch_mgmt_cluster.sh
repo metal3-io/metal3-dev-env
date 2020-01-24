@@ -219,7 +219,7 @@ function launch_cluster_api_provider_baremetal() {
 function apply_cert_manager() {
   if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
     kubectl create namespace cert-manager
-    kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.12.0/cert-manager.yaml
+    kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.13.0/cert-manager.yaml
     sleep 60
   fi
 }
