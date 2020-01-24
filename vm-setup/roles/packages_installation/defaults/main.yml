@@ -26,6 +26,7 @@ packages:
     pip: # ansible uses these packages in python2 to run on the local machine
      - libvirt-python==5.10.0
      - lxml
+     - ipaddress
     pip3:
      - virtualbmc
      - python-ironicclient
@@ -36,6 +37,7 @@ packages:
      - setuptools
      - libvirt-python
      - python-openstackclient
+     - ipaddress
   centos:
     rhel7:
         packages:
