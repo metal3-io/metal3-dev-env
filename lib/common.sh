@@ -85,7 +85,7 @@ export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"quay.io/metal3-io/b
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
 # CAPI version
-export CAPI_VERSION=${CAPI_VERSION:-"v1alpha1"}
+export CAPI_VERSION=${CAPI_VERSION:-"v1alpha2"}
 
 # CAPBM controller image
 if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
