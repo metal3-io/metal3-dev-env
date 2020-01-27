@@ -26,6 +26,9 @@ test:
 test_v1a2:
 	./05_test_v1a2.sh
 
+test_v1a3:
+	./05_test_v1a2.sh
+
 lint:
 	./hack/shellcheck.sh
 
