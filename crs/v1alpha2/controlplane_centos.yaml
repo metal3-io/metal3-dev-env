@@ -54,6 +54,7 @@ spec:
     - mkdir -p /home/centos/.kube
     - cp /etc/kubernetes/admin.conf /home/centos/.kube/config
     - chown centos:centos /home/centos/.kube/config
+    - KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f https://docs.projectcalico.org/v3.11/manifests/calico.yaml
   files:
     - path: /etc/keepalived/keepalived.conf
       content: |

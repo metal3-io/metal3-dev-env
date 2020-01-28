@@ -58,6 +58,7 @@ spec:
     - mkdir -p /home/ubuntu/.kube
     - cp /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
     - chown ubuntu:ubuntu /home/ubuntu/.kube/config
+    - KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f https://docs.projectcalico.org/v3.11/manifests/calico.yaml
   files:
       - path: /etc/keepalived/keepalived.conf
         content: |
