@@ -50,9 +50,12 @@ sudo yum -y install \
 sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
 sudo tripleo-repos current-tripleo
 
-# There are some packages which are newer in the tripleo repos
-sudo yum -y update
 
+# There are some packages which are newer in the tripleo repos
+# FIXME(stbenjam): On CentOS 7, the version of oniguruma conflicts with
+# the version shipped in the tripleo repos. This needs further
+# investigation.
+sudo yum -y update --exclude=oniguruma
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo yum -y install podman
