@@ -55,7 +55,7 @@ def generate_baremetal_macs(nodes, networks):
                  random.randint(0x00, 0xff),
                  random.randint(0x00, 0xff),
                  random.randint(0x00, 0xff)]
-    base_mac = ':'.join(map(lambda x: "%02x" % x, base_nums))
+    base_mac = ':'.join(["%02x" % x for x in base_nums])
 
     start = random.randint(0x00, 0xff)
     if (start + (count * 2)) > 0xff:
