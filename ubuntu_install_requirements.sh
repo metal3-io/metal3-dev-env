@@ -24,6 +24,7 @@ sudo apt -y install \
   python-setuptools \
   zlib1g-dev \
   libssl1.0-dev \
+  ipcalc \
   wget
 
 # There are some packages which are newer in the tripleo repos
