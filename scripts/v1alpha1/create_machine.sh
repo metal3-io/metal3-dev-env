@@ -6,6 +6,14 @@ METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../.."
 # shellcheck disable=SC1090
 source "${METAL3_DIR}/lib/common.sh"
 
+# shellcheck disable=SC1091
+# shellcheck disable=SC1090
+source "${METAL3_DIR}/lib/network.sh"
+
+# shellcheck disable=SC1091
+# shellcheck disable=SC1090
+source "${METAL3_DIR}/lib/images.sh"
+
 V1ALPHA1_SCRIPTS_PATH="$(dirname "$(readlink -f "${0}")")/"
 USER_DATA_SCRIPT_NAME="user_data.sh"
 SCRIPT_PATH="${V1ALPHA1_SCRIPTS_PATH}""${USER_DATA_SCRIPT_NAME}"
