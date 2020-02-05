@@ -25,6 +25,7 @@ sudo apt -y install \
   zlib1g-dev \
   libssl1.0-dev \
   ipcalc \
+  openssh-server \
   wget
 
 # There are some packages which are newer in the tripleo repos
