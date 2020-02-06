@@ -94,8 +94,15 @@ check_k8s_entity() {
   for name in "${@}"; do
     # Check entity exists
     RESULT_STR="${TYPE} ${name} created"
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
+    if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+      NS="$(echo "${name}" | cut -d ':' -f1)"
+      DEPLOYMENT="$(echo "${name}" | cut -d ':' -f2)"
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${DEPLOYMENT}" \
+        -n "${NS}" -o json)"
+    else
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
       -n metal3 -o json)"
+    fi
     process_status $?
 
     # Check the replicas
@@ -120,8 +127,14 @@ check_k8s_rs() {
     LABEL=$(echo "$name" | cut -f1 -d:);
     NAME=$(echo "$name" | cut -f2 -d:);
 
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
-      -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+    if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+      NS="$(echo "${name}" | cut -d ':' -f3)"
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+        -l "${LABEL}"="${NAME}" -n "${NS}" -o json | jq '.items[0]')"
+    else
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+        -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+    fi
     RESULT_STR="Replica set ${NAME} created"
     differs "${ENTITY}" "null"
 
@@ -142,13 +155,14 @@ check_k8s_rs() {
 check_k8s_pods() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
+  local NS="${2:-metal3}"
   for name in "${@}"; do
     # Check entity exists
     LABEL=$(echo "$name" | cut -f1 -d:);
     NAME=$(echo "$name" | cut -f2 -d:);
 
     ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get pods \
-      -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+      -l "${LABEL}"="${NAME}" -n "${NS}" -o json | jq '.items[0]')"
     RESULT_STR="Pod ${NAME} created"
     differs "${ENTITY}" "null"
   done
@@ -190,16 +204,16 @@ EXPTD_V1ALPHA2_DEPLOYMENTS="cabpk-controller-manager \
   capbm-controller-manager \
   capi-controller-manager \
   metal3-baremetal-operator"
-EXPTD_V1ALPHA3_DEPLOYMENTS="capbm-controller-manager \
-  capi-controller-manager \
-  metal3-baremetal-operator"
+EXPTD_V1ALPHA3_DEPLOYMENTS="capbm-system:capbm-controller-manager \
+  capi-system:capi-controller-manager \
+  metal3:metal3-baremetal-operator"
 EXPTD_V1ALPHA2_RS="control-plane:cabpk-controller-manager \
   control-plane:capbm-controller-manager \
   control-plane:cluster-api-controller-manager \
   name:metal3-baremetal-operator"
-EXPTD_V1ALPHA3_RS="control-plane:capbm-controller-manager \
-  control-plane:cluster-api-controller-manager \
-  name:metal3-baremetal-operator"
+EXPTD_V1ALPHA3_RS="control-plane:capbm-controller-manager:capbm-system \
+  control-plane:cluster-api-controller-manager:capi-system \
+  name:metal3-baremetal-operator:metal3"
 BRIDGES="provisioning baremetal"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 

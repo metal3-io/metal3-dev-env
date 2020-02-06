@@ -1,4 +1,4 @@
-apiVersion: cluster.x-k8s.io/v1alpha3
+apiVersion: cluster.x-k8s.io/{{ CAPI_VERSION }}
 kind: MachineDeployment
 metadata:
   name: {{ CLUSTER_NAME }}-md-0
@@ -6,6 +6,9 @@ metadata:
     cluster.x-k8s.io/cluster-name: {{ CLUSTER_NAME }}
     nodepool: nodepool-0
 spec:
+{% if CAPI_VERSION == 'v1alpha3' %}
+  clusterName: {{ CLUSTER_NAME }}
+{% endif %}
   replicas: 1
   selector:
     matchLabels:
@@ -17,18 +20,21 @@ spec:
         cluster.x-k8s.io/cluster-name: {{ CLUSTER_NAME }}
         nodepool: nodepool-0
     spec:
+{% if CAPI_VERSION == 'v1alpha3' %}
+      clusterName: {{ CLUSTER_NAME }}
+{% endif %}
       version: {{ KUBERNETES_VERSION }}
       bootstrap:
         configRef:
           name: {{ CLUSTER_NAME }}-md-0
-          apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+          apiVersion: bootstrap.cluster.x-k8s.io/{{ CAPI_VERSION }}
           kind: KubeadmConfigTemplate
       infrastructureRef:
         name: {{ CLUSTER_NAME }}-md-0
-        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+        apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
         kind: BareMetalMachineTemplate
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
 kind: BareMetalMachineTemplate
 metadata:
   name: {{ CLUSTER_NAME }}-md-0
@@ -39,7 +45,7 @@ spec:
         url: {{ IMAGE_URL }}
         checksum: {{ IMAGE_CHECKSUM }}
 ---
-apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+apiVersion: bootstrap.cluster.x-k8s.io/{{ CAPI_VERSION }}
 kind: KubeadmConfigTemplate
 metadata:
   name: {{ CLUSTER_NAME }}-md-0
@@ -69,16 +75,17 @@ spec:
         - systemctl enable --now docker kubelet
         - usermod -aG docker ubuntu
       files:
-        - path: /etc/network/interfaces
+        - path: /etc/netplan/50-cloud-init.yaml
           owner: root:root
           permissions: '0644'
           content: |
-            # interfaces(5) file used by ifup(8) and ifdown(8)
-            auto lo
-            iface lo inet loopback
-            ## To configure a dynamic IP address
-            auto enp2s0
-            iface enp2s0 inet dhcp
+            network:
+                ethernets:
+                    enp1s0:
+                        dhcp4: true
+                    enp2s0:
+                        dhcp4: true
+                version: 2
         - path: /tmp/akeys
           owner: root:root
           permissions: '0644'

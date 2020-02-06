@@ -1,7 +1,0 @@
----
-- name: v1alpha3 deployment
-  include: "{{ item }}.yml"
-  with_items:
-    - provision
-    - verify
-    - deprovision

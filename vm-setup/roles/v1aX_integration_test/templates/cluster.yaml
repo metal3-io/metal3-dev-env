@@ -1,0 +1,30 @@
+---
+apiVersion: cluster.x-k8s.io/{{ CAPI_VERSION }}
+kind: Cluster
+metadata:
+  name: {{ CLUSTER_NAME }}
+spec:
+  clusterNetwork:
+    services:
+      cidrBlocks: ["10.96.0.0/12"]
+    pods:
+      cidrBlocks: ["192.168.0.0/18"]
+    serviceDomain: "cluster.local"
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
+    kind: BareMetalCluster
+    name: {{ CLUSTER_NAME }}
+---
+apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
+kind: BareMetalCluster
+metadata:
+  name: {{ CLUSTER_NAME }}
+spec:
+{% if CAPI_VERSION == 'v1alpha3' %}
+  controlPlaneEndpoint:
+    host: 192.168.111.249
+    port: 6443
+{% else %}
+  apiEndpoint: http://192.168.111.249:6443
+{% endif %}
+  noCloudProvider: true

@@ -4,7 +4,8 @@
     register: provisioned_cluster
     retries: 100
     delay: 20
-    until: provisioned_cluster.stdout == "provisioned"
+    until: (provisioned_cluster.stdout == "provisioned") or
+           (provisioned_cluster.stdout == "Provisioned")
 
   - name: Wait until both bmhs become provisioned.
     shell: |
@@ -12,7 +13,7 @@
         | select (.status.provisioning.state == "provisioned")
         | .metadata.name'
     register: provisioned_bmh
-    retries: 100
+    retries: 150
     delay: 20
     until: provisioned_bmh.stdout_lines ==  ["node-0", "node-1"]
 

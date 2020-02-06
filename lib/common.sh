@@ -106,6 +106,12 @@ export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.17.0"}
 export V1ALPHA2_CR_PATH=${SCRIPTDIR}/crs/v1alpha2/
 export V1ALPHA3_CR_PATH=${SCRIPTDIR}/crs/v1alpha3/
 
+if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  export V1ALPHAX_CR_PATH=${V1ALPHA3_CR_PATH}
+else
+  export V1ALPHAX_CR_PATH=${V1ALPHA2_CR_PATH}
+fi
+
 #Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}
 

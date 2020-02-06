@@ -88,6 +88,7 @@ metadata:
   namespace: metal3
 type: Opaque
 EOF
+
 rm .userdata.tmp
 }
 

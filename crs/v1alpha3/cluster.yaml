@@ -20,5 +20,7 @@ kind: BareMetalCluster
 metadata:
   name: ${CLUSTER_NAME}
 spec:
- apiEndpoint: http://192.168.111.249:6443
+ controlPlaneEndpoint:
+   host: 192.168.111.249
+   port: 6443
  noCloudProvider: true

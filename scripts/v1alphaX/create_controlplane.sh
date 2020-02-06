@@ -13,5 +13,5 @@ source "${METAL3_DIR}/lib/network.sh"
 # shellcheck disable=SC1090
 source "${METAL3_DIR}/lib/images.sh"
 
-make_v1alphaX_machine workers v1alpha2 | kubectl delete -n metal3 -f -
+make_v1alphaX_machine controlplane "${CAPI_VERSION}" | kubectl apply -n metal3 -f -
 

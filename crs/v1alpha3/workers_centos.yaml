@@ -6,6 +6,7 @@ metadata:
     cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
     nodepool: nodepool-0
 spec:
+  clusterName: ${CLUSTER_NAME}
   replicas: 1
   selector:
     matchLabels:
@@ -17,6 +18,7 @@ spec:
         cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
         nodepool: nodepool-0
     spec:
+      clusterName: ${CLUSTER_NAME}
       version: ${KUBERNETES_VERSION}
       bootstrap:
         configRef:

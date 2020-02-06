@@ -1,9 +1,8 @@
 ---
 # Ansible playbook related variables
-API_VERSION: v1alpha3
 NAMESPACE: metal3
 HOME: "{{ lookup('env', 'HOME') }}"
-CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1a3_integration_test/templates"
+CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/templates"
 KUBECONFIG_PATH: "/home/ubuntu/.kube/config"
 pod_cidr: 192.168.0.0/18
 
