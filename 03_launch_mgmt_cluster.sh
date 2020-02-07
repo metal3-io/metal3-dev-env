@@ -54,7 +54,7 @@ function clone_repos() {
     fi
     if [ ! -d "${BMOPATH}" ] ; then
         pushd "${M3PATH}"
-        git clone "${BMOREPO}"
+        git clone "${BMOREPO}" "${BMOPATH}"
         popd
     fi
     pushd "${BMOPATH}"
@@ -66,7 +66,7 @@ function clone_repos() {
     fi
     if [ ! -d "${CAPBMPATH}" ] ; then
         pushd "${M3PATH}"
-        git clone "${CAPBMREPO}"
+        git clone "${CAPBMREPO}" "${CAPBMPATH}"
         popd
     fi
     pushd "${CAPBMPATH}"
