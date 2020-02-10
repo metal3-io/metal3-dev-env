@@ -235,6 +235,9 @@ clone_repos
 #
 function create_clouds_yaml() {
   sed -e "s/__CLUSTER_URL_HOST__/$CLUSTER_URL_HOST/g" clouds.yaml.template > clouds.yaml
+  # To bind this into the ironic-client container we need a directory
+  mkdir -p "${SCRIPTDIR}"/_clouds_yaml
+  cp clouds.yaml "${SCRIPTDIR}"/_clouds_yaml/
 }
 
 create_clouds_yaml

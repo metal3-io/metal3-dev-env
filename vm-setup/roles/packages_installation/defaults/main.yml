@@ -28,14 +28,11 @@ packages:
      - lxml
     pip3:
      - virtualbmc
-     - python-ironicclient
-     - python-ironic-inspector-client
      - lxml
      - netaddr
      - requests
      - setuptools
      - libvirt-python
-     - python-openstackclient
   centos:
     rhel7:
         packages:
@@ -57,9 +54,6 @@ packages:
          - jq
          - libguestfs-tools
          - nodejs
-         - python-ironicclient
-         - python-ironic-inspector-client
-         - python-openstackclient
          - redhat-lsb-core
          - unzip
          - genisoimage
@@ -94,9 +88,6 @@ packages:
          - jq
          - libguestfs-tools
          - nodejs
-         - python3-ironicclient
-         - python3-ironic-inspector-client
-         - python3-openstackclient
          - redhat-lsb-core
          - unzip
          - genisoimage
