@@ -13,7 +13,7 @@ function network_address() {
   network=$2
   record=$3
 
-  result=$(python -c "import ipaddress; import itertools; print(next(itertools.islice(ipaddress.ip_network(u\"$network\").hosts(), $record - 1, None)))")
+  result=$(python3 -c "import ipaddress; import itertools; print(next(itertools.islice(ipaddress.ip_network(u\"$network\").hosts(), $record - 1, None)))")
   eval "$resultvar"="$result"
   export resultvar
 }
@@ -38,7 +38,7 @@ else
 fi
 
 # shellcheck disable=SC2155
-export PROVISIONING_CIDR=$(python -c "import ipaddress; print(ipaddress.ip_network(u\"$PROVISIONING_NETWORK\").prefixlen)")
+export PROVISIONING_CIDR=$(python3 -c "import ipaddress; print(ipaddress.ip_network(u\"$PROVISIONING_NETWORK\").prefixlen)")
 export PROVISIONING_NETMASK=${PROVISIONING_NETMASK:-$(ipcalc --netmask "$PROVISIONING_NETWORK" | cut -d= -f2)}
 
 network_address PROVISIONING_IP "$PROVISIONING_NETWORK" 1

@@ -5,11 +5,6 @@
         name: "{{ packages.ubuntu.packages}}"
         state: present
       become: true
-    - name: Install packages using pip # ansible uses these packages in python2 to run on the local machine
-      pip:
-        name: "{{ packages.ubuntu.pip }}"
-        state: present
-      become: true
     - name: Install packages using pip3
       pip:
         executable: "pip3"

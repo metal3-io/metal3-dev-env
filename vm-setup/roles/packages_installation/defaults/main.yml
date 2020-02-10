@@ -23,9 +23,6 @@ packages:
      - libpolkit-agent-1-0
      - libpolkit-backend-1-0
      - libpolkit-gobject-1-0
-    pip: # ansible uses these packages in python2 to run on the local machine
-     - libvirt-python==5.10.0
-     - lxml
     pip3:
      - virtualbmc
      - python-ironicclient
@@ -34,7 +31,7 @@ packages:
      - netaddr
      - requests
      - setuptools
-     - libvirt-python
+     - libvirt-python==5.10.0
      - python-openstackclient
   centos:
     rhel7:
@@ -47,9 +44,9 @@ packages:
          - OVMF
          - patch
          - psmisc
-         - python-pip
-         - python-requests
-         - python-setuptools
+         - python3-pip
+         - python3-requests
+         - python3-setuptools
          - vim-enhanced
          - wget
          - ansible
@@ -57,9 +54,9 @@ packages:
          - jq
          - libguestfs-tools
          - nodejs
-         - python-ironicclient
-         - python-ironic-inspector-client
-         - python-openstackclient
+         - python3-ironicclient
+         - python3-ironic-inspector-client
+         - python3-openstackclient
          - redhat-lsb-core
          - unzip
          - genisoimage
@@ -67,12 +64,12 @@ packages:
          - libvirt
          - libvirt-devel
          - libvirt-daemon-kvm
-         - libvirt-python
+         - python3-libvirt
          - libguestfs-tools
-         - python-lxml
+         - python3-lxml
          - polkit-pkla-compat
-         - python-netaddr
-         - python-virtualbmc
+         - python3-netaddr
+         - python3-virtualbmc
          - virt-install
     rhel8:
         packages:
