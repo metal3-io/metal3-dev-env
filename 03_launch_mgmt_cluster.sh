@@ -101,6 +101,8 @@ configMapGenerator:
 - behavior: merge
   literals:
   - PROVISIONING_IP=$CLUSTER_PROVISIONING_IP
+  - PROVISIONING_INTERFACE=$CLUSTER_PROVISIONING_INTERFACE
+  - PROVISIONING_CIDR=$PROVISIONING_CIDR
   - DHCP_RANGE=$CLUSTER_DHCP_RANGE
   - DEPLOY_KERNEL_URL=http://$CLUSTER_URL_HOST:6180/images/ironic-python-agent.kernel
   - DEPLOY_RAMDISK_URL=http://$CLUSTER_URL_HOST:6180/images/ironic-python-agent.initramfs
@@ -109,7 +111,7 @@ configMapGenerator:
   - CACHEURL=http://$PROVISIONING_URL_HOST/images
   name: ironic-bmo-configmap
 resources:
-- $(realpath --relative-to="$overlay_path" "$BMOPATH/deploy")
+- $(realpath --relative-to="$overlay_path" "$BMOPATH/deploy/ironic-keepalived-config")
 EOF
 }
 
@@ -225,7 +227,11 @@ sudo su -l -c 'minikube start' "${USER}"
 if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
   sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"$CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR"' dev eth2"' "${USER}"
 else
-  sudo su -l -c "minikube ssh sudo ip addr add $CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR dev eth2" "${USER}"
+	sudo su -l -c "minikube ssh sudo brctl addbr $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
+	sudo su -l -c "minikube ssh sudo ip link set $CLUSTER_PROVISIONING_INTERFACE up" "${USER}"
+	sudo su -l -c "minikube ssh sudo brctl addif $CLUSTER_PROVISIONING_INTERFACE eth2" "${USER}"
+	sudo su -l -c "minikube ssh sudo ip addr add $INITIAL_IRONICBRIDGE_IP/$PROVISIONING_CIDR dev $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
+
 fi
 
 launch_baremetal_operator

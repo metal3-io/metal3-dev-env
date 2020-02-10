@@ -18,6 +18,12 @@ function network_address() {
   export resultvar
 }
 
+# Provisioning Interface
+export CLUSTER_PROVISIONING_INTERFACE=${CLUSTER_PROVISIONING_INTERFACE:-"ironicendpoint"}
+
+#POD CIDR
+export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"}
+
 # Enables single-stack IPv6
 PROVISIONING_IPV6=${PROVISIONING_IPV6:-false}
 IPV6_ADDR_PREFIX=${IPV6_ADDR_PREFIX:-"fd2e:6f44:5dd8:b856"}
@@ -50,6 +56,14 @@ else
   export CLUSTER_URL_HOST="$CLUSTER_PROVISIONING_IP"
 fi
 
+# shellcheck disable=SC2153
+if [[ "$CLUSTER_APIENDPOINT_IP" == *":"* ]]; then
+  export CLUSTER_APIENDPOINT_HOST="[$CLUSTER_APIENDPOINT_IP]"
+else
+  export CLUSTER_APIENDPOINT_HOST="$CLUSTER_APIENDPOINT_IP"
+fi
+
+
 # Calculate DHCP range
 network_address dhcp_range_start "$PROVISIONING_NETWORK" 10
 network_address dhcp_range_end "$PROVISIONING_NETWORK" 100
@@ -57,3 +71,5 @@ network_address dhcp_range_end "$PROVISIONING_NETWORK" 100
 export CLUSTER_DHCP_RANGE=${CLUSTER_DHCP_RANGE:-"$dhcp_range_start,$dhcp_range_end"}
 
 export EXTERNAL_SUBNET=${EXTERNAL_SUBNET:-"192.168.111.0/24"}
+
+network_address INITIAL_IRONICBRIDGE_IP "$PROVISIONING_NETWORK" 9
