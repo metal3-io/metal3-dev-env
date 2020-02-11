@@ -13,15 +13,6 @@
     - "{{ working_dir }}/virtualbmc"
   become: true
 
-- name: Stop/disable the Virtual BMCs (virtualbmc >= 1.4.0+) on CentOS
-  when:
-    - ansible_os_family == "RedHat"
-  service:
-    name: "virtualbmc"
-    state: "stopped" 
-    enabled: false
-  become: true
-
 - name: Stop/disable the Virtual BMCs (virtualbmc >= 1.4.0+) on Ubuntu
   when:
     - ansible_distribution == 'Ubuntu' 
