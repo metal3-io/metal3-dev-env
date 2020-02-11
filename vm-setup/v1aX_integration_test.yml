@@ -1,5 +1,5 @@
 ---
-- name: v1alpha2 integration test
+- name: "{{ CAPI_VERSION }} integration test"
   hosts: virthost
   connection: local
   gather_facts: true
@@ -7,4 +7,4 @@
   become_user: "{{ lookup('env', 'USER') }}"
   tasks:
     - import_role:
-        name: v1a2_integration_test
+        name: "v1aX_integration_test"

@@ -35,7 +35,8 @@ BMOBRANCH="${BMOBRANCH:-master}"
 CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  CAPBMBRANCH="${CAPBMBRANCH:-master}"
+  #CAPBMBRANCH="${CAPBMBRANCH:-master}"
+  CAPBMBRANCH="${CAPBMBRANCH:-v1alpha3}"
 elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-release-0.2}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
@@ -49,7 +50,7 @@ CAPBM_RUN_LOCAL="${CAPBM_RUN_LOCAL:-false}"
 
 function clone_repos() {
     mkdir -p "${M3PATH}"
-    if [[ -d ${BMOPATH} && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+    if [[ -d "${BMOPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
       rm -rf "${BMOPATH}"
     fi
     if [ ! -d "${BMOPATH}" ] ; then
@@ -160,6 +161,15 @@ function apply_bm_hosts() {
 function kustomize_overlay_capbm() {
   overlay_path=$1
   provider_cmpt=$2
+
+if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+cat <<EOF> "$overlay_path/kustomization.yaml"
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- $(realpath --relative-to="$overlay_path" "$provider_cmpt")
+EOF
+else
 cat <<EOF> "$overlay_path/kustomization.yaml"
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -167,6 +177,7 @@ namespace: metal3
 resources:
 - $(realpath --relative-to="$overlay_path" "$provider_cmpt")
 EOF
+fi
 }
 
 
@@ -177,9 +188,15 @@ function launch_cluster_api_provider_baremetal() {
     pushd "${CAPBMPATH}"
     kustomize_overlay_path=$(mktemp -d capbm-XXXXXXXXXX)
 
-
-    if [ "${CAPI_VERSION}" == "v1alpha2" ] || \
-      [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+    if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+      ./examples/generate.sh -f
+      kustomize_overlay_capbm "$kustomize_overlay_path" \
+        "$CAPBMPATH/examples/provider-components"
+      kubectl apply -f ./examples/_out/cert-manager.yaml
+      kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager
+      kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager-cainjector
+      kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager-webhook
+    elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
       ./examples/generate.sh -f
       kustomize_overlay_capbm "$kustomize_overlay_path" \
         "$CAPBMPATH/examples/provider-components"
@@ -212,6 +229,7 @@ function launch_cluster_api_provider_baremetal() {
     popd
 }
 
+clone_repos
 
 #
 # Write out a clouds.yaml for this environment
@@ -220,7 +238,6 @@ function create_clouds_yaml() {
   sed -e "s/__CLUSTER_URL_HOST__/$CLUSTER_URL_HOST/g" clouds.yaml.template > clouds.yaml
 }
 
-clone_repos
 create_clouds_yaml
 init_minikube
 sudo su -l -c 'minikube start' "${USER}"

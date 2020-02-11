@@ -19,4 +19,4 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "DEFAULT_HOSTS_MEMORY=$DEFAULT_HOSTS_MEMORY" \
     -e "CAPI_VERSION=$CAPI_VERSION" \
     -i vm-setup/inventory.ini \
-    -b -vvv vm-setup/v1a2_integration_test.yml
+    -b -vvv vm-setup/v1aX_integration_test.yml

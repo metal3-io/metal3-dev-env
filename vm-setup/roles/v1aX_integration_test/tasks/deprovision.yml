@@ -61,6 +61,7 @@
     retries: 2
     delay: 20
     until: (deprovision_cluster.stdout == "deleting") or
+           (deprovision_cluster.stdout == "Deleting") or
            (deprovision_cluster.stdout == "")
 
   - name: Wait until both bmh becomes ready again.

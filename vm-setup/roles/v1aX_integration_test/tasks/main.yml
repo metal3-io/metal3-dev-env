@@ -1,5 +1,5 @@
 ---
-- name: v1alpha2 deployment
+- name: "{{ CAPI_VERSION }} deployment"
   include: "{{ item }}.yml"
   with_items:
     - provision

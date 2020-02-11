@@ -9,11 +9,9 @@ source "${METAL3_DIR}/lib/common.sh"
 # shellcheck disable=SC1090
 source "${METAL3_DIR}/lib/network.sh"
 
-# Cluster.
-CLUSTER_YAML=cluster.yaml
+# shellcheck disable=SC1091
+# shellcheck disable=SC1090
+source "${METAL3_DIR}/lib/images.sh"
 
+make_v1alphaX_machine workers "${CAPI_VERSION}" | kubectl apply -n metal3 -f -
 
-make_cluster() {
-  envsubst < "${V1ALPHA2_CR_PATH}${CLUSTER_YAML}"
-}
-make_cluster | kubectl apply -n metal3 -f -

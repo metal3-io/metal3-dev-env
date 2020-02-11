@@ -1,41 +1,42 @@
-apiVersion: cluster.x-k8s.io/v1alpha2
+apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Machine
 metadata:
-  name: {{ CLUSTER_NAME }}-controlplane-0
+  name: ${CLUSTER_NAME}-controlplane-0
   labels:
     cluster.x-k8s.io/control-plane: "true"
-    cluster.x-k8s.io/cluster-name: "{{ CLUSTER_NAME }}"
+    cluster.x-k8s.io/cluster-name: "${CLUSTER_NAME}"
 spec:
-  version: {{ KUBERNETES_VERSION }}
+  clusterName: ${CLUSTER_NAME}
+  version: ${KUBERNETES_VERSION}
   bootstrap:
     configRef:
-      apiVersion: bootstrap.cluster.x-k8s.io/v1alpha2
+      apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
       kind: KubeadmConfig
-      name: {{ CLUSTER_NAME }}-controlplane-0
+      name: ${CLUSTER_NAME}-controlplane-0
   infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha2
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     kind: BareMetalMachine
-    name: {{ CLUSTER_NAME }}-controlplane-0
+    name: ${CLUSTER_NAME}-controlplane-0
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha2
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: BareMetalMachine
 metadata:
-  name: {{ CLUSTER_NAME }}-controlplane-0
+  name: ${CLUSTER_NAME}-controlplane-0
 spec:
   image:
-    url: {{ IMAGE_URL }}
-    checksum: {{ IMAGE_CHECKSUM }}
+    url: ${IMAGE_URL}
+    checksum: ${IMAGE_CHECKSUM}
 ---
-apiVersion: bootstrap.cluster.x-k8s.io/v1alpha2
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
 kind: KubeadmConfig
 metadata:
-  name: {{ CLUSTER_NAME }}-controlplane-0
+  name: ${CLUSTER_NAME}-controlplane-0
 spec:
   initConfiguration:
     nodeRegistration:
-      name: {{ " '{{ ds.meta_data.name }}' " }}
+      name: '{{ ds.meta_data.name }}'
       kubeletExtraArgs:
-        node-labels: 'metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}'
+        node-labels: 'metal3.io/uuid={{ ds.meta_data.uuid }}'
   preKubeadmCommands:
     - ip link set dev enp2s0 up
     - dhclient enp2s0
@@ -81,10 +82,10 @@ spec:
                   192.168.111.249
               }
           }
-      - path: /etc/netplan/50-cloud-init.yaml
+      - path : /etc/netplan/50-cloud-init.yaml
         owner: root:root
         permissions: '0644'
-        content: |
+        content: | 
           network:
               ethernets:
                   enp1s0:
@@ -95,4 +96,4 @@ spec:
       - path: /tmp/akeys
         owner: root:root
         permissions: '0644'
-        content: {{ SSH_PUB_KEY_CONTENT }}
+        content: ${SSH_PUB_KEY_CONTENT}
