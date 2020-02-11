@@ -8,7 +8,7 @@ spec:
     services:
       cidrBlocks: ["10.96.0.0/12"]
     pods:
-      cidrBlocks: ["192.168.0.0/18"]
+      cidrBlocks: [{{ POD_CIDR }}]
     serviceDomain: "cluster.local"
   infrastructureRef:
     apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
@@ -25,6 +25,6 @@ spec:
     host: 192.168.111.249
     port: 6443
 {% else %}
-  apiEndpoint: http://192.168.111.249:6443
+  apiEndpoint: http://{{ CLUSTER_APIENDPOINT_HOST }}:6443
 {% endif %}
   noCloudProvider: true
