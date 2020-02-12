@@ -61,7 +61,9 @@ fi
 FILESYSTEM=${FILESYSTEM:="/"}
 
 WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
-NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/ironic_nodes.json"}
+NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/metal3_nodes.json"}
+# Set this to generate a nodes.json suitable for ironic.
+IRONIC_NODES_FILE=${IRONIC_NODES_FILE:-}
 NODES_PLATFORM=${NODES_PLATFORM:-"libvirt"}
 
 export NUM_NODES=${NUM_NODES:-"2"}

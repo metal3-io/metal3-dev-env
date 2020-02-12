@@ -133,8 +133,19 @@
 # task *must* occur after the above vm tasks, because if
 # `vm_nodes` is defined the template depends on the
 # `node_mac_map` variable.
-- name: Write ironic node json files
+- name: Write metal3 node json files
   template:
     src: ../templates/ironic_nodes.json.j2
     dest: "{{ nodes_file }}"
     force: no
+  vars:
+    nodes_json_format: metal3
+
+- name: Write ironic-compatible node json files
+  template:
+    src: ../templates/ironic_nodes.json.j2
+    dest: "{{ ironic_nodes_file }}/"
+    force: no
+  vars:
+    nodes_json_format: ironic
+  when: ironic_nodes_file

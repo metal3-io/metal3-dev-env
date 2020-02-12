@@ -18,14 +18,28 @@
       "driver": "{{ vm_driver }}",
       "resource_class": "baremetal",
       "driver_info": {
-        "username": "admin",
-        "password": "password",
-        {% if vm_driver =='redfish' -%}
-        "port": "8000",
-        "address": "{{vm_driver}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        {% if nodes_json_format == 'ironic' -%}
+          {% if vm_driver == 'redfish' -%}
+          "redfish_username": "admin",
+          "redfish_password": "password",
+          "redfish_address": "http://{{ lvars['host_ip'] }}:8000",
+          "redfish_system_id": "/redfish/v1/Systems/{{vm_id[node.name]}}",
+          {% else -%}
+          "ipmi_username": "admin",
+          "ipmi_password": "password",
+          "ipmi_port": "{{ node.virtualbmc_port }}",
+          "ipmi_address": "{{lvars['host_ip']}}",
+          {% endif -%}
         {% else -%}
-        "port": "{{ node.virtualbmc_port }}",
-        "address": "{{vm_driver}}://{{lvars['host_ip'] | ipwrap }}:{{node.virtualbmc_port}}",
+          "username": "admin",
+          "password": "password",
+          {% if vm_driver =='redfish' -%}
+          "port": "8000",
+          "address": "{{vm_driver}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+          {% else -%}
+          "port": "{{ node.virtualbmc_port }}",
+          "address": "{{vm_driver}}://{{lvars['host_ip'] | ipwrap }}:{{node.virtualbmc_port}}",
+          {% endif -%}
         {% endif -%}
         "deploy_kernel": "http://{{ provisioning_url_host }}/images/ironic-python-agent.kernel",
         "deploy_ramdisk": "http://{{ provisioning_url_host }}/images/ironic-python-agent.initramfs"

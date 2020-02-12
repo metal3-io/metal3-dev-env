@@ -93,7 +93,13 @@
         state: absent
       when: pool_check is success
 
-    - name: Remove ironic_nodes.json
+    - name: Remove {{ nodes_file }}
       file:
         path: "{{ nodes_file }}"
         state: absent
+
+    - name: Remove ironic native nodes file
+      file:
+        path: "{{ ironic_nodes_file }}"
+        state: absent
+      when: ironic_nodes_file
