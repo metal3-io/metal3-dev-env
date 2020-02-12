@@ -35,8 +35,7 @@ BMOBRANCH="${BMOBRANCH:-master}"
 CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  #CAPBMBRANCH="${CAPBMBRANCH:-master}"
-  CAPBMBRANCH="${CAPBMBRANCH:-v1alpha3}"
+  CAPBMBRANCH="${CAPBMBRANCH:-master}"
 elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-release-0.2}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
