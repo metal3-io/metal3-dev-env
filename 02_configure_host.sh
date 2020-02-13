@@ -206,3 +206,9 @@ OPENSTACKCLIENT_PATH="${OPENSTACKCLIENT_PATH:-/usr/local/bin/openstack}"
 if ! command -v openstack | grep -v "${OPENSTACKCLIENT_PATH}"; then
   sudo ln -sf "${SCRIPTDIR}/openstackclient.sh" "${OPENSTACKCLIENT_PATH}"
 fi
+
+# Same for the vbmc CLI when not locally installed
+VBMC_PATH="${VBMC_PATH:-/usr/local/bin/vbmc}"
+if ! command -v vbmc | grep -v "${VBMC_PATH}"; then
+  sudo ln -sf "${SCRIPTDIR}/vbmc.sh" "${VBMC_PATH}"
+fi
