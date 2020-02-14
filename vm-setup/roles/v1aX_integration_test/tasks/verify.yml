@@ -94,7 +94,7 @@
         replace:
           path: /tmp/calico.yaml
           regexp: "192.168.0.0/16"
-          replace: '{{ pod_cidr }}'
+          replace: "{{ POD_CIDR }}"
         register: updated_manifest
 
       - name: Apply Calico manifest
