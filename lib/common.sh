@@ -143,18 +143,18 @@ export OS
 OS_VERSION=$(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"' | cut -f1 -d'.')
 export OS_VERSION
 if [[ $OS == centos ]]; then
-  if [[ ${OS_VERSION} -ne 7 ]]; then
-    echo "Required CentOS 7 or RHEL 8 or Ubuntu 18.04"
+  if [[ ${OS_VERSION} != 7 && ${OS_VERSION} != 8 ]]; then
+    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 18.04"
     exit 1
   fi
 elif [[ $OS == rhel ]]; then
   if [[ ${OS_VERSION} -ne 8 ]]; then
-    echo "Required CentOS 7 or RHEL 8 or Ubuntu 18.04"
+    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 18.04"
     exit 1
   fi
 elif [[ $OS == ubuntu ]]; then
   if [[ ${OS_VERSION} -ne 18 ]]; then
-    echo "Required CentOS 7 or RHEL 8 or Ubuntu 18.04"
+    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 18.04"
     exit 1
   fi
 else
