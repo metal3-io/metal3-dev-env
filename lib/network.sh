@@ -39,7 +39,7 @@ fi
 
 # shellcheck disable=SC2155
 export PROVISIONING_CIDR=$(python -c "import ipaddress; print(ipaddress.ip_network(u\"$PROVISIONING_NETWORK\").prefixlen)")
-export PROVISIONING_NETMASK=${PROVISIONING_NETMASK:-$(ipcalc --netmask "$PROVISIONING_NETWORK" | cut -d= -f2)}
+export PROVISIONING_NETMASK=${PROVISIONING_NETMASK:-$(python -c "import ipaddress; print(ipaddress.ip_network(u\"$PROVISIONING_NETWORK\").netmask)")}
 
 network_address PROVISIONING_IP "$PROVISIONING_NETWORK" 1
 network_address CLUSTER_PROVISIONING_IP "$PROVISIONING_NETWORK" 2

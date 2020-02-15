@@ -22,7 +22,6 @@ sudo apt -y install \
   python3-setuptools \
   zlib1g-dev \
   libssl1.0-dev \
-  ipcalc \
   openssh-server \
   wget
 
