@@ -36,6 +36,8 @@ CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-bareme
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-master}"
+  CAPBMREPO="https://github.com/Nordix/cluster-api-provider-baremetal.git"
+  CAPBMBRANCH="v1alpha3-mael"
 elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   CAPBMBRANCH="${CAPBMBRANCH:-release-0.2}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
