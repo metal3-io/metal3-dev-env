@@ -206,13 +206,24 @@ EXPTD_V1ALPHA2_DEPLOYMENTS="cabpk-controller-manager \
   metal3-baremetal-operator"
 EXPTD_V1ALPHA3_DEPLOYMENTS="capbm-system:capbm-controller-manager \
   capi-system:capi-controller-manager \
+  capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
+  capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
+  capi-webhook-system:capi-controller-manager \
+  capi-webhook-system:capi-kubeadm-bootstrap-controller-manager \
+  capi-webhook-system:capi-kubeadm-control-plane-controller-manager \
   metal3:metal3-baremetal-operator"
 EXPTD_V1ALPHA2_RS="control-plane:cabpk-controller-manager \
   control-plane:capbm-controller-manager \
   control-plane:cluster-api-controller-manager \
   name:metal3-baremetal-operator"
-EXPTD_V1ALPHA3_RS="control-plane:capbm-controller-manager:capbm-system \
-  control-plane:cluster-api-controller-manager:capi-system \
+EXPTD_V1ALPHA3_RS="cluster.x-k8s.io/provider:infrastructure-baremetal:capbm-system \
+  cluster.x-k8s.io/provider:cluster-api:capi-system \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system \
+  cluster.x-k8s.io/provider:infrastructure-baremetal:capi-webhook-system \
+  cluster.x-k8s.io/provider:cluster-api:capi-webhook-system \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system \
   name:metal3-baremetal-operator:metal3"
 BRIDGES="provisioning baremetal"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
