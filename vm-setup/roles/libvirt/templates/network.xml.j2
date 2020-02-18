@@ -37,10 +37,12 @@
 {% set numflavor = lookup('vars', 'num_' + flavor + 's')|default(0)|int %}
 {% for num in range(0, numflavor) %}
 {% set ironic_name = ironic_prefix + flavor + "_" + num|string %}
+{% set hostname_format = lookup('vars', flavor + '_hostname_format', default=flavor + '-%d') %}
+{% set hostname = hostname_format % num %}
 {% if item.address|ipv6 != False %}
-      <host id='00:03:00:01:{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{flavor}}-{{num}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
+      <host id='00:03:00:01:{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{hostname}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
 {% else %}
-      <host mac='{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{flavor}}-{{num}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
+      <host mac='{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{hostname}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
 {% endif %}
 {% set ns.index = ns.index + 1 %}
 {% endfor %}
