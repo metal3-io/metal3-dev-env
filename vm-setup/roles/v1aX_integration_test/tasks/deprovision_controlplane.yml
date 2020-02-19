@@ -1,0 +1,21 @@
+---
+  - name: Switch Ansible's Python interpreter to Python 3
+    set_fact:
+      ansible_python_interpreter: /usr/bin/python3
+
+  - name: Deprovision Ubuntu master node.
+    k8s:
+      state: absent
+      src: "/tmp/controlplane_ubuntu.yaml"
+      namespace: "{{ NAMESPACE }}"
+    register: deprovision_ubuntu_master_node
+    when: IMAGE_OS == "Ubuntu"
+
+  - name: Deprovision CentOS master node.
+    k8s:
+      state: absent
+      src: "/tmp/controlplane_centos.yaml"
+      namespace: "{{ NAMESPACE }}"
+    when: (IMAGE_OS == "Centos") or
+          (IMAGE_OS == "")
+    register: deprovision_centos_master_node

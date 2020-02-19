@@ -10,6 +10,8 @@ KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.17.0',
 POD_CIDR: "{{ lookup('env', 'POD_CIDR') }}"
 SSH_PRIVATE_KEY: "{{ lookup('env', 'SSH_KEY') }}"
 SSH_PUB_KEY_CONTENT: "{{ lookup('file', '{{ HOME }}/.ssh/id_rsa.pub') }}"
+MASTER_NODE: "{{ lookup('env', 'MASTER_NODE') | default('true', true) }}"
+WORKER_NODE: "{{ lookup('env', 'WORKER_NODE') | default('false', true) }}"
 
 # Environment variables for deployment
 IMAGE_OS: "{{ lookup('env', 'IMAGE_OS') | default('Ubuntu', true)}}"

@@ -2,16 +2,36 @@
 - name: "{{ CAPI_VERSION }} deployment"
   include: "{{ item }}.yml"
   with_items:
-    - provision
+    - provision_cluster
+    - provision_controlplane
+    - provision_worker
     - verify
-    - deprovision
+    - deprovision_worker
+    - deprovision_controlplane
+    - deprovision_cluster
     - pause
   when: RUN_CI_TEST == "true"
 
-- name: "{{ CAPI_VERSION }} local provisioning"
-  include: provision.yml
-  when: RUN_LOCAL_TEST_PROVISIONING == "true"
+- name: "{{ CAPI_VERSION }} cluster provisioning"
+  include: "provision_cluster.yml"
+  when: PROVISION_CLUSTER == "true"
 
-- name: "{{ CAPI_VERSION }} local deprovisioning"
-  include: deprovision.yml
-  when: RUN_LOCAL_TEST_DEPROVISIONING == "true"
+- name: "{{ CAPI_VERSION }} controlplane node provisioning"
+  include: "provision_controlplane.yml"
+  when: PROVISION_CONTROLPLANE == "true"
+
+- name: "{{ CAPI_VERSION }} worker node provisioning"
+  include: "provision_worker.yml"
+  when: PROVISION_WORKER == "true"
+
+- name: "{{ CAPI_VERSION }} cluster deprovisioning"
+  include: deprovision_cluster.yml
+  when: DEPROVISION_CLUSTER == "true"
+
+- name: "{{ CAPI_VERSION }} controlplane node deprovisioning"
+  include: deprovision_controlplane.yml
+  when: DEPROVISION_CONTROLPLANE == "true"
+
+- name: "{{ CAPI_VERSION }} worker node deprovisioning"
+  include: deprovision_worker.yml
+  when: DEPROVISION_WORKER == "true"
