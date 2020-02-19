@@ -198,3 +198,17 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name vbmc ${POD_NAM
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name sushy-tools ${POD_NAME_INFRA} \
      -v "$WORKING_DIR/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
      "${SUSHY_TOOLS_IMAGE}"
+
+# Installing the openstack/ironic clients on the host is optional
+# if not installed, we copy a wrapper to OPENSTACKCLIENT_PATH which
+# runs the clients in a container (metal3-io/ironic-client)
+OPENSTACKCLIENT_PATH="${OPENSTACKCLIENT_PATH:-/usr/local/bin/openstack}"
+if ! command -v openstack | grep -v "${OPENSTACKCLIENT_PATH}"; then
+  sudo ln -sf "${SCRIPTDIR}/openstackclient.sh" "${OPENSTACKCLIENT_PATH}"
+fi
+
+# Same for the vbmc CLI when not locally installed
+VBMC_PATH="${VBMC_PATH:-/usr/local/bin/vbmc}"
+if ! command -v vbmc | grep -v "${VBMC_PATH}"; then
+  sudo ln -sf "${SCRIPTDIR}/vbmc.sh" "${VBMC_PATH}"
+fi

@@ -10,28 +10,28 @@
     - deprovision_controlplane
     - deprovision_cluster
     - pause
-  when: RUN_CI_TEST == "true"
+  when: v1aX_integration_test_action == "ci_test"
 
 - name: "{{ CAPI_VERSION }} cluster provisioning"
   include: "provision_cluster.yml"
-  when: PROVISION_CLUSTER == "true"
+  when: v1aX_integration_test_action == "provision_cluster"
 
 - name: "{{ CAPI_VERSION }} controlplane node provisioning"
   include: "provision_controlplane.yml"
-  when: PROVISION_CONTROLPLANE == "true"
+  when: v1aX_integration_test_action == "provision_controlplane"
 
 - name: "{{ CAPI_VERSION }} worker node provisioning"
   include: "provision_worker.yml"
-  when: PROVISION_WORKER == "true"
+  when: v1aX_integration_test_action == "provision_worker"
 
 - name: "{{ CAPI_VERSION }} cluster deprovisioning"
   include: deprovision_cluster.yml
-  when: DEPROVISION_CLUSTER == "true"
+  when: v1aX_integration_test_action == "deprovision_cluster"
 
 - name: "{{ CAPI_VERSION }} controlplane node deprovisioning"
   include: deprovision_controlplane.yml
-  when: DEPROVISION_CONTROLPLANE == "true"
+  when: v1aX_integration_test_action == "deprovision_controlplane"
 
 - name: "{{ CAPI_VERSION }} worker node deprovisioning"
   include: deprovision_worker.yml
-  when: DEPROVISION_WORKER == "true"
+  when: v1aX_integration_test_action == "deprovision_worker"
