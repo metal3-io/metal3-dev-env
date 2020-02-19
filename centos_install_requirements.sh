@@ -39,23 +39,25 @@ if [[ $DISTRO == "rhel8" ]]; then
 fi
 
 # Install required packages
-# python-{requests,setuptools} required for tripleo-repos install
 sudo yum -y install \
   ansible \
   redhat-lsb-core \
   python3-pip \
   wget
 
-# Install tripleo-repos, used to get a recent version of python-virtualbmc
-sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
-sudo tripleo-repos current-tripleo
+if [[ $DISTRO == "centos7" ]]; then
+  # Install tripleo-repos, used to get a recent version of python-jinja2
+  # which is required for some ansible templates
+  sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
+  sudo tripleo-repos current-tripleo
 
 
-# There are some packages which are newer in the tripleo repos
-# FIXME(stbenjam): On CentOS 7, the version of oniguruma conflicts with
-# the version shipped in the tripleo repos. This needs further
-# investigation.
-sudo yum -y update --exclude=oniguruma
+  # There are some packages which are newer in the tripleo repos
+  # FIXME(stbenjam): On CentOS 7, the version of oniguruma conflicts with
+  # the version shipped in the tripleo repos. This needs further
+  # investigation.
+  sudo yum -y update --exclude=oniguruma
+fi
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo yum -y install podman
