@@ -3,19 +3,37 @@
     set_fact:
       ansible_python_interpreter: /usr/bin/python3
 
-  - name: Deprovision Ubuntu worker node.
-    k8s:
-      state: absent
-      src: "/tmp/workers_ubuntu.yaml"
-      namespace: "{{ NAMESPACE }}"
-    register: deprovision_ubuntu_worker_node
+  - name: Provision Ubuntu based worker node
+    block:
+      - name: Template workers_ubuntu.yaml
+        template:
+          src: "{{ CRS_PATH }}/workers_ubuntu.yaml"
+          dest: "/tmp/workers_ubuntu.yaml"
+
+      - name: Deprovision Ubuntu worker node.
+        k8s:
+          state: absent
+          src: "/tmp/workers_ubuntu.yaml"
+          namespace: "{{ NAMESPACE }}"
+        register: deprovision_ubuntu_worker_node
     when: IMAGE_OS == "Ubuntu"
 
-  - name: Deprovision CentOS worker node.
-    k8s:
-      state: absent
-      src: "/tmp/workers_centos.yaml"
-      namespace: "{{ NAMESPACE }}"
-    register: deprovision_centos_worker_node
+  - name: Provision CentOS based worker node
+    block:
+      - name: Template workers_centos.yaml
+        template:
+          src: "{{ CRS_PATH }}/workers_centos.yaml"
+          dest: "/tmp/workers_centos.yaml"
+        vars:
+          IMAGE_NAME: '{{ IMAGE_NAME_CENTOS }}'
+          IMAGE_LOCATION: '{{ IMAGE_LOCATION_CENTOS }}'
+          IMAGE_USERNAME: '{{ IMAGE_USERNAME_CENTOS }}'
+
+      - name: Deprovision CentOS worker node.
+        k8s:
+          state: absent
+          src: "/tmp/workers_centos.yaml"
+          namespace: "{{ NAMESPACE }}"
+        register: deprovision_centos_worker_node
     when: (IMAGE_OS == "Centos") or
           (IMAGE_OS == "")

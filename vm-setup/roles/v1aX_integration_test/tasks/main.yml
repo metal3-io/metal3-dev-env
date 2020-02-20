@@ -3,6 +3,7 @@
   include: "{{ item }}.yml"
   with_items:
     - provision_cluster
+    - download_image    
     - provision_controlplane
     - provision_worker
     - verify
@@ -17,11 +18,17 @@
   when: v1aX_integration_test_action == "provision_cluster"
 
 - name: "{{ CAPI_VERSION }} controlplane node provisioning"
-  include: "provision_controlplane.yml"
+  include: "{{ item }}.yml"
+  with_items:
+    - download_image
+    - provision_controlplane
   when: v1aX_integration_test_action == "provision_controlplane"
 
 - name: "{{ CAPI_VERSION }} worker node provisioning"
-  include: "provision_worker.yml"
+  include: "{{ item }}.yml"
+  with_items:
+    - download_image
+    - provision_worker
   when: v1aX_integration_test_action == "provision_worker"
 
 - name: "{{ CAPI_VERSION }} cluster deprovisioning"

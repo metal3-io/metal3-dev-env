@@ -21,6 +21,26 @@
 
   - name: Provision CentOS based controlplane node
     block:
+      - name: Verify specific centos image containing newer version of cloud-init is downloaded
+        get_url:
+          url: "{{ IMAGE_LOCATION_CENTOS }}"
+          dest: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME_CENTOS }}"
+          mode: 0664
+
+      - name: Calculate md5sum of the specific image
+        stat:
+         path: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME_CENTOS }}"
+         checksum_algorithm: md5
+        register: centos_md5
+
+      - name: Create the md5sum file
+        copy:
+          content: |
+            {{ centos_md5.stat.checksum }}
+
+          dest: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME_CENTOS }}.md5sum"
+          mode: 0664
+
       - name: Template controlplane_centos.yaml
         template:
           src: "{{ CRS_PATH }}/controlplane_centos.yaml"

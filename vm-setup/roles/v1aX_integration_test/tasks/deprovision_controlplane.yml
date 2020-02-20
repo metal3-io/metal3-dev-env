@@ -3,19 +3,37 @@
     set_fact:
       ansible_python_interpreter: /usr/bin/python3
 
-  - name: Deprovision Ubuntu master node.
-    k8s:
-      state: absent
-      src: "/tmp/controlplane_ubuntu.yaml"
-      namespace: "{{ NAMESPACE }}"
-    register: deprovision_ubuntu_master_node
+  - name: Provision Ubuntu based controlplane node
+    block:
+      - name: Template controlplane_ubuntu.yaml
+        template:
+          src: "{{ CRS_PATH }}/controlplane_ubuntu.yaml"
+          dest: "/tmp/controlplane_ubuntu.yaml"
+
+      - name: Deprovision Ubuntu master node.
+        k8s:
+          state: absent
+          src: "/tmp/controlplane_ubuntu.yaml"
+          namespace: "{{ NAMESPACE }}"
+        register: deprovision_ubuntu_master_node
     when: IMAGE_OS == "Ubuntu"
 
-  - name: Deprovision CentOS master node.
-    k8s:
-      state: absent
-      src: "/tmp/controlplane_centos.yaml"
-      namespace: "{{ NAMESPACE }}"
+  - name: Provision CentOS based controlplane node
+    block:
+      - name: Template controlplane_centos.yaml
+        template:
+          src: "{{ CRS_PATH }}/controlplane_centos.yaml"
+          dest: "/tmp/controlplane_centos.yaml"
+        vars:
+          IMAGE_NAME: '{{ IMAGE_NAME_CENTOS }}'
+          IMAGE_LOCATION: '{{ IMAGE_LOCATION_CENTOS }}'
+          IMAGE_USERNAME: '{{ IMAGE_USERNAME_CENTOS }}'
+
+      - name: Deprovision CentOS master node.
+        k8s:
+          state: absent
+          src: "/tmp/controlplane_centos.yaml"
+          namespace: "{{ NAMESPACE }}"
+        register: deprovision_centos_master_node
     when: (IMAGE_OS == "Centos") or
           (IMAGE_OS == "")
-    register: deprovision_centos_master_node
