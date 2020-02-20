@@ -25,6 +25,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "default_memory=$DEFAULT_HOSTS_MEMORY" \
     -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
     -e "provisioning_url_host=$PROVISIONING_URL_HOST" \
+    -e "nodes_file=$NODES_FILE" \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/setup-playbook.yml
 

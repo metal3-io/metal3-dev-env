@@ -136,4 +136,4 @@
 - name: Write ironic node json files
   template:
     src: ../templates/ironic_nodes.json.j2
-    dest: "{{ working_dir }}/ironic_nodes.json"
+    dest: "{{ nodes_file }}"
