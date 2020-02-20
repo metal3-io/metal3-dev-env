@@ -24,8 +24,9 @@ IMAGE_USERNAME: 'ubuntu'
 IMAGE_URL: "http://172.22.0.1/images/{{ IMAGE_NAME }}"
 IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ IMAGE_NAME }}.md5sum"
 
-IMAGE_NAME_CENTOS: 'CentOS-7-x86_64-GenericCloud-1907.qcow2'
-IMAGE_LOCATION_CENTOS: 'http://cloud.centos.org/centos/7/images'
+IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_NAME_CENTOS') | default('centos-updated.qcow2', true)}}"
+IMAGE_LOCATION_CENTOS: 'http://artifactory.nordix.org/artifactory/airship/images/centos.qcow2'
 IMAGE_USERNAME_CENTOS: 'centos'
 IMAGE_URL_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}"
 IMAGE_CHECKSUM_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}.md5sum"
+IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images')}}"
