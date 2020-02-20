@@ -63,6 +63,7 @@ spec:
         - mv /tmp/akeys /home/ubuntu/.ssh/authorized_keys
         - chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
         - apt update -y
+        - netplan apply
         - >-
           apt install apt-transport-https ca-certificates
           curl gnupg-agent software-properties-common -y
