@@ -1,7 +1,6 @@
 packages:
   ubuntu:
     packages:
-     - crudini
      - curl
      - dnsmasq
      - nmap
@@ -33,7 +32,6 @@ packages:
   centos:
     rhel7:
         packages:
-         - crudini
          - curl
          - dnsmasq
          - NetworkManager
