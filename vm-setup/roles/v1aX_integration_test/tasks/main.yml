@@ -3,7 +3,7 @@
   include: "{{ item }}.yml"
   with_items:
     - provision_cluster
-    - download_image    
+    - download_image
     - provision_controlplane
     - provision_worker
     - verify

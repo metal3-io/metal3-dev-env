@@ -12,6 +12,10 @@ if selinuxenabled ; then
     sudo sed -i "s/=enforcing/=permissive/g" /etc/selinux/config
 fi
 
+# Remove any previous tripleo-repos to avoid version conflicts
+# (see FIXME re oniguruma below)
+sudo yum -y erase "python*-tripleo-repos"
+
 # Update to latest packages first
 sudo yum -y update
 
@@ -20,20 +24,13 @@ sudo yum -y update
 source /etc/os-release
 # VERSION_ID can be "7" or "8.x" so strip the minor version
 DISTRO="${ID}${VERSION_ID%.*}"
-if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
-    if [[ $DISTRO == "rhel7" ]]; then
-        sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    elif [[ $DISTRO == "centos7" ]]; then
-        sudo yum -y install epel-release --enablerepo=extras
-    fi
-fi
-
-if [[ $DISTRO == "centos7" ]]; then
+if [[ $DISTRO =~ "centos" ]]; then
     sudo yum -y install epel-release dnf --enablerepo=extras
+elif [[ $DISTRO == "rhel8" ]]; then
+    sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
 fi
 
-if [[ $DISTRO == "rhel8" ]]; then
-    sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
+if [[ $DISTRO == "rhel8" || $DISTRO == "centos8" ]]; then
     sudo yum -y install python3
     sudo alternatives --set python /usr/bin/python3
 fi

@@ -1,9 +1,14 @@
 ---
+  - name: Get the facts about local CentOS image
+    stat:
+      path: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME_CENTOS }}"
+    register: image_path
+
   - debug:
       msg: "Local image of CentOS is found"
     when:
       - IMAGE_OS == "Centos"
-      - IRONIC_IMAGE_DIR/IMAGE_NAME_CENTOS.stat.exists == "true"
+      - image_path.stat.exists == True
 
   - name: Download CentOS image.
     block:
@@ -31,4 +36,4 @@
           mode: 0664
     when:
       - IMAGE_OS == "Centos"
-      - IRONIC_IMAGE_DIR/IMAGE_NAME_CENTOS.stat.exists == "false"
+      - image_path.stat.exists == False

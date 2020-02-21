@@ -120,20 +120,6 @@ if [ "$EXT_IF" ]; then
   sudo iptables -A FORWARD --in-interface baremetal -j ACCEPT
 fi
 
-# Switch NetworkManager to internal DNS
-if [[ "$MANAGE_BR_BRIDGE" == "y" && $OS == "centos" ]] ; then
-  sudo mkdir -p /etc/NetworkManager/conf.d/
-  sudo crudini --set /etc/NetworkManager/conf.d/dnsmasq.conf main dns dnsmasq
-  if [ "$ADDN_DNS" ] ; then
-    echo "server=$ADDN_DNS" | sudo tee /etc/NetworkManager/dnsmasq.d/upstream.conf
-  fi
-  if systemctl is-active --quiet NetworkManager; then
-    sudo systemctl reload NetworkManager
-  else
-    sudo systemctl restart NetworkManager
-  fi
-fi
-
 # Needed if we're going to use any locally built images
 reg_state=$(sudo "$CONTAINER_RUNTIME" inspect registry --format  "{{.State.Status}}" || echo "error")
 if [[ "$reg_state" != "running" ]]; then
