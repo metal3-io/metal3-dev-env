@@ -5,6 +5,7 @@ bmhosts_crs.yaml
 *.bk
 *.tmp
 clouds.yaml
+_clouds_yaml
 
 *.swp
 ipv6-*/

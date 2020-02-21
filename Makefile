@@ -24,10 +24,10 @@ test:
 	./05_test.sh
 
 test_v1a2:
-	./05_test_v1a2.sh
+	./05_test_v1aX.sh
 
 test_v1a3:
-	./05_test_v1a2.sh
+	./05_test_v1aX.sh
 
 lint:
 	./hack/shellcheck.sh

@@ -74,6 +74,7 @@ export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"quay.io/metal3-io/sushy-tools"}
 # Ironic vars
 export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"quay.io/metal3-io/ironic-ipa-downloader"}
 export IRONIC_IMAGE=${IRONIC_IMAGE:-"quay.io/metal3-io/ironic"}
+export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"quay.io/metal3-io/ironic-client"}
 export IRONIC_INSPECTOR_IMAGE=${IRONIC_INSPECTOR_IMAGE:-"quay.io/metal3-io/ironic-inspector"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
@@ -104,6 +105,13 @@ export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.17.0"}
 
 #Path to CRs
 export V1ALPHA2_CR_PATH=${SCRIPTDIR}/crs/v1alpha2/
+export V1ALPHA3_CR_PATH=${SCRIPTDIR}/crs/v1alpha3/
+
+if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  export V1ALPHAX_CR_PATH=${V1ALPHA3_CR_PATH}
+else
+  export V1ALPHAX_CR_PATH=${V1ALPHA2_CR_PATH}
+fi
 
 #Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}
@@ -135,18 +143,18 @@ export OS
 OS_VERSION=$(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"' | cut -f1 -d'.')
 export OS_VERSION
 if [[ $OS == centos ]]; then
-  if [[ ${OS_VERSION} -ne 7 ]]; then
-    echo "Required CentOS 7 or RHEL 8 or Ubuntu 18.04"
+  if [[ ${OS_VERSION} != 7 && ${OS_VERSION} != 8 ]]; then
+    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 18.04"
     exit 1
   fi
 elif [[ $OS == rhel ]]; then
   if [[ ${OS_VERSION} -ne 8 ]]; then
-    echo "Required CentOS 7 or RHEL 8 or Ubuntu 18.04"
+    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 18.04"
     exit 1
   fi
 elif [[ $OS == ubuntu ]]; then
   if [[ ${OS_VERSION} -ne 18 ]]; then
-    echo "Required CentOS 7 or RHEL 8 or Ubuntu 18.04"
+    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 18.04"
     exit 1
   fi
 else
@@ -338,28 +346,4 @@ function init_minikube() {
           --model virtio --source baremetal \
           --type network --config
     fi
-}
-
-
-#
-# Create the CRs for v1alpha2 deployments
-#
-# Inputs:
-# - machine type (controlplane or workers)
-#
-make_v1alpha2_machine() {
-    MACHINE_TYPE=$1
-
-    SSH_PUB_KEY_CONTENT="$(cat "${SSH_PUB_KEY}")"
-    export SSH_PUB_KEY_CONTENT
-
-    if [ "${IMAGE_OS}" == Ubuntu ]; then
-      CR_YAML="${MACHINE_TYPE}_ubuntu.yaml"
-    elif [ "${IMAGE_OS}" == Centos ]; then
-      CR_YAML="${MACHINE_TYPE}_centos.yaml"
-    else
-      echo "Incorrect OS image type"
-      exit 1
-    fi
-    envsubst < "${V1ALPHA2_CR_PATH}${CR_YAML}"
 }

@@ -1,4 +1,8 @@
 ---
+  - name: Switch Ansible's Python interpreter to Python 3
+    set_fact:
+      ansible_python_interpreter: /usr/bin/python3
+
   - name: Deprovision cluster
     k8s:
       state: absent
@@ -54,21 +58,3 @@
     file:
       path: "/tmp/cluster.yaml"
       state: absent
-
-  - name: Check if cluster deprovisioning started.
-    shell: "kubectl get cluster -n {{ NAMESPACE }} -o json | jq -r '.items[] | .status.phase'"
-    register: deprovision_cluster
-    retries: 2
-    delay: 20
-    until: (deprovision_cluster.stdout == "deleting") or
-           (deprovision_cluster.stdout == "")
-
-  - name: Wait until both bmh becomes ready again.
-    shell: |
-        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '.items[] |
-        select (.status.provisioning.state == "ready") |
-        .metadata.name'
-    register: deprovisioned_nodes
-    retries: 150
-    delay: 3
-    until: deprovisioned_nodes.stdout_lines ==  ["node-0", "node-1"]

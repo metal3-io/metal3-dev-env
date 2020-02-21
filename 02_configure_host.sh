@@ -25,6 +25,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "default_memory=$DEFAULT_HOSTS_MEMORY" \
     -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
     -e "provisioning_url_host=$PROVISIONING_URL_HOST" \
+    -e "nodes_file=$NODES_FILE" \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/setup-playbook.yml
 
@@ -119,20 +120,6 @@ if [ "$EXT_IF" ]; then
   sudo iptables -A FORWARD --in-interface baremetal -j ACCEPT
 fi
 
-# Switch NetworkManager to internal DNS
-if [[ "$MANAGE_BR_BRIDGE" == "y" && $OS == "centos" ]] ; then
-  sudo mkdir -p /etc/NetworkManager/conf.d/
-  sudo crudini --set /etc/NetworkManager/conf.d/dnsmasq.conf main dns dnsmasq
-  if [ "$ADDN_DNS" ] ; then
-    echo "server=$ADDN_DNS" | sudo tee /etc/NetworkManager/dnsmasq.d/upstream.conf
-  fi
-  if systemctl is-active --quiet NetworkManager; then
-    sudo systemctl reload NetworkManager
-  else
-    sudo systemctl restart NetworkManager
-  fi
-fi
-
 # Needed if we're going to use any locally built images
 reg_state=$(sudo "$CONTAINER_RUNTIME" inspect registry --format  "{{.State.Status}}" || echo "error")
 if [[ "$reg_state" != "running" ]]; then
@@ -198,3 +185,17 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name vbmc ${POD_NAM
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name sushy-tools ${POD_NAME_INFRA} \
      -v "$WORKING_DIR/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
      "${SUSHY_TOOLS_IMAGE}"
+
+# Installing the openstack/ironic clients on the host is optional
+# if not installed, we copy a wrapper to OPENSTACKCLIENT_PATH which
+# runs the clients in a container (metal3-io/ironic-client)
+OPENSTACKCLIENT_PATH="${OPENSTACKCLIENT_PATH:-/usr/local/bin/openstack}"
+if ! command -v openstack | grep -v "${OPENSTACKCLIENT_PATH}"; then
+  sudo ln -sf "${SCRIPTDIR}/openstackclient.sh" "${OPENSTACKCLIENT_PATH}"
+fi
+
+# Same for the vbmc CLI when not locally installed
+VBMC_PATH="${VBMC_PATH:-/usr/local/bin/vbmc}"
+if ! command -v vbmc | grep -v "${VBMC_PATH}"; then
+  sudo ln -sf "${SCRIPTDIR}/vbmc.sh" "${VBMC_PATH}"
+fi

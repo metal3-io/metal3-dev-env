@@ -12,6 +12,10 @@ if selinuxenabled ; then
     sudo sed -i "s/=enforcing/=permissive/g" /etc/selinux/config
 fi
 
+# Remove any previous tripleo-repos to avoid version conflicts
+# (see FIXME re oniguruma below)
+sudo yum -y erase "python*-tripleo-repos"
+
 # Update to latest packages first
 sudo yum -y update
 
@@ -20,42 +24,37 @@ sudo yum -y update
 source /etc/os-release
 # VERSION_ID can be "7" or "8.x" so strip the minor version
 DISTRO="${ID}${VERSION_ID%.*}"
-if [ ! -f /etc/yum.repos.d/epel.repo ] ; then
-    if [[ $DISTRO == "rhel7" ]]; then
-        sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    elif [[ $DISTRO == "centos7" ]]; then
-        sudo yum -y install epel-release --enablerepo=extras
-    fi
-fi
-
-if [[ $DISTRO == "centos7" ]]; then
+if [[ $DISTRO =~ "centos" ]]; then
     sudo yum -y install epel-release dnf --enablerepo=extras
+elif [[ $DISTRO == "rhel8" ]]; then
+    sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
 fi
 
-if [[ $DISTRO == "rhel8" ]]; then
-    sudo subscription-manager repos --enable=ansible-2-for-rhel-8-x86_64-rpms
+if [[ $DISTRO == "rhel8" || $DISTRO == "centos8" ]]; then
     sudo yum -y install python3
     sudo alternatives --set python /usr/bin/python3
 fi
 
 # Install required packages
-# python-{requests,setuptools} required for tripleo-repos install
 sudo yum -y install \
   ansible \
   redhat-lsb-core \
   python3-pip \
   wget
 
-# Install tripleo-repos, used to get a recent version of python-virtualbmc
-sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
-sudo tripleo-repos current-tripleo
+if [[ $DISTRO == "centos7" ]]; then
+  # Install tripleo-repos, used to get a recent version of python-jinja2
+  # which is required for some ansible templates
+  sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
+  sudo tripleo-repos current-tripleo
 
 
-# There are some packages which are newer in the tripleo repos
-# FIXME(stbenjam): On CentOS 7, the version of oniguruma conflicts with
-# the version shipped in the tripleo repos. This needs further
-# investigation.
-sudo yum -y update --exclude=oniguruma
+  # There are some packages which are newer in the tripleo repos
+  # FIXME(stbenjam): On CentOS 7, the version of oniguruma conflicts with
+  # the version shipped in the tripleo repos. This needs further
+  # investigation.
+  sudo yum -y update --exclude=oniguruma
+fi
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo yum -y install podman

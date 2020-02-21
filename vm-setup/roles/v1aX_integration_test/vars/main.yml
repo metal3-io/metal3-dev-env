@@ -1,22 +1,21 @@
 ---
 # Ansible playbook related variables
-API_VERSION: v1alpha2
-NAMESPACE: metal3
 HOME: "{{ lookup('env', 'HOME') }}"
-CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1a2_integration_test/templates"
+NAMESPACE: metal3
+CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/templates"
+CLUSTER_APIENDPOINT_HOST: "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
+CLUSTER_NAME: "{{ lookup('env', 'CLUSTER_NAME') | default('test1', true) }}"
 KUBECONFIG_PATH: "/home/ubuntu/.kube/config"
-pod_cidr: 192.168.0.0/18
-
+KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.17.0', true) }}"
+POD_CIDR: "{{ lookup('env', 'POD_CIDR') }}"
 SSH_PRIVATE_KEY: "{{ lookup('env', 'SSH_KEY') }}"
 SSH_PUB_KEY_CONTENT: "{{ lookup('file', '{{ HOME }}/.ssh/id_rsa.pub') }}"
-CLUSTER_NAME: "{{ lookup('env', 'CLUSTER_NAME') | default('test1', true) }}"
-KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.17.0', true) }}"
 
 # Environment variables for deployment
 IMAGE_OS: "{{ lookup('env', 'IMAGE_OS') | default('Ubuntu', true)}}"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') | default('podman', true)}}"
 DEFAULT_HOSTS_MEMORY: "{{ lookup('env', 'DEFAULT_HOSTS_MEMORY') | default('4096', true)}}"
-CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha2', true)}}"
+CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha3', true)}}"
 
 # Distibution specific environment variables
 IMAGE_NAME: 'bionic-server-cloudimg-amd64.img'
@@ -25,8 +24,9 @@ IMAGE_USERNAME: 'ubuntu'
 IMAGE_URL: "http://172.22.0.1/images/{{ IMAGE_NAME }}"
 IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ IMAGE_NAME }}.md5sum"
 
-IMAGE_NAME_CENTOS: 'CentOS-7-x86_64-GenericCloud-1907.qcow2'
-IMAGE_LOCATION_CENTOS: 'http://cloud.centos.org/centos/7/images'
+IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_NAME_CENTOS') | default('centos-updated.qcow2', true)}}"
+IMAGE_LOCATION_CENTOS: 'http://artifactory.nordix.org/artifactory/airship/images/centos.qcow2'
 IMAGE_USERNAME_CENTOS: 'centos'
 IMAGE_URL_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}"
 IMAGE_CHECKSUM_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}.md5sum"
+IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images')}}"

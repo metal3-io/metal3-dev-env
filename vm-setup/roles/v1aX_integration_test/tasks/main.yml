@@ -1,0 +1,17 @@
+---
+- name: "{{ CAPI_VERSION }} deployment"
+  include: "{{ item }}.yml"
+  with_items:
+    - provision
+    - verify
+    - deprovision
+    - pause
+  when: RUN_CI_TEST == "true"
+
+- name: "{{ CAPI_VERSION }} local provisioning"
+  include: provision.yml
+  when: RUN_LOCAL_TEST_PROVISIONING == "true"
+
+- name: "{{ CAPI_VERSION }} local deprovisioning"
+  include: deprovision.yml
+  when: RUN_LOCAL_TEST_DEPROVISIONING == "true"

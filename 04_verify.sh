@@ -94,8 +94,15 @@ check_k8s_entity() {
   for name in "${@}"; do
     # Check entity exists
     RESULT_STR="${TYPE} ${name} created"
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
+    if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+      NS="$(echo "${name}" | cut -d ':' -f1)"
+      DEPLOYMENT="$(echo "${name}" | cut -d ':' -f2)"
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${DEPLOYMENT}" \
+        -n "${NS}" -o json)"
+    else
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
       -n metal3 -o json)"
+    fi
     process_status $?
 
     # Check the replicas
@@ -120,8 +127,14 @@ check_k8s_rs() {
     LABEL=$(echo "$name" | cut -f1 -d:);
     NAME=$(echo "$name" | cut -f2 -d:);
 
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
-      -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+    if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+      NS="$(echo "${name}" | cut -d ':' -f3)"
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+        -l "${LABEL}"="${NAME}" -n "${NS}" -o json | jq '.items[0]')"
+    else
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+        -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+    fi
     RESULT_STR="Replica set ${NAME} created"
     differs "${ENTITY}" "null"
 
@@ -142,13 +155,14 @@ check_k8s_rs() {
 check_k8s_pods() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
+  local NS="${2:-metal3}"
   for name in "${@}"; do
     # Check entity exists
     LABEL=$(echo "$name" | cut -f1 -d:);
     NAME=$(echo "$name" | cut -f2 -d:);
 
     ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get pods \
-      -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+      -l "${LABEL}"="${NAME}" -n "${NS}" -o json | jq '.items[0]')"
     RESULT_STR="Pod ${NAME} created"
     differs "${ENTITY}" "null"
   done
@@ -190,10 +204,27 @@ EXPTD_V1ALPHA2_DEPLOYMENTS="cabpk-controller-manager \
   capbm-controller-manager \
   capi-controller-manager \
   metal3-baremetal-operator"
+EXPTD_V1ALPHA3_DEPLOYMENTS="capbm-system:capbm-controller-manager \
+  capi-system:capi-controller-manager \
+  capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
+  capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
+  capi-webhook-system:capi-controller-manager \
+  capi-webhook-system:capi-kubeadm-bootstrap-controller-manager \
+  capi-webhook-system:capi-kubeadm-control-plane-controller-manager \
+  metal3:metal3-baremetal-operator"
 EXPTD_V1ALPHA2_RS="control-plane:cabpk-controller-manager \
   control-plane:capbm-controller-manager \
   control-plane:cluster-api-controller-manager \
   name:metal3-baremetal-operator"
+EXPTD_V1ALPHA3_RS="cluster.x-k8s.io/provider:infrastructure-baremetal:capbm-system \
+  cluster.x-k8s.io/provider:cluster-api:capi-system \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system \
+  cluster.x-k8s.io/provider:infrastructure-baremetal:capi-webhook-system \
+  cluster.x-k8s.io/provider:cluster-api:capi-webhook-system \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system \
+  name:metal3-baremetal-operator:metal3"
 BRIDGES="provisioning baremetal"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 
@@ -221,7 +252,7 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
   for name in ${EXPTD_V1ALPHA2_CRDS}; do
     RESULT_STR="CRD ${name} created"
     echo "${CRDS}" | grep -w "${name}"  > /dev/null
@@ -242,6 +273,10 @@ if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   # Verify v1alpha2 Operators, Deployments, Replicasets
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA2_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA2_RS}"
+elif [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  # Verify v1alpha2 Operators, Deployments, Replicasets
+  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
+  iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   # Verify v1alpha1 Operators, Statefulsets, Deployments, Replicasets
   iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
@@ -277,7 +312,7 @@ fi
 if [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
   # shellcheck disable=SC2034
   RESULT_STR="CAPI operator locally running"
-  if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+  if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
     pgrep -f "go run ./main.go" > /dev/null 2> /dev/null
     process_status $?
   elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
