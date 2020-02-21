@@ -12,6 +12,10 @@ if selinuxenabled ; then
     sudo sed -i "s/=enforcing/=permissive/g" /etc/selinux/config
 fi
 
+# Remove any previous tripleo-repos to avoid version conflicts
+# (see FIXME re oniguruma below)
+sudo yum -y erase "python*-tripleo-repos"
+
 # Update to latest packages first
 sudo yum -y update
 
