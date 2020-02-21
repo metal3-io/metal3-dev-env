@@ -24,11 +24,13 @@ packages:
     pip: # ansible uses these packages in python2 to run on the local machine
      - libvirt-python==5.10.0
      - lxml
+     - six
     pip3:
      - virtualbmc
      - lxml
      - netaddr
      - libvirt-python
+     - six
   centos:
     rhel7:
         packages:
@@ -58,6 +60,7 @@ packages:
          - polkit-pkla-compat
          - python-netaddr
          - virt-install
+         - python-six
     rhel8:
         packages:
          - curl
@@ -87,3 +90,5 @@ packages:
          - python3-netaddr
          - virt-install
          - network-scripts
+         - firewalld
+         - python3-six
