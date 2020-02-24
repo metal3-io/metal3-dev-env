@@ -16,6 +16,6 @@ source "${METAL3_DIR}/lib/images.sh"
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
    -e "metal3_dir=$SCRIPTDIR" \
-   -e "v1aX_integration_test_action=provision_cluster" \
+   -e "v1aX_integration_test_action=provision_worker" \
    -i "${METAL3_DIR}/vm-setup/inventory.ini" \
    -b -vvv "${METAL3_DIR}/vm-setup/v1aX_integration_test.yml"
