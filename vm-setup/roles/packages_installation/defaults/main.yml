@@ -25,7 +25,8 @@ packages:
      - virtualbmc
      - lxml
      - netaddr
-     - libvirt-python==5.10.0     
+     - libvirt-python
+     - six
   centos:
     rhel7:
         packages:
@@ -55,6 +56,7 @@ packages:
          - polkit-pkla-compat
          - python-netaddr
          - virt-install
+         - python-six
     rhel8:
         packages:
          - curl
@@ -84,3 +86,5 @@ packages:
          - python3-netaddr
          - virt-install
          - network-scripts
+         - firewalld
+         - python3-six

@@ -78,3 +78,6 @@ sudo pip3 install \
   python-apt \
   openshift \
   pyYAML
+
+# Set update-alternatives to python3
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1

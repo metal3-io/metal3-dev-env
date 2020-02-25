@@ -9,6 +9,7 @@
     interface: "{{ item }}"
     permanent: yes
     state: enabled
+    immediate: yes
   loop:
     - "{{ provisioning_interface }}"
     - "{{ baremetal_interface }}"
@@ -19,6 +20,7 @@
     port: "{{ item }}/tcp"
     permanent: yes
     state: enabled
+    immediate: yes
   loop: "{{ provisioning_host_ports }}"
 
 - name: "firewalld: Ironic Ports"
@@ -27,6 +29,7 @@
     port: "{{ item }}/tcp"
     permanent: yes
     state: enabled
+    immediate: yes
   loop: "{{ ironic_ports }}"
 
 - name: "firewalld: PXE Ports"
@@ -35,6 +38,7 @@
     port: "{{ item }}/udp"
     permanent: yes
     state: enabled
+    immediate: yes
   loop: "{{ pxe_udp_ports }}"
 
 - name: "firewalld: VBMC Ports"
@@ -43,3 +47,4 @@
     port: "{{ vbmc_port_range | regex_replace(':', '-') }}/udp"
     permanent: yes
     state: enabled
+    immediate: yes

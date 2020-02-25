@@ -75,7 +75,7 @@
       password = password
       domain_name = {{ item.name }}
       libvirt_uri = {{ vbmc_libvirt_uri }}
-      address = ::
+      address = {{ baremetal_network_cidr|nthhost(1) }}
       active = True
       port = {{ item.virtualbmc_port }}
   with_items: "{{ vm_nodes }}"

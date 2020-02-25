@@ -2,16 +2,43 @@
 - name: "{{ CAPI_VERSION }} deployment"
   include: "{{ item }}.yml"
   with_items:
-    - provision
+    - provision_cluster
+    - download_image
+    - provision_controlplane
+    - provision_worker
     - verify
-    - deprovision
+    - deprovision_worker
+    - deprovision_controlplane
+    - deprovision_cluster
     - pause
-  when: RUN_CI_TEST == "true"
+  when: v1aX_integration_test_action == "ci_test"
 
-- name: "{{ CAPI_VERSION }} local provisioning"
-  include: provision.yml
-  when: RUN_LOCAL_TEST_PROVISIONING == "true"
+- name: "{{ CAPI_VERSION }} cluster provisioning"
+  include: "provision_cluster.yml"
+  when: v1aX_integration_test_action == "provision_cluster"
 
-- name: "{{ CAPI_VERSION }} local deprovisioning"
-  include: deprovision.yml
-  when: RUN_LOCAL_TEST_DEPROVISIONING == "true"
+- name: "{{ CAPI_VERSION }} controlplane node provisioning"
+  include: "{{ item }}.yml"
+  with_items:
+    - download_image
+    - provision_controlplane
+  when: v1aX_integration_test_action == "provision_controlplane"
+
+- name: "{{ CAPI_VERSION }} worker node provisioning"
+  include: "{{ item }}.yml"
+  with_items:
+    - download_image
+    - provision_worker
+  when: v1aX_integration_test_action == "provision_worker"
+
+- name: "{{ CAPI_VERSION }} cluster deprovisioning"
+  include: deprovision_cluster.yml
+  when: v1aX_integration_test_action == "deprovision_cluster"
+
+- name: "{{ CAPI_VERSION }} controlplane node deprovisioning"
+  include: deprovision_controlplane.yml
+  when: v1aX_integration_test_action == "deprovision_controlplane"
+
+- name: "{{ CAPI_VERSION }} worker node deprovisioning"
+  include: deprovision_worker.yml
+  when: v1aX_integration_test_action == "deprovision_worker"

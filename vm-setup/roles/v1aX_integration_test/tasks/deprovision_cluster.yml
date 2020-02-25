@@ -1,0 +1,16 @@
+---
+  - name: Switch Ansible's Python interpreter to Python 3
+    set_fact:
+      ansible_python_interpreter: /usr/bin/python3
+
+  - name: Template cluster.yaml
+    template:
+      src: "{{ CRS_PATH }}/cluster.yaml"
+      dest: "/tmp/cluster.yaml"
+
+  - name: Deprovision cluster
+    k8s:
+      state: absent
+      src: "/tmp/cluster.yaml"
+      namespace: "{{ NAMESPACE }}"
+    register: deprovision_cluster
