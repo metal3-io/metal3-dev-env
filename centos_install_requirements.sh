@@ -59,20 +59,25 @@ fi
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo yum -y install podman
 else
-  sudo yum install -y yum-utils \
-    device-mapper-persistent-data \
-    lvm2
-  sudo yum-config-manager \
-    --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
-    cat <<EOF > daemon.json
+  if [[ $DISTRO == "centos7" ]]; then
+    sudo yum install -y yum-utils \
+      device-mapper-persistent-data \
+      lvm2
+    sudo yum-config-manager \
+      --add-repo \
+      https://download.docker.com/linux/centos/docker-ce.repo
+      cat <<EOF > daemon.json
 {
   "insecure-registries" : ["192.168.111.1:5000"]
 }
 EOF
-  sudo chown root:root daemon.json
-  sudo yum install -y docker-ce docker-ce-cli containerd.io
-  sudo mkdir -p /etc/docker
-  sudo mv daemon.json /etc/docker/daemon.json
-  sudo systemctl restart docker
+    sudo chown root:root daemon.json
+    sudo yum install -y docker-ce docker-ce-cli containerd.io
+    sudo mkdir -p /etc/docker
+    sudo mv daemon.json /etc/docker/daemon.json
+    sudo systemctl restart docker
+  else
+    echo "Only Podman is supported in CentOS/RHEL8"
+    exit 1
+  fi
 fi
