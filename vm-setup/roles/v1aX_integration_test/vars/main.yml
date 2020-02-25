@@ -4,6 +4,7 @@ HOME: "{{ lookup('env', 'HOME') }}"
 NAMESPACE: metal3
 CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/templates"
 CLUSTER_APIENDPOINT_HOST: "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
+CLUSTER_APIENDPOINT_IP: "{{ lookup('env', 'CLUSTER_APIENDPOINT_IP') }}"
 CLUSTER_NAME: "{{ lookup('env', 'CLUSTER_NAME') | default('test1', true) }}"
 KUBECONFIG_PATH: "/home/ubuntu/.kube/config"
 KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.17.0', true) }}"

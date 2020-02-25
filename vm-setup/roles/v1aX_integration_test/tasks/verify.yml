@@ -17,17 +17,6 @@
     delay: 20
     until: provisioned_bmh.stdout_lines ==  ["node-0", "node-1"]
 
-  - name: Get the IP of controlplane node
-    shell: |
-        kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '.items[]
-        | select (.spec.consumerRef.name == "{{ CLUSTER_NAME }}-controlplane-0")
-        | .status.hardware.nics[] | select (.name == "eth1") | .ip'
-    register: controlplane_ip
-
-  - name: Define variable for controlplane_node IP
-    set_fact:
-      bmh_ip: "{{ controlplane_ip.stdout }}"
-
   - name: Define username variable for Ubuntu node
     set_fact:
       username: ubuntu
@@ -40,7 +29,7 @@
           (IMAGE_OS == "")
 
   - name: Verification test
-    delegate_to: "{{ bmh_ip }}"
+    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
     vars:
       ansible_user: "{{ username }}"
       ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
