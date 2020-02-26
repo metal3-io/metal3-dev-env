@@ -1,3 +1,105 @@
+{% if CAPI_VERSION == 'v1alpha3' %}
+kind: KubeadmControlPlane
+apiVersion: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
+metadata:
+  name: {{ CLUSTER_NAME }}-controlplane
+spec:
+  replicas: 1
+  version: {{ KUBERNETES_VERSION }}
+  infrastructureTemplate:
+    kind: BareMetalMachineTemplate
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    name: {{ CLUSTER_NAME }}-controlplane
+  kubeadmConfigSpec:
+    joinConfiguration:
+      controlPlane: {}
+      nodeRegistration:
+        name: {{ " '{{ ds.meta_data.name }}' " }}
+        kubeletExtraArgs:
+          node-labels: 'metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}'
+    initConfiguration:
+      nodeRegistration:
+        name: {{ " '{{ ds.meta_data.name }}' " }}
+        kubeletExtraArgs:
+          node-labels: 'metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}'
+    preKubeadmCommands:
+      - ifup eth1
+      - yum update -y
+      - yum install yum-utils -y
+      - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      - setenforce 0
+      - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+      - >-
+        yum install gcc kernel-headers kernel-devel keepalived
+        device-mapper-persistent-data lvm2
+        docker-ce-18.09.9 docker-ce-cli-18.09.9 containerd.io
+        kubelet kubeadm kubectl --disableexcludes=kubernetes -y
+      - usermod -aG docker centos
+      - systemctl enable --now docker keepalived kubelet
+    postKubeadmCommands:
+      - mkdir -p /home/centos/.kube
+      - cp /etc/kubernetes/admin.conf /home/centos/.kube/config
+      - chown centos:centos /home/centos/.kube/config
+    files:
+      - path: /etc/keepalived/keepalived.conf
+        content: |
+          ! Configuration File for keepalived
+          global_defs {
+              notification_email {
+              sysadmin@example.com
+              support@example.com
+              }
+              notification_email_from lb@example.com
+              smtp_server localhost
+              smtp_connect_timeout 30
+          }
+          vrrp_instance VI_1 {
+              state MASTER
+              interface eth1
+              virtual_router_id 1
+              priority 101
+              advert_int 1
+              virtual_ipaddress {
+                  {{ CLUSTER_APIENDPOINT_HOST }}
+              }
+          }
+      - path: /etc/sysconfig/network-scripts/ifcfg-eth1
+        owner: root:root
+        permissions: '0644'
+        content: |
+          BOOTPROTO=dhcp
+          DEVICE=eth1
+          ONBOOT=yes
+          TYPE=Ethernet
+          USERCTL=no
+      - path: /etc/yum.repos.d/kubernetes.repo
+        owner: root:root
+        permissions: '0644'
+        content: |
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+          enabled=1
+          gpgcheck=1
+          repo_gpgcheck=0
+          gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      - path: /home/centos/.ssh/authorized_keys
+        owner: centos:centos
+        permissions: '0600'
+        content: {{ SSH_PUB_KEY_CONTENT }}
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: BareMetalMachineTemplate
+metadata:
+  name: {{ CLUSTER_NAME }}-controlplane
+spec:
+  template:
+    spec:
+      image:
+        url: {{ IMAGE_URL }}
+        checksum: {{ IMAGE_CHECKSUM }}
+{% endif %}
+{% if CAPI_VERSION == 'v1alpha2' %}
 apiVersion: cluster.x-k8s.io/{{ CAPI_VERSION }}
 kind: Machine
 metadata:
@@ -77,7 +179,7 @@ spec:
             priority 101
             advert_int 1
             virtual_ipaddress {
-                192.168.111.249
+                {{ CLUSTER_APIENDPOINT_HOST }}
             }
         }
     - path: /etc/sysconfig/network-scripts/ifcfg-eth1
@@ -104,3 +206,4 @@ spec:
       owner: centos:centos
       permissions: '0600'
       content: {{ SSH_PUB_KEY_CONTENT }}
+{% endif %}

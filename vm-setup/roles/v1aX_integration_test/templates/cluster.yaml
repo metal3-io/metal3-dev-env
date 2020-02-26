@@ -14,6 +14,12 @@ spec:
     apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
     kind: BareMetalCluster
     name: {{ CLUSTER_NAME }}
+{% if CAPI_VERSION == 'v1alpha3' %}
+  controlPlaneRef:
+    kind: KubeadmControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    name: {{ CLUSTER_NAME }}-controlplane
+{% endif %}
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
 kind: BareMetalCluster
@@ -22,7 +28,7 @@ metadata:
 spec:
 {% if CAPI_VERSION == 'v1alpha3' %}
   controlPlaneEndpoint:
-    host: 192.168.111.249
+    host: {{ CLUSTER_APIENDPOINT_HOST }}
     port: 6443
 {% else %}
   apiEndpoint: http://{{ CLUSTER_APIENDPOINT_HOST }}:6443
