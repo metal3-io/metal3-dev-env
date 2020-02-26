@@ -17,11 +17,9 @@ sudo apt -y update
 
 # Install required packages
 
-# ansible uses default python2 (python-pip) to run on the local machine
 sudo apt -y install \
   python3-pip \
-  python-pip \
-  python-setuptools \
+  python3-setuptools \
   zlib1g-dev \
   libssl1.0-dev \
   ipcalc \
@@ -80,3 +78,6 @@ sudo pip3 install \
   python-apt \
   openshift \
   pyYAML
+
+# Set update-alternatives to python3
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1

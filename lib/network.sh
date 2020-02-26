@@ -63,7 +63,6 @@ else
   export CLUSTER_APIENDPOINT_HOST="$CLUSTER_APIENDPOINT_IP"
 fi
 
-
 # Calculate DHCP range
 network_address dhcp_range_start "$PROVISIONING_NETWORK" 10
 network_address dhcp_range_end "$PROVISIONING_NETWORK" 100
