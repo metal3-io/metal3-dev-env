@@ -38,6 +38,8 @@ INT_IF=${INT_IF:-}
 ROOT_DISK_NAME=${ROOT_DISK_NAME-"/dev/sda"}
 #Container runtime
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
+# Hostname format
+NODE_HOSTNAME_FORMAT=${NODE_HOSTNAME_FORMAT:-"node-%d"}
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   export POD_NAME="--pod ironic-pod"
