@@ -3,7 +3,7 @@
     set_fact:
       ansible_python_interpreter: /usr/bin/python3
 
-  - name: Provision Ubuntu based controlplane node
+  - name: Deprovision Ubuntu based controlplane node
     block:
       - name: Template controlplane_ubuntu.yaml
         template:
@@ -15,10 +15,11 @@
           state: absent
           src: "/tmp/controlplane_ubuntu.yaml"
           namespace: "{{ NAMESPACE }}"
+        ignore_errors: yes
         register: deprovision_ubuntu_master_node
     when: IMAGE_OS == "Ubuntu"
 
-  - name: Provision CentOS based controlplane node
+  - name: Deprovision CentOS based controlplane node
     block:
       - name: Template controlplane_centos.yaml
         template:
@@ -34,6 +35,7 @@
           state: absent
           src: "/tmp/controlplane_centos.yaml"
           namespace: "{{ NAMESPACE }}"
+        ignore_errors: yes
         register: deprovision_centos_master_node
     when: (IMAGE_OS == "Centos") or
           (IMAGE_OS == "")

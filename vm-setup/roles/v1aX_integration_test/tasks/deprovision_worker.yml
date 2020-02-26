@@ -3,7 +3,7 @@
     set_fact:
       ansible_python_interpreter: /usr/bin/python3
 
-  - name: Provision Ubuntu based worker node
+  - name: Deprovision Ubuntu based worker node
     block:
       - name: Template workers_ubuntu.yaml
         template:
@@ -15,10 +15,11 @@
           state: absent
           src: "/tmp/workers_ubuntu.yaml"
           namespace: "{{ NAMESPACE }}"
+        ignore_errors: yes
         register: deprovision_ubuntu_worker_node
     when: IMAGE_OS == "Ubuntu"
 
-  - name: Provision CentOS based worker node
+  - name: Deprovision CentOS based worker node
     block:
       - name: Template workers_centos.yaml
         template:
@@ -34,6 +35,7 @@
           state: absent
           src: "/tmp/workers_centos.yaml"
           namespace: "{{ NAMESPACE }}"
+        ignore_errors: yes
         register: deprovision_centos_worker_node
     when: (IMAGE_OS == "Centos") or
           (IMAGE_OS == "")

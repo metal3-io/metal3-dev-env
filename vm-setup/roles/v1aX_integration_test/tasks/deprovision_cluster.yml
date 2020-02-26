@@ -13,4 +13,5 @@
       state: absent
       src: "/tmp/cluster.yaml"
       namespace: "{{ NAMESPACE }}"
+    ignore_errors: yes
     register: deprovision_cluster
