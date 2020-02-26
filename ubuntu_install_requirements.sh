@@ -38,7 +38,7 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/source
 
 # Add this repository to install podman
 sudo add-apt-repository -y ppa:projectatomic/ppa
-# Add this repository to install Golang 1.12
+# Add this repository to install latest stable Golang
 sudo add-apt-repository -y ppa:longsleep/golang-backports
 
 # Update some packages from new repos
