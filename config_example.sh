@@ -35,15 +35,15 @@
 #
 # Set the Cluster Api baremetal provider repository to clone
 #
-#export CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
+#export CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 
 #
 # Set the Cluster Api baremetal provider branch to checkout
 #
-#export CAPBMBRANCH="${CAPBMBRANCH:-master}"
+#export CAPM3BRANCH="${CAPM3BRANCH:-master}"
 
 #
-# Force deletion of the BMO and CAPBM repositories before cloning them again
+# Force deletion of the BMO and CAPM3 repositories before cloning them again
 #
 #export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
 
@@ -55,7 +55,7 @@
 #
 # Run a local CAPI operator instead of deploying in Kubernetes
 #
-#export CAPBM_RUN_LOCAL=true
+#export CAPM3_RUN_LOCAL=true
 
 #
 # Do not retry on failure during verifications or tests of the environment
