@@ -91,8 +91,6 @@
           state: present
           src: "/tmp/calico.yaml"
           namespace: "{{ NAMESPACE }}"
-        environment:
-          ansible_python_interpreter: /usr/bin/python3
         register: install_cni
 
       # Check for pods & nodes on the target cluster
