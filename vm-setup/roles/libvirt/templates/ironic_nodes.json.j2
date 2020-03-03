@@ -19,10 +19,10 @@
         "password": "password",
         {% if vm_driver =='redfish' -%}
         "port": "8000",
-        "address": "{{vm_driver}}+http://{{ lvars['host_ip'] }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        "address": "{{vm_driver}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
         {% else -%}
         "port": "{{ node.virtualbmc_port }}",
-        "address": "{{vm_driver}}://{{lvars['host_ip']}}:{{node.virtualbmc_port}}",
+        "address": "{{vm_driver}}://{{lvars['host_ip'] | ipwrap }}:{{node.virtualbmc_port}}",
         {% endif -%}
         "deploy_kernel": "http://{{ provisioning_url_host }}/images/ironic-python-agent.kernel",
         "deploy_ramdisk": "http://{{ provisioning_url_host }}/images/ironic-python-agent.initramfs"
