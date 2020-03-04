@@ -1,7 +1,10 @@
-FROM registry.hub.docker.com/library/python:3.7
+FROM docker.io/centos:centos8
 
-RUN apt update && \
-    apt install -y libvirt-dev && \
-    pip3 install virtualbmc
+RUN dnf install -y python3 python3-requests && \
+    curl https://raw.githubusercontent.com/openstack/tripleo-repos/master/tripleo_repos/main.py | python3 - -b master current && \
+    dnf update -y && \
+    dnf install -y python3-virtualbmc && \
+    dnf clean all && \
+    rm -rf /var/cache/{yum,dnf}/*
 
-CMD /usr/local/bin/vbmcd --foreground
+CMD /usr/bin/vbmcd --foreground
