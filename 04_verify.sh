@@ -106,7 +106,7 @@ check_k8s_entity() {
     process_status $?
 
     # Check the replicas
-    if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPBM_RUN_LOCAL}" != true ]]
+    if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPM3_RUN_LOCAL}" != true ]]
     then
       RESULT_STR="${name} ${TYPE} replicas correct"
       equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
@@ -139,7 +139,7 @@ check_k8s_rs() {
     differs "${ENTITY}" "null"
 
     # Check the replicas
-    if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPBM_RUN_LOCAL}" != true ]]
+    if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPM3_RUN_LOCAL}" != true ]]
     then
       RESULT_STR="${NAME} replicas correct"
       equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
@@ -204,23 +204,24 @@ EXPTD_V1ALPHA2_DEPLOYMENTS="cabpk-controller-manager \
   capbm-controller-manager \
   capi-controller-manager \
   metal3-baremetal-operator"
-EXPTD_V1ALPHA3_DEPLOYMENTS="capbm-system:capbm-controller-manager \
+EXPTD_V1ALPHA3_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-system:capi-controller-manager \
   capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
   capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
   capi-webhook-system:capi-controller-manager \
   capi-webhook-system:capi-kubeadm-bootstrap-controller-manager \
   capi-webhook-system:capi-kubeadm-control-plane-controller-manager \
+  capi-webhook-system:capm3-controller-manager \
   metal3:metal3-baremetal-operator"
 EXPTD_V1ALPHA2_RS="control-plane:cabpk-controller-manager \
   control-plane:capbm-controller-manager \
   control-plane:cluster-api-controller-manager \
   name:metal3-baremetal-operator"
-EXPTD_V1ALPHA3_RS="cluster.x-k8s.io/provider:infrastructure-baremetal:capbm-system \
+EXPTD_V1ALPHA3_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system \
   cluster.x-k8s.io/provider:cluster-api:capi-system \
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system \
   cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system \
-  cluster.x-k8s.io/provider:infrastructure-baremetal:capi-webhook-system \
+  cluster.x-k8s.io/provider:infrastructure-metal3:capi-webhook-system \
   cluster.x-k8s.io/provider:cluster-api:capi-webhook-system \
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system \
   cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system \
@@ -230,7 +231,7 @@ EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 
 FAILS=0
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
-CAPBM_RUN_LOCAL="${CAPBM_RUN_LOCAL:-false}"
+CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 
 
 # Verify networking
@@ -309,7 +310,7 @@ if [[ "${BMO_RUN_LOCAL}" == true ]]; then
   pgrep "operator-sdk" > /dev/null 2> /dev/null
   process_status $?
 fi
-if [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
+if [[ "${CAPM3_RUN_LOCAL}" == true ]]; then
   # shellcheck disable=SC2034
   RESULT_STR="CAPI operator locally running"
   if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
@@ -320,7 +321,7 @@ if [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
     process_status $?
   fi
 fi
-if [[ "${BMO_RUN_LOCAL}" == true ]] || [[ "${CAPBM_RUN_LOCAL}" == true ]]; then
+if [[ "${BMO_RUN_LOCAL}" == true ]] || [[ "${CAPM3_RUN_LOCAL}" == true ]]; then
   echo ""
 fi
 

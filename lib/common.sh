@@ -88,11 +88,11 @@ export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 # CAPI version
 export CAPI_VERSION=${CAPI_VERSION:-"v1alpha1"}
 
-# CAPBM controller image
+# CAPM3 controller image
 if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-  export CAPBM_IMAGE=${CAPBM_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal:v1alpha1"}
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal:v1alpha1"}
 else
-  export CAPBM_IMAGE=${CAPBM_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal"}
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal"}
 fi
 
 #default hosts memory

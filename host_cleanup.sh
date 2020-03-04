@@ -27,11 +27,11 @@ if [ "${BMO_RUN_LOCAL}" = true ]; then
   kill "$(pgrep "run-bmo-loop.sh")" 2> /dev/null || true
   kill "$(pgrep "operator-sdk")" 2> /dev/null || true
 fi
-if [ "${CAPBM_RUN_LOCAL}" = true ]; then
-  CAPBM_PARENT_PID="$(pgrep -f "go run ./cmd/manager/main.go")"
-  if [[ "${CAPBM_PARENT_PID}" != "" ]]; then
-    CAPBM_GO_PID="$(pgrep -P "${CAPBM_PARENT_PID}" )"
-    kill "${CAPBM_GO_PID}"  2> /dev/null || true
+if [ "${CAPM3_RUN_LOCAL}" = true ]; then
+  CAPM3_PARENT_PID="$(pgrep -f "go run ./cmd/manager/main.go")"
+  if [[ "${CAPM3_PARENT_PID}" != "" ]]; then
+    CAPM3_GO_PID="$(pgrep -P "${CAPM3_PARENT_PID}" )"
+    kill "${CAPM3_GO_PID}"  2> /dev/null || true
   fi
 fi
 
