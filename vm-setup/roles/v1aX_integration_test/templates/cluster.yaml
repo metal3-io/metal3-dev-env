@@ -14,6 +14,7 @@ spec:
     apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
 {% if CAPI_VERSION == 'v1alpha2' %}
     kind: BareMetalCluster
+    name: {{ CLUSTER_NAME }}
 {% else %}
     kind: Metal3Cluster
     name: {{ CLUSTER_NAME }}

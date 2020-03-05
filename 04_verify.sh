@@ -257,14 +257,15 @@ CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  LIST_OF_CRDS=(${EXPTD_V1ALPHAX_CRDS} ${EXPTD_V1ALPHA3_CRDS})
+  LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}" "${EXPTD_V1ALPHA3_CRDS}")
 elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-  LIST_OF_CRDS=(${EXPTD_V1ALPHAX_CRDS} ${EXPTD_V1ALPHA2_CRDS})
+  LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}" "${EXPTD_V1ALPHA2_CRDS}")
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-  LIST_OF_CRDS=(${EXPTD_V1ALPHA1_CRDS})
+  LIST_OF_CRDS=("${EXPTD_V1ALPHA1_CRDS}")
 fi
 
-for name in "${LIST_OF_CRDS[@]}"; do
+# shellcheck disable=SC2068
+for name in ${LIST_OF_CRDS[@]}; do
   RESULT_STR="CRD ${name} created"
   echo "${CRDS}" | grep -w "${name}"  > /dev/null
   process_status $?
