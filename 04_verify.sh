@@ -105,7 +105,7 @@ check_k8s_entity() {
     fi
     process_status $?
 
-    # Check the replicas
+    # Check the replicabaremetalclusters.s
     if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPM3_RUN_LOCAL}" != true ]]
     then
       RESULT_STR="${name} ${TYPE} replicas correct"
@@ -180,22 +180,25 @@ check_container(){
 }
 
 KUBECONFIG="${KUBECONFIG:-${HOME}/.kube/config}"
-EXPTD_CRDS="baremetalhosts.metal3.io \
+EXPTD_V1ALPHA1_CRDS="baremetalhosts.metal3.io \
   clusters.cluster.k8s.io \
   machineclasses.cluster.k8s.io \
   machinedeployments.cluster.k8s.io \
   machines.cluster.k8s.io \
   machinesets.cluster.k8s.io"
-EXPTD_V1ALPHA2_CRDS="clusters.cluster.x-k8s.io \
+EXPTD_V1ALPHAX_CRDS="clusters.cluster.x-k8s.io \
   kubeadmconfigs.bootstrap.cluster.x-k8s.io \
   kubeadmconfigtemplates.bootstrap.cluster.x-k8s.io \
   machinedeployments.cluster.x-k8s.io \
   machines.cluster.x-k8s.io \
   machinesets.cluster.x-k8s.io \
-  baremetalclusters.infrastructure.cluster.x-k8s.io \
-  baremetalhosts.metal3.io \
+  baremetalhosts.metal3.io"
+EXPTD_V1ALPHA2_CRDS="baremetalclusters.infrastructure.cluster.x-k8s.io \
   baremetalmachines.infrastructure.cluster.x-k8s.io \
   baremetalmachinetemplates.infrastructure.cluster.x-k8s.io"
+EXPTD_V1ALPHA3_CRDS="metal3clusters.infrastructure.cluster.x-k8s.io \
+  metal3machines.infrastructure.cluster.x-k8s.io \
+  metal3machinetemplates.infrastructure.cluster.x-k8s.io"
 EXPTD_STATEFULSETS="cluster-api-controller-manager \
   cluster-api-provider-baremetal-controller-manager"
 EXPTD_DEPLOYMENTS="metal3-baremetal-operator"
@@ -253,22 +256,20 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
-  for name in ${EXPTD_V1ALPHA2_CRDS}; do
-    RESULT_STR="CRD ${name} created"
-    echo "${CRDS}" | grep -w "${name}"  > /dev/null
-    process_status $?
-  done
-  echo ""
+if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  LIST_OF_CRDS=(${EXPTD_V1ALPHAX_CRDS} ${EXPTD_V1ALPHA3_CRDS})
+elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+  LIST_OF_CRDS=(${EXPTD_V1ALPHAX_CRDS} ${EXPTD_V1ALPHA2_CRDS})
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-  for name in ${EXPTD_CRDS}; do
-    RESULT_STR="CRD ${name} created"
-    echo "${CRDS}" | grep -w "${name}"  > /dev/null
-    process_status $?
-  done
-  echo ""
+  LIST_OF_CRDS=(${EXPTD_V1ALPHA1_CRDS})
 fi
 
+for name in "${LIST_OF_CRDS[@]}"; do
+  RESULT_STR="CRD ${name} created"
+  echo "${CRDS}" | grep -w "${name}"  > /dev/null
+  process_status $?
+done
+echo ""
 
 if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   # Verify v1alpha2 Operators, Deployments, Replicasets

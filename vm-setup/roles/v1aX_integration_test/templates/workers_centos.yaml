@@ -32,10 +32,18 @@ spec:
       infrastructureRef:
         name: {{ CLUSTER_NAME }}-md-0
         apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
+{% if CAPI_VERSION == 'v1alpha2' %}
         kind: BareMetalMachineTemplate
+{% else %}
+        kind: Metal3MachineTemplate
+{% endif %}
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
+{% if CAPI_VERSION == 'v1alpha2' %}
 kind: BareMetalMachineTemplate
+{% else %}
+kind: Metal3MachineTemplate
+{% endif %}
 metadata:
   name: {{ CLUSTER_NAME }}-md-0
 spec:

@@ -28,20 +28,23 @@ export GOPATH
 M3PATH="${GOPATH}/src/github.com/metal3-io"
 BMOPATH="${M3PATH}/baremetal-operator"
 RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
-CAPM3PATH="${M3PATH}/cluster-api-provider-baremetal"
-
-BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-BMOBRANCH="${BMOBRANCH:-master}"
-CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
+CAPM3PATH="${M3PATH}/cluster-api-provider-metal3"
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-master}"
+  CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-metal3.git}"
 elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+  CAPM3PATH="${M3PATH}/cluster-api-provider-baremetal"
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.2}"
+  CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
+  CAPM3PATH="${M3PATH}/cluster-api-provider-baremetal"
   CAPM3BRANCH="${CAPM3BRANCH:-v1alpha1}"
+  CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 fi
 
+BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
+BMOBRANCH="${BMOBRANCH:-master}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
 
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
