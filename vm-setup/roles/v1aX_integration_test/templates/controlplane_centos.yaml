@@ -7,7 +7,7 @@ spec:
   replicas: 1
   version: {{ KUBERNETES_VERSION }}
   infrastructureTemplate:
-    kind: BareMetalMachineTemplate
+    kind: Metal3MachineTemplate
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     name: {{ CLUSTER_NAME }}-controlplane
   kubeadmConfigSpec:
@@ -89,7 +89,7 @@ spec:
         content: {{ SSH_PUB_KEY_CONTENT }}
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-kind: BareMetalMachineTemplate
+kind: Metal3MachineTemplate
 metadata:
   name: {{ CLUSTER_NAME }}-controlplane
 spec:
@@ -119,11 +119,19 @@ spec:
       name: {{ CLUSTER_NAME }}-controlplane-0
   infrastructureRef:
     apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
+{% if CAPI_VERSION == 'v1alpha2' %}
     kind: BareMetalMachine
+{% else %}
+    kind: Metal3Machine
+{% endif %}
     name: {{ CLUSTER_NAME }}-controlplane-0
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
+{% if CAPI_VERSION == 'v1alpha2' %}
 kind: BareMetalMachine
+{% else %}
+kind: Metal3Machine
+{% endif %}
 metadata:
   name: {{ CLUSTER_NAME }}-controlplane-0
 spec:
