@@ -91,8 +91,10 @@ export CAPI_VERSION=${CAPI_VERSION:-"v1alpha3"}
 # CAPM3 controller image
 if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal:v1alpha1"}
+elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal:release-0.2"}
 else
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal"}
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
 fi
 
 #default hosts memory
