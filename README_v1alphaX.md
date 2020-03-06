@@ -1,6 +1,6 @@
-# v1alpha2 and v1alpha3 deployment
+# v1alpha2, v1alpha3 or v1alpha4 deployment
 
-Versions v1alpha2 and v1alpha3, later referred as **v1alphaX**.
+Versions v1alpha2, v1alpha3 or v1alpha4 are later referred as **v1alphaX**.
 
 The v1alphaX deployment can be done with Ubuntu 18.04 or Centos 7 target host
 images.
@@ -35,6 +35,12 @@ or
 
 ```sh
 export CAPI_VERSION=v1alpha3
+```
+
+or
+
+```sh
+export CAPI_VERSION=v1alpha4
 ```
 
 The following environment variables need to be set for **Centos**:
