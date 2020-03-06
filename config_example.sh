@@ -35,7 +35,7 @@
 #
 # Set the Cluster Api baremetal provider repository to clone
 #
-#export CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
+#export CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-metal3.git}"
 
 #
 # Set the Cluster Api baremetal provider branch to checkout
