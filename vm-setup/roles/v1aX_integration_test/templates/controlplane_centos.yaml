@@ -37,6 +37,11 @@ spec:
       name: {{ " '{{ ds.meta_data.name }}' " }}
       kubeletExtraArgs:
         node-labels: 'metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}'
+  joinConfiguration:
+    nodeRegistration:
+      name: {{ " '{{ ds.meta_data.name }}' " }}
+      kubeletExtraArgs:
+        node-labels: 'metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}'
   preKubeadmCommands:
     - ifup eth1
     - yum update -y
@@ -116,7 +121,6 @@ spec:
     name: {{ CLUSTER_NAME }}-controlplane
   kubeadmConfigSpec:
     joinConfiguration:
-      controlPlane: {}
       nodeRegistration:
         name: {{ " '{{ ds.meta_data.name }}' " }}
         kubeletExtraArgs:
@@ -126,6 +130,9 @@ spec:
         name: {{ " '{{ ds.meta_data.name }}' " }}
         kubeletExtraArgs:
           node-labels: 'metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}'
+    clusterConfiguration:
+      apiServer:
+        extraArgs:
     preKubeadmCommands:
       - ifup eth1
       - yum update -y
