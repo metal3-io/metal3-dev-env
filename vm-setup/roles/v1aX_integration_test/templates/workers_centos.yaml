@@ -1,4 +1,8 @@
+{% if CAPI_VERSION == 'v1alpha2' %}
 apiVersion: cluster.x-k8s.io/{{ CAPI_VERSION }}
+{% else %}
+apiVersion: cluster.x-k8s.io/v1alpha3
+{% endif %}
 kind: MachineDeployment
 metadata:
   name: {{ CLUSTER_NAME }}-md-0
@@ -6,7 +10,7 @@ metadata:
     cluster.x-k8s.io/cluster-name: {{ CLUSTER_NAME }}
     nodepool: nodepool-0
 spec:
-{% if CAPI_VERSION == 'v1alpha3' %}
+{% if CAPI_VERSION != 'v1alpha2' %}
   clusterName: {{ CLUSTER_NAME }}
 {% endif %}
   replicas: 1
@@ -20,7 +24,7 @@ spec:
         cluster.x-k8s.io/cluster-name: {{ CLUSTER_NAME }}
         nodepool: nodepool-0
     spec:
-{% if CAPI_VERSION == 'v1alpha3' %}
+{% if CAPI_VERSION != 'v1alpha2' %}
       clusterName: {{ CLUSTER_NAME }}
 {% endif %}
       version: {{ KUBERNETES_VERSION }}
@@ -53,7 +57,11 @@ spec:
         url: {{ IMAGE_URL }}
         checksum: {{ IMAGE_CHECKSUM }}
 ---
+{% if CAPI_VERSION == 'v1alpha2' %}
 apiVersion: bootstrap.cluster.x-k8s.io/{{ CAPI_VERSION }}
+{% else %}
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+{% endif %}
 kind: KubeadmConfigTemplate
 metadata:
   name: {{ CLUSTER_NAME }}-md-0

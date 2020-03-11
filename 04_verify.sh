@@ -94,14 +94,15 @@ check_k8s_entity() {
   for name in "${@}"; do
     # Check entity exists
     RESULT_STR="${TYPE} ${name} created"
-    if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+    if [ "${CAPI_VERSION}" == "v1alpha1" ] || [ "${CAPI_VERSION}" == "v1alpha2" ]
+    then
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
+      -n metal3 -o json)"
+    else
       NS="$(echo "${name}" | cut -d ':' -f1)"
       DEPLOYMENT="$(echo "${name}" | cut -d ':' -f2)"
       ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${DEPLOYMENT}" \
         -n "${NS}" -o json)"
-    else
-      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
-      -n metal3 -o json)"
     fi
     process_status $?
 
@@ -127,13 +128,14 @@ check_k8s_rs() {
     LABEL=$(echo "$name" | cut -f1 -d:);
     NAME=$(echo "$name" | cut -f2 -d:);
 
-    if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+    if [ "${CAPI_VERSION}" == "v1alpha1" ] || [ "${CAPI_VERSION}" == "v1alpha2" ];
+    then
+      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+        -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
+    else
       NS="$(echo "${name}" | cut -d ':' -f3)"
       ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
         -l "${LABEL}"="${NAME}" -n "${NS}" -o json | jq '.items[0]')"
-    else
-      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
-        -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
     fi
     RESULT_STR="Replica set ${NAME} created"
     differs "${ENTITY}" "null"
@@ -256,12 +258,12 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}" "${EXPTD_V1ALPHA3_CRDS}")
-elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
+if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}" "${EXPTD_V1ALPHA2_CRDS}")
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   LIST_OF_CRDS=("${EXPTD_V1ALPHA1_CRDS}")
+else
+  LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}" "${EXPTD_V1ALPHA3_CRDS}")
 fi
 
 # shellcheck disable=SC2068
@@ -276,15 +278,15 @@ if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   # Verify v1alpha2 Operators, Deployments, Replicasets
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA2_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA2_RS}"
-elif [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  # Verify v1alpha2 Operators, Deployments, Replicasets
-  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
-  iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   # Verify v1alpha1 Operators, Statefulsets, Deployments, Replicasets
   iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
   iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_RS}"
+else
+  # Verify v1alpha3+ Operators, Deployments, Replicasets
+  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
+  iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
 fi
 # Verify the baremetal hosts
 ## Fetch the BM CRs
@@ -315,11 +317,11 @@ fi
 if [[ "${CAPM3_RUN_LOCAL}" == true ]]; then
   # shellcheck disable=SC2034
   RESULT_STR="CAPI operator locally running"
-  if [[ "${CAPI_VERSION}" == "v1alpha2" ]] || [[ "${CAPI_VERSION}" == "v1alpha3" ]]; then
-    pgrep -f "go run ./main.go" > /dev/null 2> /dev/null
-    process_status $?
-  elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
+  if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
     pgrep -f "go run ./cmd/manager/main.go" > /dev/null 2> /dev/null
+    process_status $?
+  else
+    pgrep -f "go run ./main.go" > /dev/null 2> /dev/null
     process_status $?
   fi
 fi

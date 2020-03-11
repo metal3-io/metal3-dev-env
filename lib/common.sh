@@ -87,12 +87,20 @@ export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
 # CAPI version
 export CAPI_VERSION=${CAPI_VERSION:-"v1alpha3"}
+CAPI_VERSION_LIST="v1alpha1 v1alpha2 v1alpha3 v1alpha4"
+echo "${CAPI_VERSION_LIST}" | grep -w "${CAPI_VERSION}"
+if $?; then
+  echo "Invalid CAPI version : ${CAPI_VERSION}. Not in : ${CAPI_VERSION_LIST}"
+  exit 1
+fi
 
 # CAPM3 controller image
 if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal:v1alpha1"}
 elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal:release-0.2"}
+elif [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:release-0.3"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
 fi
@@ -104,16 +112,6 @@ export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-8192}
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 export CLUSTER_APIENDPOINT_IP=${CLUSTER_APIENDPOINT_IP:-"192.168.111.249"}
 export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.17.0"}
-
-#Path to CRs
-export V1ALPHA2_CR_PATH=${SCRIPTDIR}/crs/v1alpha2/
-export V1ALPHA3_CR_PATH=${SCRIPTDIR}/crs/v1alpha3/
-
-if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  export V1ALPHAX_CR_PATH=${V1ALPHA3_CR_PATH}
-else
-  export V1ALPHAX_CR_PATH=${V1ALPHA2_CR_PATH}
-fi
 
 #Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}

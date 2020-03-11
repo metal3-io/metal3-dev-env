@@ -3,12 +3,13 @@
 set -eux
 
 IS_CONTAINER=${IS_CONTAINER:-false}
+CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-podman}"
 
 if [ "${IS_CONTAINER}" != "false" ]; then
   TOP_DIR="${1:-.}"
   mdl --style all --warnings "${TOP_DIR}"
 else
-  podman run --rm \
+  "${CONTAINER_RUNTIME}" run --rm \
     --env IS_CONTAINER=TRUE \
     --volume "${PWD}:/workdir:ro,z" \
     --entrypoint sh \

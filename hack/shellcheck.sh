@@ -3,13 +3,14 @@
 set -eux
 
 IS_CONTAINER=${IS_CONTAINER:-false}
+CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-podman}"
 
 if [ "${IS_CONTAINER}" != "false" ]; then
   TOP_DIR="${1:-.}"
   find "${TOP_DIR}" \
     -type f -name '*.sh' -exec shellcheck -s bash {} \+
 else
-  podman run --rm \
+  "${CONTAINER_RUNTIME}" run --rm \
     --env IS_CONTAINER=TRUE \
     --volume "${PWD}:/workdir:ro,z" \
     --entrypoint sh \

@@ -1,5 +1,9 @@
 ---
+{% if CAPI_VERSION == 'v1alpha2' %}
 apiVersion: cluster.x-k8s.io/{{ CAPI_VERSION }}
+{% else %}
+apiVersion: cluster.x-k8s.io/v1alpha3
+{% endif %}
 kind: Cluster
 metadata:
   name: {{ CLUSTER_NAME }}
@@ -33,11 +37,11 @@ kind: Metal3Cluster
 metadata:
   name: {{ CLUSTER_NAME }}
 spec:
-{% if CAPI_VERSION == 'v1alpha3' %}
+{% if CAPI_VERSION == 'v1alpha2' %}
+  apiEndpoint: http://{{ CLUSTER_APIENDPOINT_HOST }}:6443
+{% else %}
   controlPlaneEndpoint:
     host: {{ CLUSTER_APIENDPOINT_HOST }}
     port: 6443
-{% else %}
-  apiEndpoint: http://{{ CLUSTER_APIENDPOINT_HOST }}:6443
 {% endif %}
   noCloudProvider: true
