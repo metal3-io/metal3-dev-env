@@ -63,3 +63,4 @@ networks:
       forwarders:
         - domain: "apps.{{ cluster_domain }}"
           addr: "{% if baremetal_network_cidr|ipv6 != False %}::1{% else %}127.0.0.1{% endif %}"
+      srvs: "{{dns_externalsrvs | default([])}}"
