@@ -13,9 +13,15 @@ provisioning_host_ports:
   # Container image registry
   - "5000"
 pxe_udp_ports:
+  # Multicast DNS
   - "5353"
+  # DHCP
   - "67"
   - "68"
+  # DHCPv6
+  - "546"
+  - "547"
+  # TFTP
   - "69"
 ironic_keepalived_proto:
   - "112"
