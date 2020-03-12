@@ -12,6 +12,8 @@ provisioning_host_ports:
   - "80"
   # Container image registry
   - "5000"
+  # DNS for registry naming resolution
+  - "53"
 pxe_udp_ports:
   # Multicast DNS
   - "5353"
