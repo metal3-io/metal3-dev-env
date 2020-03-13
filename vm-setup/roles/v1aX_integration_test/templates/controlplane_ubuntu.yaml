@@ -37,6 +37,7 @@ spec:
       name: {{ " '{{ ds.meta_data.name }}' " }}
       kubeletExtraArgs:
         node-labels: 'metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}'
+        provider-id: 'metal3://{{ '{{ ds.meta_data.uuid }}' }}'
   preKubeadmCommands:
     - ip link set dev enp2s0 up
     - dhclient enp2s0
@@ -128,11 +129,13 @@ spec:
         name: {{ " '{{ ds.meta_data.name }}' " }}
         kubeletExtraArgs:
           node-labels: 'metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}'
+          provider-id: 'metal3://{{ '{{ ds.meta_data.uuid }}' }}'
     joinConfiguration:
       nodeRegistration:
         name: {{ " '{{ ds.meta_data.name }}' " }}
         kubeletExtraArgs:
           node-labels: 'metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}'
+          provider-id: 'metal3://{{ '{{ ds.meta_data.uuid }}' }}'
     clusterConfiguration:
       apiServer:
         extraArgs:

@@ -44,4 +44,4 @@ spec:
     host: {{ CLUSTER_APIENDPOINT_HOST }}
     port: 6443
 {% endif %}
-  noCloudProvider: true
+  noCloudProvider: false
