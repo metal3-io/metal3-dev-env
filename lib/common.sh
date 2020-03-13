@@ -88,8 +88,7 @@ export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 # CAPI version
 export CAPI_VERSION=${CAPI_VERSION:-"v1alpha3"}
 CAPI_VERSION_LIST="v1alpha1 v1alpha2 v1alpha3 v1alpha4"
-echo "${CAPI_VERSION_LIST}" | grep -w "${CAPI_VERSION}"
-if $?; then
+if ! echo "${CAPI_VERSION_LIST}" | grep -wq "${CAPI_VERSION}"; then
   echo "Invalid CAPI version : ${CAPI_VERSION}. Not in : ${CAPI_VERSION_LIST}"
   exit 1
 fi
