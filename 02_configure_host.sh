@@ -153,18 +153,21 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
       cd "${REPOPATH}" || exit
       [ "${BRANCH}" = "master" ] || git checkout "${BRANCH}"
     fi
+  # Assume it is a path
+  else
+    cd "${IMAGE}" || exit
+  fi
 
-    #shellcheck disable=SC2086
-    export $IMAGE_VAR="${IMAGE##*/}:latest"
-    #shellcheck disable=SC2086
-    export $IMAGE_VAR="192.168.111.1:5000/localimages/${!IMAGE_VAR}"
-    sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f "${DOCKERFILE}"
-    cd - || exit
-    if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-      sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${!IMAGE_VAR}" "${!IMAGE_VAR}"
-    else
-      sudo "${CONTAINER_RUNTIME}" push "${!IMAGE_VAR}"
-    fi
+  #shellcheck disable=SC2086
+  export $IMAGE_VAR="${IMAGE##*/}:latest"
+  #shellcheck disable=SC2086
+  export $IMAGE_VAR="192.168.111.1:5000/localimages/${!IMAGE_VAR}"
+  sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f "${DOCKERFILE}"
+  cd - || exit
+  if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
+    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${!IMAGE_VAR}" "${!IMAGE_VAR}"
+  else
+    sudo "${CONTAINER_RUNTIME}" push "${!IMAGE_VAR}"
   fi
 done
 
