@@ -25,20 +25,20 @@ export GOPATH
 # BMO_RUN_LOCAL : run the baremetal operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the CAPI operator locally
 
-M3PATH="${GOPATH}/src/github.com/metal3-io"
-BMOPATH="${M3PATH}/baremetal-operator"
+M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
+BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
-CAPM3PATH="${M3PATH}/cluster-api-provider-metal3"
+CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.3}"
   CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-metal3.git}"
 elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-  CAPM3PATH="${M3PATH}/cluster-api-provider-baremetal"
+  CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-baremetal}"
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.2}"
   CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-  CAPM3PATH="${M3PATH}/cluster-api-provider-baremetal"
+  CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-baremetal}"
   CAPM3BRANCH="${CAPM3BRANCH:-v1alpha1}"
   CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 else
@@ -92,7 +92,8 @@ function update_images(){
     fi
 
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
-    OLD_IMAGE=${!OLD_IMAGE_VAR}
+    # Strip the tag for image replacement
+    OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
     #shellcheck disable=SC2086
     kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
   done
