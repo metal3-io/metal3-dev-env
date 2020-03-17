@@ -85,11 +85,9 @@ function clone_repos() {
 function update_images(){
   for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     IMAGE=${!IMAGE_VAR}
-    if [[ "$IMAGE" =~ "://" ]] ; then
-     #shellcheck disable=SC2086
-     IMAGE_NAME="${IMAGE##*/}:latest"
-     LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
-    fi
+   #shellcheck disable=SC2086
+   IMAGE_NAME="${IMAGE##*/}:latest"
+   LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
 
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
     # Strip the tag for image replacement
