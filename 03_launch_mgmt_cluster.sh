@@ -56,26 +56,26 @@ function clone_repos() {
       rm -rf "${BMOPATH}"
     fi
     if [ ! -d "${BMOPATH}" ] ; then
-        pushd "${M3PATH}"
-        git clone "${BMOREPO}" "${BMOPATH}"
-        popd
+      pushd "${M3PATH}"
+      git clone "${BMOREPO}" "${BMOPATH}"
+      popd
+      pushd "${BMOPATH}"
+      git checkout "${BMOBRANCH}"
+      git pull -r || true
+      popd
     fi
-    pushd "${BMOPATH}"
-    git checkout "${BMOBRANCH}"
-    git pull -r || true
-    popd
     if [[ -d "${CAPM3PATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
       rm -rf "${CAPM3PATH}"
     fi
     if [ ! -d "${CAPM3PATH}" ] ; then
-        pushd "${M3PATH}"
-        git clone "${CAPM3REPO}" "${CAPM3PATH}"
-        popd
+      pushd "${M3PATH}"
+      git clone "${CAPM3REPO}" "${CAPM3PATH}"
+      popd
+      pushd "${CAPM3PATH}"
+      git checkout "${CAPM3BRANCH}"
+      git pull -r || true
+      popd
     fi
-    pushd "${CAPM3PATH}"
-    git checkout "${CAPM3BRANCH}"
-    git pull -r || true
-    popd
 }
 
 # Modifies the images to use the ones built locally
@@ -156,8 +156,10 @@ function make_bm_hosts() {
 }
 
 function apply_bm_hosts() {
+    pushd "${BMOPATH}"
     list_nodes | make_bm_hosts > bmhosts_crs.yaml
     kubectl apply -f bmhosts_crs.yaml -n metal3
+    popd
 }
 
 function kustomize_overlay_capm3() {
