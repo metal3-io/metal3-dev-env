@@ -1,5 +1,5 @@
 {% if CAPI_VERSION == 'v1alpha2' %}
-apiVersion: cluster.x-k8s.io/{{ CAPI_VERSION }}
+apiVersion: cluster.x-k8s.io/v1alpha2
 {% else %}
 apiVersion: cluster.x-k8s.io/v1alpha3
 {% endif %}
@@ -58,7 +58,7 @@ spec:
         checksum: {{ IMAGE_CHECKSUM }}
 ---
 {% if CAPI_VERSION == 'v1alpha2' %}
-apiVersion: bootstrap.cluster.x-k8s.io/{{ CAPI_VERSION }}
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha2
 {% else %}
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
 {% endif %}
