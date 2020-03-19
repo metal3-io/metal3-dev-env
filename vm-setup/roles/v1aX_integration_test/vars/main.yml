@@ -17,6 +17,7 @@ IMAGE_OS: "{{ lookup('env', 'IMAGE_OS') | default('Ubuntu', true)}}"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') | default('podman', true)}}"
 DEFAULT_HOSTS_MEMORY: "{{ lookup('env', 'DEFAULT_HOSTS_MEMORY') | default('4096', true)}}"
 CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha3', true)}}"
+IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images')}}"
 
 # Distibution specific environment variables
 IMAGE_NAME: 'bionic-server-cloudimg-amd64.img'
@@ -30,4 +31,3 @@ IMAGE_LOCATION_CENTOS: 'http://artifactory.nordix.org/artifactory/airship/images
 IMAGE_USERNAME_CENTOS: 'centos'
 IMAGE_URL_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}"
 IMAGE_CHECKSUM_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}.md5sum"
-IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images')}}"

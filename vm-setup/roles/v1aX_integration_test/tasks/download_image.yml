@@ -2,13 +2,13 @@
   - name: Get the facts about local CentOS image
     stat:
       path: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME_CENTOS }}"
-    register: image_path
+    register: image_path_centos
 
   - debug:
       msg: "Local image of CentOS is found"
     when:
       - IMAGE_OS == "Centos"
-      - image_path.stat.exists == True
+      - image_path_centos.stat.exists == True
 
   - name: Download CentOS image.
     block:
@@ -21,7 +21,7 @@
           dest: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME_CENTOS }}"
           mode: 0664
 
-      - name: Calculate md5sum of the specific image
+      - name: Calculate md5sum of the centos image
         stat:
          path: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME_CENTOS }}"
          checksum_algorithm: md5
@@ -35,5 +35,44 @@
           dest: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME_CENTOS }}.md5sum"
           mode: 0664
     when:
+      - image_path_centos.stat.exists == False
       - IMAGE_OS == "Centos"
-      - image_path.stat.exists == False
+
+  - name: Get the facts about local Ubuntu image
+    stat:
+      path: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}"
+    register: image_path_ubuntu
+
+  - debug:
+      msg: "Local image of CentOS is found"
+    when:
+      - IMAGE_OS == "Ubuntu"
+      - image_path_ubuntu.stat.exists == True
+
+  - name: Download Ubuntu image.
+    block:
+      - debug:
+          msg: "Local image of Ubuntu is not found, starting to download"
+
+      - name: Verify specific Ubuntu image containing newer version of cloud-init is downloaded
+        get_url:
+          url: "{{ IMAGE_LOCATION }}"
+          dest: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}"
+          mode: 0664
+
+      - name: Calculate md5sum of the Ubuntu image
+        stat:
+         path: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}"
+         checksum_algorithm: md5
+        register: ubuntu_md5
+
+      - name: Create the md5sum file
+        copy:
+          content: |
+            {{ ubuntu_md5.stat.checksum }}
+
+          dest: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}.md5sum"
+          mode: 0664
+    when:
+      - image_path_ubuntu.stat.exists == False
+      - IMAGE_OS == "Ubuntu"
