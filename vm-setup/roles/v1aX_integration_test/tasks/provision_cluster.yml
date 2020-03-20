@@ -1,12 +1,21 @@
 ---
-  - name: Install openshift client
+  - name: Install openshift client in CentOS 8 using pip3
     pip:
       executable: "pip3"
       name: openshift
       state: present
     become: true
     become_user: root
-    when: ansible_facts['distribution'] == "CentOS"
+    when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '8'
+
+  - name: Install openshift client in CentOS 7 using pip
+    pip:
+      executable: "pip"
+      name: openshift
+      state: present
+    become: true
+    become_user: root
+    when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '7'
 
 # Populate cr with environment variables
   - name: Template cluster.yaml
