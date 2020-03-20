@@ -76,14 +76,15 @@ spec:
             provider-id: 'metal3://{{ '{{ ds.meta_data.uuid }}' }}'
       preKubeadmCommands:
         - ifup eth1
+        - mv /tmp/akeys /home/centos/.ssh/authorized_keys
+        - chown centos:centos /home/centos/.ssh/authorized_keys
         - yum update -y
         - yum install yum-utils device-mapper-persistent-data lvm2 -y
         - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
         - setenforce 0
         - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-        - >-
-          yum install docker-ce-18.09.9 docker-ce-cli-18.09.9 containerd.io
-          kubelet kubeadm kubectl --disableexcludes=kubernetes -y
+        - yum install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
+        - yum install kubelet kubeadm kubectl --disableexcludes=kubernetes -y
         - usermod -aG docker centos
         - systemctl enable --now docker kubelet
       files:
@@ -107,7 +108,7 @@ spec:
             gpgcheck=1
             repo_gpgcheck=0
             gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-        - path: /home/centos/.ssh/authorized_keys
-          owner: centos:centos
+        - path: /tmp/akeys
+          owner: root:root
           permissions: '0600'
           content: {{ SSH_PUB_KEY_CONTENT }}
