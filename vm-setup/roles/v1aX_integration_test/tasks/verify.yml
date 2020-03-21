@@ -17,6 +17,16 @@
     delay: 20
     until: provisioned_bmh.stdout_lines ==  ["node-0", "node-1"]
 
+  - name: Wait until both machines become running.
+    shell: |
+        kubectl get machines -n metal3 -o json | jq -r '[ .items[]
+        | select (.status.phase == "Running" or .status.phase == "running")
+        | .metadata.name ] | length'
+    register: provisioned_machines
+    retries: 150
+    delay: 20
+    until: provisioned_machines.stdout == "2"
+
   - name: Define username variable for Ubuntu node
     set_fact:
       username: ubuntu
