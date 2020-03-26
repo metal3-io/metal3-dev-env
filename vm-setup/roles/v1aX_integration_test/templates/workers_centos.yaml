@@ -84,7 +84,13 @@ spec:
         - setenforce 0
         - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
         - yum install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
-        - yum install kubelet kubeadm kubectl --disableexcludes=kubernetes -y
+        - echo  "Installing kubernetes binaries"
+        - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{KUBERNETES_BINARIES_VERSION}}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+        - chmod a+x kubeadm kubelet kubectl
+        - mv kubeadm kubelet kubectl /usr/local/bin/
+        - mkdir -p /etc/systemd/system/kubelet.service.d
+        - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
+        - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
         - usermod -aG docker centos
         - systemctl enable --now docker kubelet
       files:
