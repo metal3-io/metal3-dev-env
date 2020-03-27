@@ -74,11 +74,11 @@ If you want to deploy Ubuntu hosts, please skip to the next section.
 
 If you want to deploy Centos 7 for the target hosts, the Centos 7 image requires
 an update of Cloud-init. An updated image can be downloaded
-[here](http://artifactory.nordix.org/artifactory/airship/images/centos.qcow2).
+[here](https://artifactory.nordix.org/artifactory/airship/images/centos.qcow2).
 You can replace the existing centos image with the following commands :
 
 ```sh
-curl -LO http://artifactory.nordix.org/artifactory/airship/images/centos.qcow2
+curl -LO https://artifactory.nordix.org/artifactory/airship/images/centos.qcow2
 mv centos.qcow2 /opt/metal3-dev-env/ironic/html/images/centos-updated.qcow2
 md5sum /opt/metal3-dev-env/ironic/html/images/centos-updated.qcow2 | \
 awk '{print $1}' > \
