@@ -1,12 +1,28 @@
 #!/bin/bash
 
 #
+# Choose whether the "baremetal" libvirt network will use IPv4, IPv6, or IPv4+IPv6.
+# This network is the primary network interface for the virtual bare metal hosts.
+#
+# Note that this only sets up the underlying network, and fully provisioning IPv6
+# kubernetes clusters is not yet automated.  If IPv6 is enabled, DHCPv6 will
+# be available to the virtual bare metal hosts.
+#
+# v4   -- IPv4 (default)
+# v6   -- IPv6
+# v4v6 -- dual-stack IPv4+IPv6
+#
+#export IP_STACK=v6
+
+#
 # This is the subnet used on the "baremetal" libvirt network, created as the
-# primary network interface for the virtual bare metalhosts.
+# primary network interface for the virtual bare metal hosts.
 #
-# Default of 192.168.111.0/24 set in lib/common.sh
+# V4 default of 192.168.111.0/24 set in lib/network.sh
+# V6 default of fd55::/64 is set in lib/network.sh
 #
-#export EXTERNAL_SUBNET="192.168.111.0/24"
+#export EXTERNAL_SUBNET_V4="192.168.111.0/24"
+#export EXTERNAL_SUBNET_V6="fd55::/64"
 
 #
 # This SSH key will be automatically injected into the provisioned host

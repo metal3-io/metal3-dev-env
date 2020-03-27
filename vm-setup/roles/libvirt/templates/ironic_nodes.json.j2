@@ -1,11 +1,11 @@
 {% set lvars = { 'host_ip' : '192.168.122.1', 'pxe_network' : False} %}
 {% for network in networks %}
-{% if (not (network.forward_mode is defined and network.forward_mode == 'nat') and lvars['pxe_network'] == False) %}
-{% if lvars.update({'pxe_network' : network.name}) %}{% endif %}
-{% endif %}
-{% if network.address is defined and lvars['host_ip'] == '192.168.122.1' %}
-{% if lvars.update({'host_ip' : network.address}) %}{% endif %}
-{% endif %}
+  {% if (not (network.forward_mode is defined and network.forward_mode == 'nat') and lvars['pxe_network'] == False) %}
+    {% if lvars.update({'pxe_network' : network.name}) %}{% endif %}
+  {% endif %}
+  {% if network.address_v4 is defined and lvars['host_ip'] == '192.168.122.1' %}
+    {% if lvars.update({'host_ip' : network.address_v4}) %}{% endif %}
+  {% endif %}
 {% endfor %}
 {
   "nodes": [

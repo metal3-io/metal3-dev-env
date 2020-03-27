@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 #
 # Get the nth address from an IPv4 or IPv6 Network
 #
@@ -69,6 +68,19 @@ network_address dhcp_range_end "$PROVISIONING_NETWORK" 100
 
 export CLUSTER_DHCP_RANGE=${CLUSTER_DHCP_RANGE:-"$dhcp_range_start,$dhcp_range_end"}
 
-export EXTERNAL_SUBNET=${EXTERNAL_SUBNET:-"192.168.111.0/24"}
+export IP_STACK=${IP_STACK:-"v4"}
+if [[ "${IP_STACK}" == "v4" ]]; then
+    export EXTERNAL_SUBNET_V4=${EXTERNAL_SUBNET_V4:-"192.168.111.0/24"}
+    export EXTERNAL_SUBNET_V6=""
+elif [[ "${IP_STACK}" == "v6" ]]; then
+    export EXTERNAL_SUBNET_V4=""
+    export EXTERNAL_SUBNET_V6=${EXTERNAL_SUBNET_V6:-"fd55::/64"}
+elif [[ "${IP_STACK}" == "v4v6" ]]; then
+    export EXTERNAL_SUBNET_V4=${EXTERNAL_SUBNET_V4:-"192.168.111.0/24"}
+    export EXTERNAL_SUBNET_V6=${EXTERNAL_SUBNET_V6:-"fd55::/64"}
+else
+    echo "Invalid value of IP_STACK: '${IP_STACK}'"
+    exit 1
+fi
 
 network_address INITIAL_IRONICBRIDGE_IP "$PROVISIONING_NETWORK" 9

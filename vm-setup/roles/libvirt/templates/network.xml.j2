@@ -1,6 +1,7 @@
 {% set nat_port_range = item.nat_port_range|default([1024, 65535]) %}
-{% set netmask = item.netmask|default("") %}
-{% set prefix = item.prefix|default("") %}
+{% set netmask_v4 = item.netmask_v4|default("") %}
+{% set prefix_v6 = item.prefix_v6|default("") %}
+
 {% if item.dns.options is defined %}
 <network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
   <dnsmasq:options>
@@ -9,83 +10,130 @@
 {% else %}
 <network>
 {% endif %}
+
   <name>{{ item.name }}</name>
   <bridge name='{{ item.bridge }}'/>
+
 {% if item.forward_mode is defined %}
   <forward mode='{{ item.forward_mode }}'>
-{% if item.forward_mode == 'nat' %}
+  {% if item.forward_mode == 'nat' %}
     <nat>
       <port start='{{ nat_port_range[0] }}' end='{{ nat_port_range[1] }}' />
     </nat>
-{% endif %}
+  {% endif %}
   </forward>
 {% endif %}
+
 {% if item.virtualport_type is defined %}
       <virtualport type='{{ item.virtualport_type }}'/>
 {% endif %}
-{% if item.address is defined  and item.forward_mode != 'bridge' %}
-{% if item.address|ipv6 != False %}
-  <ip family="ipv6" address='{{ item.address }}' prefix='{{ prefix }}'>
-{% else %}
-  <ip address='{{ item.address }}' netmask='{{ netmask }}'>
-{% endif %}
-{% if item.dhcp_range is defined %}
+
+{# IPv4 Configuration #}
+{% if item.address_v4 is defined and item.address_v4 != '' and item.forward_mode != 'bridge' %}
+  <ip address='{{ item.address_v4 }}' netmask='{{ netmask_v4 }}'>
+  {% if item.dhcp_range_v4 is defined %}
     <dhcp>
-      <range start='{{ item.dhcp_range[0] }}' end='{{ item.dhcp_range[1] }}'/>
-{% set ns = namespace(index=0) %}
-{% for flavor in flavors %}
-{% set numflavor = lookup('vars', 'num_' + flavor + 's')|default(0)|int %}
-{% for num in range(0, numflavor) %}
-{% set ironic_name = ironic_prefix + flavor + "_" + num|string %}
-{% set hostname_format = lookup('vars', flavor + '_hostname_format', default=flavor + '-%d') %}
-{% set hostname = hostname_format % num %}
-{% if item.address|ipv6 != False %}
-      <host id='00:03:00:01:{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{hostname}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
-{% else %}
-      <host mac='{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{hostname}}' ip='{{item.dhcp_range[0]|ipmath(ns.index|int)}}'/>
-{% endif %}
-{% set ns.index = ns.index + 1 %}
-{% endfor %}
-{% endfor %}
+      <range start='{{ item.dhcp_range_v4[0] }}' end='{{ item.dhcp_range_v4[1] }}'/>
+    {% set ns = namespace(index=0) %}
+    {% for flavor in flavors %}
+      {% set numflavor = lookup('vars', 'num_' + flavor + 's')|default(0)|int %}
+      {% for num in range(0, numflavor) %}
+        {% set ironic_name = ironic_prefix + flavor + "_" + num|string %}
+        {% set hostname_format = lookup('vars', flavor + '_hostname_format', default=flavor + '-%d') %}
+        {% set hostname = hostname_format % num %}
+      <host mac='{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{hostname}}' ip='{{item.dhcp_range_v4[0]|ipmath(ns.index|int)}}'/>
+        {% set ns.index = ns.index + 1 %}
+      {% endfor %}
+    {% endfor %}
     </dhcp>
-{% endif %}
+  {% endif %}
   </ip>
-{% if item.domain is defined %}
+  {% if item.domain is defined %}
   <domain name='{{ item.domain }}' localOnly='yes'/>
-{% endif %}
-{% if item.dns is defined %}
+  {% endif %}
+  {% if item.dns is defined %}
   <dns>
-  {% for host in item.dns.hosts %}
+    {% for host in item.dns.hosts %}
     <host ip='{{ host.ip }}'>
-    {% for name in host.hostnames %}
+      {% for name in host.hostnames %}
       <hostname>{{ name }}</hostname>
-    {% endfor %}
+      {% endfor %}
     </host>
-  {% endfor %}
-  {% if item.dns.srvs is defined %}
-    {% for srv in item.dns.srvs %}
+    {% endfor %}
+    {% if item.dns.srvs is defined %}
+      {% for srv in item.dns.srvs %}
     <srv service='{{ srv.name }}' protocol='{{ srv.protocol }}' domain='{{ srv.domain }}' port='{{ srv.port }}' target='{{ srv.target }}' />
-    {% endfor %}
-  {% endif %}
-  {% if item.dns.forwarders is defined %}
-    {% for forwarder in item.dns.forwarders %}
+      {% endfor %}
+    {% endif %}
+    {% if item.dns.forwarders is defined %}
+      {% for forwarder in item.dns.forwarders %}
     <forwarder domain='{{ forwarder.domain }}' addr='{{ forwarder.addr }}' />
-    {% endfor %}
-  {% endif %}
+      {% endfor %}
+    {% endif %}
   </dns>
+  {% endif %}
 {% endif %}
+{# End IPv4 Configuration #}
+
+{# IPv6 Configuration #}
+{% if item.address_v6 is defined and item.address_v6 != '' and item.forward_mode != 'bridge' %}
+  <ip family="ipv6" address='{{ item.address_v6 }}' prefix='{{ prefix_v6 }}'>
+  {% if item.dhcp_range_v6 is defined %}
+    <dhcp>
+      <range start='{{ item.dhcp_range_v6[0] }}' end='{{ item.dhcp_range_v6[1] }}'/>
+    {% set ns = namespace(index=0) %}
+    {% for flavor in flavors %}
+      {% set numflavor = lookup('vars', 'num_' + flavor + 's')|default(0)|int %}
+      {% for num in range(0, numflavor) %}
+        {% set ironic_name = ironic_prefix + flavor + "_" + num|string %}
+        {% set hostname_format = lookup('vars', flavor + '_hostname_format', default=flavor + '-%d') %}
+        {% set hostname = hostname_format % num %}
+        <host id='00:03:00:01:{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{hostname}}' ip='{{item.dhcp_range_v6[0]|ipmath(ns.index|int)}}'/>
+        {% set ns.index = ns.index + 1 %}
+      {% endfor %}
+    {% endfor %}
+    </dhcp>
+  {% endif %}
+  </ip>
+  {% if item.domain is defined %}
+  <domain name='{{ item.domain }}' localOnly='yes'/>
+  {% endif %}
+  {% if item.dns is defined %}
+  <dns>
+    {% for host in item.dns.hosts %}
+    <host ip='{{ host.ip }}'>
+      {% for name in host.hostnames %}
+      <hostname>{{ name }}</hostname>
+      {% endfor %}
+    </host>
+    {% endfor %}
+    {% if item.dns.srvs is defined %}
+      {% for srv in item.dns.srvs %}
+    <srv service='{{ srv.name }}' protocol='{{ srv.protocol }}' domain='{{ srv.domain }}' port='{{ srv.port }}' target='{{ srv.target }}' />
+      {% endfor %}
+    {% endif %}
+    {% if item.dns.forwarders is defined %}
+      {% for forwarder in item.dns.forwarders %}
+    <forwarder domain='{{ forwarder.domain }}' addr='{{ forwarder.addr }}' />
+      {% endfor %}
+    {% endif %}
+  </dns>
+  {% endif %}
 {% endif %}
+{# End IPv6 Configuration #}
+
 {% if item.portgroup is defined %}
   {% for portgroup in item.portgroup %}
   <portgroup name='{{ portgroup.name }}'>
-  {% if portgroup.vlan is defined %}
+    {% if portgroup.vlan is defined %}
     <vlan>
-    {% for vlan in portgroup.vlan %}
+      {% for vlan in portgroup.vlan %}
       <tag id='{{ vlan.tag }}'/>
-    {% endfor %}
+      {% endfor %}
     </vlan>
-  {% endif %}
+    {% endif %}
   </portgroup>
   {% endfor %}
 {% endif %}
+
 </network>
