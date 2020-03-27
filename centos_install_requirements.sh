@@ -43,6 +43,8 @@ sudo dnf -y install \
   wget
 
 if [[ $DISTRO == "centos7" ]]; then
+  # Install pip since it is used by the k8s Ansible module
+  sudo dnf -y install python-pip
   # Install tripleo-repos, used to get a recent version of python-jinja2
   # which is required for some ansible templates
   sudo dnf -y --repofrompath="current-tripleo,https://trunk.rdoproject.org/${DISTRO}-master/current-tripleo" install "python*-tripleo-repos" --nogpgcheck
