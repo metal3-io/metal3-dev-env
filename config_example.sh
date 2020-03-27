@@ -125,3 +125,8 @@
 
 # POD CIDR
 # export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"
+
+# Node hostname format. This is a format string that must contain exactly one
+# %d format field that will be replaced with an integer representing the number
+# of the node.
+# export NODE_HOSTNAME_FORMAT="node-%d"
