@@ -15,7 +15,7 @@ verify:
 clean: delete_mgmt_cluster host_cleanup
 
 delete_mgmt_cluster:
-	sudo su -l -c "minikube delete" "$(USER)"
+	./cluster_cleanup.sh
 
 host_cleanup:
 	./host_cleanup.sh

@@ -53,6 +53,14 @@ FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
 CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 
+if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
+  IRONIC_HOST="${PROVISIONING_URL_HOST}"
+  BMO_CONFIG="ironic-outside-config"
+else
+  IRONIC_HOST="${CLUSTER_URL_HOST}"
+  BMO_CONFIG="ironic-keepalived-config"
+fi
+
 function clone_repos() {
     mkdir -p "${M3PATH}"
     if [[ -d "${BMOPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
@@ -109,14 +117,15 @@ configMapGenerator:
   - PROVISIONING_INTERFACE=$CLUSTER_PROVISIONING_INTERFACE
   - PROVISIONING_CIDR=$PROVISIONING_CIDR
   - DHCP_RANGE=$CLUSTER_DHCP_RANGE
-  - DEPLOY_KERNEL_URL=http://$CLUSTER_URL_HOST:6180/images/ironic-python-agent.kernel
-  - DEPLOY_RAMDISK_URL=http://$CLUSTER_URL_HOST:6180/images/ironic-python-agent.initramfs
-  - IRONIC_ENDPOINT=http://$CLUSTER_URL_HOST:6385/v1/
-  - IRONIC_INSPECTOR_ENDPOINT=http://$CLUSTER_URL_HOST:5050/v1/
-  - CACHEURL=http://$PROVISIONING_URL_HOST/images
+  - DEPLOY_KERNEL_URL=http://$IRONIC_HOST:6180/images/ironic-python-agent.kernel
+  - DEPLOY_RAMDISK_URL=http://$IRONIC_HOST:6180/images/ironic-python-agent.initramfs
+  - IRONIC_ENDPOINT=http://$IRONIC_HOST:6385/v1/
+  - IRONIC_INSPECTOR_ENDPOINT=http://$IRONIC_HOST:5050/v1/
+  - CACHEURL=http://$IRONIC_HOST/images
+  - IRONIC_FAST_TRACK=false
   name: ironic-bmo-configmap
 resources:
-- $(realpath --relative-to="$overlay_path" "$BMOPATH/deploy/ironic-keepalived-config")
+- $(realpath --relative-to="$overlay_path" "$BMOPATH/deploy/$BMO_CONFIG")
 EOF
 }
 
@@ -136,7 +145,13 @@ function launch_baremetal_operator() {
       touch bmo.err.log
       kustomize build "$kustomize_overlay_path" | kubectl apply -f-
       kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
+    fi
+
+    if [ "${BMO_RUN_LOCAL}" = true ] || [ "${EPHEMERAL_CLUSTER}" = kind ]; then
       ${RUN_LOCAL_IRONIC_SCRIPT}
+    fi
+
+    if [ "${BMO_RUN_LOCAL}" = true ]; then
       nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
     else
       kustomize build "$kustomize_overlay_path" | kubectl apply -f-
@@ -249,16 +264,20 @@ function create_clouds_yaml() {
 }
 
 create_clouds_yaml
-init_minikube
-sudo su -l -c 'minikube start' "${USER}"
-if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
-  sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"$CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR"' dev eth2"' "${USER}"
-else
-	sudo su -l -c "minikube ssh sudo brctl addbr $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
-	sudo su -l -c "minikube ssh sudo ip link set $CLUSTER_PROVISIONING_INTERFACE up" "${USER}"
-	sudo su -l -c "minikube ssh sudo brctl addif $CLUSTER_PROVISIONING_INTERFACE eth2" "${USER}"
-	sudo su -l -c "minikube ssh sudo ip addr add $INITIAL_IRONICBRIDGE_IP/$PROVISIONING_CIDR dev $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
 
+if "${EPHEMERAL_CLUSTER}" == "kind"; then
+  kind create cluster --image=kindest/node:v1.17.0
+else
+  init_minikube
+  sudo su -l -c 'minikube start' "${USER}"
+  if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
+    sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"$CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR"' dev eth2"' "${USER}"
+  else
+	  sudo su -l -c "minikube ssh sudo brctl addbr $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
+	  sudo su -l -c "minikube ssh sudo ip link set $CLUSTER_PROVISIONING_INTERFACE up" "${USER}"
+	  sudo su -l -c "minikube ssh sudo brctl addif $CLUSTER_PROVISIONING_INTERFACE eth2" "${USER}"
+	  sudo su -l -c "minikube ssh sudo ip addr add $INITIAL_IRONICBRIDGE_IP/$PROVISIONING_CIDR dev $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
+  fi
 fi
 
 launch_baremetal_operator

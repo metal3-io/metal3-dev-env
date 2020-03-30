@@ -59,3 +59,12 @@
     protocol: "{{ item }}"
     jump: ACCEPT
   loop: "{{ ironic_keepalived_proto }}"
+
+- name: "iptables: Allow access to baremetal network from kind"
+  iptables:
+    chain: FORWARD
+    action: insert
+    out_interface: "{{ baremetal_interface }}"
+    destination: "192.168.111.1/24"
+    jump: ACCEPT
+  when: (EPHEMERAL_CLUSTER == "kind")

@@ -14,10 +14,20 @@ else
   source centos_install_requirements.sh
 fi
 
-if ! command -v minikube 2>/dev/null ; then
-    curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-    chmod +x minikube
-    sudo mv minikube /usr/local/bin/.
+if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
+  if ! command -v minikube 2>/dev/null ; then
+      curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+      chmod +x minikube
+      sudo mv minikube /usr/local/bin/.
+  fi
+fi
+
+if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
+    if ! command -v kind 2>/dev/null ; then
+        curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
+        chmod +x ./kind
+        sudo mv kind /usr/local/bin/.
+    fi
 fi
 
 if ! command -v docker-machine-driver-kvm2 2>/dev/null ; then
@@ -110,6 +120,7 @@ function configure_minikube() {
     minikube config set vm-driver kvm2
     minikube config set memory 4096
 }
-
-configure_minikube
-init_minikube
+if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
+  configure_minikube
+  init_minikube
+fi
