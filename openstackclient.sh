@@ -11,5 +11,5 @@ else
 fi
 
 sudo "${CONTAINER_RUNTIME}" run -ti --net=host \
-  -v "${MOUNTDIR}:/etc/openstack" \
+  -v "${MOUNTDIR}:/etc/openstack" --rm \
   -e OS_CLOUD="${OS_CLOUD:-metal3}" "${IRONIC_CLIENT_IMAGE}" "$@"
