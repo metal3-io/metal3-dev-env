@@ -137,3 +137,4 @@
   template:
     src: ../templates/ironic_nodes.json.j2
     dest: "{{ nodes_file }}"
+    force: no

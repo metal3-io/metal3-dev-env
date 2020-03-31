@@ -92,3 +92,8 @@
         path: "/run/user/{{ pool_uid.stdout }}/libvirt/storage/run/{{ libvirt_volume_pool }}.xml"
         state: absent
       when: pool_check is success
+
+    - name: Remove ironic_nodes.json
+      file:
+        path: "{{ nodes_file }}"
+        state: absent
