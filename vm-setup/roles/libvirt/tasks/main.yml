@@ -10,4 +10,5 @@
   block:
     - include_tasks: network_teardown_tasks.yml
     - include_tasks: vm_teardown_tasks.yml
+      when: vm_platform == "libvirt"
   when: libvirt_action == "teardown"
