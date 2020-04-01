@@ -87,7 +87,7 @@ spec:
                   {{ CLUSTER_APIENDPOINT_HOST }}
               }
           }
-      - path: /etc/netplan/50-cloud-init.yaml
+      - path: /etc/netplan/51-cloud-config.yaml
         owner: root:root
         permissions: '0644'
         content: |
@@ -95,12 +95,14 @@ spec:
               ethernets:
                   enp2s0:
                       dhcp4: true
+                  enp1s0:
+                      dhcp4: false
               version: 2
       - path: /tmp/akeys
         owner: root:root
         permissions: '0644'
         content: {{ SSH_PUB_KEY_CONTENT }}
-      - path : /etc/netplan/60-ironicendpoint.yaml
+      - path : /etc/netplan/52-ironicendpoint.yaml
         owner: root:root
         permissions: '0644'
         content: |
@@ -188,7 +190,7 @@ spec:
                     {{ CLUSTER_APIENDPOINT_HOST }}
                 }
             }
-        - path: /etc/netplan/50-cloud-init.yaml
+        - path: /etc/netplan/51-cloud-config.yaml
           owner: root:root
           permissions: '0644'
           content: |
@@ -196,12 +198,14 @@ spec:
                 ethernets:
                     enp2s0:
                         dhcp4: true
+                    enp1s0:
+                        dhcp4: false
                 version: 2
         - path: /tmp/akeys
           owner: root:root
           permissions: '0644'
           content: {{ SSH_PUB_KEY_CONTENT }}
-        - path : /etc/netplan/60-ironicendpoint.yaml
+        - path : /etc/netplan/52-ironicendpoint.yaml
           owner: root:root
           permissions: '0644'
           content: |
