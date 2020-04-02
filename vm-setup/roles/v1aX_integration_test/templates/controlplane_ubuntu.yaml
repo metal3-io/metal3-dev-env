@@ -55,7 +55,14 @@ spec:
     - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
     - echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list
     - apt update -y
-    - apt install docker-ce docker-ce-cli containerd.io kubelet kubeadm kubectl -y
+    - apt install docker-ce docker-ce-cli containerd.io -y
+    - echo  "Installing kubernetes binaries"
+    - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{KUBERNETES_BINARIES_VERSION}}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+    - chmod a+x kubeadm kubelet kubectl
+    - mv kubeadm kubelet kubectl /usr/local/bin/
+    - mkdir -p /etc/systemd/system/kubelet.service.d
+    - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
+    - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     - systemctl enable --now docker kubelet
     - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo "keepalived already running";else systemctl start keepalived; fi
     - usermod -aG docker ubuntu
@@ -158,7 +165,14 @@ spec:
       - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
       - echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list
       - apt update -y
-      - apt install docker-ce docker-ce-cli containerd.io kubelet kubeadm kubectl -y
+      - apt install docker-ce docker-ce-cli containerd.io -y
+      - echo  "Installing kubernetes binaries"
+      - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{KUBERNETES_BINARIES_VERSION}}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+      - chmod a+x kubeadm kubelet kubectl
+      - mv kubeadm kubelet kubectl /usr/local/bin/
+      - mkdir -p /etc/systemd/system/kubelet.service.d
+      - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
+      - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
       - systemctl enable --now docker kubelet
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo "keepalived already running";else systemctl start keepalived; fi
       - usermod -aG docker ubuntu
@@ -216,7 +230,6 @@ spec:
                 ironicendpoint:
                   interfaces: [enp1s0]
                   dhcp4: yes
-
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
 kind: Metal3MachineTemplate

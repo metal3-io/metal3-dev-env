@@ -54,8 +54,14 @@ spec:
     - yum install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
     - >-
       yum install gcc kernel-headers kernel-devel keepalived
-      device-mapper-persistent-data lvm2
-      kubelet kubeadm kubectl --disableexcludes=kubernetes -y
+      device-mapper-persistent-data lvm2 -y
+    - echo  "Installing kubernetes binaries"
+    - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{KUBERNETES_BINARIES_VERSION}}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+    - chmod a+x $(pwd)/{kubeadm,kubelet,kubectl}
+    - mv $(pwd)/{kubeadm,kubelet,kubectl} /usr/local/bin/
+    - mkdir -p /etc/systemd/system/kubelet.service.d
+    - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
+    - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     - usermod -aG docker centos
     - systemctl enable --now docker keepalived kubelet
   postKubeadmCommands:
@@ -149,8 +155,14 @@ spec:
       - yum install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
       - >-
         yum install gcc kernel-headers kernel-devel keepalived
-        device-mapper-persistent-data lvm2
-        kubelet kubeadm kubectl --disableexcludes=kubernetes -y
+        device-mapper-persistent-data lvm2 -y
+      - echo  "Installing kubernetes binaries"
+      - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{KUBERNETES_BINARIES_VERSION}}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+      - chmod a+x kubeadm kubelet kubectl
+      - mv kubeadm kubelet kubectl /usr/local/bin/
+      - mkdir -p /etc/systemd/system/kubelet.service.d
+      - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
+      - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
       - usermod -aG docker centos
       - systemctl enable --now docker keepalived kubelet
     postKubeadmCommands:
@@ -204,6 +216,7 @@ spec:
         owner: root:root
         permissions: '0600'
         content: {{ SSH_PUB_KEY_CONTENT }}
+        
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
 kind: Metal3MachineTemplate
