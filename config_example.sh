@@ -102,10 +102,11 @@
 #
 #export CAPI_VERSION=v1alpha3
 
-#export KUBERNETES_VERSION="v1.17.0"
+#export KUBERNETES_VERSION="v1.18.0"
 
 # Version of kubelet, kubeadm and kubectl binaries
 #export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
+#export KUBERNETES_BINARIES_CONFIG_VERSION="v0.2.7"
 
 # Configure provisioning network for single-stack ipv6
 #PROVISIONING_IPV6=false

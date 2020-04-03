@@ -31,6 +31,7 @@ spec:
       - mv /tmp/akeys /home/ubuntu/.ssh/authorized_keys
       - chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
       - apt update -y
+      - apt-get install -y conntrack socat
       - netplan apply
       - >-
         apt install net-tools gcc linux-headers-$(uname -r) bridge-utils
@@ -48,8 +49,8 @@ spec:
       - chmod a+x kubeadm kubelet kubectl
       - mv kubeadm kubelet kubectl /usr/local/bin/
       - mkdir -p /etc/systemd/system/kubelet.service.d
-      - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
-      - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+      - curl -sSL "https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
+      - curl -sSL "https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
       - systemctl enable --now docker kubelet
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo "keepalived already running";else systemctl start keepalived; fi
       - usermod -aG docker ubuntu

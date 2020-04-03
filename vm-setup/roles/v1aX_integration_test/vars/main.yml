@@ -7,8 +7,10 @@ CLUSTER_APIENDPOINT_HOST: "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
 CLUSTER_APIENDPOINT_IP: "{{ lookup('env', 'CLUSTER_APIENDPOINT_IP') }}"
 CLUSTER_NAME: "{{ lookup('env', 'CLUSTER_NAME') | default('test1', true) }}"
 KUBECONFIG_PATH: "/home/ubuntu/.kube/config"
-KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.17.0', true) }}"
-KUBERNETES_BINARIES_VERSION: "{{ lookup('env', 'KUBERNETES_BINARIES_VERSION') | default(lookup('env', 'KUBERNETES_VERSION') | default('v1.17.0', true), true) }}"
+KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.18.0', true) }}"
+
+KUBERNETES_BINARIES_VERSION: "{{ lookup('env', 'KUBERNETES_BINARIES_VERSION') | default(lookup('env', 'KUBERNETES_VERSION') | default('v1.18.0', true), true) }}"
+KUBERNETES_BINARIES_CONFIG_VERSION: "{{ lookup('env', 'KUBERNETES_BINARIES_CONFIG_VERSION') | default('v0.2.7', true) }}"
 
 POD_CIDR: "{{ lookup('env', 'POD_CIDR') }}"
 SSH_PRIVATE_KEY: "{{ lookup('env', 'SSH_KEY') }}"

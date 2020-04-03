@@ -69,14 +69,15 @@ spec:
         - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
         - echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list
         - apt update -y
+        - apt-get install -y conntrack socat
         - apt install docker-ce docker-ce-cli containerd.io -y
         - echo  "Installing kubernetes binaries"
         - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{KUBERNETES_BINARIES_VERSION}}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
         - chmod a+x kubeadm kubelet kubectl
         - mv kubeadm kubelet kubectl /usr/local/bin/
         - mkdir -p /etc/systemd/system/kubelet.service.d
-        - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
-        - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+        - curl -sSL "https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
+        - curl -sSL "https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
         - systemctl enable --now docker kubelet
         - usermod -aG docker ubuntu
       files:
