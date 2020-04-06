@@ -99,6 +99,7 @@ if ! id "$USER" | grep -q libvirt; then
 fi
 
 # Start image downloader container
+#shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ipa-downloader ${POD_NAME} \
      -e IPA_BASEURI="$IPA_BASEURI" \
      -v "$IRONIC_DATA_DIR":/shared "${IPA_DOWNLOADER_IMAGE}" /usr/local/bin/get-resource.sh

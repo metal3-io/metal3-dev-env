@@ -177,15 +177,18 @@ VBMC_IMAGE=${VBMC_LOCAL_IMAGE:-$VBMC_IMAGE}
 SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_LOCAL_IMAGE:-$SUSHY_TOOLS_IMAGE}
 
 # Start httpd container
+#shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra \
      ${POD_NAME_INFRA} -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd\
      "${IRONIC_IMAGE}"
 
 # Start vbmc and sushy containers
+#shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name vbmc ${POD_NAME_INFRA} \
      -v "$WORKING_DIR/virtualbmc/vbmc":/root/.vbmc -v "/root/.ssh":/root/ssh \
      "${VBMC_IMAGE}"
 
+#shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name sushy-tools ${POD_NAME_INFRA} \
      -v "$WORKING_DIR/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
      "${SUSHY_TOOLS_IMAGE}"
