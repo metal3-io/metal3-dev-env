@@ -270,6 +270,10 @@ if "${EPHEMERAL_CLUSTER}" == "kind"; then
 else
   init_minikube
   sudo su -l -c 'minikube start' "${USER}"
+  if [[ -n "${MINIKUBE_BMNET_V6_IP}" ]]; then
+	  sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
+	  sudo su -l -c "minikube ssh -- sudo ip addr add $MINIKUBE_BMNET_V6_IP/64 dev eth3" "${USER}"
+  fi
   if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
     sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"$CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR"' dev eth2"' "${USER}"
   else
