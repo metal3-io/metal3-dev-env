@@ -28,3 +28,5 @@ pxe_udp_ports:
 ironic_keepalived_proto:
   - "112"
   - "icmp"
+
+EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('minikube', true)}}"

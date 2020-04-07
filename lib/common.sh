@@ -114,8 +114,18 @@ export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 export CLUSTER_APIENDPOINT_IP=${CLUSTER_APIENDPOINT_IP:-"192.168.111.249"}
 export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.17.0"}
 export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
+
+if [ "${CONTAINER_RUNTIME}" == "docker" ]; then
+  export EPHEMERAL_CLUSTER=${EPHEMERAL_CLUSTER:-"minikube"}
+else
+  echo "Management cluster forced to be minikube when container runtime is not docker"
+  export EPHEMERAL_CLUSTER="minikube"
+fi
 #Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.2.3"}
+
+#Kind version
+export KIND_VERSION=${KIND_VERSION:-"v0.7.0"}
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
