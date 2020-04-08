@@ -147,14 +147,14 @@ spec:
       - ifup eth1
       - mv /tmp/akeys /home/centos/.ssh/authorized_keys
       - chown centos:centos /home/centos/.ssh/authorized_keys
-      - yum update -y
-      - yum install yum-utils -y
-      - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      - dnf update -y
+      - dnf install python3 -y
+      - dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
       - setenforce 0
       - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-      - yum install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
+      - dnf install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
       - >-
-        yum install gcc kernel-headers kernel-devel keepalived
+        dnf install gcc kernel-headers kernel-devel keepalived
         device-mapper-persistent-data lvm2 -y
       - echo  "Installing kubernetes binaries"
       - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{KUBERNETES_BINARIES_VERSION}}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
@@ -216,7 +216,7 @@ spec:
         owner: root:root
         permissions: '0600'
         content: {{ SSH_PUB_KEY_CONTENT }}
-        
+
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
 kind: Metal3MachineTemplate

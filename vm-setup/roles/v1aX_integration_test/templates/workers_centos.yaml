@@ -78,12 +78,12 @@ spec:
         - ifup eth1
         - mv /tmp/akeys /home/centos/.ssh/authorized_keys
         - chown centos:centos /home/centos/.ssh/authorized_keys
-        - yum update -y
-        - yum install yum-utils device-mapper-persistent-data lvm2 -y
-        - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        - dnf update -y
+        - dnf install python3 -y
+        - dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
         - setenforce 0
         - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-        - yum install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
+        - dnf install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
         - echo  "Installing kubernetes binaries"
         - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{KUBERNETES_BINARIES_VERSION}}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
         - chmod a+x kubeadm kubelet kubectl
