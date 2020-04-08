@@ -265,7 +265,7 @@ function create_clouds_yaml() {
 
 create_clouds_yaml
 
-if "${EPHEMERAL_CLUSTER}" == "kind"; then
+if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
   kind create cluster --image=kindest/node:v1.17.0
 else
   init_minikube
