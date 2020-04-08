@@ -38,10 +38,19 @@
     non_root_user_uid: "{{ non_root_user_uid.stdout }}"
 
 # The first network defined with an address will be used for vbmc access.
-- name: set vbmc address if there is a (nat) network defined with an address
+- name: set vbmc address (v4) if there is a (nat) network defined with an address
   set_fact:
-    vbmc_address: "{{ networks|selectattr('address', 'defined')|map(attribute='address')|list|first }}"
-  when: networks|selectattr('address', 'defined')|map(attribute='name')|list|length > 0
+    vbmc_address_v4: "{{ networks|selectattr('address_v4', 'defined')|map(attribute='address_v4')|list|first }}"
+  when: networks|selectattr('address_v4', 'defined')|map(attribute='name')|list|length > 0
+
+- name: set vbmc address (v6) if there is a (nat) network defined with an address
+  set_fact:
+    vbmc_address_v6: "{{ networks|selectattr('address_v6', 'defined')|map(attribute='address_v6')|list|first }}"
+  when: networks|selectattr('address_v6', 'defined')|map(attribute='name')|list|length > 0
+
+- name: set vbmc address from IPv4 networks if possible, otherwise IPv6
+  set_fact:
+    vbmc_address: "{% if vbmc_address_v4|ipv4 != False %}{{ vbmc_address_v4 }}{% else %}{{ vbmc_address_v6 }}{% endif %}"
 
 # The connection uri is slightly different when using qemu:///system
 # and requires the root user.
@@ -75,7 +84,7 @@
       password = password
       domain_name = {{ item.name }}
       libvirt_uri = {{ vbmc_libvirt_uri }}
-      address = {{ baremetal_network_cidr|nthhost(1) }}
+      address = {{ vbmc_address }}
       active = True
       port = {{ item.virtualbmc_port }}
   with_items: "{{ vm_nodes }}"
