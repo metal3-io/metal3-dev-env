@@ -107,7 +107,7 @@
       - name: Check if pods in running state
         shell: "kubectl get pods -A -o json | jq -r '.items[].status.phase' | grep -v Running"
         environment:
-          KUBECONFIG: "{{ KUBECONFIG_PATH }}"
+          KUBECONFIG: "/home/{{ username }}/.kube/config"
         retries: 150
         delay: 3
         register: running_pods
@@ -120,7 +120,7 @@
       - name: Check if nodes in ready state
         shell: kubectl get nodes | grep -w Ready | wc -l
         environment:
-          KUBECONFIG: "{{ KUBECONFIG_PATH }}"
+          KUBECONFIG: "/home/{{ username }}/.kube/config"
         retries: 150
         delay: 3
         register: ready_nodes
