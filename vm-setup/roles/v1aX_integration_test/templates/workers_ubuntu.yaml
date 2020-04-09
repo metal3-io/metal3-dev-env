@@ -1,8 +1,4 @@
-{% if CAPI_VERSION == 'v1alpha2' %}
-apiVersion: cluster.x-k8s.io/v1alpha2
-{% else %}
 apiVersion: cluster.x-k8s.io/v1alpha3
-{% endif %}
 kind: MachineDeployment
 metadata:
   name: {{ CLUSTER_NAME }}-md-0
@@ -10,9 +6,7 @@ metadata:
     cluster.x-k8s.io/cluster-name: {{ CLUSTER_NAME }}
     nodepool: nodepool-0
 spec:
-{% if CAPI_VERSION != 'v1alpha2' %}
   clusterName: {{ CLUSTER_NAME }}
-{% endif %}
   replicas: 1
   selector:
     matchLabels:
@@ -24,9 +18,7 @@ spec:
         cluster.x-k8s.io/cluster-name: {{ CLUSTER_NAME }}
         nodepool: nodepool-0
     spec:
-{% if CAPI_VERSION != 'v1alpha2' %}
       clusterName: {{ CLUSTER_NAME }}
-{% endif %}
       version: {{ KUBERNETES_VERSION }}
       bootstrap:
         configRef:
@@ -36,18 +28,10 @@ spec:
       infrastructureRef:
         name: {{ CLUSTER_NAME }}-md-0
         apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
-{% if CAPI_VERSION == 'v1alpha2' %}
-        kind: BareMetalMachineTemplate
-{% else %}
         kind: Metal3MachineTemplate
-{% endif %}
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
-{% if CAPI_VERSION == 'v1alpha2' %}
-kind: BareMetalMachineTemplate
-{% else %}
 kind: Metal3MachineTemplate
-{% endif %}
 metadata:
   name: {{ CLUSTER_NAME }}-md-0
 spec:
@@ -57,11 +41,7 @@ spec:
         url: {{ IMAGE_URL }}
         checksum: {{ IMAGE_CHECKSUM }}
 ---
-{% if CAPI_VERSION == 'v1alpha2' %}
-apiVersion: bootstrap.cluster.x-k8s.io/v1alpha2
-{% else %}
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
-{% endif %}
 kind: KubeadmConfigTemplate
 metadata:
   name: {{ CLUSTER_NAME }}-md-0

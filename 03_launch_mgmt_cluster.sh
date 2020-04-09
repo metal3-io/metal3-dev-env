@@ -33,14 +33,6 @@ CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.3}"
   CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-metal3.git}"
-elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-  CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-baremetal}"
-  CAPM3BRANCH="${CAPM3BRANCH:-release-0.2}"
-  CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
-elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-  CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-baremetal}"
-  CAPM3BRANCH="${CAPM3BRANCH:-v1alpha1}"
-  CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 else
   CAPM3BRANCH="${CAPM3BRANCH:-master}"
   CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-metal3.git}"
@@ -183,22 +175,13 @@ function kustomize_overlay_capm3() {
   overlay_path=$1
   provider_cmpt=$2
 
-if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-  cat <<EOF> "$overlay_path/kustomization.yaml"
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: metal3
-resources:
-- $(realpath --relative-to="$overlay_path" "$provider_cmpt")
-EOF
-else
   cat <<EOF> "$overlay_path/kustomization.yaml"
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
 - $(realpath --relative-to="$overlay_path" "$provider_cmpt")
 EOF
-fi
+
 }
 
 
@@ -209,25 +192,13 @@ function launch_cluster_api_provider_metal3() {
     pushd "${CAPM3PATH}"
     kustomize_overlay_path=$(mktemp -d capm3-XXXXXXXXXX)
 
-    if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-      ./examples/generate.sh -f
-      kustomize_overlay_capm3 "$kustomize_overlay_path" \
-        "$CAPM3PATH/examples/provider-components"
-    elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-      make manifests
-      cp "$CAPM3PATH/provider-components.yaml" \
-        "${kustomize_overlay_path}/provider-components.yaml"
-      kustomize_overlay_capm3 "$kustomize_overlay_path" \
-        "${kustomize_overlay_path}/provider-components.yaml"
-    else
-      ./examples/generate.sh -f
-      kustomize_overlay_capm3 "$kustomize_overlay_path" \
-        "$CAPM3PATH/examples/provider-components"
-      kubectl apply -f ./examples/_out/cert-manager.yaml
-      kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager
-      kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager-cainjector
-      kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager-webhook
-    fi
+    ./examples/generate.sh -f
+    kustomize_overlay_capm3 "$kustomize_overlay_path" \
+      "$CAPM3PATH/examples/provider-components"
+    kubectl apply -f ./examples/_out/cert-manager.yaml
+    kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager
+    kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager-cainjector
+    kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager-webhook
 
     pushd "$kustomize_overlay_path"
     update_images
@@ -239,13 +210,7 @@ function launch_cluster_api_provider_metal3() {
     if [ "${CAPM3_RUN_LOCAL}" == true ]; then
       touch capm3.out.log
       touch capm3.err.log
-      if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-        kubectl scale statefulset cluster-api-provider-baremetal-controller-manager -n metal3 --replicas=0
-      elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-        kubectl scale -n metal3 deployment.v1.apps capbm-controller-manager --replicas 0
-      else
-        kubectl scale -n metal3 deployment.v1.apps capm3-controller-manager --replicas 0
-      fi
+      kubectl scale -n metal3 deployment.v1.apps capm3-controller-manager --replicas 0
       nohup make run >> capm3.out.log 2>> capm3.err.log &
     fi
     popd

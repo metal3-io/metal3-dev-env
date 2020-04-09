@@ -89,18 +89,14 @@ export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
 # CAPI version
 export CAPI_VERSION=${CAPI_VERSION:-"v1alpha3"}
-CAPI_VERSION_LIST="v1alpha1 v1alpha2 v1alpha3 v1alpha4"
+CAPI_VERSION_LIST="v1alpha3 v1alpha4"
 if ! echo "${CAPI_VERSION_LIST}" | grep -wq "${CAPI_VERSION}"; then
   echo "Invalid CAPI version : ${CAPI_VERSION}. Not in : ${CAPI_VERSION_LIST}"
   exit 1
 fi
 
 # CAPM3 controller image
-if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal:v1alpha1"}
-elif [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-baremetal:release-0.2"}
-elif [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:release-0.3"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
