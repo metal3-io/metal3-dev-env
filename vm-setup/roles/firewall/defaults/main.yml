@@ -29,4 +29,5 @@ ironic_keepalived_proto:
   - "112"
   - "icmp"
 
-EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('minikube', true)}}"
+EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('kind', true)}}"
+
