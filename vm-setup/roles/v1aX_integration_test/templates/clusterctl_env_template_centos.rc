@@ -1,3 +1,7 @@
+export '{{ DEPLOY_KERNEL_URL }}'
+export '{{ DEPLOY_RAMDISK_URL }}'
+export '{{ IRONIC_URL }}'
+export '{{ IRONIC_INSPECTOR_URL }}'
 export POD_CIDR='{{ POD_CIDR }}'
 export SERVICE_CIDR='"10.96.0.0/12"'
 export API_ENDPOINT_HOST='{{ CLUSTER_APIENDPOINT_HOST }}'
