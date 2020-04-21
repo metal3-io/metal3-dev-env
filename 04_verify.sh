@@ -94,16 +94,10 @@ check_k8s_entity() {
   for name in "${@}"; do
     # Check entity exists
     RESULT_STR="${TYPE} ${name} created"
-    if [ "${CAPI_VERSION}" == "v1alpha1" ] || [ "${CAPI_VERSION}" == "v1alpha2" ]
-    then
-      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${name}" \
-      -n metal3 -o json)"
-    else
-      NS="$(echo "${name}" | cut -d ':' -f1)"
-      DEPLOYMENT="$(echo "${name}" | cut -d ':' -f2)"
-      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${DEPLOYMENT}" \
-        -n "${NS}" -o json)"
-    fi
+    NS="$(echo "${name}" | cut -d ':' -f1)"
+    DEPLOYMENT="$(echo "${name}" | cut -d ':' -f2)"
+    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${DEPLOYMENT}" \
+      -n "${NS}" -o json)"
     process_status $?
 
     # Check the replicabaremetalclusters.s
@@ -128,15 +122,9 @@ check_k8s_rs() {
     LABEL=$(echo "$name" | cut -f1 -d:);
     NAME=$(echo "$name" | cut -f2 -d:);
 
-    if [ "${CAPI_VERSION}" == "v1alpha1" ] || [ "${CAPI_VERSION}" == "v1alpha2" ];
-    then
-      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
-        -l "${LABEL}"="${NAME}" -n metal3 -o json | jq '.items[0]')"
-    else
-      NS="$(echo "${name}" | cut -d ':' -f3)"
-      ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
-        -l "${LABEL}"="${NAME}" -n "${NS}" -o json | jq '.items[0]')"
-    fi
+    NS="$(echo "${name}" | cut -d ':' -f3)"
+    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+      -l "${LABEL}"="${NAME}" -n "${NS}" -o json | jq '.items[0]')"
     RESULT_STR="Replica set ${NAME} created"
     differs "${ENTITY}" "null"
 
@@ -182,12 +170,6 @@ check_container(){
 }
 
 KUBECONFIG="${KUBECONFIG:-${HOME}/.kube/config}"
-EXPTD_V1ALPHA1_CRDS="baremetalhosts.metal3.io \
-  clusters.cluster.k8s.io \
-  machineclasses.cluster.k8s.io \
-  machinedeployments.cluster.k8s.io \
-  machines.cluster.k8s.io \
-  machinesets.cluster.k8s.io"
 EXPTD_V1ALPHAX_CRDS="clusters.cluster.x-k8s.io \
   kubeadmconfigs.bootstrap.cluster.x-k8s.io \
   kubeadmconfigtemplates.bootstrap.cluster.x-k8s.io \
@@ -195,20 +177,9 @@ EXPTD_V1ALPHAX_CRDS="clusters.cluster.x-k8s.io \
   machines.cluster.x-k8s.io \
   machinesets.cluster.x-k8s.io \
   baremetalhosts.metal3.io"
-EXPTD_V1ALPHA2_CRDS="baremetalclusters.infrastructure.cluster.x-k8s.io \
-  baremetalmachines.infrastructure.cluster.x-k8s.io \
-  baremetalmachinetemplates.infrastructure.cluster.x-k8s.io"
 EXPTD_V1ALPHA3_CRDS="metal3clusters.infrastructure.cluster.x-k8s.io \
   metal3machines.infrastructure.cluster.x-k8s.io \
   metal3machinetemplates.infrastructure.cluster.x-k8s.io"
-EXPTD_STATEFULSETS="cluster-api-controller-manager \
-  cluster-api-provider-baremetal-controller-manager"
-EXPTD_DEPLOYMENTS="metal3-baremetal-operator"
-EXPTD_RS="name:metal3-baremetal-operator"
-EXPTD_V1ALPHA2_DEPLOYMENTS="cabpk-controller-manager \
-  capbm-controller-manager \
-  capi-controller-manager \
-  metal3-baremetal-operator"
 EXPTD_V1ALPHA3_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-system:capi-controller-manager \
   capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
@@ -218,10 +189,6 @@ EXPTD_V1ALPHA3_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-webhook-system:capi-kubeadm-control-plane-controller-manager \
   capi-webhook-system:capm3-controller-manager \
   metal3:metal3-baremetal-operator"
-EXPTD_V1ALPHA2_RS="control-plane:cabpk-controller-manager \
-  control-plane:capbm-controller-manager \
-  control-plane:cluster-api-controller-manager \
-  name:metal3-baremetal-operator"
 EXPTD_V1ALPHA3_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system \
   cluster.x-k8s.io/provider:cluster-api:capi-system \
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system \
@@ -258,13 +225,7 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-  LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}" "${EXPTD_V1ALPHA2_CRDS}")
-elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-  LIST_OF_CRDS=("${EXPTD_V1ALPHA1_CRDS}")
-else
-  LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}" "${EXPTD_V1ALPHA3_CRDS}")
-fi
+LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}" "${EXPTD_V1ALPHA3_CRDS}")
 
 # shellcheck disable=SC2068
 for name in ${LIST_OF_CRDS[@]}; do
@@ -274,20 +235,9 @@ for name in ${LIST_OF_CRDS[@]}; do
 done
 echo ""
 
-if [ "${CAPI_VERSION}" == "v1alpha2" ]; then
-  # Verify v1alpha2 Operators, Deployments, Replicasets
-  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA2_DEPLOYMENTS}"
-  iterate check_k8s_rs "${EXPTD_V1ALPHA2_RS}"
-elif [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-  # Verify v1alpha1 Operators, Statefulsets, Deployments, Replicasets
-  iterate check_k8s_entity statefulsets "${EXPTD_STATEFULSETS}"
-  iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
-  iterate check_k8s_rs "${EXPTD_RS}"
-else
-  # Verify v1alpha3+ Operators, Deployments, Replicasets
-  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
-  iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
-fi
+# Verify v1alpha3+ Operators, Deployments, Replicasets
+iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
+iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
 # Verify the baremetal hosts
 ## Fetch the BM CRs
 RESULT_STR="Fetch Baremetalhosts"

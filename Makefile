@@ -23,15 +23,6 @@ host_cleanup:
 test:
 	./05_test.sh
 
-test_v1a1:
-	./05_test_v1alpha1.sh
-
-test_v1a2:
-	./05_test.sh
-
-test_v1a3:
-	./05_test.sh
-
 lint:
 	./hack/shellcheck.sh
 

@@ -1,9 +1,5 @@
 ---
-{% if CAPI_VERSION == 'v1alpha2' %}
-apiVersion: cluster.x-k8s.io/v1alpha2
-{% else %}
 apiVersion: cluster.x-k8s.io/v1alpha3
-{% endif %}
 kind: Cluster
 metadata:
   name: {{ CLUSTER_NAME }}
@@ -16,32 +12,19 @@ spec:
     serviceDomain: "cluster.local"
   infrastructureRef:
     apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
-{% if CAPI_VERSION == 'v1alpha2' %}
-    kind: BareMetalCluster
-    name: {{ CLUSTER_NAME }}
-{% else %}
     kind: Metal3Cluster
     name: {{ CLUSTER_NAME }}
   controlPlaneRef:
     kind: KubeadmControlPlane
     apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
     name: {{ CLUSTER_NAME }}-controlplane
-{% endif %}
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPI_VERSION }}
-{% if CAPI_VERSION == 'v1alpha2' %}
-kind: BareMetalCluster
-{% else %}
 kind: Metal3Cluster
-{% endif %}
 metadata:
   name: {{ CLUSTER_NAME }}
 spec:
-{% if CAPI_VERSION == 'v1alpha2' %}
-  apiEndpoint: http://{{ CLUSTER_APIENDPOINT_HOST }}:6443
-{% else %}
   controlPlaneEndpoint:
     host: {{ CLUSTER_APIENDPOINT_HOST }}
     port: 6443
-{% endif %}
   noCloudProvider: false

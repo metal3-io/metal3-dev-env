@@ -96,8 +96,8 @@
 #
 #export BMC_DRIVER="redfish"
 
-# Select the Cluster API version
-# Accepted values : v1alpha1 v1alpha2 v1alpha3
+# Select the Cluster API provider Metal3 version
+# Accepted values : v1alpha3 v1alpha4
 # default: v1alpha3
 #
 #export CAPI_VERSION=v1alpha3
