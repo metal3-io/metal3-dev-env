@@ -30,6 +30,7 @@ spec:
       - mv /tmp/akeys /home/centos/.ssh/authorized_keys
       - chown centos:centos /home/centos/.ssh/authorized_keys
       - dnf update -y
+      - dnf install -y ebtables socat conntrack-tools
       - dnf install python3 -y
       - dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
       - setenforce 0
@@ -43,8 +44,8 @@ spec:
       - chmod a+x kubeadm kubelet kubectl
       - mv kubeadm kubelet kubectl /usr/local/bin/
       - mkdir -p /etc/systemd/system/kubelet.service.d
-      - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
-      - curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/{{KUBERNETES_BINARIES_VERSION}}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+      - curl -sSL "https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service
+      - curl -sSL "https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:/usr/local/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
       - usermod -aG docker centos
       - systemctl enable --now docker keepalived kubelet
     postKubeadmCommands:
