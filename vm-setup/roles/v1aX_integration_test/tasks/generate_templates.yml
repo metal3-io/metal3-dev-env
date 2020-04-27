@@ -1,0 +1,50 @@
+---
+  - name: Create a temporary manifest directory if it does not exist
+    file:
+      path: "{{ TEMP_GEN_DIR }}"
+      state: directory
+      mode: '0755'
+
+  - name: Generate clusterctl env file
+    template:
+      src: "{{ CRS_PATH }}/clusterctl_env_template_{{ IMAGE_OS|lower }}.rc"
+      dest: "{{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc"
+
+  - name: Generate templates
+    shell: |
+      . {{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc && {{ CLUSTERCTL_PATH}}/clusterctl config cluster {{ CLUSTER_NAME }} --kubernetes-version {{ KUBERNETES_VERSION }} --control-plane-machine-count={{ NUM_OF_NODE_REPLICAS }} --worker-machine-count={{ NUM_OF_NODE_REPLICAS }} > {{ TEMP_GEN_DIR }}/manifests.yaml
+
+  - name: Create a base dir
+    file:
+      path: "{{ TEMP_GEN_DIR }}/base"
+      state: directory
+      mode: '0755'
+
+  - name: Copy kustomization skeleton
+    copy:
+      src: "{{ CRS_PATH }}/kustomization.yaml"
+      dest: "{{ TEMP_GEN_DIR }}"
+
+  - name: Split manifests
+    shell: |
+      kustomize build . -o base
+    args:
+      chdir: "{{ TEMP_GEN_DIR }}"
+
+  - name: Generate cluster, controlplane and machinedeployment manifests
+    shell: |
+      cp {{ CRS_PATH }}/kustomization_empty.yaml {{ TEMP_GEN_DIR }}/kustomization.yaml
+      kustomize edit add resource base/*{{ item }}*.yaml
+      kustomize build . -o {{ CAPI_VERSION }}_{{ item }}_{{ IMAGE_OS|lower }}.yaml
+    args:
+      chdir: "{{ TEMP_GEN_DIR }}"
+    with_items:
+       - cluster_{{ CLUSTER_NAME }}
+       - controlplane
+       - machinedeployment
+
+  - name: Generate and merge worker manifests with deployment manifest
+    shell: |
+      cd {{ TEMP_GEN_DIR }}
+      kustomize edit add resource base/*workers*.yaml
+      kustomize build . -o {{ CAPI_VERSION }}_workers_{{ IMAGE_OS|lower }}.yaml

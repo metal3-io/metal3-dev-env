@@ -3,9 +3,12 @@
 HOME: "{{ lookup('env', 'HOME') }}"
 NAMESPACE: metal3
 CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/templates"
+TEMP_GEN_DIR: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/files/manifests"
+CLUSTERCTL_PATH: "{{ HOME }}/go/src/github.com/metal3-io/cluster-api/bin"
 CLUSTER_APIENDPOINT_HOST: "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
 CLUSTER_APIENDPOINT_IP: "{{ lookup('env', 'CLUSTER_APIENDPOINT_IP') }}"
 CLUSTER_NAME: "{{ lookup('env', 'CLUSTER_NAME') | default('test1', true) }}"
+NUM_OF_NODE_REPLICAS: "{{ lookup('env', 'NUM_OF_NODE_REPLICAS') | default(1, true) }}"
 KUBECONFIG_PATH: "/home/ubuntu/.kube/config"
 KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.18.0', true) }}"
 

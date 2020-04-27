@@ -17,10 +17,9 @@
     become_user: root
     when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '7'
 
-# Populate cr with environment variables
   - name: Template cluster.yaml
-    template:
-      src: "{{ CRS_PATH }}/cluster.yaml"
+    copy:
+      src: "{{ TEMP_GEN_DIR }}/{{ CAPI_VERSION }}_cluster_{{ CLUSTER_NAME }}_{{ IMAGE_OS|lower }}.yaml"
       dest: "/tmp/cluster.yaml"
 
   - name: Provision cluster

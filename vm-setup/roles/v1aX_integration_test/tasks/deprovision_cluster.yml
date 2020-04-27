@@ -1,7 +1,7 @@
 ---
-  - name: Template cluster.yaml
+  - name: Template cluster.yaml for v1alpha3
     template:
-      src: "{{ CRS_PATH }}/cluster.yaml"
+      src: "{{ TEMP_GEN_DIR }}/{{ CAPI_VERSION }}_cluster_{{ CLUSTER_NAME }}_{{ IMAGE_OS|lower }}.yaml"
       dest: "/tmp/cluster.yaml"
 
   - name: Deprovision cluster

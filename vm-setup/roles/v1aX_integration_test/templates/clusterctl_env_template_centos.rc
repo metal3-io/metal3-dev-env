@@ -1,0 +1,129 @@
+export POD_CIDR='{{ POD_CIDR }}'
+export SERVICE_CIDR='"10.96.0.0/12"'
+export API_ENDPOINT_HOST='{{ CLUSTER_APIENDPOINT_HOST }}'
+export API_ENDPOINT_PORT="6443"
+export IMAGE_URL='{{ IMAGE_URL }}'
+export IMAGE_CHECKSUM='{{ IMAGE_CHECKSUM }}'
+export CTLPLANE_KUBEADM_EXTRA_CONFIG="
+    preKubeadmCommands:
+      - ifup eth1
+      - mv /tmp/akeys /home/centos/.ssh/authorized_keys
+      - chown centos:centos /home/centos/.ssh/authorized_keys
+      - dnf update -y
+      - dnf install -y ebtables socat conntrack-tools
+      - dnf install python3 -y
+      - dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      - setenforce 0
+      - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+      - dnf install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
+      - >-
+        dnf install gcc kernel-headers kernel-devel keepalived
+        device-mapper-persistent-data lvm2 -y
+      - echo  \"Installing kubernetes binaries\"
+      - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+      - chmod a+x kubeadm kubelet kubectl
+      - mv kubeadm kubelet kubectl /usr/local/bin/
+      - mkdir -p /etc/systemd/system/kubelet.service.d
+      - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
+      - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+      - usermod -aG docker centos
+      - systemctl enable --now docker keepalived kubelet
+    postKubeadmCommands:
+      - mkdir -p /home/centos/.kube
+      - cp /etc/kubernetes/admin.conf /home/centos/.kube/config
+      - chown centos:centos /home/centos/.kube/config
+    files:
+      - path: /etc/keepalived/keepalived.conf
+        content: |
+          ! Configuration File for keepalived
+          global_defs {
+              notification_email {
+              sysadmin@example.com
+              support@example.com
+              }
+              notification_email_from lb@example.com
+              smtp_server localhost
+              smtp_connect_timeout 30
+          }
+          vrrp_instance VI_1 {
+              state MASTER
+              interface eth1
+              virtual_router_id 1
+              priority 101
+              advert_int 1
+              virtual_ipaddress {
+                  {{ CLUSTER_APIENDPOINT_HOST }}
+              }
+          }
+      - path: /etc/sysconfig/network-scripts/ifcfg-eth1
+        owner: root:root
+        permissions: '0644'
+        content: |
+          BOOTPROTO=dhcp
+          DEVICE=eth1
+          ONBOOT=yes
+          TYPE=Ethernet
+          USERCTL=no
+      - path: /etc/yum.repos.d/kubernetes.repo
+        owner: root:root
+        permissions: '0644'
+        content: |
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+          enabled=1
+          gpgcheck=1
+          repo_gpgcheck=0
+          gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      - path: /tmp/akeys
+        owner: root:root
+        permissions: '0600'
+        content: {{ SSH_PUB_KEY_CONTENT }}
+"
+export WORKERS_KUBEADM_EXTRA_CONFIG="
+      preKubeadmCommands:
+        - ifup eth1
+        - mv /tmp/akeys /home/centos/.ssh/authorized_keys
+        - chown centos:centos /home/centos/.ssh/authorized_keys
+        - dnf update -y
+        - dnf install -y ebtables conntrack-tools socat
+        - dnf install python3 -y
+        - dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        - setenforce 0
+        - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+        - dnf install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
+        - echo  \"Installing kubernetes binaries\"
+        - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+        - chmod a+x kubeadm kubelet kubectl
+        - mv kubeadm kubelet kubectl /usr/local/bin/
+        - mkdir -p /etc/systemd/system/kubelet.service.d
+        - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
+        - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+        - usermod -aG docker centos
+        - systemctl enable --now docker kubelet
+      files:
+        - path: /etc/sysconfig/network-scripts/ifcfg-eth1
+          owner: root:root
+          permissions: '0644'
+          content: |
+            BOOTPROTO=dhcp
+            DEVICE=eth1
+            ONBOOT=yes
+            TYPE=Ethernet
+            USERCTL=no
+        - path: /etc/yum.repos.d/kubernetes.repo
+          owner: root:root
+          permissions: '0644'
+          content: |
+            [kubernetes]
+            name=Kubernetes
+            baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+            enabled=1
+            gpgcheck=1
+            repo_gpgcheck=0
+            gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+        - path: /tmp/akeys
+          owner: root:root
+          permissions: '0600'
+          content: {{ SSH_PUB_KEY_CONTENT }}
+"

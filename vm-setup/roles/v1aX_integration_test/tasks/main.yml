@@ -1,4 +1,9 @@
 ---
+- name: "Generate templates for v1alpha3"
+  include: "{{ item }}.yml"
+  with_items:
+    - generate_templates
+
 - name: "{{ CAPI_VERSION }} deployment"
   include: "{{ item }}.yml"
   with_items:
