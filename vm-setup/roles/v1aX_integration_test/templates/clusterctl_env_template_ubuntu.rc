@@ -5,11 +5,14 @@ export API_ENDPOINT_PORT="6443"
 export IMAGE_URL='{{ IMAGE_URL }}'
 export IMAGE_CHECKSUM='{{ IMAGE_CHECKSUM }}'
 export CTLPLANE_KUBEADM_EXTRA_CONFIG="
+    users:
+    - name: metal3
+      sudo: \"ALL=(ALL) NOPASSWD:ALL\"
+      sshAuthorizedKeys:
+      - {{ SSH_PUB_KEY_CONTENT }}    
     preKubeadmCommands:
       - ip link set dev enp2s0 up
       - dhclient enp2s0
-      - mv /tmp/akeys /home/ubuntu/.ssh/authorized_keys
-      - chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
       - apt update -y
       - apt-get install -y conntrack socat
       - netplan apply
@@ -33,12 +36,12 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
       - systemctl enable --now docker kubelet
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo \"keepalived already running\";else systemctl start keepalived; fi
-      - usermod -aG docker ubuntu
+      - usermod -aG docker metal3
     postKubeadmCommands:
-      - mkdir -p /home/ubuntu/.kube
-      - cp /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
+      - mkdir -p /home/metal3/.kube
+      - cp /etc/kubernetes/admin.conf /home/metal3/.kube/config
       - systemctl enable --now keepalived
-      - chown ubuntu:ubuntu /home/ubuntu/.kube/config
+      - chown metal3:metal3 /home/metal3/.kube/config
     files:
         - path: /etc/keepalived/keepalived.conf
           content: |
@@ -73,10 +76,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
                     enp1s0:
                         dhcp4: false
                 version: 2
-        - path: /tmp/akeys
-          owner: root:root
-          permissions: '0644'
-          content: {{ SSH_PUB_KEY_CONTENT }}
         - path : /etc/netplan/52-ironicendpoint.yaml
           owner: root:root
           permissions: '0644'
@@ -90,11 +89,14 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
                   dhcp4: yes
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
+      users:
+      - name: metal3
+        sudo: \"ALL=(ALL) NOPASSWD:ALL\"
+        sshAuthorizedKeys:
+        - {{ SSH_PUB_KEY_CONTENT }}
       preKubeadmCommands:
         - ip link set dev enp2s0 up
         - dhclient enp2s0
-        - mv /tmp/akeys /home/ubuntu/.ssh/authorized_keys
-        - chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
         - apt update -y
         - netplan apply
         - >-
@@ -115,7 +117,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
         - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
         - systemctl enable --now docker kubelet
-        - usermod -aG docker ubuntu
+        - usermod -aG docker metal3
       files:
         - path: /etc/netplan/50-cloud-init.yaml
           owner: root:root
@@ -128,8 +130,4 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
                     enp2s0:
                         dhcp4: true
                 version: 2
-        - path: /tmp/akeys
-          owner: root:root
-          permissions: '0644'
-          content: {{ SSH_PUB_KEY_CONTENT }}
 "

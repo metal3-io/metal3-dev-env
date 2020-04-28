@@ -5,10 +5,13 @@ export API_ENDPOINT_PORT="6443"
 export IMAGE_URL='{{ IMAGE_URL }}'
 export IMAGE_CHECKSUM='{{ IMAGE_CHECKSUM }}'
 export CTLPLANE_KUBEADM_EXTRA_CONFIG="
+    users:
+    - name: metal3
+      sudo: \"ALL=(ALL) NOPASSWD:ALL\"
+      sshAuthorizedKeys:
+      - {{ SSH_PUB_KEY_CONTENT }}    
     preKubeadmCommands:
       - ifup eth1
-      - mv /tmp/akeys /home/centos/.ssh/authorized_keys
-      - chown centos:centos /home/centos/.ssh/authorized_keys
       - dnf update -y
       - dnf install -y ebtables socat conntrack-tools
       - dnf install python3 -y
@@ -26,12 +29,12 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - mkdir -p /etc/systemd/system/kubelet.service.d
       - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
       - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-      - usermod -aG docker centos
+      - usermod -aG docker metal3
       - systemctl enable --now docker keepalived kubelet
     postKubeadmCommands:
-      - mkdir -p /home/centos/.kube
-      - cp /etc/kubernetes/admin.conf /home/centos/.kube/config
-      - chown centos:centos /home/centos/.kube/config
+      - mkdir -p /home/metal3/.kube
+      - cp /etc/kubernetes/admin.conf /home/metal3/.kube/config
+      - chown metal3:metal3 /home/metal3/.kube/config
     files:
       - path: /etc/keepalived/keepalived.conf
         content: |
@@ -75,16 +78,15 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
           gpgcheck=1
           repo_gpgcheck=0
           gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-      - path: /tmp/akeys
-        owner: root:root
-        permissions: '0600'
-        content: {{ SSH_PUB_KEY_CONTENT }}
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
+      users:
+      - name: metal3
+        sudo: \"ALL=(ALL) NOPASSWD:ALL\"
+        sshAuthorizedKeys:
+        - {{ SSH_PUB_KEY_CONTENT }}      
       preKubeadmCommands:
         - ifup eth1
-        - mv /tmp/akeys /home/centos/.ssh/authorized_keys
-        - chown centos:centos /home/centos/.ssh/authorized_keys
         - dnf update -y
         - dnf install -y ebtables conntrack-tools socat
         - dnf install python3 -y
@@ -99,7 +101,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - mkdir -p /etc/systemd/system/kubelet.service.d
         - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
         - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-        - usermod -aG docker centos
+        - usermod -aG docker metal3
         - systemctl enable --now docker kubelet
       files:
         - path: /etc/sysconfig/network-scripts/ifcfg-eth1
@@ -122,8 +124,4 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
             gpgcheck=1
             repo_gpgcheck=0
             gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-        - path: /tmp/akeys
-          owner: root:root
-          permissions: '0600'
-          content: {{ SSH_PUB_KEY_CONTENT }}
 "
