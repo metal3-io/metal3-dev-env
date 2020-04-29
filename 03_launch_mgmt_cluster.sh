@@ -154,8 +154,8 @@ function launch_baremetal_operator() {
 }
 
 function launch_kind() {
-  reg_ip="$(docker inspect -f '{{.NetworkSettings.IPAddress}}' registry)"
-  cat <<EOF | kind create cluster --name kind --image=kindest/node:"${KUBERNETES_VERSION}" --config=-
+  reg_ip="$(sudo docker inspect -f '{{.NetworkSettings.IPAddress}}' registry)"
+  cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=kindest/node:${KUBERNETES_VERSION} --config=- " "$USER"
   kind: Cluster
   apiVersion: kind.x-k8s.io/v1alpha4
   containerdConfigPatches:

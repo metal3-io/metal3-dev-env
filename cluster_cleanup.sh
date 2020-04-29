@@ -6,7 +6,7 @@ source lib/common.sh
 
 
 if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
-  kind delete cluster  || true
+  sudo su -l -c "kind delete cluster  || true" "${USER}"
 fi
 
 if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then

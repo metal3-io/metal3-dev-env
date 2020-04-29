@@ -78,6 +78,7 @@ EOF
     sudo mkdir -p /etc/docker
     sudo mv daemon.json /etc/docker/daemon.json
     sudo systemctl restart docker
+    sudo usermod -aG docker "${USER}"
   else
     echo "Only Podman is supported in CentOS/RHEL8"
     exit 1

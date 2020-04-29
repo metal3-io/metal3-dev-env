@@ -69,6 +69,7 @@ EOF
   sudo mkdir -p /etc/docker
   sudo mv daemon.json /etc/docker/daemon.json
   sudo systemctl restart docker
+  sudo usermod -aG docker "${USER}"
 fi
 
 # Install python packages not included as rpms
