@@ -40,9 +40,9 @@ CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPIBRANCH="v0.3.3"
 CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL}/releases/latest}"
-CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL}/releases/latest}"
-CAPM3BRANCH=${CAPM3BRANCH:-$(get_latest_release "${CAPM3RELEASEPATH}")}
-CAPIBRANCH=${CAPIBRANCH:-$(get_latest_release "${CAPIRELEASEPATH}")}
+CAPM3RELEASE=${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}
+CAPM3BRANCH=${CAPM3BRANCH:-${CAPM3RELEASE}}
+CAPIBRANCH=${CAPIBRANCH:-master}
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
@@ -105,13 +105,13 @@ function patch_clusterctl(){
   pushd "${CAPM3PATH}"
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
     export MANIFEST_IMG="192.168.111.1:5000/localimages/cluster-api-provider-metal3"
-    export MANIFEST_TAG="${CAPM3BRANCH}"
+    export MANIFEST_TAG="${CAPM3RELEASE}"
     make set-manifest-image
   fi
   make release-manifests
-  rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3BRANCH}"
-  mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3BRANCH}"
-  cp out/*.yaml "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3BRANCH}"
+  rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  cp out/*.yaml "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   popd
 
 }
@@ -252,7 +252,7 @@ function launch_cluster_api_provider_metal3() {
 
     pushd "${CAPIPATH}"
     cd bin
-    ./clusterctl init --infrastructure=metal3:"${CAPM3BRANCH}"  -v5
+    ./clusterctl init --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
     popd
 
     rm -rf "$kustomize_overlay_path"
