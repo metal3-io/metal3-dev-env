@@ -30,13 +30,19 @@ BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 
-if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  CAPM3BRANCH="${CAPM3BRANCH:-release-0.3}"
-  CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-metal3.git}"
-else
-  CAPM3BRANCH="${CAPM3BRANCH:-master}"
-  CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-metal3.git}"
-fi
+CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
+CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
+
+CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
+CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
+
+# Below line forcing to use older CAPI version due to CAPI bug:2983, line removed when bug fixed 
+export CAPIBRANCH="v0.3.3"
+CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
+CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL}/releases/latest}"
+CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL}/releases/latest}"
+CAPM3BRANCH=${CAPM3BRANCH:-$(get_latest_release "${CAPM3RELEASEPATH}")}
+CAPIBRANCH=${CAPIBRANCH:-$(get_latest_release "${CAPIRELEASEPATH}")}
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
@@ -79,6 +85,35 @@ function clone_repos() {
       git pull -r || true
       popd
     fi
+    #TODO Consider option to download prebaked clusterctl binary
+    if [[ -d "${CAPIPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+      rm -rf "${CAPIPATH}"
+    fi
+    if [ ! -d "${CAPIPATH}" ] ; then
+      pushd "${M3PATH}"
+      git clone "${CAPIREPO}" "${CAPIPATH}"
+      popd
+      pushd "${CAPIPATH}"
+      git checkout "${CAPIBRANCH}"
+      git pull -r || true
+      popd
+    fi
+
+}
+
+function patch_clusterctl(){
+  pushd "${CAPM3PATH}"
+  if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
+    export MANIFEST_IMG="192.168.111.1:5000/localimages/cluster-api-provider-metal3"
+    export MANIFEST_TAG="${CAPM3BRANCH}"
+    make set-manifest-image
+  fi
+  make release-manifests
+  rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3BRANCH}"
+  mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3BRANCH}"
+  cp out/*.yaml "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3BRANCH}"
+  popd
+
 }
 
 # Modifies the images to use the ones built locally
@@ -93,9 +128,13 @@ function update_images(){
     # Strip the tag for image replacement
     OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
     #shellcheck disable=SC2086
-    kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
+    if [ -z "${CAPM3_LOCAL_IMAGE}" ]; then
+      kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
+    fi
   done
 }
+
+
 
 function kustomize_overlay_bmo() {
   overlay_path=$1
@@ -163,7 +202,6 @@ function launch_kind() {
     [plugins."io.containerd.grpc.v1.cri".registry.mirrors."192.168.111.1:5000"]
       endpoint = ["http://${reg_ip}:5000"]
 EOF
-
 }
 
 function make_bm_hosts() {
@@ -194,9 +232,7 @@ kind: Kustomization
 resources:
 - $(realpath --relative-to="$overlay_path" "$provider_cmpt")
 EOF
-
 }
-
 
 #
 # Launch the cluster-api provider.
@@ -204,19 +240,20 @@ EOF
 function launch_cluster_api_provider_metal3() {
     pushd "${CAPM3PATH}"
     kustomize_overlay_path=$(mktemp -d capm3-XXXXXXXXXX)
-
-    ./examples/generate.sh -f
-    kustomize_overlay_capm3 "$kustomize_overlay_path" \
-      "$CAPM3PATH/examples/provider-components"
-    kubectl apply -f ./examples/_out/cert-manager.yaml
-    kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager
-    kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager-cainjector
-    kubectl wait --for=condition=Available --timeout=300s -n cert-manager deployment cert-manager-webhook
-
-    pushd "$kustomize_overlay_path"
-    update_images
+    mkdir -p "${HOME}"/.cluster-api
+    touch "${HOME}"/.cluster-api/clusterctl.yaml
+    pushd "${CAPIPATH}"
+    if ! [ -x "$(command -v clusterctl)" ]; then
+      make clusterctl
+    fi
     popd
-    kustomize build "$kustomize_overlay_path" | kubectl apply -f-
+
+    patch_clusterctl
+
+    pushd "${CAPIPATH}"
+    cd bin
+    ./clusterctl init --infrastructure=metal3:"${CAPM3BRANCH}"  -v5
+    popd
 
     rm -rf "$kustomize_overlay_path"
 
@@ -228,6 +265,7 @@ function launch_cluster_api_provider_metal3() {
     fi
     popd
 }
+
 
 clone_repos
 
@@ -247,6 +285,7 @@ if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
   launch_kind
 else
   init_minikube
+
   sudo su -l -c 'minikube start' "${USER}"
   if [[ -n "${MINIKUBE_BMNET_V6_IP}" ]]; then
 	  sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"

@@ -41,6 +41,7 @@ CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
 # Hostname format
 NODE_HOSTNAME_FORMAT=${NODE_HOSTNAME_FORMAT:-"node-%d"}
 
+
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   export POD_NAME="--pod ironic-pod"
   export POD_NAME_INFRA="--pod infra-pod"
@@ -109,7 +110,6 @@ export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-8192}
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 export CLUSTER_APIENDPOINT_IP=${CLUSTER_APIENDPOINT_IP:-"192.168.111.249"}
 export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.18.0"}
-
 export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
 export KUBERNETES_BINARIES_CONFIG_VERSION=${KUBERNETES_BINARIES_CONFIG_VERSION:-"v0.2.7"}
 
@@ -203,6 +203,11 @@ if [ ! -d "$WORKING_DIR" ]; then
   sudo chown "${USER}:${USER}" "$WORKING_DIR"
   chmod 755 "$WORKING_DIR"
 fi
+
+function get_latest_release() {
+    # shellcheck disable=SC2005
+    echo "$(curl -sL "${1}"  | jq -r '.tag_name')"
+}
 
 function list_nodes() {
     # Includes -machine and -machine-namespace

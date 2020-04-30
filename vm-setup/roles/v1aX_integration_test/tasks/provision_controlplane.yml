@@ -2,9 +2,12 @@
 # Provision cluster & master node
   - name: Provision Ubuntu based controlplane node
     block:
-      - name: Template controlplane_ubuntu.yaml
-        template:
-          src: "{{ CRS_PATH }}/controlplane_ubuntu.yaml"
+      - name: Generate template for v1alpha3
+        include: generate_templates.yml
+
+      - name: Copy generated controlplane_ubuntu.yaml
+        copy:
+          src: "{{ TEMP_GEN_DIR }}/{{ CAPI_VERSION }}_controlplane_ubuntu.yaml"
           dest: "/tmp/controlplane_ubuntu.yaml"
 
       - name: Create Ubuntu master node
@@ -17,14 +20,17 @@
 
   - name: Provision CentOS based controlplane node
     block:
-      - name: Template controlplane_centos.yaml
-        template:
-          src: "{{ CRS_PATH }}/controlplane_centos.yaml"
-          dest: "/tmp/controlplane_centos.yaml"
+      - name: Generate templates
+        include: generate_templates.yml
         vars:
           IMAGE_NAME: '{{ IMAGE_NAME_CENTOS }}'
           IMAGE_LOCATION: '{{ IMAGE_LOCATION_CENTOS }}'
           IMAGE_USERNAME: '{{ IMAGE_USERNAME_CENTOS }}'
+
+      - name: Copy generated controlplane_centos.yaml
+        copy:
+          src: "{{ TEMP_GEN_DIR }}/{{ CAPI_VERSION }}_controlplane_centos.yaml"
+          dest: "/tmp/controlplane_centos.yaml"
 
       - name: Create CentOS master node
         k8s:

@@ -59,3 +59,6 @@ if [[ $OS == "centos" || $OS == "rhel" ]]; then
       sudo rm -f /etc/sysconfig/network-scripts/ifcfg-baremetal || true
   fi
 fi
+
+rm -rf  "${HOME}"/.cluster-api
+
