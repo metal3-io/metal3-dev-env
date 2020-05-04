@@ -36,8 +36,6 @@ CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
-# Below line forcing to use older CAPI version due to CAPI bug:2983, line removed when bug fixed 
-export CAPIBRANCH="v0.3.3"
 CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL}/releases/latest}"
 CAPM3RELEASE=${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}
@@ -121,9 +119,9 @@ function patch_clusterctl(){
 function update_images(){
   for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     IMAGE=${!IMAGE_VAR}
-   #shellcheck disable=SC2086
-   IMAGE_NAME="${IMAGE##*/}:latest"
-   LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
+    #shellcheck disable=SC2086
+    IMAGE_NAME="${IMAGE##*/}:latest"
+    LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
 
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
     # Strip the tag for image replacement
@@ -132,6 +130,8 @@ function update_images(){
     if [ -z "${CAPM3_LOCAL_IMAGE}" ]; then
       kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
     fi
+    declare "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
+    export OLD_IMAGE_VAR
   done
 }
 
@@ -168,7 +168,7 @@ function launch_baremetal_operator() {
     kustomize_overlay_bmo "$kustomize_overlay_path"
     pushd "$kustomize_overlay_path"
 
-    # Add custom images in overlay
+    # Add custom images in overlay, and override the images with local ones
     update_images
     popd
 
