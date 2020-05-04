@@ -104,8 +104,9 @@ function clone_repos() {
 function patch_clusterctl(){
   pushd "${CAPM3PATH}"
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
-    export MANIFEST_IMG="192.168.111.1:5000/localimages/cluster-api-provider-metal3"
-    export MANIFEST_TAG="${CAPM3RELEASE}"
+    CAPM3_IMAGE_NAME="${CAPM3_LOCAL_IMAGE##*/}"
+    export MANIFEST_IMG="192.168.111.1:5000/localimages/$CAPM3_IMAGE_NAME"
+    export MANIFEST_TAG="latest"
     make set-manifest-image
   fi
   make release-manifests
