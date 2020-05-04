@@ -27,17 +27,9 @@
     delay: 20
     until: provisioned_machines.stdout == "2"
 
-  - name: Define username variable for Ubuntu node
+  - name: Define username variable as metal3 for target node
     set_fact:
-      username: ubuntu
-    when: IMAGE_OS == "Ubuntu"
-
-  - name: Define username variable for target CentOS node
-    set_fact:
-      username: centos
-    when: (IMAGE_OS == "Centos") or
-          (IMAGE_OS == "")
-
+      username: metal3
   - name: Verification test
     delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
     vars:
