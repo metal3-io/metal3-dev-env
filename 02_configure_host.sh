@@ -132,7 +132,16 @@ fi
 for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   BRANCH_IMAGE_VAR="${IMAGE_VAR}_BRANCH"
   IMAGE="${!IMAGE_VAR}"
-  BRANCH="${!BRANCH_IMAGE_VAR:-master}"
+
+  if [ "${IMAGE_VAR}" == "CAPM3_LOCAL_IMAGE" ]
+  then
+    if [ "${CAPI_VERSION}" == "v1alpha3" ]
+    then
+      BRANCH="${!BRANCH_IMAGE_VAR:-release-0.3}"
+    fi
+  else
+    BRANCH="${!BRANCH_IMAGE_VAR:-master}"
+  fi
 
   case ${IMAGE_VAR%_LOCAL_IMAGE} in
     'BAREMETAL_OPERATOR')
