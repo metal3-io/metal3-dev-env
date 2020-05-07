@@ -130,7 +130,7 @@ function update_images(){
     if [ -z "${CAPM3_LOCAL_IMAGE}" ]; then
       kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
     fi
-    declare "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
+    eval "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
     export "${OLD_IMAGE_VAR?}"
   done
 }
