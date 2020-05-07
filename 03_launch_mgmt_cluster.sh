@@ -131,7 +131,7 @@ function update_images(){
       kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
     fi
     declare "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
-    export OLD_IMAGE_VAR
+    export "${OLD_IMAGE_VAR?}"
   done
 }
 
