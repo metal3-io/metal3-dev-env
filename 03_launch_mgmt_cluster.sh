@@ -38,9 +38,13 @@ CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
 CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL}/releases/latest}"
-CAPM3RELEASE=${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}
-CAPM3BRANCH=${CAPM3BRANCH:-${CAPM3RELEASE}}
-CAPIBRANCH=${CAPIBRANCH:-master}
+CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}"
+if [ "${CAPI_VERSION}" == "v1alpha4" ]; then
+  CAPM3BRANCH="${CAPM3BRANCH:-master}"
+else
+  CAPM3BRANCH="${CAPM3BRANCH:-release-0.3}"
+fi
+CAPIBRANCH="${CAPIBRANCH:-master}"
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
