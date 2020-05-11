@@ -13,6 +13,7 @@
     match: udp
     destination_port: "{{ vbmc_port_range }}"
     jump: ACCEPT
+    state: "{{ firewall_rule_state }}"
 
 - name: "iptables: Established and related"
   iptables:
@@ -21,6 +22,7 @@
     match: conntrack
     ctstate: ESTABLISHED,RELATED
     jump: ACCEPT
+    state: "{{ firewall_rule_state }}"
 
 - name: "iptables: Ironic Ports"
   iptables:
@@ -30,6 +32,7 @@
     match: tcp
     destination_port: "{{ item }}"
     jump: ACCEPT
+    state: "{{ firewall_rule_state }}"
   loop: "{{ ironic_ports }}"
 
 - name: "iptables: Provisioning host ports"
@@ -40,6 +43,7 @@
     match: tcp
     destination_port: "{{ item }}"
     jump: ACCEPT
+    state: "{{ firewall_rule_state }}"
   loop: "{{ provisioning_host_ports }}"
 
 - name: "iptables: PXE Ports"
@@ -50,6 +54,7 @@
     match: udp
     destination_port: "{{ item }}"
     jump: ACCEPT
+    state: "{{ firewall_rule_state }}"
   loop: "{{ pxe_udp_ports }}"
 
 - name: "iptables: Ironic Endpoint Keepalived"
@@ -58,6 +63,7 @@
     in_interface: "{{ provisioning_interface }}"
     protocol: "{{ item }}"
     jump: ACCEPT
+    state: "{{ firewall_rule_state }}"
   loop: "{{ ironic_keepalived_proto }}"
 
 - name: "iptables: Allow access to baremetal network from kind"
@@ -67,4 +73,5 @@
     out_interface: "{{ baremetal_interface }}"
     destination: "192.168.111.1/24"
     jump: ACCEPT
+    state: "{{ firewall_rule_state }}"
   when: (EPHEMERAL_CLUSTER == "kind")

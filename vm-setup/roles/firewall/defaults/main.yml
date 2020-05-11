@@ -2,6 +2,7 @@ use_firewalld: true
 baremetal_interface: baremetal
 provisioning_interface: provisioning
 vbmc_port_range: "6230:6235"
+firewall_rule_state: present
 ironic_ports:
   - "6180"
   - "5050"
