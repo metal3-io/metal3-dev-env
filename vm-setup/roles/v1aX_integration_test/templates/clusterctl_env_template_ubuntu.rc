@@ -37,12 +37,48 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - systemctl enable --now docker kubelet
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo \"keepalived already running\";else systemctl start keepalived; fi
       - usermod -aG docker metal3
+      - systemctl link /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
+      - systemctl enable --now monitor.keepalived.service
     postKubeadmCommands:
       - mkdir -p /home/metal3/.kube
       - cp /etc/kubernetes/admin.conf /home/metal3/.kube/config
       - systemctl enable --now keepalived
       - chown metal3:metal3 /home/metal3/.kube/config
     files:
+        - path: /usr/local/bin/monitor.keepalived.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+              #!/bin/bash
+              while :; do
+                curl -sk https://127.0.0.1:6443/healthz 1>&2 > /dev/null
+                isOk=\$?
+                isActive=\$(systemctl show -p ActiveState keepalived.service | cut -d'=' -f2)
+                if [ \$isOk == \"0\" ] &&  [ \$isActive != \"active\" ]; then
+                  logger 'API server is healthy, however keepalvied is not running, starting keepalived'
+                  echo 'API server is healthy and keepalvied is down, starting keepalived'
+                  sudo systemctl start keepalived.service
+                elif [ \$isOk != \"0\" ] &&  [ \$isActive == \"active\" ]; then
+                  logger 'API server is healthy, however keepalvied is not running, starting keepalived'
+                  echo 'API server is not healthy and keepalvied is running, stopping keepalived'
+                  sudo systemctl stop keepalived.service
+                fi
+                sleep 5
+              done
+        - path: /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
+          owner: root:root
+          content: |
+              [Unit]
+              Description=Monitors keepalived adjusts status with that of API server
+              After=syslog.target network-online.target
+
+              [Service]
+              Type=simple
+              Restart=always
+              ExecStart=/usr/local/bin/monitor.keepalived.sh
+
+              [Install]
+              WantedBy=multi-user.target
         - path: /etc/keepalived/keepalived.conf
           content: |
             ! Configuration File for keepalived
