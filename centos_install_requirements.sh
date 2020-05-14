@@ -60,6 +60,7 @@ fi
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo dnf -y install podman
+  sudo sed -i '/^\[registries\.insecure\]$/,/^\[/ s/^registries =.*/registries = ["192.168.111.1:5000"]/g' /etc/containers/registries.conf
 else
   if [[ $DISTRO == "centos7" ]]; then
     sudo dnf install -y dnf-utils \

@@ -47,6 +47,7 @@ sudo apt -y update
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo apt -y install podman
+  sudo sed -i '/^\[registries\.insecure\]$/,/^\[/ s/^registries =.*/registries = ["192.168.111.1:5000"]/g' /etc/containers/registries.conf
 else
   sudo apt -y install \
     apt-transport-https \
