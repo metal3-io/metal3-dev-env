@@ -46,6 +46,14 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/teardown-playbook.yml
 
+if [ "$USE_FIREWALLD" == "False" ]; then
+ ANSIBLE_FORCE_COLOR=true ansible-playbook \
+    -e "{use_firewalld: $USE_FIREWALLD}" \
+    -e "firewall_rule_state=absent" \
+    -i vm-setup/inventory.ini \
+    -b -vvv vm-setup/firewall.yml
+fi
+
 # There was a bug in this file, it may need to be recreated.
 if [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
