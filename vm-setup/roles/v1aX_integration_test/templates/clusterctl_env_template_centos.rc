@@ -48,12 +48,12 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
               isOk=\$?
               isActive=\$(systemctl show -p ActiveState keepalived.service | cut -d'=' -f2)
               if [ \$isOk == \"0\" ] &&  [ \$isActive != \"active\" ]; then
-                logger 'API server is healthy, however keepalvied is not running, starting keepalived'
-                echo 'API server is healthy and keepalvied is down, starting keepalived'
+                logger 'API server is healthy, however keepalived is not running, starting keepalived'
+                echo 'API server is healthy, however keepalived is not running, starting keepalived'
                 sudo systemctl start keepalived.service
               elif [ \$isOk != \"0\" ] &&  [ \$isActive == \"active\" ]; then
-                logger 'API server is healthy, however keepalvied is not running, starting keepalived'
-                echo 'API server is not healthy and keepalvied is running, stopping keepalived'
+                logger 'API server is not healthy, however keepalived running, stopping keepalived'
+                echo 'API server is not healthy, however keepalived running, stopping keepalived'
                 sudo systemctl stop keepalived.service
               fi
               sleep 5
