@@ -38,7 +38,8 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo \"keepalived already running\";else systemctl start keepalived; fi
       - usermod -aG docker metal3
       - systemctl link /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
-      - systemctl enable --now monitor.keepalived.service
+      - systemctl enable monitor.keepalived.service
+      - systemctl start monitor.keepalived.service
     postKubeadmCommands:
       - mkdir -p /home/metal3/.kube
       - cp /etc/kubernetes/admin.conf /home/metal3/.kube/config
