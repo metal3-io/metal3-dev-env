@@ -14,26 +14,45 @@ else
   source centos_install_requirements.sh
 fi
 
+# shellcheck disable=SC1091
+source lib/network.sh
+# shellcheck disable=SC1091
+source lib/images.sh
+
+# Install requirements
+ansible-galaxy install -r vm-setup/requirements.yml
+
+ANSIBLE_FORCE_COLOR=true ansible-playbook \
+  -e "working_dir=$WORKING_DIR" \
+  -e "virthost=$HOSTNAME" \
+  -i vm-setup/inventory.ini \
+  -b -vvv vm-setup/install-package-playbook.yml
+
+# Allow local non-root-user access to libvirt
+# Restart libvirtd service to get the new group membership loaded
+if ! id "$USER" | grep -q libvirt; then
+  sudo usermod -a -G "libvirt" "$USER"
+  sudo systemctl restart libvirtd
+fi
+
 if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
   if ! command -v minikube 2>/dev/null ; then
       curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
       chmod +x minikube
       sudo mv minikube /usr/local/bin/.
   fi
-fi
 
-if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
+  if ! command -v docker-machine-driver-kvm2 2>/dev/null ; then
+      curl -LO https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2
+      chmod +x docker-machine-driver-kvm2
+      sudo mv docker-machine-driver-kvm2 /usr/local/bin/.
+  fi
+elif [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
     if ! command -v kind 2>/dev/null ; then
         curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
         chmod +x ./kind
         sudo mv kind /usr/local/bin/.
     fi
-fi
-
-if ! command -v docker-machine-driver-kvm2 2>/dev/null ; then
-    curl -LO https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2
-    chmod +x docker-machine-driver-kvm2
-    sudo mv docker-machine-driver-kvm2 /usr/local/bin/.
 fi
 
 KUBECTL_LATEST=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
@@ -73,10 +92,6 @@ podman)
   ;;
 esac
 
-# shellcheck disable=SC1091
-source lib/network.sh
-# shellcheck disable=SC1091
-source lib/images.sh
 
 # Download IPA and CentOS 7 Images
 mkdir -p "$IRONIC_IMAGE_DIR"
@@ -84,25 +99,10 @@ pushd "$IRONIC_IMAGE_DIR"
 
 if [ ! -f "${IMAGE_NAME}" ] ; then
     curl --insecure --compressed -O -L "${IMAGE_LOCATION}/${IMAGE_NAME}"
-    md5sum "${IMAGE_NAME}" | awk '{print $1}' > "${IMAGE_NAME}.md5sum"
+    qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
+    md5sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.md5sum"
 fi
 popd
-
-# Install requirements
-ansible-galaxy install -r vm-setup/requirements.yml
-
-ANSIBLE_FORCE_COLOR=true ansible-playbook \
-  -e "working_dir=$WORKING_DIR" \
-  -e "virthost=$HOSTNAME" \
-  -i vm-setup/inventory.ini \
-  -b -vvv vm-setup/install-package-playbook.yml
-
-# Allow local non-root-user access to libvirt
-# Restart libvirtd service to get the new group membership loaded
-if ! id "$USER" | grep -q libvirt; then
-  sudo usermod -a -G "libvirt" "$USER"
-  sudo systemctl restart libvirtd
-fi
 
 # Start image downloader container
 #shellcheck disable=SC2086

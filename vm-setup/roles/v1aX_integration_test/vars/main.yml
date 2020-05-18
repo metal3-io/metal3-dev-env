@@ -50,12 +50,12 @@ IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-d
 IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning')}}"
 
 # Distibution specific environment variables
-IMAGE_NAME: 'bionic-server-cloudimg-amd64.img'
+IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('bionic-server-cloudimg-amd64-raw.img', true)}}"
 IMAGE_LOCATION: 'https://cloud-images.ubuntu.com/bionic/current'
 IMAGE_URL: "http://172.22.0.1/images/{{ IMAGE_NAME }}"
 IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ IMAGE_NAME }}.md5sum"
 
-IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_NAME_CENTOS') | default('CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2', true)}}"
+IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64-raw.qcow2', true)}}"
 IMAGE_LOCATION_CENTOS: 'https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2'
 IMAGE_URL_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}"
 IMAGE_CHECKSUM_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}.md5sum"
