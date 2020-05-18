@@ -76,12 +76,6 @@ source lib/network.sh
 # shellcheck disable=SC1091
 source lib/images.sh
 
-# Pull images we'll need
-for IMAGE_VAR in IRONIC_IMAGE IPA_DOWNLOADER_IMAGE VBMC_IMAGE SUSHY_TOOLS_IMAGE DOCKER_REGISTRY_IMAGE; do
-    IMAGE=${!IMAGE_VAR}
-    sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
-done
-
 # Download IPA and CentOS 7 Images
 mkdir -p "$IRONIC_IMAGE_DIR"
 pushd "$IRONIC_IMAGE_DIR"
