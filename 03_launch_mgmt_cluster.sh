@@ -57,11 +57,8 @@ if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
   IRONIC_HOST="${PROVISIONING_URL_HOST}"
   BMO_CONFIG="ironic-outside-config"
 else
-  # TODO temporary hack around ironic issue, revert asap
-  #IRONIC_HOST="${CLUSTER_URL_HOST}"
-  #BMO_CONFIG="ironic-keepalived-config"
-  IRONIC_HOST="${PROVISIONING_URL_HOST}"
-  BMO_CONFIG="ironic-outside-config"
+  IRONIC_HOST="${CLUSTER_URL_HOST}"
+  BMO_CONFIG="ironic-keepalived-config"
 fi
 
 function clone_repos() {
@@ -186,11 +183,9 @@ function launch_baremetal_operator() {
       kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
     fi
 
-    # TODO temporary hack around ironic issue, revert asap
-    #if [ "${BMO_RUN_LOCAL}" = true ] || [ "${EPHEMERAL_CLUSTER}" = kind ]; then
-    #  ${RUN_LOCAL_IRONIC_SCRIPT}
-    #fi
-    ${RUN_LOCAL_IRONIC_SCRIPT}
+    if [ "${BMO_RUN_LOCAL}" = true ] || [ "${EPHEMERAL_CLUSTER}" = kind ]; then
+      ${RUN_LOCAL_IRONIC_SCRIPT}
+    fi
 
     if [ "${BMO_RUN_LOCAL}" = true ]; then
       nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
