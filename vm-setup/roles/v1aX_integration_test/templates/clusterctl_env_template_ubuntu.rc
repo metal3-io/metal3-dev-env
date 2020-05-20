@@ -4,12 +4,14 @@ export API_ENDPOINT_HOST='{{ CLUSTER_APIENDPOINT_HOST }}'
 export API_ENDPOINT_PORT="6443"
 export IMAGE_URL='{{ IMAGE_URL }}'
 export IMAGE_CHECKSUM='{{ IMAGE_CHECKSUM }}'
+export IMAGE_CHECKSUM_TYPE='md5'
+export IMAGE_FORMAT='qcow2'
 export CTLPLANE_KUBEADM_EXTRA_CONFIG="
     users:
     - name: metal3
       sudo: \"ALL=(ALL) NOPASSWD:ALL\"
       sshAuthorizedKeys:
-      - {{ SSH_PUB_KEY_CONTENT }}    
+      - {{ SSH_PUB_KEY_CONTENT }}
     preKubeadmCommands:
       - ip link set dev enp2s0 up
       - dhclient enp2s0
