@@ -9,7 +9,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
     - name: metal3
       sudo: \"ALL=(ALL) NOPASSWD:ALL\"
       sshAuthorizedKeys:
-      - {{ SSH_PUB_KEY_CONTENT }}    
+      - {{ SSH_PUB_KEY_CONTENT }}
     preKubeadmCommands:
       - ifup eth1
       - dnf update -y
@@ -18,7 +18,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
       - setenforce 0
       - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-      - dnf install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
+      - dnf install docker-ce-3:18.09.1-3.el7 docker-ce-cli-1:18.09.1-3.el7 --disableexcludes=kubernetes --nobest -y
       - >-
         dnf install gcc kernel-headers kernel-devel keepalived
         device-mapper-persistent-data lvm2 -y
@@ -119,7 +119,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
       - name: metal3
         sudo: \"ALL=(ALL) NOPASSWD:ALL\"
         sshAuthorizedKeys:
-        - {{ SSH_PUB_KEY_CONTENT }}      
+        - {{ SSH_PUB_KEY_CONTENT }}
       preKubeadmCommands:
         - ifup eth1
         - dnf update -y
@@ -128,7 +128,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
         - setenforce 0
         - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-        - dnf install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
+        - dnf install docker-ce-3:18.09.1-3.el7 docker-ce-cli-1:18.09.1-3.el7 --disableexcludes=kubernetes --nobest -y
         - echo  \"Installing kubernetes binaries\"
         - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/{kubeadm,kubelet,kubectl}
         - chmod a+x kubeadm kubelet kubectl
