@@ -115,6 +115,13 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
           gpgcheck=1
           repo_gpgcheck=0
           gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      - path : /etc/docker/daemon.json
+        owner: root:root
+        permissions: '0644'
+        content: |
+          {
+            \"insecure-registries\" : [\"192.168.111.1:5000\"]
+          }
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
       users:
@@ -161,4 +168,11 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
             gpgcheck=1
             repo_gpgcheck=0
             gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+        - path : /etc/docker/daemon.json
+          owner: root:root
+          permissions: '0644'
+          content: |
+            {
+              \"insecure-registries\" : [\"192.168.111.1:5000\"]
+            }
 "

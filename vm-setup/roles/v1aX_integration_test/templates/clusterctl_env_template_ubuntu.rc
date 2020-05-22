@@ -126,6 +126,13 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
                 {{ IRONIC_ENDPOINT_BRIDGE }}:
                   interfaces: [enp1s0]
                   dhcp4: yes
+        - path : /etc/docker/daemon.json
+          owner: root:root
+          permissions: '0644'
+          content: |
+            {
+              \"insecure-registries\" : [\"192.168.111.1:5000\"]
+            }
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
       users:
@@ -169,4 +176,11 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
                     enp2s0:
                         dhcp4: true
                 version: 2
+        - path : /etc/docker/daemon.json
+          owner: root:root
+          permissions: '0644'
+          content: |
+            {
+              \"insecure-registries\" : [\"192.168.111.1:5000\"]
+            }
 "

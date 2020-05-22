@@ -18,6 +18,7 @@ KUBERNETES_BINARIES_CONFIG_VERSION: "{{ lookup('env', 'KUBERNETES_BINARIES_CONFI
 
 POD_CIDR: "{{ lookup('env', 'POD_CIDR') }}"
 SERVICE_CIDR: "10.96.0.0/12"
+CAPM3RELEASE: "{{ lookup('env', 'CAPM3RELEASE') | default('v0.3.1', true) }}" 
 SSH_PRIVATE_KEY: "{{ lookup('env', 'SSH_KEY') }}"
 SSH_PUB_KEY_CONTENT: "{{ lookup('file', '{{ HOME }}/.ssh/id_rsa.pub') }}"
 IMAGE_USERNAME: "{{ lookup('env', 'IMAGE_USERNAME') | default('metal3', true)}}"

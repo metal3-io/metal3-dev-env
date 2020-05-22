@@ -7,15 +7,15 @@
     until: (provisioned_cluster.stdout == "provisioned") or
            (provisioned_cluster.stdout == "Provisioned")
 
-  - name: Wait until both bmhs become provisioned.
+  - name: Wait until both BMHs become provisioned.
     shell: |
-        kubectl get bmh -n metal3 -o json | jq -r '.items[]
+        kubectl get bmh -n metal3 -o json | jq -r '[ .items[]
         | select (.status.provisioning.state == "provisioned")
-        | .metadata.name'
+        | .metadata.name ] | length'
     register: provisioned_bmh
     retries: 150
     delay: 20
-    until: provisioned_bmh.stdout_lines ==  ["node-0", "node-1"]
+    until: provisioned_bmh.stdout ==  "2"
 
   - name: Wait until both machines become running.
     shell: |
@@ -88,6 +88,28 @@
           replace: "{{ POD_CIDR }}"
         register: updated_manifest
 
+      - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
+        blockinfile:
+          path: /tmp/calico.yaml
+          insertafter: "{{ POD_CIDR }}"  
+          block: |
+             # for indentation
+                         - name: IP_AUTODETECTION_METHOD
+                           value: "interface=enp2s0"
+        when:
+          ansible_distribution == "Ubuntu"
+        
+      - name: Add IP_AUTODETECTION_METHOD in calico config Centos
+        blockinfile:
+          path: /tmp/calico.yaml
+          insertafter: "{{ POD_CIDR }}"  
+          block: |
+             # for indentation
+                         - name: IP_AUTODETECTION_METHOD
+                           value: "interface=eth1"
+        when:
+          ansible_distribution == "CentOS"
+
       - name: Apply Calico manifest
         k8s:
           state: present
@@ -101,7 +123,7 @@
         environment:
           KUBECONFIG: "/home/{{ username }}/.kube/config"
         retries: 150
-        delay: 3
+        delay: 20
         register: running_pods
         failed_when: >
           (running_pods.stderr != "") or
