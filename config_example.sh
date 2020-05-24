@@ -124,7 +124,7 @@
 
 # Image username for ssh
 #
-#export IMAGE_USERNAME="cirros"
+#export IMAGE_USERNAME="metal3"
 
 # Container image for ironic pod
 #

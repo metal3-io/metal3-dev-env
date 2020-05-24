@@ -25,7 +25,6 @@
         vars:
           IMAGE_NAME: '{{ IMAGE_NAME_CENTOS }}'
           IMAGE_LOCATION: '{{ IMAGE_LOCATION_CENTOS }}'
-          IMAGE_USERNAME: '{{ IMAGE_USERNAME_CENTOS }}'
 
       - name: Copy generated workers_centos.yaml
         copy:

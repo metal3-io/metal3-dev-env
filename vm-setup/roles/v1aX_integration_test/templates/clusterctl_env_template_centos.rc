@@ -1,12 +1,12 @@
 export POD_CIDR='{{ POD_CIDR }}'
-export SERVICE_CIDR='"10.96.0.0/12"'
+export SERVICE_CIDR='{{ SERVICE_CIDR }}'
 export API_ENDPOINT_HOST='{{ CLUSTER_APIENDPOINT_HOST }}'
-export API_ENDPOINT_PORT="6443"
+export API_ENDPOINT_PORT='{{ API_ENDPOINT_PORT }}'
 export IMAGE_URL='{{ IMAGE_URL }}'
 export IMAGE_CHECKSUM='{{ IMAGE_CHECKSUM }}'
 export CTLPLANE_KUBEADM_EXTRA_CONFIG="
     users:
-    - name: metal3
+    - name: {{ IMAGE_USERNAME }}
       sudo: \"ALL=(ALL) NOPASSWD:ALL\"
       sshAuthorizedKeys:
       - {{ SSH_PUB_KEY_CONTENT }}
@@ -29,15 +29,15 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - mkdir -p /etc/systemd/system/kubelet.service.d
       - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
       - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-      - usermod -aG docker metal3
+      - usermod -aG docker {{ IMAGE_USERNAME }}
       - systemctl enable --now docker keepalived kubelet
       - systemctl link /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
       - systemctl enable monitor.keepalived.service
       - systemctl start monitor.keepalived.service
     postKubeadmCommands:
-      - mkdir -p /home/metal3/.kube
-      - cp /etc/kubernetes/admin.conf /home/metal3/.kube/config
-      - chown metal3:metal3 /home/metal3/.kube/config
+      - mkdir -p /home/{{ IMAGE_USERNAME }}/.kube
+      - cp /etc/kubernetes/admin.conf /home/{{ IMAGE_USERNAME }}/.kube/config
+      - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube/config
     files:
       - path: /usr/local/bin/monitor.keepalived.sh
         owner: root:root
@@ -116,7 +116,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
       users:
-      - name: metal3
+      - name: {{ IMAGE_USERNAME }}
         sudo: \"ALL=(ALL) NOPASSWD:ALL\"
         sshAuthorizedKeys:
         - {{ SSH_PUB_KEY_CONTENT }}
@@ -136,7 +136,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - mkdir -p /etc/systemd/system/kubelet.service.d
         - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
         - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-        - usermod -aG docker metal3
+        - usermod -aG docker {{ IMAGE_USERNAME }}
         - systemctl enable --now docker kubelet
       files:
         - path: /etc/sysconfig/network-scripts/ifcfg-eth1
