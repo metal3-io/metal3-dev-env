@@ -121,7 +121,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
               version: 2
               renderer: networkd
               bridges:
-                ironicendpoint:
+                {{ IRONIC_ENDPOINT_BRIDGE }}:
                   interfaces: [enp1s0]
                   dhcp4: yes
 "
