@@ -29,7 +29,7 @@
 
   - name: Define username variable as metal3 for target node
     set_fact:
-      username: metal3
+      username: "{{ IMAGE_USERNAME }}"
   - name: Verification test
     delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
     vars:
