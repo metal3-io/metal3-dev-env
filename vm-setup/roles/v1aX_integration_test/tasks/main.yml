@@ -47,3 +47,7 @@
 - name: "{{ CAPI_VERSION }} worker node deprovisioning"
   include: deprovision_worker.yml
   when: v1aX_integration_test_action == "deprovision_worker"
+
+- name: Node remediation
+  include: remediation.yml
+  when: v1aX_integration_test_action == "remediation"

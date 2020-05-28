@@ -1,0 +1,129 @@
+---
+  - name: Get the name of the worker node
+    shell: |
+       kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '.items[]
+       | select(.spec.consumerRef.name | contains("{{ CLUSTER_NAME }}-workers"))
+       | .metadata.name'
+    register: worker_node_name
+
+  - name: Define WORKER_NODE variable with worker node name
+    set_fact:
+      WORKER_NODE: "{{ worker_node_name.stdout }}"
+
+  - name: Get the name of the worker libvirt VM
+    set_fact:
+      WORKER_NODE_VM: "{{ WORKER_NODE | replace('-','_') }}"
+
+  - name: Reboot "{{ WORKER_NODE }}"
+    shell: |
+       kubectl annotate bmh "{{ WORKER_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io=
+
+  - name: List only shutted off VMs
+    virt:
+      command: list_vms
+      state: shutdown
+    register: shutdown_vms
+    retries: 50
+    delay: 10
+    until: WORKER_NODE_VM in shutdown_vms.list_vms
+
+  - name: Rebooted node status
+    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
+    vars:
+      ansible_user: "{{ IMAGE_USERNAME }}"
+      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
+      ansible_python_interpreter: /usr/bin/python3
+    become: yes
+    become_user: "{{ IMAGE_USERNAME }}"
+    block:
+      - name: Wait until rebooted k8s node "{{ WORKER_NODE }}" becomes NotReady
+        shell: kubectl get nodes | grep -w NotReady | wc -l
+        environment:
+          KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
+        retries: 150
+        delay: 3
+        register: not_ready_nodes
+        until: not_ready_nodes.stdout == "1"
+
+      - name: Wait until rebooted k8s node becomes Ready again
+        shell: kubectl get nodes | grep -w Ready | wc -l
+        environment:
+          KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
+        retries: 150
+        delay: 3
+        register: ready_nodes
+        until: ready_nodes.stdout == "2"
+
+  - name: List only running VMs
+    virt:
+      command: list_vms
+      state: running
+    register: running_vms
+    retries: 50
+    delay: 10
+    until: WORKER_NODE_VM in running_vms.list_vms
+
+  - name: Power off "{{ WORKER_NODE }}"
+    shell: |
+       kubectl annotate bmh "{{ WORKER_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
+
+  - name: Powered off node status
+    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
+    vars:
+      ansible_user: "{{ IMAGE_USERNAME }}"
+      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
+      ansible_python_interpreter: /usr/bin/python3
+    become: yes
+    become_user: "{{ IMAGE_USERNAME }}"
+    block:
+      - name: Wait until powered off k8s node "{{ WORKER_NODE }}" becomes NotReady
+        shell: kubectl get nodes | grep -w NotReady | wc -l
+        environment:
+          KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
+        retries: 150
+        delay: 3
+        register: not_ready_nodes
+        until: not_ready_nodes.stdout == "1"
+
+  - pause:
+      minutes: 1
+
+  - name: List only shutted off VMs
+    virt:
+      command: list_vms
+      state: shutdown
+    register: shutdown_vms
+    retries: 50
+    delay: 10
+    until: WORKER_NODE_VM in shutdown_vms.list_vms
+
+  - name: Power on "{{ WORKER_NODE }}"
+    shell: |
+       kubectl annotate bmh "{{ WORKER_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff-
+
+  - name: List only running VMs
+    virt:
+      command: list_vms
+      state: running
+    register: running_vms
+    retries: 50
+    delay: 10
+    until: WORKER_NODE_VM in running_vms.list_vms
+
+  - name: Powered on node status
+    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
+    vars:
+      ansible_user: "{{ IMAGE_USERNAME }}"
+      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
+      ansible_python_interpreter: /usr/bin/python3
+    become: yes
+    become_user: "{{ IMAGE_USERNAME }}"
+    block:
+      - name: Wait until powered on k8s node "{{ WORKER_NODE }}" becomes Ready
+        shell: kubectl get nodes | grep -w Ready | wc -l
+        environment:
+          KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
+        retries: 150
+        delay: 3
+        register: ready_nodes
+        until: ready_nodes.stdout == "2"
