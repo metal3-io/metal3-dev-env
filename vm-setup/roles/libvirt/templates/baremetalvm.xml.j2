@@ -43,7 +43,9 @@
 {% endif %}
     </interface>
 {% endfor %}
-    <serial type='pty'/>
+    <serial type='pty'>
+      <log file="{{ libvirt_log_path }}/{{ item.name }}-serial0.log" append="on"/>
+    </serial>
     <console type='pty'/>
 
 {% if enable_vnc_console|bool %}
