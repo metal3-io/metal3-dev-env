@@ -16,6 +16,9 @@ libvirt_arch: x86_64
 libvirt_cpu_mode: host-model
 libvirt_firmware: bios
 
+# Where to log serial console output
+libvirt_log_path: "/var/log/libvirt/qemu"
+
 # how many disks should be created when using extradisks
 extradisks_list:
   - vdb

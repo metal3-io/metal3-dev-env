@@ -68,4 +68,7 @@ if [[ $OS == "centos" || $OS == "rhel" ]]; then
   fi
 fi
 
+# Clean up any serial logs
+sudo rm -rf /var/log/libvirt/qemu/\*serial0.log
+
 rm -rf  "${HOME}"/.cluster-api
