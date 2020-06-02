@@ -36,16 +36,18 @@ CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
-# Below line forcing to use older CAPI version due to CAPI bug:2983, line removed when bug fixed 
-export CAPIBRANCH="v0.3.3"
 CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL}/releases/latest}"
-CAPM3RELEASE=${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}
-CAPM3BRANCH=${CAPM3BRANCH:-${CAPM3RELEASE}}
-CAPIBRANCH=${CAPIBRANCH:-master}
+CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}"
+if [ "${CAPI_VERSION}" == "v1alpha4" ]; then
+  CAPM3BRANCH="${CAPM3BRANCH:-master}"
+else
+  CAPM3BRANCH="${CAPM3BRANCH:-release-0.3}"
+fi
+CAPIBRANCH="${CAPIBRANCH:-master}"
 
-BMOREPO="${BMOREPO:-https://github.com/Nordix/baremetal-operator.git}"
-BMOBRANCH="${BMOBRANCH:-bmo-furkat}"
+BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
+BMOBRANCH="${BMOBRANCH:-master}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
 
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
@@ -53,11 +55,11 @@ CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 
 if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
   IRONIC_HOST="${PROVISIONING_URL_HOST}"
-  #BMO_CONFIG="ironic-outside-config"
+  BMO_CONFIG="ironic-outside-config"
   export IRONIC_HOST_IP="${PROVISIONING_IP}"
 else
   IRONIC_HOST="${CLUSTER_URL_HOST}"
-  BMO_CONFIG="kustomizations/ironic-keepalived"
+  BMO_CONFIG="ironic-keepalived-config"
   export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
 fi
 
@@ -105,15 +107,20 @@ function clone_repos() {
 
 function patch_clusterctl(){
   pushd "${CAPM3PATH}"
-  if [ -n "${CAPM3_LOCAL_IMAGE}" ] && [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
+  if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
     CAPM3_IMAGE_NAME="${CAPM3_LOCAL_IMAGE##*/}"
-    BMO_IMAGE_NAME="${BAREMETAL_OPERATOR_LOCAL_IMAGE##*/}"
     export MANIFEST_IMG="192.168.111.1:5000/localimages/$CAPM3_IMAGE_NAME"
-    export MANIFEST_IMG_BMO="192.168.111.1:5000/localimages/$BMO_IMAGE_NAME"
     export MANIFEST_TAG="latest"
+    make set-manifest-image
+  fi
+
+  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
+    BMO_IMAGE_NAME="${BAREMETAL_OPERATOR_LOCAL_IMAGE##*/}"
+    export MANIFEST_IMG_BMO="192.168.111.1:5000/localimages/$BMO_IMAGE_NAME"
     export MANIFEST_TAG_BMO="latest"
     make set-manifest-image
   fi
+  
   make release-manifests
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
@@ -126,9 +133,9 @@ function patch_clusterctl(){
 function update_images(){
   for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     IMAGE=${!IMAGE_VAR}
-   #shellcheck disable=SC2086
-   IMAGE_NAME="${IMAGE##*/}:latest"
-   LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
+    #shellcheck disable=SC2086
+    IMAGE_NAME="${IMAGE##*/}:latest"
+    LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
 
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
     # Strip the tag for image replacement
@@ -137,6 +144,8 @@ function update_images(){
     if [ -z "${CAPM3_LOCAL_IMAGE}" ]; then
       kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
     fi
+    eval "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
+    export "${OLD_IMAGE_VAR?}"
   done
 }
 
@@ -164,22 +173,34 @@ resources:
 EOF
 }
 
-function launch_standalone_ironic() {
+function launch_baremetal_operator() {
     pushd "${BMOPATH}"
     kustomize_overlay_path=$(mktemp -d bmo-XXXXXXXXXX)
 
     kustomize_overlay_bmo "$kustomize_overlay_path"
     pushd "$kustomize_overlay_path"
 
-    # Add custom images in overlay
+    # Add custom images in overlay, and override the images with local ones
     update_images
     popd
+
+    if [ "${BMO_RUN_LOCAL}" = true ]; then
+      touch bmo.out.log
+      touch bmo.err.log
+      kustomize build "$kustomize_overlay_path" | kubectl apply -f-
+      kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
+    fi
 
     if [ "${BMO_RUN_LOCAL}" = true ] || [ "${EPHEMERAL_CLUSTER}" = kind ]; then
       ${RUN_LOCAL_IRONIC_SCRIPT}
     fi
-    kustomize build "$kustomize_overlay_path" | kubectl apply -f-
 
+    if [ "${BMO_RUN_LOCAL}" = true ]; then
+      nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
+    else
+      kustomize build "$kustomize_overlay_path" | kubectl apply -f-
+    fi
+    
     rm -rf "$kustomize_overlay_path"
     popd
 }
@@ -255,18 +276,6 @@ function launch_cluster_api_provider_metal3() {
       kubectl scale -n metal3 deployment.v1.apps capm3-controller-manager --replicas 0
       nohup make run >> capm3.out.log 2>> capm3.err.log &
     fi
-
-    if [ "${BMO_RUN_LOCAL}" = true ]; then
-      touch bmo.out.log
-      touch bmo.err.log
-      kustomize build "$kustomize_overlay_path" | kubectl apply -f-
-      kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
-    fi
-    
-    if [ "${BMO_RUN_LOCAL}" = true ]; then
-      nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
-    fi
-
     popd
 }
 
@@ -305,6 +314,6 @@ else
   fi
 fi
 
-launch_standalone_ironic
-launch_cluster_api_provider_metal3
+launch_baremetal_operator
 apply_bm_hosts
+launch_cluster_api_provider_metal3

@@ -26,7 +26,6 @@
 
 #
 # This SSH key will be automatically injected into the provisioned host
-# by the provision_host.sh script.
 #
 # Default of ~/.ssh/id_rsa.pub is set in lib/common.sh
 #
@@ -125,7 +124,7 @@
 
 # Image username for ssh
 #
-#export IMAGE_USERNAME="cirros"
+#export IMAGE_USERNAME="metal3"
 
 # Container image for ironic pod
 #

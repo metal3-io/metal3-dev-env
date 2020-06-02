@@ -7,7 +7,7 @@ source lib/logging.sh
 source lib/common.sh
 
 # Kill and remove the running ironic containers
-for name in ipa-downloader ironic ironic-inspector dnsmasq httpd mariadb vbmc sushy-tools httpd-infra; do
+for name in ipa-downloader ironic ironic-inspector ironic-endpoint-keepalived dnsmasq httpd mariadb vbmc sushy-tools httpd-infra; do
     sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name
     sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f
 done
@@ -46,6 +46,14 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/teardown-playbook.yml
 
+if [ "$USE_FIREWALLD" == "False" ]; then
+ ANSIBLE_FORCE_COLOR=true ansible-playbook \
+    -e "{use_firewalld: $USE_FIREWALLD}" \
+    -e "firewall_rule_state=absent" \
+    -i vm-setup/inventory.ini \
+    -b -vvv vm-setup/firewall.yml
+fi
+
 # There was a bug in this file, it may need to be recreated.
 if [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
@@ -60,5 +68,7 @@ if [[ $OS == "centos" || $OS == "rhel" ]]; then
   fi
 fi
 
-rm -rf  "${HOME}"/.cluster-api
+# Clean up any serial logs
+sudo rm -rf /var/log/libvirt/qemu/\*serial0.log
 
+rm -rf  "${HOME}"/.cluster-api

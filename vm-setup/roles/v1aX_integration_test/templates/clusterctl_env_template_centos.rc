@@ -1,19 +1,22 @@
-export '{{ DEPLOY_KERNEL_URL }}'
-export '{{ DEPLOY_RAMDISK_URL }}'
-export '{{ IRONIC_URL }}'
-export '{{ IRONIC_INSPECTOR_URL }}'
+export IRONIC_HOST_IP='{{ IRONIC_HOST_IP }}'
+export DEPLOY_KERNEL_URL='{{ DEPLOY_KERNEL_URL }}'
+export DEPLOY_RAMDISK_URL='{{ DEPLOY_RAMDISK_URL }}'
+export IRONIC_URL='{{ IRONIC_URL }}'
+export IRONIC_INSPECTOR_URL='{{ IRONIC_INSPECTOR_URL }}'
 export POD_CIDR='{{ POD_CIDR }}'
-export SERVICE_CIDR='"10.96.0.0/12"'
+export SERVICE_CIDR='{{ SERVICE_CIDR }}'
 export API_ENDPOINT_HOST='{{ CLUSTER_APIENDPOINT_HOST }}'
-export API_ENDPOINT_PORT="6443"
+export API_ENDPOINT_PORT='{{ API_ENDPOINT_PORT }}'
 export IMAGE_URL='{{ IMAGE_URL }}'
 export IMAGE_CHECKSUM='{{ IMAGE_CHECKSUM }}'
+export IMAGE_CHECKSUM_TYPE='md5'
+export IMAGE_FORMAT='qcow2'
 export CTLPLANE_KUBEADM_EXTRA_CONFIG="
     users:
-    - name: metal3
+    - name: {{ IMAGE_USERNAME }}
       sudo: \"ALL=(ALL) NOPASSWD:ALL\"
       sshAuthorizedKeys:
-      - {{ SSH_PUB_KEY_CONTENT }}    
+      - {{ SSH_PUB_KEY_CONTENT }}
     preKubeadmCommands:
       - ifup eth1
       - dnf update -y
@@ -22,7 +25,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
       - setenforce 0
       - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-      - dnf install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
+      - dnf install docker-ce-3:18.09.1-3.el7 docker-ce-cli-1:18.09.1-3.el7 --disableexcludes=kubernetes --nobest -y
       - >-
         dnf install gcc kernel-headers kernel-devel keepalived
         device-mapper-persistent-data lvm2 -y
@@ -33,13 +36,48 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - mkdir -p /etc/systemd/system/kubelet.service.d
       - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
       - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-      - usermod -aG docker metal3
+      - usermod -aG docker {{ IMAGE_USERNAME }}
       - systemctl enable --now docker keepalived kubelet
+      - systemctl link /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
+      - systemctl enable monitor.keepalived.service
+      - systemctl start monitor.keepalived.service
     postKubeadmCommands:
-      - mkdir -p /home/metal3/.kube
-      - cp /etc/kubernetes/admin.conf /home/metal3/.kube/config
-      - chown metal3:metal3 /home/metal3/.kube/config
+      - mkdir -p /home/{{ IMAGE_USERNAME }}/.kube
+      - cp /etc/kubernetes/admin.conf /home/{{ IMAGE_USERNAME }}/.kube/config
+      - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube/config
     files:
+      - path: /usr/local/bin/monitor.keepalived.sh
+        owner: root:root
+        permissions: '0755'
+        content: |
+            #!/bin/bash
+            while :; do
+              curl -sk https://127.0.0.1:6443/healthz 1>&2 > /dev/null
+              isOk=\$?
+              isActive=\$(systemctl show -p ActiveState keepalived.service | cut -d'=' -f2)
+              if [ \$isOk == \"0\" ] &&  [ \$isActive != \"active\" ]; then
+                logger 'API server is healthy, however keepalived is not running, starting keepalived'
+                echo 'API server is healthy, however keepalived is not running, starting keepalived'
+                sudo systemctl start keepalived.service
+              elif [ \$isOk != \"0\" ] &&  [ \$isActive == \"active\" ]; then
+                logger 'API server is not healthy, however keepalived running, stopping keepalived'
+                echo 'API server is not healthy, however keepalived running, stopping keepalived'
+                sudo systemctl stop keepalived.service
+              fi
+              sleep 5
+            done
+      - path: /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
+        owner: root:root
+        content: |
+          [Unit]
+          Description=Monitors keepalived adjusts status with that of API server
+          After=syslog.target network-online.target
+          [Service]
+          Type=simple
+          Restart=always
+          ExecStart=/usr/local/bin/monitor.keepalived.sh
+          [Install]
+          WantedBy=multi-user.target
       - path: /etc/keepalived/keepalived.conf
         content: |
           ! Configuration File for keepalived
@@ -85,10 +123,10 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
       users:
-      - name: metal3
+      - name: {{ IMAGE_USERNAME }}
         sudo: \"ALL=(ALL) NOPASSWD:ALL\"
         sshAuthorizedKeys:
-        - {{ SSH_PUB_KEY_CONTENT }}      
+        - {{ SSH_PUB_KEY_CONTENT }}
       preKubeadmCommands:
         - ifup eth1
         - dnf update -y
@@ -97,7 +135,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
         - setenforce 0
         - sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
-        - dnf install docker-ce docker-ce-cli --disableexcludes=kubernetes --nobest -y
+        - dnf install docker-ce-3:18.09.1-3.el7 docker-ce-cli-1:18.09.1-3.el7 --disableexcludes=kubernetes --nobest -y
         - echo  \"Installing kubernetes binaries\"
         - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/v1.18.0/bin/linux/amd64/{kubeadm,kubelet,kubectl}
         - chmod a+x kubeadm kubelet kubectl
@@ -105,7 +143,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - mkdir -p /etc/systemd/system/kubelet.service.d
         - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
         - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-        - usermod -aG docker metal3
+        - usermod -aG docker {{ IMAGE_USERNAME }}
         - systemctl enable --now docker kubelet
       files:
         - path: /etc/sysconfig/network-scripts/ifcfg-eth1
