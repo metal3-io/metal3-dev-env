@@ -71,7 +71,7 @@
     chain: FORWARD
     action: insert
     out_interface: "{{ baremetal_interface }}"
-    destination: "192.168.111.1/24"
+    destination: "{{ external_subnet_v4 }}"
     jump: ACCEPT
     state: "{{ firewall_rule_state }}"
   when: (EPHEMERAL_CLUSTER == "kind")

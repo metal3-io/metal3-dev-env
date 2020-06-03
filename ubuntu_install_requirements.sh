@@ -41,13 +41,28 @@ sudo add-apt-repository -y ppa:longsleep/golang-backports
 # Update some packages from new repos
 sudo apt -y update
 
+# Install python packages not included as rpms
+sudo pip3 install \
+  ansible==2.9.1 \
+  python-apt \
+  openshift \
+  pyYAML
+
+# Set update-alternatives to python3
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+
 # make sure additional requirments are installed
 
 ##No bind-utils. It is for host, nslookop,..., no need in ubuntu
 
+# We need the network variables, but can only source lib/network.sh after
+# installing and setting up python
+# shellcheck disable=SC1091
+source lib/network.sh
+
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo apt -y install podman
-  sudo sed -i '/^\[registries\.insecure\]$/,/^\[/ s/^registries =.*/registries = ["192.168.111.1:5000"]/g' /etc/containers/registries.conf
+  sudo sed -i "/^\[registries\.insecure\]$/,/^\[/ s/^registries =.*/registries = [\"${REGISTRY}\"]/g" /etc/containers/registries.conf
 else
   sudo apt -y install \
     apt-transport-https \
@@ -62,7 +77,7 @@ else
   sudo apt update
   cat <<EOF > daemon.json
 {
-  "insecure-registries" : ["192.168.111.1:5000"]
+  "insecure-registries" : ["${REGISTRY}"]
 }
 EOF
   sudo chown root:root daemon.json
@@ -72,13 +87,3 @@ EOF
   sudo systemctl restart docker
   sudo usermod -aG docker "${USER}"
 fi
-
-# Install python packages not included as rpms
-sudo pip3 install \
-  ansible==2.9.1 \
-  python-apt \
-  openshift \
-  pyYAML
-
-# Set update-alternatives to python3
-sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1

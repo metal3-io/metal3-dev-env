@@ -107,7 +107,7 @@ function patch_clusterctl(){
   pushd "${CAPM3PATH}"
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
     CAPM3_IMAGE_NAME="${CAPM3_LOCAL_IMAGE##*/}"
-    export MANIFEST_IMG="192.168.111.1:5000/localimages/$CAPM3_IMAGE_NAME"
+    export MANIFEST_IMG="${REGISTRY}/localimages/$CAPM3_IMAGE_NAME"
     export MANIFEST_TAG="latest"
     make set-manifest-image
   fi
@@ -125,7 +125,7 @@ function update_images(){
     IMAGE=${!IMAGE_VAR}
     #shellcheck disable=SC2086
     IMAGE_NAME="${IMAGE##*/}:latest"
-    LOCAL_IMAGE="192.168.111.1:5000/localimages/$IMAGE_NAME"
+    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
 
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
     # Strip the tag for image replacement
@@ -204,7 +204,7 @@ function launch_kind() {
   apiVersion: kind.x-k8s.io/v1alpha4
   containerdConfigPatches:
   - |-
-    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."192.168.111.1:5000"]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${REGISTRY}"]
       endpoint = ["http://${reg_ip}:5000"]
 EOF
 }

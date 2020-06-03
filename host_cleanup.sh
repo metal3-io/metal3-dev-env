@@ -49,6 +49,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
 if [ "$USE_FIREWALLD" == "False" ]; then
  ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "{use_firewalld: $USE_FIREWALLD}" \
+    -e "external_subnet_v4: ${EXTERNAL_SUBNET_V4}" \
     -e "firewall_rule_state=absent" \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/firewall.yml

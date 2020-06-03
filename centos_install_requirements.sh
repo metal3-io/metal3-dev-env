@@ -58,9 +58,14 @@ if [[ $DISTRO == "centos7" ]]; then
   sudo dnf -y upgrade --exclude=oniguruma
 fi
 
+# We need the network variables, but can only source lib/network.sh after
+# installing and setting up python
+# shellcheck disable=SC1091
+source lib/network.sh
+
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   sudo dnf -y install podman
-  sudo sed -i '/^\[registries\.insecure\]$/,/^\[/ s/^registries =.*/registries = ["192.168.111.1:5000"]/g' /etc/containers/registries.conf
+  sudo sed -i "/^\[registries\.insecure\]$/,/^\[/ s/^registries =.*/registries = [\"${REGISTRY}\"]/g" /etc/containers/registries.conf
 else
   if [[ $DISTRO == "centos7" ]]; then
     sudo dnf install -y dnf-utils \
@@ -71,7 +76,7 @@ else
       https://download.docker.com/linux/centos/docker-ce.repo
       cat <<EOF > daemon.json
 {
-  "insecure-registries" : ["192.168.111.1:5000"]
+  "insecure-registries" : ["${REGISTRY}"]
 }
 EOF
     sudo chown root:root daemon.json
