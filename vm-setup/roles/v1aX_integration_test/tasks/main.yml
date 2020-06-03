@@ -36,6 +36,14 @@
     - provision_worker
   when: v1aX_integration_test_action == "provision_worker"
 
+- name: "{{ CAPI_VERSION }} pivoting"
+  include: "{{ item }}.yml"
+  with_items:
+    - verify
+    - move
+    - move_cleanup
+  when: v1aX_integration_test_action == "pivoting"  
+
 - name: "{{ CAPI_VERSION }} cluster deprovisioning"
   include: deprovision_cluster.yml
   when: v1aX_integration_test_action == "deprovision_cluster"

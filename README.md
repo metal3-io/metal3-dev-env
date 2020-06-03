@@ -82,6 +82,12 @@ export DEFAULT_HOSTS_MEMORY=4096
 ./scripts/v1alphaX/provision_worker.sh
 ```
 
+### Pivot to the target cluster
+
+```sh
+./scripts/v1alphaX/pivot.sh
+```
+
 ### Delete the target cluster
 
 ```sh

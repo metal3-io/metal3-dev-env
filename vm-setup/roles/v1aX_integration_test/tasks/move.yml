@@ -1,0 +1,114 @@
+---
+  - name: Label BMO CRDs.
+    shell: 'kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }} --overwrite '
+    with_items:
+       - clusterctl.cluster.x-k8s.io=""
+       - cluster.x-k8s.io/provider="metal3"
+    
+  - name: Obtain target cluster kubeconfig
+    shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/target.yaml"
+
+  - name: Create namespace
+    k8s:
+      name: "{{ NAMESPACE }}"
+      kind: Namespace
+      state: present
+    environment:
+      KUBECONFIG: "/tmp/target.yaml"
+
+  # Install BMO
+  - name: Install Baremetal Operator
+    shell: "kustomize build /home/$USER/go/src/github.com/metal3-io/baremetal-operator/deploy/ironic-outside-config/ | kubectl --kubeconfig=/tmp/target.yaml apply -n {{ NAMESPACE }} -f -"
+
+  - name: Pivoting test
+    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
+    vars:
+      ansible_user: "{{ IMAGE_USERNAME }}"
+      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
+      ansible_python_interpreter: /usr/bin/python3
+    become: yes
+    become_user: "{{ IMAGE_USERNAME }}"
+    block:
+      - name: Clone Baremetal Operator
+        git:
+          repo: 'https://github.com/metal3-io/baremetal-operator.git'
+          dest: "/home/{{ IMAGE_USERNAME }}/baremetal-operator"
+            
+        # Replacing the name of the bridge
+      - name: Replace the Provisioning Interface in ironic_ci.env
+        lineinfile:
+          path: /home/{{ IMAGE_USERNAME }}/baremetal-operator/deploy/ironic_ci.env
+          regexp: "^PROVISIONING_INTERFACE="
+          line: "PROVISIONING_INTERFACE={{ IRONIC_ENDPOINT_BRIDGE }}"
+        
+        # Install ironic
+      - name: Install ironic
+        shell: "bash /home/{{ IMAGE_USERNAME }}/baremetal-operator/tools/run_local_ironic.sh"
+        environment:
+          CONTAINER_RUNTIME: "{{ CONTAINER_RUNTIME }}"
+        become: yes
+        become_user: root
+
+      - name: Label BMO CRDs.
+        shell: 'kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }} --overwrite '
+        with_items:
+          - clusterctl.cluster.x-k8s.io=""
+          - cluster.x-k8s.io/provider="metal3"
+ 
+
+  - name: Initialize Provider component in target cluster
+    shell: "{{ CLUSTERCTL_PATH }}/clusterctl init --kubeconfig /tmp/target.yaml --infrastructure metal3:{{ CAPM3RELEASE }} --target-namespace {{ NAMESPACE }} --watching-namespace {{ NAMESPACE }} -v 5"
+
+    # Check for pods & nodes on the target cluster
+  - name: Check if pods in running state
+    shell: "kubectl get pods -A -o json | jq -r '.items[].status.phase' | grep -v Running"
+    environment:
+      KUBECONFIG: "/tmp/target.yaml"
+    retries: 150
+    delay: 20
+    register: target_running_pods
+    failed_when: >
+      (target_running_pods.stderr != "") or
+      (target_running_pods.rc > 1) or
+      (target_running_pods.stdout != "")
+    until: target_running_pods.stdout == ""
+
+  - name: Pivot objects to target cluster
+    shell: "{{ CLUSTERCTL_PATH }}/clusterctl move --to-kubeconfig /tmp/target.yaml -n {{ NAMESPACE }} -v 10" 
+
+  
+  - name: Check if machines become running.
+    shell: |
+        kubectl get machines -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
+        | select (.status.phase == "Running" or .status.phase == "running")
+        | .metadata.name ] | length'
+    register: provisioned_machines
+    environment:
+      KUBECONFIG: "/tmp/target.yaml"
+    retries: 10
+    delay: 20
+    until: provisioned_machines.stdout == "2"
+
+  - name: Check if metal3machines become provisioned.
+    shell: |
+        kubectl get m3m -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
+        | select (.status.ready == "true")
+        | .metadata.name ] | length'
+    register: provisioned_m3m_machines
+    environment:
+      KUBECONFIG: "/tmp/target.yaml"
+    retries: 10
+    delay: 20
+    until: provisioned_m3m_machines.stdout == "2"
+
+  - name: Check if bmh is in provisioned state
+    shell: |
+        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
+        | select (.status.provisioning.state == "provisioned")
+        | .metadata.name ] | length'
+    environment:
+      KUBECONFIG: "/tmp/target.yaml"
+    register: provisioned_bmh
+    retries: 10
+    delay: 20
+    until: provisioned_bmh.stdout ==  "2"
