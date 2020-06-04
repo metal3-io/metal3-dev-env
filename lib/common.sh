@@ -333,7 +333,7 @@ differs(){
 function init_minikube() {
     #If the vm exists, it has already been initialized
     if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
-      sudo su -l -c "minikube start --insecure-registry 192.168.111.1:5000" "$USER"
+      sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "$USER"
       sudo su -l -c "minikube stop" "$USER"
     fi
 

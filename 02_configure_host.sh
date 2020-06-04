@@ -106,6 +106,7 @@ fi
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "{use_firewalld: $USE_FIREWALLD}" \
+    -e "external_subnet_v4: ${EXTERNAL_SUBNET_V4}" \
     -i vm-setup/inventory.ini \
     -b -vvv vm-setup/firewall.yml
 
@@ -162,7 +163,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   #shellcheck disable=SC2086
   export $IMAGE_VAR="${IMAGE##*/}:latest"
   #shellcheck disable=SC2086
-  export $IMAGE_VAR="192.168.111.1:5000/localimages/${!IMAGE_VAR}"
+  export $IMAGE_VAR="${REGISTRY}/localimages/${!IMAGE_VAR}"
   sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f "${DOCKERFILE}"
   cd - || exit
   if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then

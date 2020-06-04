@@ -1,6 +1,7 @@
 use_firewalld: true
 baremetal_interface: baremetal
 provisioning_interface: provisioning
+external_subnet_v4: "192.168.111.0/24"
 vbmc_port_range: "6230:6235"
 firewall_rule_state: present
 ironic_ports:

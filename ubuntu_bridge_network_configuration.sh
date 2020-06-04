@@ -29,7 +29,7 @@ if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
        sudo brctl addbr baremetal
        # sudo ifconfig baremetal 192.168.111.1 netmask 255.255.255.0 up
        # Use ip command. ifconfig commands are deprecated now.
-       sudo ip addr add dev baremetal 192.168.111.1/24
+       sudo ip addr add dev baremetal "${EXTERNAL_SUBNET_V4_HOST}/${EXTERNAL_SUBNET_V4_CIDR}"
        sudo ip link set baremetal up
      fi
 
