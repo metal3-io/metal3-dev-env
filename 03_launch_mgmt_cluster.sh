@@ -56,9 +56,11 @@ CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
   IRONIC_HOST="${PROVISIONING_URL_HOST}"
   BMO_CONFIG="ironic-outside-config"
+  export IRONIC_HOST_IP="${PROVISIONING_IP}"
 else
   IRONIC_HOST="${CLUSTER_URL_HOST}"
   BMO_CONFIG="ironic-keepalived-config"
+  export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
 fi
 
 function clone_repos() {
@@ -111,6 +113,14 @@ function patch_clusterctl(){
     export MANIFEST_TAG="latest"
     make set-manifest-image
   fi
+
+  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
+    BMO_IMAGE_NAME="${BAREMETAL_OPERATOR_LOCAL_IMAGE##*/}"
+    export MANIFEST_IMG_BMO="192.168.111.1:5000/localimages/$BMO_IMAGE_NAME"
+    export MANIFEST_TAG_BMO="latest"
+    make set-manifest-image
+  fi
+  
   make release-manifests
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
@@ -138,8 +148,6 @@ function update_images(){
     export "${OLD_IMAGE_VAR?}"
   done
 }
-
-
 
 function kustomize_overlay_bmo() {
   overlay_path=$1
@@ -192,7 +200,7 @@ function launch_baremetal_operator() {
     else
       kustomize build "$kustomize_overlay_path" | kubectl apply -f-
     fi
-
+    
     rm -rf "$kustomize_overlay_path"
     popd
 }
