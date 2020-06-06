@@ -118,7 +118,8 @@ function patch_clusterctl(){
     BMO_IMAGE_NAME="${BAREMETAL_OPERATOR_LOCAL_IMAGE##*/}"
     export MANIFEST_IMG_BMO="192.168.111.1:5000/localimages/$BMO_IMAGE_NAME"
     export MANIFEST_TAG_BMO="latest"
-    make set-manifest-image
+    # TODO set the image when BMO is part of CAPM3
+    #make set-manifest-image-bmo
   fi
   
   make release-manifests
