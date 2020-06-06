@@ -48,9 +48,11 @@ if [ "$KUBECTL_LOCAL" != "$KUBECTL_LATEST" ]; then
 fi
 
 if ! command -v kustomize 2>/dev/null ; then
-    curl -Lo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F"${KUSTOMIZE_VERSION}"/kustomize_kustomize."${KUSTOMIZE_VERSION}"_linux_amd64
+    curl -L -O "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+    tar -xzvf "kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
     chmod +x kustomize
     sudo mv kustomize /usr/local/bin/.
+    rm "kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
 fi
 
 # Clean-up any old ironic containers

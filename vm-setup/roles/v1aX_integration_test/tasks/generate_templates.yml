@@ -11,8 +11,13 @@
       dest: "{{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc"
 
   - name: Generate templates
-    shell: |
-      . {{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc && {{ CLUSTERCTL_PATH}}/clusterctl config cluster {{ CLUSTER_NAME }} --kubernetes-version {{ KUBERNETES_VERSION }} --control-plane-machine-count={{ NUM_OF_MASTER_REPLICAS }} --worker-machine-count={{ NUM_OF_WORKER_REPLICAS }} > {{ TEMP_GEN_DIR }}/manifests.yaml
+    shell: >
+      . {{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc &&
+      {{ CLUSTERCTL_PATH}}/clusterctl config cluster {{ CLUSTER_NAME }}
+      --kubernetes-version {{ KUBERNETES_VERSION }}
+      --control-plane-machine-count={{ NUM_OF_MASTER_REPLICAS }}
+      --worker-machine-count={{ NUM_OF_WORKER_REPLICAS }}
+      --target-namespace=metal3 > {{ TEMP_GEN_DIR }}/manifests.yaml
 
   - name: Create a base dir
     file:
