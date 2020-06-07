@@ -207,14 +207,13 @@ function launch_baremetal_operator() {
 }
 
 function launch_kind() {
-  reg_ip="$(sudo docker inspect -f '{{.NetworkSettings.IPAddress}}' registry)"
   cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=kindest/node:${KUBERNETES_VERSION} --config=- " "$USER"
   kind: Cluster
   apiVersion: kind.x-k8s.io/v1alpha4
   containerdConfigPatches:
   - |-
     [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${REGISTRY}"]
-      endpoint = ["http://${reg_ip}:5000"]
+      endpoint = ["http://${REGISTRY}"]
 EOF
 }
 
