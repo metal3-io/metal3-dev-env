@@ -4,7 +4,7 @@
     with_items:
        - clusterctl.cluster.x-k8s.io=""
        - cluster.x-k8s.io/provider="metal3"
-    
+
   - name: Obtain target cluster kubeconfig
     shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/target.yaml"
 
@@ -33,14 +33,14 @@
         git:
           repo: 'https://github.com/metal3-io/baremetal-operator.git'
           dest: "/home/{{ IMAGE_USERNAME }}/baremetal-operator"
-            
+
         # Replacing the name of the bridge
       - name: Replace the Provisioning Interface in ironic_ci.env
         lineinfile:
           path: /home/{{ IMAGE_USERNAME }}/baremetal-operator/deploy/ironic_ci.env
           regexp: "^PROVISIONING_INTERFACE="
           line: "PROVISIONING_INTERFACE={{ IRONIC_ENDPOINT_BRIDGE }}"
-        
+
         # Install ironic
       - name: Install ironic
         shell: "bash /home/{{ IMAGE_USERNAME }}/baremetal-operator/tools/run_local_ironic.sh"
@@ -54,7 +54,6 @@
         with_items:
           - clusterctl.cluster.x-k8s.io=""
           - cluster.x-k8s.io/provider="metal3"
- 
 
   - name: Initialize Provider component in target cluster
     shell: "{{ CLUSTERCTL_PATH }}/clusterctl init --kubeconfig /tmp/target.yaml --infrastructure metal3:{{ CAPM3RELEASE }} --target-namespace {{ NAMESPACE }} --watching-namespace {{ NAMESPACE }} -v 5"
@@ -74,9 +73,8 @@
     until: target_running_pods.stdout == ""
 
   - name: Pivot objects to target cluster
-    shell: "{{ CLUSTERCTL_PATH }}/clusterctl move --to-kubeconfig /tmp/target.yaml -n {{ NAMESPACE }} -v 10" 
+    shell: "{{ CLUSTERCTL_PATH }}/clusterctl move --to-kubeconfig /tmp/target.yaml -n {{ NAMESPACE }} -v 10"
 
-  
   - name: Check if machines become running.
     shell: |
         kubectl get machines -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
@@ -87,19 +85,19 @@
       KUBECONFIG: "/tmp/target.yaml"
     retries: 10
     delay: 20
-    until: provisioned_machines.stdout == "2"
+    until: provisioned_machines.stdout == NUMBER_OF_BMH
 
   - name: Check if metal3machines become provisioned.
     shell: |
         kubectl get m3m -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.ready == "true")
+        | select (.status.ready == true)
         | .metadata.name ] | length'
     register: provisioned_m3m_machines
     environment:
       KUBECONFIG: "/tmp/target.yaml"
     retries: 10
     delay: 20
-    until: provisioned_m3m_machines.stdout == "2"
+    until: provisioned_m3m_machines.stdout == NUMBER_OF_BMH
 
   - name: Check if bmh is in provisioned state
     shell: |
@@ -111,4 +109,4 @@
     register: provisioned_bmh
     retries: 10
     delay: 20
-    until: provisioned_bmh.stdout ==  "2"
+    until: provisioned_bmh.stdout ==  NUMBER_OF_BMH

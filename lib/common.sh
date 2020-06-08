@@ -3,6 +3,7 @@
 [[ ":$PATH:" != *":/usr/local/go/bin:"* ]] && PATH="$PATH:/usr/local/go/bin"
 
 eval "$(go env)"
+export GOPATH
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 USER="$(whoami)"
@@ -60,9 +61,58 @@ fi
 
 FILESYSTEM=${FILESYSTEM:="/"}
 
+# Environment variables
+# M3PATH : Path to clone the metal3 dev env repo
+# BMOPATH : Path to clone the baremetal operator repo
+# CAPM3PATH: Path to clone the CAPI operator repo
+#
+# BMOREPO : Baremetal operator repository URL
+# BMOBRANCH : Baremetal operator repository branch to checkout
+# CAPM3REPO : CAPI operator repository URL
+# CAPM3BRANCH : CAPI repository branch to checkout
+# FORCE_REPO_UPDATE : discard existing directories
+#
+# BMO_RUN_LOCAL : run the baremetal operator locally (not in Kubernetes cluster)
+# CAPM3_RUN_LOCAL : run the CAPI operator locally
+
+function get_latest_release() {
+    # shellcheck disable=SC2005
+    echo "$(curl -sL "${1}"  | jq -r '.tag_name')"
+}
+
+M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
+BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
+# shellcheck disable=SC2034
+RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
+CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
+
+CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
+CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
+
+CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
+CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
+
+CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
+CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL}/releases/latest}"
+CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}"
+if [ "${CAPI_VERSION}" == "v1alpha4" ]; then
+  CAPM3BRANCH="${CAPM3BRANCH:-master}"
+else
+  CAPM3BRANCH="${CAPM3BRANCH:-release-0.3}"
+fi
+CAPIBRANCH="${CAPIBRANCH:-master}"
+
+BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
+BMOBRANCH="${BMOBRANCH:-master}"
+FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
+
+BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
+CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
+
 WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
 NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/ironic_nodes.json"}
 NODES_PLATFORM=${NODES_PLATFORM:-"libvirt"}
+NAMESPACE=${NAMESPACE:-"metal3"}
 
 export NUM_NODES=${NUM_NODES:-"2"}
 export VM_EXTRADISKS=${VM_EXTRADISKS:-"false"}
@@ -203,11 +253,6 @@ if [ ! -d "$WORKING_DIR" ]; then
   sudo chown "${USER}:${USER}" "$WORKING_DIR"
   chmod 755 "$WORKING_DIR"
 fi
-
-function get_latest_release() {
-    # shellcheck disable=SC2005
-    echo "$(curl -sL "${1}"  | jq -r '.tag_name')"
-}
 
 function list_nodes() {
     # Includes -machine and -machine-namespace

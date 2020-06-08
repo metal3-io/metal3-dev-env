@@ -1,9 +1,13 @@
 ---
-  - name: Get the name of the worker node
+  - name: Define number of BMH's
+    set_fact:
+      NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
+
+  - name: Get the name of a worker node
     shell: |
        kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '.items[]
-       | select(.spec.consumerRef.name | contains("{{ CLUSTER_NAME }}-workers"))
-       | .metadata.name'
+       |select(.status.provisioning.state | contains("provisioned")) |select(.spec.consumerRef.name
+       | contains("{{ CLUSTER_NAME }}-workers")) | .metadata.name'
     register: worker_node_name
 
   - name: Define WORKER_NODE variable with worker node name
@@ -18,7 +22,7 @@
     shell: |
        kubectl annotate bmh "{{ WORKER_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io=
 
-  - name: List only shutted off VMs
+  - name: List only powered off VMs
     virt:
       command: list_vms
       state: shutdown
@@ -26,6 +30,8 @@
     retries: 50
     delay: 10
     until: WORKER_NODE_VM in shutdown_vms.list_vms
+    become: yes
+    become_user: root
 
   - name: Rebooted node status
     delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
@@ -52,7 +58,7 @@
         retries: 150
         delay: 3
         register: ready_nodes
-        until: ready_nodes.stdout == "2"
+        until: ready_nodes.stdout == NUMBER_OF_BMH
 
   - name: List only running VMs
     virt:
@@ -62,6 +68,8 @@
     retries: 50
     delay: 10
     until: WORKER_NODE_VM in running_vms.list_vms
+    become: yes
+    become_user: root
 
   - name: Power off "{{ WORKER_NODE }}"
     shell: |
@@ -88,7 +96,7 @@
   - pause:
       minutes: 1
 
-  - name: List only shutted off VMs
+  - name: List only powered off VMs
     virt:
       command: list_vms
       state: shutdown
@@ -96,6 +104,8 @@
     retries: 50
     delay: 10
     until: WORKER_NODE_VM in shutdown_vms.list_vms
+    become: yes
+    become_user: root
 
   - name: Power on "{{ WORKER_NODE }}"
     shell: |
@@ -109,6 +119,8 @@
     retries: 50
     delay: 10
     until: WORKER_NODE_VM in running_vms.list_vms
+    become: yes
+    become_user: root
 
   - name: Powered on node status
     delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
@@ -126,4 +138,4 @@
         retries: 150
         delay: 3
         register: ready_nodes
-        until: ready_nodes.stdout == "2"
+        until: ready_nodes.stdout == NUMBER_OF_BMH
