@@ -11,6 +11,17 @@ export IMAGE_URL='{{ IMAGE_URL }}'
 export IMAGE_CHECKSUM='{{ IMAGE_CHECKSUM }}'
 export IMAGE_CHECKSUM_TYPE='md5'
 export IMAGE_FORMAT='qcow2'
+export PROVISIONING_POOL_RANGE_START='{{ PROVISIONING_POOL_RANGE_START }}'
+export PROVISIONING_POOL_RANGE_END='{{ PROVISIONING_POOL_RANGE_END }}'
+export PROVISIONING_CIDR='{{ PROVISIONING_CIDR }}'
+export BAREMETALV4_POOL_RANGE_START='{{ BAREMETALV4_POOL_RANGE_START }}'
+export BAREMETALV4_POOL_RANGE_END='{{ BAREMETALV4_POOL_RANGE_END }}'
+export EXTERNAL_SUBNET_V4_PREFIX='{{ EXTERNAL_SUBNET_V4_PREFIX }}'
+export EXTERNAL_SUBNET_V4_HOST='{{ EXTERNAL_SUBNET_V4_HOST }}'
+export BAREMETALV6_POOL_RANGE_START='{{ BAREMETALV6_POOL_RANGE_START }}'
+export BAREMETALV6_POOL_RANGE_END='{{ BAREMETALV6_POOL_RANGE_END }}'
+export EXTERNAL_SUBNET_V6_PREFIX='{{ EXTERNAL_SUBNET_V6_PREFIX }}'
+export EXTERNAL_SUBNET_V6_HOST='{{ EXTERNAL_SUBNET_V6_HOST }}'
 export CTLPLANE_KUBEADM_EXTRA_CONFIG="
     users:
     - name: {{ IMAGE_USERNAME }}
@@ -18,7 +29,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       sshAuthorizedKeys:
       - {{ SSH_PUB_KEY_CONTENT }}
     preKubeadmCommands:
-      - ifup eth1
       - dnf update -y
       - dnf install -y ebtables socat conntrack-tools
       - dnf install python3 -y
@@ -100,15 +110,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
                   {{ CLUSTER_APIENDPOINT_HOST }}
               }
           }
-      - path: /etc/sysconfig/network-scripts/ifcfg-eth1
-        owner: root:root
-        permissions: '0644'
-        content: |
-          BOOTPROTO=dhcp
-          DEVICE=eth1
-          ONBOOT=yes
-          TYPE=Ethernet
-          USERCTL=no
       - path: /etc/yum.repos.d/kubernetes.repo
         owner: root:root
         permissions: '0644'
@@ -135,7 +136,6 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         sshAuthorizedKeys:
         - {{ SSH_PUB_KEY_CONTENT }}
       preKubeadmCommands:
-        - ifup eth1
         - dnf update -y
         - dnf install -y ebtables conntrack-tools socat
         - dnf install python3 -y
@@ -153,15 +153,6 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - usermod -aG docker {{ IMAGE_USERNAME }}
         - systemctl enable --now docker kubelet
       files:
-        - path: /etc/sysconfig/network-scripts/ifcfg-eth1
-          owner: root:root
-          permissions: '0644'
-          content: |
-            BOOTPROTO=dhcp
-            DEVICE=eth1
-            ONBOOT=yes
-            TYPE=Ethernet
-            USERCTL=no
         - path: /etc/yum.repos.d/kubernetes.repo
           owner: root:root
           permissions: '0644'

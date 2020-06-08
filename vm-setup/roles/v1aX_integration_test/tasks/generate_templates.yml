@@ -10,6 +10,11 @@
       src: "{{ CRS_PATH }}/clusterctl_env_template_{{ IMAGE_OS|lower }}.rc"
       dest: "{{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc"
 
+  - name: Generate clusterctl cluster template
+    template:
+      src: "{{ CRS_PATH }}/cluster-template.yaml"
+      dest: "{{ HOME }}/.cluster-api/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}"
+
   - name: Generate templates
     shell: >
       . {{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc &&
@@ -17,7 +22,7 @@
       --kubernetes-version {{ KUBERNETES_VERSION }}
       --control-plane-machine-count={{ NUM_OF_MASTER_REPLICAS }}
       --worker-machine-count={{ NUM_OF_WORKER_REPLICAS }}
-      --target-namespace=metal3 > {{ TEMP_GEN_DIR }}/manifests.yaml
+      --target-namespace={{ NAMESPACE }} > {{ TEMP_GEN_DIR }}/manifests.yaml
 
   - name: Create a base dir
     file:
@@ -36,7 +41,16 @@
     args:
       chdir: "{{ TEMP_GEN_DIR }}"
 
-  - name: Generate cluster, controlplane and machinedeployment manifests
+  - name: Generate cluster
+    shell: |
+      cp {{ CRS_PATH }}/kustomization_empty.yaml {{ TEMP_GEN_DIR }}/kustomization.yaml
+      kustomize edit add resource base/*cluster_{{ CLUSTER_NAME }}*.yaml
+      kustomize edit add resource base/*ippool*.yaml
+      kustomize build . -o {{ CAPI_VERSION }}_cluster_{{ CLUSTER_NAME }}_{{ IMAGE_OS|lower }}.yaml
+    args:
+      chdir: "{{ TEMP_GEN_DIR }}"
+
+  - name: Generate controlplane and machinedeployment manifests
     shell: |
       cp {{ CRS_PATH }}/kustomization_empty.yaml {{ TEMP_GEN_DIR }}/kustomization.yaml
       kustomize edit add resource base/*{{ item }}*.yaml
@@ -44,7 +58,6 @@
     args:
       chdir: "{{ TEMP_GEN_DIR }}"
     with_items:
-       - cluster_{{ CLUSTER_NAME }}
        - controlplane
        - machinedeployment
 
