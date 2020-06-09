@@ -80,6 +80,14 @@ function get_latest_release() {
     echo "$(curl -sL "${1}"  | jq -r '.tag_name')"
 }
 
+# CAPI version
+export CAPI_VERSION=${CAPI_VERSION:-"v1alpha3"}
+CAPI_VERSION_LIST="v1alpha3 v1alpha4"
+if ! echo "${CAPI_VERSION_LIST}" | grep -wq "${CAPI_VERSION}"; then
+  echo "Invalid CAPI version : ${CAPI_VERSION}. Not in : ${CAPI_VERSION_LIST}"
+  exit 1
+fi
+
 M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
 BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 # shellcheck disable=SC2034
@@ -137,14 +145,6 @@ export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"quay.io/metal3-io/b
 
 # Config for OpenStack CLI
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
-
-# CAPI version
-export CAPI_VERSION=${CAPI_VERSION:-"v1alpha3"}
-CAPI_VERSION_LIST="v1alpha3 v1alpha4"
-if ! echo "${CAPI_VERSION_LIST}" | grep -wq "${CAPI_VERSION}"; then
-  echo "Invalid CAPI version : ${CAPI_VERSION}. Not in : ${CAPI_VERSION_LIST}"
-  exit 1
-fi
 
 # CAPM3 controller image
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
