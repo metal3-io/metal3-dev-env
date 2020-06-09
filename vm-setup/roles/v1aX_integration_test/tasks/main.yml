@@ -59,3 +59,21 @@
 - name: Node remediation
   include: remediation.yml
   when: v1aX_integration_test_action == "remediation"
+
+- name: "Provisioning for feature_tests"
+  include: "{{ item }}.yml"
+  with_items:
+    - provision_cluster
+    - provision_worker
+    - provision_controlplane
+    - verify
+  when: v1aX_integration_test_action == "feature_test_provisioning"
+
+- name: "Deprovisioning for feature_tests"
+  include: "{{ item }}.yml"
+  with_items:
+    - deprovision_worker
+    - deprovision_controlplane
+    - deprovision_cluster
+    - cleanup
+  when: v1aX_integration_test_action == "feature_test_deprovisioning"

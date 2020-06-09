@@ -1,4 +1,9 @@
 ---
+
+  - name: Define number of BMH's
+    set_fact:
+      NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
+
   - name: Wait until cluster becomes provisioned.
     shell: "kubectl get cluster -n metal3 -o json | jq -r '.items[] | .status.phase'"
     register: provisioned_cluster
@@ -7,7 +12,7 @@
     until: (provisioned_cluster.stdout == "provisioned") or
            (provisioned_cluster.stdout == "Provisioned")
 
-  - name: Wait until both BMHs become provisioned.
+  - name: Wait until "{{ NUMBER_OF_BMH }}" BMHs become provisioned.
     shell: |
         kubectl get bmh -n metal3 -o json | jq -r '[ .items[]
         | select (.status.provisioning.state == "provisioned")
@@ -15,9 +20,9 @@
     register: provisioned_bmh
     retries: 150
     delay: 20
-    until: provisioned_bmh.stdout ==  "2"
+    until: provisioned_bmh.stdout == NUMBER_OF_BMH
 
-  - name: Wait until both machines become running.
+  - name: Wait until "{{ NUMBER_OF_BMH }}" machines become running.
     shell: |
         kubectl get machines -n metal3 -o json | jq -r '[ .items[]
         | select (.status.phase == "Running" or .status.phase == "running")
@@ -25,11 +30,12 @@
     register: provisioned_machines
     retries: 150
     delay: 20
-    until: provisioned_machines.stdout == "2"
+    until: provisioned_machines.stdout == NUMBER_OF_BMH
 
-  - name: Define username variable as metal3 for target node
+  - name: Define username variable as "{{ IMAGE_USERNAME }}" for target node
     set_fact:
       username: "{{ IMAGE_USERNAME }}"
+
   - name: Verification test
     delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
     vars:
@@ -91,18 +97,18 @@
       - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
         blockinfile:
           path: /tmp/calico.yaml
-          insertafter: "{{ POD_CIDR }}"  
+          insertafter: "{{ POD_CIDR }}"
           block: |
              # for indentation
                          - name: IP_AUTODETECTION_METHOD
                            value: "interface=enp2s0"
         when:
           ansible_distribution == "Ubuntu"
-        
+
       - name: Add IP_AUTODETECTION_METHOD in calico config Centos
         blockinfile:
           path: /tmp/calico.yaml
-          insertafter: "{{ POD_CIDR }}"  
+          insertafter: "{{ POD_CIDR }}"
           block: |
              # for indentation
                          - name: IP_AUTODETECTION_METHOD
@@ -141,5 +147,5 @@
         failed_when: >
           (ready_nodes.stderr != "") or
           (ready_nodes.rc != 0) or
-          (ready_nodes.stdout != "2")
-        until: ready_nodes.stdout == "2"
+          (ready_nodes.stdout != NUMBER_OF_BMH)
+        until: ready_nodes.stdout == NUMBER_OF_BMH

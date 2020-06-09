@@ -1,4 +1,8 @@
 ---
+  - name: Define number of BMH's
+    set_fact:
+      NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
+
   - name: Remove temporary Ubuntu crs
     file:
       path: "/tmp/{{ item }}.yaml"
@@ -29,10 +33,10 @@
 
   - name: Wait until both bmh becomes ready again.
     shell: |
-        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '.items[] |
-        select (.status.provisioning.state == "ready") |
-        .metadata.name'
+        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
+        | select (.status.provisioning.state == "ready")
+        | .metadata.name ] | length'
     register: deprovisioned_nodes
     retries: 150
     delay: 3
-    until: deprovisioned_nodes.stdout_lines ==  ["node-0", "node-1"]
+    until: deprovisioned_nodes.stdout ==  NUMBER_OF_BMH

@@ -26,4 +26,21 @@ test:
 lint:
 	./hack/shellcheck.sh
 
+setup_env:
+	./scripts/feature_tests/setup_env.sh
+
+cleanup_env:
+	./scripts/feature_tests/cleanup_env.sh
+
+pivoting_test:
+	make -C ./scripts/feature_tests/pivoting/
+
+remediation_test:
+	make -C ./scripts/feature_tests/remediation/
+
+upgrade_test:
+	make -C ./scripts/feature_tests/upgrade/
+
+feature_tests: setup_env remediation_test cleanup_env pivoting_test
+
 .PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint

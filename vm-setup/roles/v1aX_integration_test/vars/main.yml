@@ -37,7 +37,6 @@ CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha3', true)}}"
 IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images')}}"
 IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning')}}"
 
-
 # Distibution specific environment variables
 IMAGE_NAME: 'bionic-server-cloudimg-amd64.img'
 IMAGE_LOCATION: 'https://cloud-images.ubuntu.com/bionic/current'
