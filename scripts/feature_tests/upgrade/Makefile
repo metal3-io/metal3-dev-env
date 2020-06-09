@@ -8,6 +8,5 @@ all: upgrade
 
 .PHONY: upgrade
 upgrade:
-	# when merged use: 'wget -q https://raw.githubusercontent.com/Nordix/airship-dev-tools/master/upgrade_tests/upgrade.sh'
-	wget -q https://raw.githubusercontent.com/Nordix/airship-dev-tools/02895b9eb66cff9e3cacb11ac6d7322e41a81562/upgrade_tests/upgrade.sh
+	wget -q https://raw.githubusercontent.com/Nordix/airship-dev-tools/master/upgrade_tests/upgrade.sh
 	bash upgrade.sh
