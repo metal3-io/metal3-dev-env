@@ -49,6 +49,16 @@
       kustomize build . -o {{ CAPI_VERSION }}_cluster_{{ CLUSTER_NAME }}_{{ IMAGE_OS|lower }}.yaml
     args:
       chdir: "{{ TEMP_GEN_DIR }}"
+    when: CAPI_VERSION != "v1alpha3"
+
+  - name: Generate cluster v1alpha3
+    shell: |
+      cp {{ CRS_PATH }}/kustomization_empty.yaml {{ TEMP_GEN_DIR }}/kustomization.yaml
+      kustomize edit add resource base/*cluster_{{ CLUSTER_NAME }}*.yaml
+      kustomize build . -o {{ CAPI_VERSION }}_cluster_{{ CLUSTER_NAME }}_{{ IMAGE_OS|lower }}.yaml
+    args:
+      chdir: "{{ TEMP_GEN_DIR }}"
+    when: CAPI_VERSION == "v1alpha3"
 
   - name: Generate controlplane and machinedeployment manifests
     shell: |

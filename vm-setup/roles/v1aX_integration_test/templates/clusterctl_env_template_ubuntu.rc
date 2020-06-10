@@ -29,6 +29,10 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       sshAuthorizedKeys:
       - {{ SSH_PUB_KEY_CONTENT }}
     preKubeadmCommands:
+{% if CAPI_VERSION == "v1alpha3" %}
+      - ip link set dev enp2s0 up
+      - dhclient enp2s0
+{% endif %}
       - apt update -y
       - apt-get install -y conntrack socat
       - netplan apply
@@ -62,80 +66,93 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - systemctl enable --now keepalived
       - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube/config
     files:
-        - path: /usr/local/bin/monitor.keepalived.sh
-          owner: root:root
-          permissions: '0755'
-          content: |
-              #!/bin/bash
-              while :; do
-                curl -sk https://127.0.0.1:6443/healthz 1>&2 > /dev/null
-                isOk=\$?
-                isActive=\$(systemctl show -p ActiveState keepalived.service | cut -d'=' -f2)
-                if [ \$isOk == \"0\" ] &&  [ \$isActive != \"active\" ]; then
-                  logger 'API server is healthy, however keepalived is not running, starting keepalived'
-                  echo 'API server is healthy, however keepalived is not running, starting keepalived'
-                  sudo systemctl start keepalived.service
-                elif [ \$isOk != \"0\" ] &&  [ \$isActive == \"active\" ]; then
-                  logger 'API server is not healthy, however keepalived running, stopping keepalived'
-                  echo 'API server is not healthy, however keepalived running, stopping keepalived'
-                  sudo systemctl stop keepalived.service
-                fi
-                sleep 5
-              done
-        - path: /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
-          owner: root:root
-          content: |
-              [Unit]
-              Description=Monitors keepalived adjusts status with that of API server
-              After=syslog.target network-online.target
+      - path: /usr/local/bin/monitor.keepalived.sh
+        owner: root:root
+        permissions: '0755'
+        content: |
+            #!/bin/bash
+            while :; do
+              curl -sk https://127.0.0.1:6443/healthz 1>&2 > /dev/null
+              isOk=\$?
+              isActive=\$(systemctl show -p ActiveState keepalived.service | cut -d'=' -f2)
+              if [ \$isOk == \"0\" ] &&  [ \$isActive != \"active\" ]; then
+                logger 'API server is healthy, however keepalived is not running, starting keepalived'
+                echo 'API server is healthy, however keepalived is not running, starting keepalived'
+                sudo systemctl start keepalived.service
+              elif [ \$isOk != \"0\" ] &&  [ \$isActive == \"active\" ]; then
+                logger 'API server is not healthy, however keepalived running, stopping keepalived'
+                echo 'API server is not healthy, however keepalived running, stopping keepalived'
+                sudo systemctl stop keepalived.service
+              fi
+              sleep 5
+            done
+      - path: /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
+        owner: root:root
+        content: |
+            [Unit]
+            Description=Monitors keepalived adjusts status with that of API server
+            After=syslog.target network-online.target
 
-              [Service]
-              Type=simple
-              Restart=always
-              ExecStart=/usr/local/bin/monitor.keepalived.sh
+            [Service]
+            Type=simple
+            Restart=always
+            ExecStart=/usr/local/bin/monitor.keepalived.sh
 
-              [Install]
-              WantedBy=multi-user.target
-        - path: /etc/keepalived/keepalived.conf
-          content: |
-            ! Configuration File for keepalived
-            global_defs {
-                notification_email {
-                sysadmin@example.com
-                support@example.com
-                }
-                notification_email_from lb@example.com
-                smtp_server localhost
-                smtp_connect_timeout 30
-            }
-            vrrp_instance VI_2 {
-                state MASTER
-                interface enp2s0
-                virtual_router_id 2
-                priority 101
-                advert_int 1
-                virtual_ipaddress {
-                    {{ CLUSTER_APIENDPOINT_HOST }}
-                }
-            }
-        - path : /etc/netplan/52-ironicendpoint.yaml
-          owner: root:root
-          permissions: '0644'
-          content: |
-            network:
+            [Install]
+            WantedBy=multi-user.target
+      - path: /etc/keepalived/keepalived.conf
+        content: |
+          ! Configuration File for keepalived
+          global_defs {
+              notification_email {
+              sysadmin@example.com
+              support@example.com
+              }
+              notification_email_from lb@example.com
+              smtp_server localhost
+              smtp_connect_timeout 30
+          }
+          vrrp_instance VI_2 {
+              state MASTER
+              interface enp2s0
+              virtual_router_id 2
+              priority 101
+              advert_int 1
+              virtual_ipaddress {
+                  {{ CLUSTER_APIENDPOINT_HOST }}
+              }
+          }
+{% if CAPI_VERSION == "v1alpha3" %}
+      - path: /etc/netplan/51-cloud-config.yaml
+        owner: root:root
+        permissions: '0644'
+        content: |
+          network:
+              ethernets:
+                  enp2s0:
+                      dhcp4: true
+                  enp1s0:
+                      dhcp4: false
               version: 2
-              renderer: networkd
-              bridges:
-                {{ IRONIC_ENDPOINT_BRIDGE }}:
-                  interfaces: [enp1s0]
-                  dhcp4: yes
-        - path : /etc/docker/daemon.json
-          owner: root:root
-          permissions: '0644'
-          content: |
-            {
-              \"insecure-registries\" : [\"192.168.111.1:5000\"]
-            }
+{% endif %}
+      - path : /etc/netplan/52-ironicendpoint.yaml
+        owner: root:root
+        permissions: '0644'
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            bridges:
+              {{ IRONIC_ENDPOINT_BRIDGE }}:
+                interfaces: [enp1s0]
+                dhcp4: yes
+      - path : /etc/docker/daemon.json
+        owner: root:root
+        permissions: '0644'
+        content: |
+          {
+            \"insecure-registries\" : [\"192.168.111.1:5000\"]
+          }
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
       users:
@@ -144,6 +161,10 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         sshAuthorizedKeys:
         - {{ SSH_PUB_KEY_CONTENT }}
       preKubeadmCommands:
+{% if CAPI_VERSION == "v1alpha3" %}
+        - ip link set dev enp2s0 up
+        - dhclient enp2s0
+{% endif %}
         - apt update -y
         - netplan apply
         - >-
@@ -166,6 +187,19 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - systemctl enable --now docker kubelet
         - usermod -aG docker {{ IMAGE_USERNAME }}
       files:
+{% if CAPI_VERSION == "v1alpha3" %}
+        - path: /etc/netplan/51-cloud-config.yaml
+          owner: root:root
+          permissions: '0644'
+          content: |
+            network:
+                ethernets:
+                    enp2s0:
+                        dhcp4: true
+                    enp1s0:
+                        dhcp4: false
+                version: 2
+{% endif %}
         - path : /etc/docker/daemon.json
           owner: root:root
           permissions: '0644'

@@ -10,7 +10,11 @@ spec:
     pods:
       cidrBlocks: [${ POD_CIDR }]
   infrastructureRef:
+{% if CAPI_VERSION == "v1alpha3" %}
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+{% else %}
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+{% endif %}
     kind: Metal3Cluster
     name: ${ CLUSTER_NAME }
   controlPlaneRef:
@@ -18,7 +22,11 @@ spec:
     apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
     name: ${ CLUSTER_NAME }
 ---
+{% if CAPI_VERSION == "v1alpha3" %}
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+{% else %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+{% endif %}
 kind: Metal3Cluster
 metadata:
   name: ${ CLUSTER_NAME }
@@ -29,6 +37,7 @@ spec:
     port: ${ API_ENDPOINT_PORT }
   noCloudProvider: true
 ---
+{% if CAPI_VERSION != "v1alpha3" %}
 apiVersion: ipam.metal3.io/v1alpha1
 kind: IPPool
 metadata:
@@ -74,6 +83,7 @@ spec:
   gateway: ${ EXTERNAL_SUBNET_V6_HOST }
 {% endif %}
 ---
+{% endif %}
 kind: KubeadmControlPlane
 apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
 metadata:
@@ -84,23 +94,33 @@ spec:
   version: ${ KUBERNETES_VERSION }
   infrastructureTemplate:
     kind: Metal3MachineTemplate
+{% if CAPI_VERSION == "v1alpha3" %}
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+{% else %}
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+{% endif %}
     name: ${ CLUSTER_NAME }-controlplane
   kubeadmConfigSpec:
     joinConfiguration:
       controlPlane: {}
       nodeRegistration:
-        name: "{{ '{{' }} ds.meta_data.name {{ '}}' }}"
+        name: "{{ '{{ ds.meta_data.name }}' }}"
         kubeletExtraArgs:
-          node-labels: "metal3.io/uuid={{ '{{' }} ds.meta_data.uuid {{ '}}' }}"
+          node-labels: "metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}"
+          provider-id: "metal3://{{ '{{ ds.meta_data.uuid }}' }}"
     initConfiguration:
       nodeRegistration:
-        name: "{{ '{{' }} ds.meta_data.name {{ '}}' }}"
+        name: "{{ '{{ ds.meta_data.name }}' }}"
         kubeletExtraArgs:
-          node-labels: "metal3.io/uuid={{ '{{' }} ds.meta_data.uuid {{ '}}' }}"
+          node-labels: "metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}"
+          provider-id: "metal3://{{ '{{ ds.meta_data.uuid }}' }}"
 ${ CTLPLANE_KUBEADM_EXTRA_CONFIG }
 ---
+{% if CAPI_VERSION == "v1alpha3" %}
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+{% else %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+{% endif %}
 kind: Metal3MachineTemplate
 metadata:
   name: ${ CLUSTER_NAME }-controlplane
@@ -113,6 +133,7 @@ spec:
         checksum: ${ IMAGE_CHECKSUM }
         checksumType: ${ IMAGE_CHECKSUM_TYPE }
         format: ${ IMAGE_FORMAT }
+{% if CAPI_VERSION != "v1alpha3" %}
       dataTemplate:
         name: ${ CLUSTER_NAME }-controlplane-template
 ---
@@ -175,6 +196,7 @@ spec:
 {% if IP_STACK == 'v6' or IP_STACK == 'v4v6' %}
         - 2001:4860:4860::8888
 {% endif %}
+{% endif %}
 ---
 apiVersion: cluster.x-k8s.io/v1alpha3
 kind: MachineDeployment
@@ -206,10 +228,18 @@ spec:
           kind: KubeadmConfigTemplate
       infrastructureRef:
         name: ${ CLUSTER_NAME }-workers
+{% if CAPI_VERSION == "v1alpha3" %}
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+{% else %}
         apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+{% endif %}
         kind: Metal3MachineTemplate
 ---
+{% if CAPI_VERSION == "v1alpha3" %}
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+{% else %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+{% endif %}
 kind: Metal3MachineTemplate
 metadata:
   name: ${ CLUSTER_NAME }-workers
@@ -222,6 +252,7 @@ spec:
         checksum: ${ IMAGE_CHECKSUM }
         checksumType: ${ IMAGE_CHECKSUM_TYPE }
         format: ${ IMAGE_FORMAT }
+{% if CAPI_VERSION != "v1alpha3" %}
       dataTemplate:
         name: ${ CLUSTER_NAME }-workers-template
 ---
@@ -284,6 +315,7 @@ spec:
 {% if IP_STACK == 'v6' or IP_STACK == 'v4v6' %}
         - 2001:4860:4860::8888
 {% endif %}
+{% endif %}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
 kind: KubeadmConfigTemplate
@@ -295,7 +327,8 @@ spec:
     spec:
       joinConfiguration:
         nodeRegistration:
-          name: "{{ '{{' }} ds.meta_data.name {{ '}}' }}"
+          name: "{{ '{{ ds.meta_data.name }}' }}"
           kubeletExtraArgs:
-            node-labels: "metal3.io/uuid={{ '{{' }} ds.meta_data.uuid {{ '}}' }}"
+            node-labels: "metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}"
+            provider-id: "metal3://{{ '{{ ds.meta_data.uuid }}' }}"
 ${ WORKERS_KUBEADM_EXTRA_CONFIG }
