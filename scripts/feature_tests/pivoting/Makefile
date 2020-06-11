@@ -1,6 +1,6 @@
 M3PATH := "$(dirname "$(readlink -f "${0}")")../../../"
-NUM_OF_MASTER_REPLICAS := 1
-NUM_OF_WORKER_REPLICAS := 1
+export NUM_OF_MASTER_REPLICAS := 1
+export NUM_OF_WORKER_REPLICAS := 1
 
 all: provision pivoting cleanup
 
