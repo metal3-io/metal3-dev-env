@@ -18,7 +18,7 @@
         | select (.status.provisioning.state == "provisioned")
         | .metadata.name ] | length'
     register: provisioned_bmh
-    retries: 150
+    retries: 200
     delay: 20
     until: provisioned_bmh.stdout == NUMBER_OF_BMH
 

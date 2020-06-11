@@ -2,7 +2,7 @@
 
 ## Build Status
 
-[![Ubuntu V1alpha3 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/badge/icon?subject=Ubuntu%20E2E%20V1alpha3)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
+[![Ubuntu V1alpha3 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/badge/icon?subject=Feature-tests)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
 
 Feature tests framework is made to run a set of scripts for testing pivoting,
 remediation and upgrade functionalities of Metal3 project.
@@ -67,7 +67,8 @@ When the test-framework is triggered, it will:
 
 ## Environment variables
 
-Currently the test-framework supports the following environment:
+Currently the test-framework uses the following environment variables
+by default:
 
 ```bash
 export CAPI_VERSION=v1alpha3
