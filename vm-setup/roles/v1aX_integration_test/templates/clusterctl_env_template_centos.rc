@@ -29,9 +29,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       sshAuthorizedKeys:
       - {{ SSH_PUB_KEY_CONTENT }}
     preKubeadmCommands:
-{% if CAPI_VERSION == "v1alpha3" %}
       - ifup eth1
-{% endif %}
       - dnf update -y
       - dnf install -y ebtables socat conntrack-tools
       - dnf install python3 -y
@@ -113,7 +111,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
                   {{ CLUSTER_APIENDPOINT_HOST }}
               }
           }
-{% if CAPI_VERSION == "v1alpha3" %}
       - path: /etc/sysconfig/network-scripts/ifcfg-eth1
         owner: root:root
         permissions: '0644'
@@ -123,7 +120,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
           ONBOOT=yes
           TYPE=Ethernet
           USERCTL=no
-{% endif %}
       - path: /etc/yum.repos.d/kubernetes.repo
         owner: root:root
         permissions: '0644'
@@ -150,9 +146,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         sshAuthorizedKeys:
         - {{ SSH_PUB_KEY_CONTENT }}
       preKubeadmCommands:
-{% if CAPI_VERSION == "v1alpha3" %}
         - ifup eth1
-{% endif %}
         - dnf update -y
         - dnf install -y ebtables conntrack-tools socat
         - dnf install python3 -y
@@ -170,7 +164,6 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - usermod -aG docker {{ IMAGE_USERNAME }}
         - systemctl enable --now docker kubelet
       files:
-{% if CAPI_VERSION == "v1alpha3" %}
         - path: /etc/sysconfig/network-scripts/ifcfg-eth1
           owner: root:root
           permissions: '0644'
@@ -180,7 +173,6 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
             ONBOOT=yes
             TYPE=Ethernet
             USERCTL=no
-{% endif %}
         - path: /etc/yum.repos.d/kubernetes.repo
           owner: root:root
           permissions: '0644'
