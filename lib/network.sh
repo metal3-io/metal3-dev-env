@@ -49,6 +49,7 @@ fi
 
 # shellcheck disable=SC2155
 prefixlen PROVISIONING_CIDR "$PROVISIONING_NETWORK"
+export PROVISIONING_CIDR
 export PROVISIONING_NETMASK=${PROVISIONING_NETMASK:-$(python -c "import ipaddress; print(ipaddress.ip_network(u\"$PROVISIONING_NETWORK\").netmask)")}
 
 network_address PROVISIONING_IP "$PROVISIONING_NETWORK" 1
@@ -76,7 +77,11 @@ fi
 # Calculate DHCP range
 network_address dhcp_range_start "$PROVISIONING_NETWORK" 10
 network_address dhcp_range_end "$PROVISIONING_NETWORK" 100
+network_address PROVISIONING_POOL_RANGE_START "$PROVISIONING_NETWORK" 100
+network_address PROVISIONING_POOL_RANGE_END "$PROVISIONING_NETWORK" 200
 
+export PROVISIONING_POOL_RANGE_START
+export PROVISIONING_POOL_RANGE_END
 export CLUSTER_DHCP_RANGE=${CLUSTER_DHCP_RANGE:-"$dhcp_range_start,$dhcp_range_end"}
 
 EXTERNAL_SUBNET=${EXTERNAL_SUBNET:-""}
@@ -89,22 +94,12 @@ fi
 export IP_STACK=${IP_STACK:-"v4"}
 if [[ "${IP_STACK}" == "v4" ]]; then
     export EXTERNAL_SUBNET_V4=${EXTERNAL_SUBNET_V4:-"192.168.111.0/24"}
-    prefixlen EXTERNAL_SUBNET_V4_CIDR "$EXTERNAL_SUBNET_V4"
-    if [[ -z "${EXTERNAL_SUBNET_V4_HOST:-}" ]]; then
-      network_address EXTERNAL_SUBNET_V4_HOST "$EXTERNAL_SUBNET_V4" 1
-    fi
     export EXTERNAL_SUBNET_V6=""
 elif [[ "${IP_STACK}" == "v6" ]]; then
     export EXTERNAL_SUBNET_V4=""
-    export EXTERNAL_SUBNET_V4_CIDR=""
-    export EXTERNAL_SUBNET_V4_HOST=""
     export EXTERNAL_SUBNET_V6=${EXTERNAL_SUBNET_V6:-"fd55::/64"}
 elif [[ "${IP_STACK}" == "v4v6" ]]; then
     export EXTERNAL_SUBNET_V4=${EXTERNAL_SUBNET_V4:-"192.168.111.0/24"}
-    prefixlen EXTERNAL_SUBNET_V4_CIDR "$EXTERNAL_SUBNET_V4"
-    if [[ -z "${EXTERNAL_SUBNET_V4_HOST}" ]]; then
-      network_address EXTERNAL_SUBNET_V4_HOST "$EXTERNAL_SUBNET_V4" 1
-    fi
     export EXTERNAL_SUBNET_V6=${EXTERNAL_SUBNET_V6:-"fd55::/64"}
 else
     echo "Invalid value of IP_STACK: '${IP_STACK}'"
@@ -115,7 +110,50 @@ if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]] && [[ -n "${EXTERNAL_SUBNET_V6}" ]
     network_address MINIKUBE_BMNET_V6_IP "${EXTERNAL_SUBNET_V6}" 9
 fi
 
-export REGISTRY=${REGISTRY:-"${EXTERNAL_SUBNET_V4_HOST}:5000"}
+
+if [[ -n "${EXTERNAL_SUBNET_V4}" ]]; then
+  prefixlen EXTERNAL_SUBNET_V4_PREFIX "$EXTERNAL_SUBNET_V4"
+  export EXTERNAL_SUBNET_V4_PREFIX
+  if [[ -z "${EXTERNAL_SUBNET_V4_HOST:-}" ]]; then
+    network_address EXTERNAL_SUBNET_V4_HOST "$EXTERNAL_SUBNET_V4" 1
+  fi
+
+  # Calculate DHCP range for baremetal network (20 to 60 is the libvirt dhcp)
+  network_address BAREMETALV4_POOL_RANGE_START "$EXTERNAL_SUBNET_V4" 100
+  network_address BAREMETALV4_POOL_RANGE_END "$EXTERNAL_SUBNET_V4" 200
+  export BAREMETALV4_POOL_RANGE_START
+  export BAREMETALV4_POOL_RANGE_END
+else
+  export EXTERNAL_SUBNET_V4_PREFIX=""
+  export EXTERNAL_SUBNET_V4_HOST=""
+  export BAREMETALV4_POOL_RANGE_START=""
+  export BAREMETALV4_POOL_RANGE_END=""
+fi
+
+if [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
+  prefixlen EXTERNAL_SUBNET_V6_PREFIX "$EXTERNAL_SUBNET_V6"
+  export EXTERNAL_SUBNET_V6_PREFIX
+  if [[ -z "${EXTERNAL_SUBNET_V6_HOST}" ]]; then
+    network_address EXTERNAL_SUBNET_V6_HOST "$EXTERNAL_SUBNET_V6" 1
+  fi
+
+  # Calculate DHCP range for baremetal network (20 to 60 is the libvirt dhcp) IPv6
+  network_address BAREMETALV6_POOL_RANGE_START "$EXTERNAL_SUBNET_V6" 100
+  network_address BAREMETALV6_POOL_RANGE_END "$EXTERNAL_SUBNET_V6" 200
+  export BAREMETALV6_POOL_RANGE_START
+  export BAREMETALV6_POOL_RANGE_END
+else
+  export EXTERNAL_SUBNET_V6_HOST=""
+  export EXTERNAL_SUBNET_V6_PREFIX=""
+  export BAREMETALV6_POOL_RANGE_START=""
+  export BAREMETALV6_POOL_RANGE_END=""
+fi
+
+if [[ -n "${EXTERNAL_SUBNET_V4_HOST}" ]]; then
+  export REGISTRY=${REGISTRY:-"${EXTERNAL_SUBNET_V4_HOST}:5000"}
+else
+  export REGISTRY=${REGISTRY:-"[${EXTERNAL_SUBNET_V6_HOST}]:5000"}
+fi
 
 network_address INITIAL_IRONICBRIDGE_IP "$PROVISIONING_NETWORK" 9
 
