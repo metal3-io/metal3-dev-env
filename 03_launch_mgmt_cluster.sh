@@ -25,11 +25,13 @@ function clone_repos() {
       pushd "${M3PATH}"
       git clone "${BMOREPO}" "${BMOPATH}"
       popd
-      pushd "${BMOPATH}"
-      git checkout "${BMOBRANCH}"
-      git pull -r || true
-      popd
     fi
+    pushd "${BMOPATH}"
+    git fetch
+    git checkout "${BMOBRANCH}"
+    git pull -r || true
+    popd
+
     if [[ -d "${CAPM3PATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
       rm -rf "${CAPM3PATH}"
     fi
@@ -37,11 +39,12 @@ function clone_repos() {
       pushd "${M3PATH}"
       git clone "${CAPM3REPO}" "${CAPM3PATH}"
       popd
-      pushd "${CAPM3PATH}"
-      git checkout "${CAPM3BRANCH}"
-      git pull -r || true
-      popd
     fi
+    pushd "${CAPM3PATH}"
+    git fetch
+    git checkout "${CAPM3BRANCH}"
+    git pull -r || true
+    popd
     #TODO Consider option to download prebaked clusterctl binary
     if [[ -d "${CAPIPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
       rm -rf "${CAPIPATH}"
@@ -50,11 +53,12 @@ function clone_repos() {
       pushd "${M3PATH}"
       git clone "${CAPIREPO}" "${CAPIPATH}"
       popd
-      pushd "${CAPIPATH}"
-      git checkout "${CAPIBRANCH}"
-      git pull -r || true
-      popd
     fi
+    pushd "${CAPIPATH}"
+    git fetch
+    git checkout "${CAPIBRANCH}"
+    git pull -r || true
+    popd
 
 }
 
@@ -73,7 +77,7 @@ function patch_clusterctl(){
     export MANIFEST_TAG_BMO="latest"
     make set-manifest-image-bmo
   fi
-  
+
   make release-manifests
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
