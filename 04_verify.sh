@@ -95,8 +95,8 @@ check_k8s_entity() {
     # Check entity exists
     RESULT_STR="${TYPE} ${name} created"
     NS="$(echo "${name}" | cut -d ':' -f1)"
-    DEPLOYMENT="$(echo "${name}" | cut -d ':' -f2)"
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${DEPLOYMENT}" \
+    NAME="$(echo "${name}" | cut -d ':' -f2)"
+    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${NAME}" \
       -n "${NS}" -o json)"
     process_status $?
 
@@ -119,21 +119,24 @@ check_k8s_rs() {
   local ENTITY
   for name in "${@}"; do
     # Check entity exists
-    LABEL=$(echo "$name" | cut -f1 -d:);
-    NAME=$(echo "$name" | cut -f2 -d:);
-
+    LABEL="$(echo "$name" | cut -f1 -d:)"
+    NAME="$(echo "$name" | cut -f2 -d:)"
     NS="$(echo "${name}" | cut -d ':' -f3)"
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
-      -l "${LABEL}"="${NAME}" -n "${NS}" -o json | jq '.items[0]')"
-    RESULT_STR="Replica set ${NAME} created"
-    differs "${ENTITY}" "null"
+    NB="$(echo "${name}" | cut -d ':' -f4)"
+    ENTITIES="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+      -l "${LABEL}"="${NAME}" -n "${NS}" -o json)"
+    NB_ENTITIES="$(echo "$ENTITIES" | jq -r '.items | length')"
+    RESULT_STR="Replica sets with label ${LABEL}=${NAME} created"
+    equals "${NB_ENTITIES}" "${NB}"
 
     # Check the replicas
     if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPM3_RUN_LOCAL}" != true ]]
     then
-      RESULT_STR="${NAME} replicas correct"
-      equals "$(echo "${ENTITY}" | jq -r '.status.readyReplicas')" \
-        "$(echo "${ENTITY}" | jq -r '.status.replicas')"
+      for i in $(seq 0 $((NB_ENTITIES-1))); do
+        RESULT_STR="${NAME} replicas correct for replica set ${i}"
+        equals "$(echo "${ENTITIES}" | jq -r ".items[${i}].status.readyReplicas")" \
+          "$(echo "${ENTITIES}" | jq -r ".items[${i}].status.replicas")"
+      done
     fi
   done
 
@@ -189,15 +192,15 @@ EXPTD_V1ALPHA3_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-webhook-system:capi-kubeadm-control-plane-controller-manager \
   capi-webhook-system:capm3-controller-manager \
   metal3:metal3-baremetal-operator"
-EXPTD_V1ALPHA3_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system \
-  cluster.x-k8s.io/provider:cluster-api:capi-system \
-  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system \
-  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system \
-  cluster.x-k8s.io/provider:infrastructure-metal3:capi-webhook-system \
-  cluster.x-k8s.io/provider:cluster-api:capi-webhook-system \
-  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system \
-  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system \
-  name:metal3-baremetal-operator:metal3"
+EXPTD_V1ALPHA3_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:1 \
+  cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1 \
+  cluster.x-k8s.io/provider:infrastructure-metal3:capi-webhook-system:1 \
+  cluster.x-k8s.io/provider:cluster-api:capi-webhook-system:1 \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system:1 \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system:1 \
+  name:metal3-baremetal-operator:metal3:1"
 EXPTD_V1ALPHA4_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-system:capi-controller-manager \
   capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
@@ -207,15 +210,14 @@ EXPTD_V1ALPHA4_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-webhook-system:capi-kubeadm-control-plane-controller-manager \
   capi-webhook-system:capm3-controller-manager \
   capm3-system:capm3-metal3-baremetal-operator"
-EXPTD_V1ALPHA4_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system \
-  cluster.x-k8s.io/provider:cluster-api:capi-system \
-  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system \
-  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system \
-  cluster.x-k8s.io/provider:infrastructure-metal3:capi-webhook-system \
-  cluster.x-k8s.io/provider:cluster-api:capi-webhook-system \
-  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system \
-  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system \
-  name:metal3-baremetal-operator:capm3-system"
+EXPTD_V1ALPHA4_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:3 \
+  cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1 \
+  cluster.x-k8s.io/provider:infrastructure-metal3:capi-webhook-system:2 \
+  cluster.x-k8s.io/provider:cluster-api:capi-webhook-system:1 \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system:1 \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system:1"
 BRIDGES="provisioning baremetal"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 
