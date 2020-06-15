@@ -8,14 +8,12 @@ source lib/common.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
-if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
-  IRONIC_HOST="${PROVISIONING_URL_HOST}"
-  BMO_CONFIG="ironic-outside-config"
-  export IRONIC_HOST_IP="${PROVISIONING_IP}"
-else
+if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
   IRONIC_HOST="${CLUSTER_URL_HOST}"
-  BMO_CONFIG="ironic-keepalived-config"
   export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
+else
+  IRONIC_HOST="${PROVISIONING_URL_HOST}"
+  export IRONIC_HOST_IP="${PROVISIONING_IP}"
 fi
 
 function clone_repos() {
@@ -69,12 +67,11 @@ function patch_clusterctl(){
     make set-manifest-image
   fi
 
-  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
+  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ] && [ "${CAPI_VERSION}" != "v1alpha3" ]; then
     BMO_IMAGE_NAME="${BAREMETAL_OPERATOR_LOCAL_IMAGE##*/}"
     export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$BMO_IMAGE_NAME"
     export MANIFEST_TAG_BMO="latest"
-    # TODO set the image when BMO is part of CAPM3
-    #make set-manifest-image-bmo
+    make set-manifest-image-bmo
   fi
   
   make release-manifests
@@ -125,14 +122,13 @@ configMapGenerator:
   - IRONIC_FAST_TRACK=false
   name: ironic-bmo-configmap
 resources:
-- $(realpath --relative-to="$overlay_path" "$BMOPATH/deploy/$BMO_CONFIG")
+- $(realpath --relative-to="$overlay_path" "$BMO_CONFIG")
 EOF
 }
 
-function launch_baremetal_operator() {
-    pushd "${BMOPATH}"
-    kustomize_overlay_path=$(mktemp -d bmo-XXXXXXXXXX)
 
+function deploy_kustomization() {
+    kustomize_overlay_path=$(mktemp -d bmo-XXXXXXXXXX)
     kustomize_overlay_bmo "$kustomize_overlay_path"
     pushd "$kustomize_overlay_path"
 
@@ -140,23 +136,36 @@ function launch_baremetal_operator() {
     update_images
     popd
 
-    if [ "${BMO_RUN_LOCAL}" = true ]; then
-      touch bmo.out.log
-      touch bmo.err.log
-      kustomize build "$kustomize_overlay_path" | kubectl apply -f-
-      kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
+    kustomize build "$kustomize_overlay_path" | kubectl apply -f-
+    rm -rf "$kustomize_overlay_path"
+}
+
+function launch_baremetal_operator() {
+    pushd "${BMOPATH}"
+
+    if [ "${CAPI_VERSION}" != "v1alpha3" ]; then
+      kubectl create namespace metal3
+    else
+      BMO_CONFIG="${BMOPATH}/deploy/default"
+      deploy_kustomization
     fi
 
-    if [ "${BMO_RUN_LOCAL}" = true ] || [ "${EPHEMERAL_CLUSTER}" = kind ]; then
+    if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
+      BMO_CONFIG="${BMOPATH}/ironic-deployment/keepalived"
+      deploy_kustomization
+    fi
+
+    if [ "${EPHEMERAL_CLUSTER}" = kind ]; then
       ${RUN_LOCAL_IRONIC_SCRIPT}
     fi
 
-    if [ "${BMO_RUN_LOCAL}" = true ]; then
+    if [ "${BMO_RUN_LOCAL}" = true ] && [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+      touch bmo.out.log
+      touch bmo.err.log
+      kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
       nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
-    else
-      kustomize build "$kustomize_overlay_path" | kubectl apply -f-
     fi
-    
+
     rm -rf "$kustomize_overlay_path"
     popd
 }
@@ -231,6 +240,14 @@ function launch_cluster_api_provider_metal3() {
       kubectl scale -n metal3 deployment.v1.apps capm3-controller-manager --replicas 0
       nohup make run >> capm3.out.log 2>> capm3.err.log &
     fi
+
+    if [ "${BMO_RUN_LOCAL}" == true ] && [ "${CAPI_VERSION}" != "v1alpha3" ]; then
+      touch bmo.out.log
+      touch bmo.err.log
+      kubectl scale deployment capm3-metal3-baremetal-operator -n capm3-system --replicas=0
+      nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
+    fi
+
     popd
 }
 
@@ -270,5 +287,5 @@ else
 fi
 
 launch_baremetal_operator
-apply_bm_hosts
 launch_cluster_api_provider_metal3
+apply_bm_hosts

@@ -100,7 +100,7 @@ check_k8s_entity() {
       -n "${NS}" -o json)"
     process_status $?
 
-    # Check the replicabaremetalclusters.s
+    # Check the replicabaremetalclusters
     if [[ "${BMO_RUN_LOCAL}" != true ]] && [[ "${CAPM3_RUN_LOCAL}" != true ]]
     then
       RESULT_STR="${name} ${TYPE} replicas correct"
@@ -198,6 +198,24 @@ EXPTD_V1ALPHA3_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system 
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system \
   cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system \
   name:metal3-baremetal-operator:metal3"
+EXPTD_V1ALPHA4_DEPLOYMENTS="capm3-system:capm3-controller-manager \
+  capi-system:capi-controller-manager \
+  capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
+  capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
+  capi-webhook-system:capi-controller-manager \
+  capi-webhook-system:capi-kubeadm-bootstrap-controller-manager \
+  capi-webhook-system:capi-kubeadm-control-plane-controller-manager \
+  capi-webhook-system:capm3-controller-manager \
+  capm3-system:capm3-metal3-baremetal-operator"
+EXPTD_V1ALPHA4_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system \
+  cluster.x-k8s.io/provider:cluster-api:capi-system \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system \
+  cluster.x-k8s.io/provider:infrastructure-metal3:capi-webhook-system \
+  cluster.x-k8s.io/provider:cluster-api:capi-webhook-system \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system \
+  name:metal3-baremetal-operator:capm3-system"
 BRIDGES="provisioning baremetal"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 
@@ -236,8 +254,13 @@ done
 echo ""
 
 # Verify v1alpha3+ Operators, Deployments, Replicasets
-iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
-iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
+if [ "${CAPI_VERSION}" != "v1alpha3" ]; then
+  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA4_DEPLOYMENTS}"
+  iterate check_k8s_rs "${EXPTD_V1ALPHA4_RS}"
+else
+  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
+  iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
+fi
 # Verify the baremetal hosts
 ## Fetch the BM CRs
 RESULT_STR="Fetch Baremetalhosts"

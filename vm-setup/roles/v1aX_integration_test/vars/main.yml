@@ -29,7 +29,7 @@ BAREMETALV6_POOL_RANGE_START: "{{ lookup('env', 'BAREMETALV6_POOL_RANGE_START') 
 BAREMETALV6_POOL_RANGE_END: "{{ lookup('env', 'BAREMETALV6_POOL_RANGE_END') | default('fd55::200', true) }}"
 EXTERNAL_SUBNET_V6_PREFIX: "{{ lookup('env', 'EXTERNAL_SUBNET_V6_PREFIX') | default('64', true) }}"
 EXTERNAL_SUBNET_V6_HOST: "{{ lookup('env', 'EXTERNAL_SUBNET_V6_HOST') | default('fd55::1', true) }}"
-IRONIC_HOST_IP: "{{ lookup('env', 'IRONIC_HOST_IP') | default('172.22.0.1', true) }}"
+IRONIC_HOST_IP: "{{ lookup('env', 'IRONIC_HOST_IP') | default('172.22.0.2', true) }}"
 DEPLOY_KERNEL_URL: "{{ lookup('env', 'DEPLOY_KERNEL_URL') }}"
 DEPLOY_RAMDISK_URL: "{{ lookup('env', 'DEPLOY_RAMDISK_URL') }}"
 IRONIC_URL: "{{ lookup('env', 'IRONIC_URL') }}"
