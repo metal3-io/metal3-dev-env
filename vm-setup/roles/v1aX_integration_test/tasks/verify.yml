@@ -19,7 +19,7 @@
         | .metadata.name ] | length'
     register: provisioned_bmh
     retries: 200
-    delay: 20
+    delay: 30
     until: provisioned_bmh.stdout == NUMBER_OF_BMH
 
   - name: Wait until "{{ NUMBER_OF_BMH }}" machines become running.

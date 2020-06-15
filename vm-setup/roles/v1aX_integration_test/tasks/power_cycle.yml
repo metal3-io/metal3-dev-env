@@ -1,0 +1,65 @@
+---
+  - name: Power off "{{ NODE }}"
+    shell: |
+       kubectl annotate bmh "{{ NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
+
+  - name: Wait until powered off "{{ WORKER_NODE }}" becomes NotReady
+    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
+    vars:
+      ansible_user: "{{ IMAGE_USERNAME }}"
+      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
+      ansible_python_interpreter: /usr/bin/python3
+    shell: kubectl get nodes | grep -w NotReady | awk '{print $1}'
+    environment:
+      KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
+    retries: 150
+    delay: 3
+    register: not_ready_nodes
+    until: NODE in not_ready_nodes.stdout_lines
+    become: yes
+    become_user: "{{ IMAGE_USERNAME }}"
+
+  - pause:
+      minutes: 1
+
+  - name: List only powered off VMs
+    virt:
+      command: list_vms
+      state: shutdown
+    register: shutdown_vms
+    retries: 50
+    delay: 10
+    until: NODE_VM in shutdown_vms.list_vms
+    become: yes
+    become_user: root
+
+  - name: Power on "{{ NODE }}"
+    shell: |
+       kubectl annotate bmh "{{ NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff-
+
+  - name: List only running VMs
+    virt:
+      command: list_vms
+      state: running
+    register: running_vms
+    retries: 50
+    delay: 10
+    until: NODE_VM in running_vms.list_vms
+    become: yes
+    become_user: root
+
+  - name: Wait until powered on "{{ NODE }}" becomes Ready
+    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
+    vars:
+      ansible_user: "{{ IMAGE_USERNAME }}"
+      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
+      ansible_python_interpreter: /usr/bin/python3
+    shell: kubectl get nodes | grep -w Ready | awk '{print $1}'
+    environment:
+      KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
+    retries: 150
+    delay: 3
+    register: ready_nodes
+    until: NODE in ready_nodes.stdout_lines
+    become: yes
+    become_user: "{{ IMAGE_USERNAME }}"
