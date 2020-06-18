@@ -27,6 +27,7 @@ packages:
      - netaddr
      - libvirt-python
      - six
+     - docker-py
   centos:
     rhel7:
         packages:
