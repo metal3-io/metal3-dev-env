@@ -102,7 +102,7 @@ CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
 CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL}/releases/latest}"
-CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}"
+export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}"
 if [ "${CAPI_VERSION}" == "v1alpha4" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-master}"
 else
