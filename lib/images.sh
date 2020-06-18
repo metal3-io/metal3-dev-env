@@ -20,3 +20,6 @@ export IMAGE_CHECKSUM=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}.md5sum
 
 # Target node username
 export IMAGE_USERNAME=${IMAGE_USERNAME:-metal3}
+
+IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
+export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
