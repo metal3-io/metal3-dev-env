@@ -27,16 +27,16 @@ images.
 The requirements for the dev env machine are, when deploying **Ubuntu** target
 hosts:
 
-* 16GB of memory
+* 8GB of memory
 * 4 cpus
 
 And when deploying **Centos** target hosts:
 
-* 32GB of memory
+* 16GB of memory
 * 4 cpus
 
 The Minikube machine is deployed with 4GB of RAM, and 2 vCPUs, and the target
-hosts with 4 vCPUs and either 4GB of RAM (Ubuntu) or 8GB of RAM (Centos).
+hosts with 4 vCPUs and 4GB of RAM.
 
 ### Environment variables
 
@@ -56,14 +56,12 @@ The following environment variables need to be set for **Centos**:
 
 ```sh
 export IMAGE_OS=Centos
-export DEFAULT_HOSTS_MEMORY=8192
 ```
 
 And the following environment variables need to be set for **Ubuntu**:
 
 ```sh
 export IMAGE_OS=Ubuntu
-export DEFAULT_HOSTS_MEMORY=4096
 ```
 
 ### Deploy the metal3 Dev env

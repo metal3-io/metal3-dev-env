@@ -154,7 +154,7 @@ else
 fi
 
 #default hosts memory
-export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-8192}
+export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-4096}
 
 # Cluster.
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
