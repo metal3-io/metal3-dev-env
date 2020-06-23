@@ -200,6 +200,17 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
                         dhcp4: false
                 version: 2
 {% endif %}
+        - path : /etc/netplan/52-ironicendpoint.yaml
+          owner: root:root
+          permissions: '0644'
+          content: |
+            network:
+              version: 2
+              renderer: networkd
+              bridges:
+                {{ IRONIC_ENDPOINT_BRIDGE }}:
+                  interfaces: [enp1s0]
+                  dhcp4: yes
         - path : /etc/docker/daemon.json
           owner: root:root
           permissions: '0644'
