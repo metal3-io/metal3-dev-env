@@ -13,22 +13,33 @@
 {
   "nodes": [
   {% for node in vm_nodes %}
+
+    {% set vm_driver_tmp = vm_driver -%}
+    {# If vm_driver == mixed we alternate between ipmi and refish to test both #}
+    {% if vm_driver == 'mixed' -%}
+      {% if loop.index is divisibleby 2 -%}
+        {% set vm_driver_tmp = 'redfish' -%}
+      {% else -%}
+        {% set vm_driver_tmp = 'ipmi' -%}
+      {% endif -%}
+    {% endif -%}
+
     {
       "name": "{{ node.name|replace('_', '-') }}",
-      "driver": "{{ vm_driver }}",
+      "driver": "{{ vm_driver_tmp }}",
       "resource_class": "baremetal",
       "driver_info": {
         "username": "admin",
         "password": "password",
-        {% if vm_driver =='redfish' -%}
+        {% if vm_driver_tmp =='redfish' -%}
         "port": "8000",
-        "address": "{{vm_driver}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
-        {% elif vm_driver == 'redfish-virtualmedia' -%}
+        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        {% elif vm_driver_tmp == 'redfish-virtualmedia' -%}
         "port": "8000",
-        "address": "{{vm_driver}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
         {% else -%}
         "port": "{{ node.virtualbmc_port }}",
-        "address": "{{vm_driver}}://{{lvars['host_ip'] | ipwrap }}:{{node.virtualbmc_port}}",
+        "address": "{{vm_driver_tmp}}://{{lvars['host_ip'] | ipwrap }}:{{node.virtualbmc_port}}",
         {% endif -%}
         "deploy_kernel": "http://{{ provisioning_url_host }}/images/ironic-python-agent.kernel",
         "deploy_ramdisk": "http://{{ provisioning_url_host }}/images/ironic-python-agent.initramfs"
