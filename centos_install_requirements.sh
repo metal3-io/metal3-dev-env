@@ -37,10 +37,11 @@ fi
 
 # Install required packages
 sudo dnf -y install \
-  ansible \
   redhat-lsb-core \
   python3-pip \
   wget
+
+sudo pip3 install ansible==2.9.8
 
 if [[ $DISTRO == "centos7" ]]; then
   # Install pip since it is used by the k8s Ansible module
