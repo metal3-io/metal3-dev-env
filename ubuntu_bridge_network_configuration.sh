@@ -7,7 +7,7 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 
-if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
+if [ "$MANAGE_PRO_BRIDGE" == "y" ] && [[ ! $(brctl show | grep provisioning) ]]; then
      # Adding an IP address in the libvirt definition for this network results in
      # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
      # the IP address here
