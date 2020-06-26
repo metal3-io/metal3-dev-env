@@ -12,67 +12,23 @@
 
   - name: Generate clusterctl cluster template
     template:
-      src: "{{ CRS_PATH }}/cluster-template.yaml"
-      dest: "{{ HOME }}/.cluster-api/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}"
+      src: "{{ CRS_PATH }}/cluster-template-{{ item }}.yaml"
+      dest: "{{ HOME }}/.cluster-api/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml"
+    with_items:
+      - cluster
+      - controlplane
+      - workers
 
   - name: Generate templates
     shell: >
       . {{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc &&
       {{ CLUSTERCTL_PATH }}/clusterctl config cluster {{ CLUSTER_NAME }}
+      --from {{ HOME }}/.cluster-api/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml
       --kubernetes-version {{ KUBERNETES_VERSION }}
       --control-plane-machine-count={{ NUM_OF_MASTER_REPLICAS }}
       --worker-machine-count={{ NUM_OF_WORKER_REPLICAS }}
-      --target-namespace={{ NAMESPACE }} > {{ TEMP_GEN_DIR }}/manifests.yaml
-
-  - name: Create a base dir
-    file:
-      path: "{{ TEMP_GEN_DIR }}/base"
-      state: directory
-      mode: '0755'
-
-  - name: Copy kustomization skeleton
-    copy:
-      src: "{{ CRS_PATH }}/kustomization.yaml"
-      dest: "{{ TEMP_GEN_DIR }}"
-
-  - name: Split manifests
-    shell: |
-      kustomize build . -o base
-    args:
-      chdir: "{{ TEMP_GEN_DIR }}"
-
-  - name: Generate cluster
-    shell: |
-      cp {{ CRS_PATH }}/kustomization_empty.yaml {{ TEMP_GEN_DIR }}/kustomization.yaml
-      kustomize edit add resource base/*cluster_{{ CLUSTER_NAME }}*.yaml
-      kustomize edit add resource base/*ippool*.yaml
-      kustomize build . -o {{ CAPI_VERSION }}_cluster_{{ CLUSTER_NAME }}_{{ IMAGE_OS|lower }}.yaml
-    args:
-      chdir: "{{ TEMP_GEN_DIR }}"
-    when: CAPI_VERSION != "v1alpha3"
-
-  - name: Generate cluster v1alpha3
-    shell: |
-      cp {{ CRS_PATH }}/kustomization_empty.yaml {{ TEMP_GEN_DIR }}/kustomization.yaml
-      kustomize edit add resource base/*cluster_{{ CLUSTER_NAME }}*.yaml
-      kustomize build . -o {{ CAPI_VERSION }}_cluster_{{ CLUSTER_NAME }}_{{ IMAGE_OS|lower }}.yaml
-    args:
-      chdir: "{{ TEMP_GEN_DIR }}"
-    when: CAPI_VERSION == "v1alpha3"
-
-  - name: Generate controlplane and machinedeployment manifests
-    shell: |
-      cp {{ CRS_PATH }}/kustomization_empty.yaml {{ TEMP_GEN_DIR }}/kustomization.yaml
-      kustomize edit add resource base/*{{ item }}*.yaml
-      kustomize build . -o {{ CAPI_VERSION }}_{{ item }}_{{ IMAGE_OS|lower }}.yaml
-    args:
-      chdir: "{{ TEMP_GEN_DIR }}"
+      --target-namespace={{ NAMESPACE }} > {{ TEMP_GEN_DIR }}/{{ CAPI_VERSION }}_{{ item }}_{{ IMAGE_OS|lower }}.yaml
     with_items:
-       - controlplane
-       - machinedeployment
-
-  - name: Generate and merge worker manifests with deployment manifest
-    shell: |
-      cd {{ TEMP_GEN_DIR }}
-      kustomize edit add resource base/*workers*.yaml
-      kustomize build . -o {{ CAPI_VERSION }}_workers_{{ IMAGE_OS|lower }}.yaml
+      - cluster
+      - controlplane
+      - workers

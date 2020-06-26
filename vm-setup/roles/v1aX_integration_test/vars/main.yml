@@ -60,3 +60,39 @@ IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('CentOS-8-Gener
 IMAGE_LOCATION_CENTOS: 'https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2'
 IMAGE_URL_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}"
 IMAGE_CHECKSUM_CENTOS: "http://172.22.0.1/images/{{ IMAGE_NAME_CENTOS }}.md5sum"
+
+provision_cluster_actions:
+    - "ci_test"
+    - "provision_cluster"
+    - "feature_test_provisioning"
+provision_controlplane_actions:
+    - "ci_test"
+    - "provision_controlplane"
+    - "feature_test_provisioning"
+provision_workers_actions:
+    - "ci_test"
+    - "provision_worker"
+    - "feature_test_provisioning"
+deprovision_cluster_actions:
+    - "ci_test"
+    - "deprovision_cluster"
+    - "feature_test_deprovisioning"
+deprovision_controlplane_actions:
+    - "ci_test"
+    - "deprovision_controlplane"
+    - "feature_test_deprovisioning"
+deprovision_workers_actions:
+    - "ci_test"
+    - "deprovision_worker"
+    - "feature_test_deprovisioning"
+verify_actions:
+    - "ci_test"
+    - "feature_test_provisioning"
+    - "pivoting"
+cleanup_actions:
+    - "ci_test"
+    - "feature_test_deprovisioning"
+image_download_actions:
+    - "ci_test"
+    - "provision_controlplane"
+    - "provision_worker"
