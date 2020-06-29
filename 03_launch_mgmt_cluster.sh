@@ -283,12 +283,14 @@ else
   if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
     sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"$CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR"' dev eth2"' "${USER}"
   else
-    if [[ ! $(sudo su -l -c "minikube ssh sudo brctl show | grep $CLUSTER_PROVISIONING_INTERFACE" "${USER}") ]]; then
-      sudo su -l -c "minikube ssh sudo brctl addbr $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
-      sudo su -l -c "minikube ssh sudo ip link set $CLUSTER_PROVISIONING_INTERFACE up" "${USER}"
-      sudo su -l -c "minikube ssh sudo brctl addif $CLUSTER_PROVISIONING_INTERFACE eth2" "${USER}"
-      sudo su -l -c "minikube ssh sudo ip addr add $INITIAL_IRONICBRIDGE_IP/$PROVISIONING_CIDR dev $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
+    if sudo su -l -c "minikube ssh sudo brctl show" "${USER}" | grep -q "$CLUSTER_PROVISIONING_INTERFACE"; then
+      sudo su -l -c "minikube ssh sudo ip link set $CLUSTER_PROVISIONING_INTERFACE down" "${USER}"
+      sudo su -l -c "minikube ssh sudo brctl delbr $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
     fi
+    sudo su -l -c "minikube ssh sudo brctl addbr $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
+    sudo su -l -c "minikube ssh sudo ip link set $CLUSTER_PROVISIONING_INTERFACE up" "${USER}"
+    sudo su -l -c "minikube ssh sudo brctl addif $CLUSTER_PROVISIONING_INTERFACE eth2" "${USER}"
+    sudo su -l -c "minikube ssh sudo ip addr add $INITIAL_IRONICBRIDGE_IP/$PROVISIONING_CIDR dev $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
   fi
 fi
 

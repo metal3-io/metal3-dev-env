@@ -7,10 +7,14 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 
-if [ "$MANAGE_PRO_BRIDGE" == "y" ] && [[ ! $(brctl show | grep provisioning) ]]; then
+if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
      # Adding an IP address in the libvirt definition for this network results in
      # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
      # the IP address here
+     if brctl show | grep -q 'provisioning'; then
+         sudo ip link set provisioning down
+	 sudo brctl delbr provisioning
+     fi
      sudo brctl addbr provisioning
      # sudo ifconfig provisioning 172.22.0.1 netmask 255.255.255.0 up
      # Use ip command. ifconfig commands are deprecated now.
