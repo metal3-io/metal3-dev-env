@@ -23,6 +23,9 @@
         {% if vm_driver =='redfish' -%}
         "port": "8000",
         "address": "{{vm_driver}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        {% elif vm_driver == 'redfish-virtualmedia' -%}
+        "port": "8000",
+        "address": "{{vm_driver}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
         {% else -%}
         "port": "{{ node.virtualbmc_port }}",
         "address": "{{vm_driver}}://{{lvars['host_ip'] | ipwrap }}:{{node.virtualbmc_port}}",
