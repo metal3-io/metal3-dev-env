@@ -9,6 +9,7 @@ ironic_ports:
   - "5050"
   - "6385"
   - "9999"
+  - "80"
 provisioning_host_ports:
   # Caching HTTP Server
   - "80"

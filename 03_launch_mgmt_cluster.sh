@@ -146,6 +146,9 @@ function deploy_kustomization() {
 
 function launch_baremetal_operator() {
     pushd "${BMOPATH}"
+    # This is a temporary fix to pass the CI.
+    # TODO: remove the line when this change is actually made in BMO.
+    sed -i "/PROVISIONING_INTERFACE*/c\PROVISIONING_INTERFACE=ironicendpoint" deploy/ironic_ci.env
 
     if [ "${CAPI_VERSION}" != "v1alpha3" ]; then
       kubectl create namespace metal3

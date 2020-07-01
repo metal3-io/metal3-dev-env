@@ -178,10 +178,17 @@ VBMC_IMAGE=${VBMC_LOCAL_IMAGE:-$VBMC_IMAGE}
 SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_LOCAL_IMAGE:-$SUSHY_TOOLS_IMAGE}
 
 # Start httpd container
-#shellcheck disable=SC2086
-sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra \
-     ${POD_NAME_INFRA} -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd\
-     "${IRONIC_IMAGE}"
+if [[ $OS == ubuntu ]]; then
+  #shellcheck disable=SC2086
+  sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra ${POD_NAME_INFRA} \
+      -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd \
+      --env "PROVISIONING_INTERFACE=ironicendpoint" "${IRONIC_IMAGE}"
+else
+  #shellcheck disable=SC2086
+  sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra ${POD_NAME_INFRA} \
+      -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd \
+      "${IRONIC_IMAGE}"
+fi
 
 # Start vbmc and sushy containers
 #shellcheck disable=SC2086
