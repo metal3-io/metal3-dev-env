@@ -71,7 +71,7 @@
     when: CAPI_VERSION == "v1alpha3"
 
   - name: Initialize Provider component in target cluster
-    shell: "{{ CLUSTERCTL_PATH }}/clusterctl init --kubeconfig /tmp/target.yaml --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
+    shell: "{{ CLUSTERCTL_PATH }}/clusterctl init --kubeconfig /tmp/target.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
 
     # Check for pods & nodes on the target cluster
   - name: Check if pods in running state

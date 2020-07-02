@@ -62,7 +62,8 @@ popd || exit
 
 pushd "${CAPIPATH}" || exit
 cd bin || exit
-./clusterctl init --infrastructure=metal3:"${CAPM3RELEASE}" -v5
+# shellcheck disable=SC2153
+./clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5
 popd || exit
 
 pushd "${BMOPATH}" || exit
