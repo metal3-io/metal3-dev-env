@@ -145,7 +145,8 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
             bridges:
               {{ IRONIC_ENDPOINT_BRIDGE }}:
                 interfaces: [enp1s0]
-                dhcp4: yes
+                addresses: 
+                - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}  
       - path : /etc/docker/daemon.json
         owner: root:root
         permissions: '0644'
@@ -210,7 +211,8 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
               bridges:
                 {{ IRONIC_ENDPOINT_BRIDGE }}:
                   interfaces: [enp1s0]
-                  dhcp4: yes
+                  addresses: 
+                  - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}  
         - path : /etc/docker/daemon.json
           owner: root:root
           permissions: '0644'

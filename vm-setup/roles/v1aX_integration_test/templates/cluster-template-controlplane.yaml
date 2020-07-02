@@ -65,6 +65,12 @@ spec:
         object: machine
       - key: local_hostname
         object: machine
+    ipAddressesFromIPPool:
+      - key: provisioningIP
+        name: provisioning-pool
+    prefixesFromIPPool:
+      - key: provisioningCIDR
+        name: provisioning-pool
   networkData:
     links:
       ethernets:
@@ -77,17 +83,14 @@ spec:
           macAddress:
             fromHostInterface: enp2s0
     networks:
-      ipv4:
-        - id: provisioning
-          link: enp1s0
-          ipAddressFromIPPool: provisioning-pool
 {% if IP_STACK == 'v4' or IP_STACK == 'v4v6' %}
+      ipv4:
         - id: baremetalv4
           link: enp2s0
           ipAddressFromIPPool: baremetalv4-pool
           routes:
             - network: 0.0.0.0
-              netmask: 0
+              prefix: 0
               gateway:
                 fromIPPool: baremetalv4-pool
 {% endif %}
@@ -98,7 +101,7 @@ spec:
           ipAddressFromIPPool: baremetalv6-pool
           routes:
             - network: 0::0
-              netmask: 0
+              prefix: 0
               gateway:
                 fromIPPool: baremetalv6-pool
 {% endif %}
