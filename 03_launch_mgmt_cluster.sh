@@ -233,7 +233,8 @@ function launch_cluster_api_provider_metal3() {
 
     pushd "${CAPIPATH}"
     cd bin
-    ./clusterctl init --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
+     # shellcheck disable=SC2153
+    ./clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
     popd
 
     rm -rf "$kustomize_overlay_path"

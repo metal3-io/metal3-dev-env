@@ -65,6 +65,7 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # M3PATH : Path to clone the metal3 dev env repo
 # BMOPATH : Path to clone the baremetal operator repo
 # CAPM3PATH: Path to clone the CAPI operator repo
+# CAPIPATH: Path to clone the Cluster-api repo
 #
 # BMOREPO : Baremetal operator repository URL
 # BMOBRANCH : Baremetal operator repository branch to checkout
@@ -103,6 +104,10 @@ CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL}/releases/latest}"
 export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}")}"
+
+CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL}/releases/latest}"
+export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}")}"
+
 if [ "${CAPI_VERSION}" == "v1alpha4" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-master}"
 else
