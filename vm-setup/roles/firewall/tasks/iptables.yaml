@@ -15,6 +15,16 @@
     jump: ACCEPT
     state: "{{ firewall_rule_state }}"
 
+- name: "iptables: sushy Port"
+  iptables:
+    chain: INPUT
+    in_interface: "{{ baremetal_interface }}"
+    protocol: tcp
+    match: tcp
+    destination_port: "{{ sushy_port }}"
+    jump: ACCEPT
+    state: "{{ firewall_rule_state }}"
+
 - name: "iptables: Established and related"
   iptables:
     chain: FORWARD
