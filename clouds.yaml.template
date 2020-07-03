@@ -3,3 +3,6 @@ clouds:
     auth_type: none
     baremetal_endpoint_override: http://__CLUSTER_URL_HOST__:6385
     baremetal_introspection_endpoint_override: http://__CLUSTER_URL_HOST__:5050
+    cacert: /etc/openstack/ca.crt
+    cert: /etc/openstack/client.crt
+    key: /etc/openstack/client.key
