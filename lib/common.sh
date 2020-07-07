@@ -187,6 +187,9 @@ TEST_MAX_TIME="${TEST_MAX_TIME:-240}"
 FAILS=0
 RESULT_STR=""
 
+# Avoid printing skipped Ansible tasks
+export ANSIBLE_DISPLAY_SKIPPED_HOSTS=no
+
 # Verify requisites/permissions
 # Connect to system libvirt
 export LIBVIRT_DEFAULT_URI=qemu:///system
