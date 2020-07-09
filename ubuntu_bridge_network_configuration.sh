@@ -6,16 +6,28 @@ set -xe
 source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
+# shellcheck disable=SC1091
+source lib/network.sh
 
 if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
      # Adding an IP address in the libvirt definition for this network results in
      # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
-     # the IP address here
+     # the IP address here.
+     # Create a veth iterface peer.
+     sudo ip link add ironicendpoint type veth peer name ironic-peer
+     # Create provisioning bridge.
      sudo brctl addbr provisioning
      # sudo ifconfig provisioning 172.22.0.1 netmask 255.255.255.0 up
      # Use ip command. ifconfig commands are deprecated now.
-     sudo ip addr add dev provisioning "$PROVISIONING_IP"/"$PROVISIONING_CIDR"
      sudo ip link set provisioning up
+     if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
+        sudo ip -6 addr add "$PROVISIONING_IP"/"$PROVISIONING_CIDR" dev ironicendpoint
+      else
+        sudo ip addr add dev ironicendpoint "$PROVISIONING_IP"/"$PROVISIONING_CIDR"
+     fi
+     sudo brctl addif provisioning ironic-peer
+     sudo ip link set ironicendpoint up
+     sudo ip link set ironic-peer up
 
      # Need to pass the provision interface for bare metal
      if [ "$PRO_IF" ]; then
