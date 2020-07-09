@@ -19,9 +19,7 @@
   when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '7'
 
 - name: "Generate templates for v1alpha3"
-  include: "{{ item }}.yml"
-  with_items:
-    - generate_templates
+  include: generate_templates.yml
 
 - name: download image for deployment
   include: download_image.yml
