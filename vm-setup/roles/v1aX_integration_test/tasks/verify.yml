@@ -120,7 +120,6 @@
         k8s:
           state: present
           src: "/tmp/calico.yaml"
-          namespace: "{{ NAMESPACE }}"
         register: install_cni
 
       # Check for pods & nodes on the target cluster
