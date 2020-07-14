@@ -40,3 +40,35 @@
     retries: 150
     delay: 3
     until: deprovisioned_nodes.stdout ==  NUMBER_OF_BMH
+
+  - name: Wait until no metal3machines are remaining
+    shell: |
+        kubectl get metal3machine -n {{ NAMESPACE }} -o json | jq -r '[ .items[] ] | length'
+    register: deprovisioned_m3m
+    retries: 150
+    delay: 3
+    until: deprovisioned_m3m.stdout ==  "0"
+
+  - name: Wait until no machines are remaining
+    shell: |
+        kubectl get machine -n {{ NAMESPACE }} -o json | jq -r '[ .items[] ] | length'
+    register: deprovisioned_machines
+    retries: 150
+    delay: 3
+    until: deprovisioned_machines.stdout ==  "0"
+
+  - name: Wait until no metal3cluster is remaining
+    shell: |
+        kubectl get metal3cluster -n {{ NAMESPACE }} -o json | jq -r '[ .items[] ] | length'
+    register: deprovisioned_metal3cluster
+    retries: 150
+    delay: 3
+    until: deprovisioned_metal3cluster.stdout ==  "0"
+
+  - name: Wait until no cluster is remaining
+    shell: |
+        kubectl get cluster -n {{ NAMESPACE }} -o json | jq -r '[ .items[] ] | length'
+    register: deprovisioned_cluster
+    retries: 150
+    delay: 3
+    until: deprovisioned_cluster.stdout ==  "0"
