@@ -31,7 +31,7 @@
            (deprovision_cluster.stdout == "Deleting") or
            (deprovision_cluster.stdout == "")
 
-  - name: Wait until both bmh becomes ready again.
+  - name: Wait until "{{ NUM_NODES }}" bmhs become ready again.
     shell: |
         kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
         | select (.status.provisioning.state == "ready")
@@ -39,7 +39,7 @@
     register: deprovisioned_nodes
     retries: 150
     delay: 3
-    until: deprovisioned_nodes.stdout ==  NUMBER_OF_BMH
+    until: deprovisioned_nodes.stdout ==  NUM_NODES
 
   - name: Wait until no metal3machines are remaining
     shell: |
