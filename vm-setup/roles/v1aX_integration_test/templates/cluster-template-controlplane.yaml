@@ -15,6 +15,7 @@ spec:
 {% endif %}
     name: ${ CLUSTER_NAME }-controlplane
   kubeadmConfigSpec:
+    clusterConfiguration: {}
     joinConfiguration:
       controlPlane: {}
       nodeRegistration:
