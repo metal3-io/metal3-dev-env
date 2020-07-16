@@ -10,6 +10,9 @@
     {% if lvars.update({'host_ip' : network.address_v6}) %}{% endif %}
   {% endif %}
 {% endfor %}
+{% if lvars['pxe_network'] == False %}
+  {% if lvars.update({'pxe_network': networks[0].name}) %}{% endif %}
+{% endif %}
 {
   "nodes": [
   {% for node in vm_nodes %}
