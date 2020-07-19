@@ -175,7 +175,7 @@ function launch_baremetal_operator() {
 }
 
 function launch_kind() {
-  cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=kindest/node:${KUBERNETES_VERSION} --config=- " "$USER"
+  cat <<EOF | sudo su -l -c "no_proxy=kubernetes.default.svc kind create cluster --name kind --image=kindest/node:${KUBERNETES_VERSION} --config=- " "$USER"
   kind: Cluster
   apiVersion: kind.x-k8s.io/v1alpha4
   containerdConfigPatches:
