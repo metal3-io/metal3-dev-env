@@ -7,7 +7,7 @@ CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-podman}"
 
 if [ "${IS_CONTAINER}" != "false" ]; then
   TOP_DIR="${1:-.}"
-  mdl --style all --warnings "${TOP_DIR}"
+  find "${TOP_DIR}" -type f \( -iname "vars.md" \) -prune -o -name '*.md' -exec mdl --style all --warnings {} \+
 else
   "${CONTAINER_RUNTIME}" run --rm \
     --env IS_CONTAINER=TRUE \
