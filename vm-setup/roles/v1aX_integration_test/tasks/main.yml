@@ -1,5 +1,4 @@
 ---
-
 - name: Install openshift client in CentOS 8 using pip3
   pip:
     executable: "pip3"
