@@ -126,7 +126,7 @@
 
 - name: set_fact BMC Driver
   set_fact:
-    vm_driver: "{{ lookup('env', 'BMC_DRIVER') | default('ipmi', true) }}"
+    vm_driver: "{{ lookup('env', 'BMC_DRIVER') | default('mixed', true) }}"
 
 
 # Generate the ironic node inventory files.  Note that this

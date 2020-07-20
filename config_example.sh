@@ -91,7 +91,8 @@
 #export TEST_MAX_TIME=120
 
 #
-# Set the driver. The default value is 'ipmi'
+# Set the driver. The default value is 'mixed' (alternate nodes between ipmi
+# and redfish).
 #
 #export BMC_DRIVER="redfish"
 
