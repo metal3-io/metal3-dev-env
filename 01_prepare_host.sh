@@ -6,6 +6,11 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 
+if [[ $(id -u) == 0 ]]; then
+  echo "Please run 'make' as a non-root user"
+  exit 1
+fi
+
 if [[ $OS == ubuntu ]]; then
   # shellcheck disable=SC1091
   source ubuntu_install_requirements.sh
