@@ -207,6 +207,7 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name sushy-tools ${
 OPENSTACKCLIENT_PATH="${OPENSTACKCLIENT_PATH:-/usr/local/bin/openstack}"
 if ! command -v openstack | grep -v "${OPENSTACKCLIENT_PATH}"; then
   sudo ln -sf "${SCRIPTDIR}/openstackclient.sh" "${OPENSTACKCLIENT_PATH}"
+  sudo ln -sf "${SCRIPTDIR}/openstackclient.sh" "$(dirname "$OPENSTACKCLIENT_PATH")/baremetal"
 fi
 
 # Same for the vbmc CLI when not locally installed
