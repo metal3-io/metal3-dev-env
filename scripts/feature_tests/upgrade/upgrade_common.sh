@@ -13,7 +13,7 @@ export UPGRADED_BINARY_VERSION="v1.18.1"
 export CLUSTER_APIENDPOINT_IP=${CLUSTER_APIENDPOINT_IP:-"192.168.111.249"}
 export NUM_NODES=${NUM_NODES:-"4"}
 
-export CAPM3RELEASE=${CAPM3RELEASE:-"v0.3.0"}
+export CAPM3RELEASE=${CAPM3RELEASE:-"v0.3.2"}
 export CAPIRELEASE=${CAPIRELEASE:-"v0.3.4"}
 
 export IMAGE_URL=${IMAGE_URL:-"http://172.22.0.1/images/bionic-server-cloudimg-amd64-raw.img"}
@@ -378,7 +378,7 @@ cat <<EOF >clusterctl-settings-metal3.json
    "name": "infrastructure-metal3",
     "config": {
       "componentsFile": "infrastructure-components.yaml",
-      "nextVersion": "v0.3.0"
+      "nextVersion": "v0.3.2"
     }
 }
 EOF
@@ -408,7 +408,7 @@ function createNextVersionControllers() {
         /home/"${USER}"/.cluster-api/overrides/bootstrap-kubeadm/v0.3.6
     cp -r /home/"${USER}"/.cluster-api/overrides/control-plane-kubeadm/v0.3.0 \
         /home/"${USER}"/.cluster-api/overrides/control-plane-kubeadm/v0.3.6
-    cp -r /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/v0.3.0 \
+    cp -r /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/v0.3.2 \
         /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/v0.3.6
 
 }

@@ -46,11 +46,10 @@ pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/controlplane_upgrade"
 source 3cp_1w_k8sVer_bootDiskImage_scaleInWorker_upgrade.sh
 popd || exit
 
-# This needs to be replaced by 1cp_1w_bootDiskImageANDK8sCotrollers_clusterLevel_upgrade.sh
 # Run controlplane components upgrade tests | This should be the last one
-pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/controlplane_components_upgrade" || exit
+pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/combined_tests" || exit
 # shellcheck disable=SC1091
-source upgrade_CAPI_and_CAPM3_with_clusterctl.sh
+source 1cp_1w_bootDiskImageANDK8sControllers_clusterLevel_upgrade.sh
 popd || exit
 
 set +x
