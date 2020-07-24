@@ -4,6 +4,7 @@ HOME: "{{ lookup('env', 'HOME') }}"
 NAMESPACE: metal3
 CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/templates"
 TEMP_GEN_DIR: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/files/manifests"
+MANIFESTS_DIR: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/files"
 EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('kind') }}"
 CLUSTERCTL_PATH: "{{ HOME }}/go/src/github.com/metal3-io/cluster-api/bin"
 CLUSTER_APIENDPOINT_HOST: "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
