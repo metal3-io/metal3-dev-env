@@ -200,8 +200,8 @@ function make_bm_hosts() {
 
 function apply_bm_hosts() {
     pushd "${BMOPATH}"
-    list_nodes | make_bm_hosts > bmhosts_crs.yaml
-    kubectl apply -f bmhosts_crs.yaml -n metal3
+    list_nodes | make_bm_hosts > "${WORKING_DIR}/bmhosts_crs.yaml"
+    kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n metal3
     popd
 }
 
