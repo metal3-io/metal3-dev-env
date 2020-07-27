@@ -1,21 +1,21 @@
 ---
-  - name: Power off "{{ NODE }}"
+  - name: Power off "{{ BMH_NODE }}"
     shell: |
-       kubectl annotate bmh "{{ NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
+       kubectl annotate bmh "{{ BMH_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
 
-  - name: Wait until powered off "{{ WORKER_NODE }}" becomes NotReady
+  - name: Wait until powered off "{{ BMH_NODE }}" becomes NotReady
     delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
     vars:
       ansible_user: "{{ IMAGE_USERNAME }}"
       ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
       ansible_python_interpreter: /usr/bin/python3
-    shell: kubectl get nodes | grep -w NotReady | awk '{print $1}'
+    shell: "kubectl get nodes | grep -w NotReady | awk '{print $1}'"
     environment:
       KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
     retries: 150
     delay: 3
     register: not_ready_nodes
-    until: NODE in not_ready_nodes.stdout_lines
+    until: K8S_NODE in not_ready_nodes.stdout_lines
     become: yes
     become_user: "{{ IMAGE_USERNAME }}"
 
@@ -29,13 +29,13 @@
     register: shutdown_vms
     retries: 50
     delay: 10
-    until: NODE_VM in shutdown_vms.list_vms
+    until: LIBVIRT_VM in shutdown_vms.list_vms
     become: yes
     become_user: root
 
-  - name: Power on "{{ NODE }}"
+  - name: Power on "{{ BMH_NODE }}"
     shell: |
-       kubectl annotate bmh "{{ NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff-
+       kubectl annotate bmh "{{ BMH_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff-
 
   - name: List only running VMs
     virt:
@@ -44,22 +44,22 @@
     register: running_vms
     retries: 50
     delay: 10
-    until: NODE_VM in running_vms.list_vms
+    until: LIBVIRT_VM in running_vms.list_vms
     become: yes
     become_user: root
 
-  - name: Wait until powered on "{{ NODE }}" becomes Ready
+  - name: Wait until powered on "{{ K8S_NODE }}" becomes Ready
     delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
     vars:
       ansible_user: "{{ IMAGE_USERNAME }}"
       ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
       ansible_python_interpreter: /usr/bin/python3
-    shell: kubectl get nodes | grep -w Ready | awk '{print $1}'
+    shell: "kubectl get nodes | grep -w Ready | awk '{print $1}'"
     environment:
       KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
     retries: 150
     delay: 3
     register: ready_nodes
-    until: NODE in ready_nodes.stdout_lines
+    until: K8S_NODE in ready_nodes.stdout_lines
     become: yes
     become_user: "{{ IMAGE_USERNAME }}"
