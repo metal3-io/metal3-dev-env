@@ -1,26 +1,34 @@
 packages:
   ubuntu:
-    packages:
-     - curl
-     - dnsmasq
-     - nmap
-     - ovmf
-     - patch
-     - psmisc
-     - wget
-     - libvirt-bin
-     - libvirt-clients
-     - libvirt-dev
-     - jq
-     - unzip
-     - yarn
-     - genisoimage
-     - qemu-kvm
-     - libguestfs-tools
-     - gir1.2-polkit-1.0
-     - libpolkit-agent-1-0
-     - libpolkit-backend-1-0
-     - libpolkit-gobject-1-0
+    common:
+      packages:
+        - curl
+        - dnsmasq
+        - nmap
+        - ovmf
+        - patch
+        - psmisc
+        - wget
+        - libvirt-clients
+        - libvirt-dev
+        - bridge-utils
+        - jq
+        - unzip
+        - yarn
+        - genisoimage
+        - qemu-kvm
+        - libguestfs-tools
+        - gir1.2-polkit-1.0
+        - libpolkit-agent-1-0
+        - libpolkit-gobject-1-0
+    bionic:
+      packages:
+        - libvirt-bin
+        - libpolkit-backend-1-0
+    focal:
+      packages:
+        - libvirt-daemon
+        - libvirt-daemon-system
     pip3:
      - virtualbmc
      - lxml
