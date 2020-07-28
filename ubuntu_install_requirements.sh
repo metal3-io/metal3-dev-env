@@ -21,9 +21,14 @@ sudo apt -y install \
   python3-pip \
   python3-setuptools \
   zlib1g-dev \
-  libssl1.0-dev \
   openssh-server \
   wget
+
+if [[ ${OS_VERSION_ID} == "18.04" ]]; then
+  sudo apt -y install libssl1.0-dev
+else
+  sudo apt -y install libssl-dev
+fi
 
 # There are some packages which are newer in the tripleo repos
 
@@ -34,9 +39,8 @@ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 
 # Add this repository to install podman
-sudo add-apt-repository -y ppa:projectatomic/ppa
-# Add this repository to install latest stable Golang
-sudo add-apt-repository -y ppa:longsleep/golang-backports
+echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${OS_VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${OS_VERSION_ID}/Release.key" | sudo apt-key add -
 
 # Update some packages from new repos
 sudo apt -y update
@@ -49,7 +53,11 @@ sudo pip3 install \
   pyYAML
 
 # Set update-alternatives to python3
-sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+if [[ ${OS_VERSION_ID} == "18.04" ]]; then
+  sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+else
+  sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
+fi
 
 # make sure additional requirments are installed
 
