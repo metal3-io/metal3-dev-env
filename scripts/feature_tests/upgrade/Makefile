@@ -8,5 +8,4 @@ all: upgrade
 
 .PHONY: upgrade
 upgrade:
-	wget -q https://raw.githubusercontent.com/Nordix/airship-dev-tools/master/upgrade_tests/upgrade.sh
 	bash upgrade.sh
