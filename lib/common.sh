@@ -83,8 +83,14 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # CAPM3_RUN_LOCAL : run the CAPI operator locally
 
 function get_latest_release() {
-    # shellcheck disable=SC2005
-    echo "$(curl -sL "${1}"  | jq -r '.tag_name')"
+  release="$(curl -sL "${1}")" || ( echo "Failed to get releases for ${1}" && exit 1)
+  release_tag="$(echo "$release" | jq -r '.tag_name')"
+  if [[ "$release_tag" == "null" ]]; then
+    echo "Failed to get the release tag for ${1}"
+    exit 1
+  fi
+  # shellcheck disable=SC2005
+  echo "$release_tag"
 }
 
 # CAPI version
