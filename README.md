@@ -77,15 +77,15 @@ You can check a list of all the environment variables [here](vars.md)
 ### Deploy the target cluster
 
 ```sh
-./scripts/v1alphaX/provision_cluster.sh
-./scripts/v1alphaX/provision_controlplane.sh
-./scripts/v1alphaX/provision_worker.sh
+./scripts/provision/cluster.sh
+./scripts/provision/controlplane.sh
+./scripts/provision/worker.sh
 ```
 
 ### Pivot to the target cluster
 
 ```sh
-./scripts/v1alphaX/pivot.sh
+./scripts/provision/pivot.sh
 ```
 
 ### Delete the target cluster
