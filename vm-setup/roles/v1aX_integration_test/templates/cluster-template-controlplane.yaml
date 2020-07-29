@@ -8,7 +8,7 @@ spec:
   version: ${ KUBERNETES_VERSION }
   infrastructureTemplate:
     kind: Metal3MachineTemplate
-{% if CAPI_VERSION == "v1alpha3" %}
+{% if CAPM3_VERSION == "v1alpha3" %}
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 {% else %}
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
@@ -31,7 +31,7 @@ spec:
           provider-id: "metal3://{{ '{{ ds.meta_data.uuid }}' }}"
 ${ CTLPLANE_KUBEADM_EXTRA_CONFIG }
 ---
-{% if CAPI_VERSION == "v1alpha3" %}
+{% if CAPM3_VERSION == "v1alpha3" %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 {% else %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
@@ -48,7 +48,7 @@ spec:
         checksum: ${ IMAGE_CHECKSUM }
         checksumType: ${ IMAGE_CHECKSUM_TYPE }
         format: ${ IMAGE_FORMAT }
-{% if CAPI_VERSION != "v1alpha3" and IMAGE_OS != "Centos" %}
+{% if CAPM3_VERSION != "v1alpha3" and IMAGE_OS != "Centos" %}
       dataTemplate:
         name: ${ CLUSTER_NAME }-controlplane-template
 ---

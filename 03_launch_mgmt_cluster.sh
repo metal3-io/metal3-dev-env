@@ -68,7 +68,7 @@ function patch_clusterctl(){
     make set-manifest-image
   fi
 
-  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ] && [ "${CAPI_VERSION}" != "v1alpha3" ]; then
+  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ] && [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
     BMO_IMAGE_NAME="${BAREMETAL_OPERATOR_LOCAL_IMAGE##*/}"
     export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$BMO_IMAGE_NAME"
     export MANIFEST_TAG_BMO="latest"
@@ -144,8 +144,8 @@ function deploy_kustomization() {
 
 function launch_baremetal_operator() {
     pushd "${BMOPATH}"
-    
-    if [ "${CAPI_VERSION}" != "v1alpha3" ]; then
+
+    if [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
       kubectl create namespace metal3
     else
       BMO_CONFIG="${BMOPATH}/deploy/default"
@@ -161,7 +161,7 @@ function launch_baremetal_operator() {
       ${RUN_LOCAL_IRONIC_SCRIPT}
     fi
 
-    if [ "${BMO_RUN_LOCAL}" = true ] && [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+    if [ "${BMO_RUN_LOCAL}" = true ] && [ "${CAPM3_VERSION}" == "v1alpha3" ]; then
       touch bmo.out.log
       touch bmo.err.log
       kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
@@ -245,7 +245,7 @@ function launch_cluster_api_provider_metal3() {
       nohup make run >> capm3.out.log 2>> capm3.err.log &
     fi
 
-    if [ "${BMO_RUN_LOCAL}" == true ] && [ "${CAPI_VERSION}" != "v1alpha3" ]; then
+    if [ "${BMO_RUN_LOCAL}" == true ] && [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
       touch bmo.out.log
       touch bmo.err.log
       kubectl scale deployment capm3-metal3-baremetal-operator -n capm3-system --replicas=0

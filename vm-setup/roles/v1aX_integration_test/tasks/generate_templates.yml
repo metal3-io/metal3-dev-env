@@ -27,7 +27,7 @@
       --kubernetes-version {{ KUBERNETES_VERSION }}
       --control-plane-machine-count={{ NUM_OF_MASTER_REPLICAS }}
       --worker-machine-count={{ NUM_OF_WORKER_REPLICAS }}
-      --target-namespace={{ NAMESPACE }} > {{ TEMP_GEN_DIR }}/{{ CAPI_VERSION }}_{{ item }}_{{ IMAGE_OS|lower }}.yaml
+      --target-namespace={{ NAMESPACE }} > {{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_{{ item }}_{{ IMAGE_OS|lower }}.yaml
     with_items:
       - cluster
       - controlplane

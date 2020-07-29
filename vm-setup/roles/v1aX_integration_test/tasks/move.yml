@@ -26,7 +26,7 @@
     with_items:
        - clusterctl.cluster.x-k8s.io=""
        - cluster.x-k8s.io/provider="metal3"
-    when: CAPI_VERSION == "v1alpha3"
+    when: CAPM3_VERSION == "v1alpha3"
 
   - name: Obtain target cluster kubeconfig
     shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/target.yaml"
@@ -42,7 +42,7 @@
   # Install BMO
   - name: Install Baremetal Operator
     shell: "kustomize build /home/$USER/go/src/github.com/metal3-io/baremetal-operator/deploy/default/ | kubectl --kubeconfig=/tmp/target.yaml apply -n {{ NAMESPACE }} -f -"
-    when: CAPI_VERSION == "v1alpha3"
+    when: CAPM3_VERSION == "v1alpha3"
 
 
   # Install Ironic
@@ -68,7 +68,7 @@
         with_items:
           - clusterctl.cluster.x-k8s.io=""
           - cluster.x-k8s.io/provider="metal3"
-    when: CAPI_VERSION == "v1alpha3"
+    when: CAPM3_VERSION == "v1alpha3"
 
   - name: Initialize Provider component in target cluster
     shell: "{{ CLUSTERCTL_PATH }}/clusterctl init --kubeconfig /tmp/target.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
@@ -150,4 +150,3 @@
 
   - name: Re-pivot everything back to source cluster
     shell: "{{ CLUSTERCTL_PATH }}/clusterctl move --kubeconfig /tmp/target.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"
-  

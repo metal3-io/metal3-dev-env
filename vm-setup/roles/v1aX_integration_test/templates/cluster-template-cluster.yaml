@@ -10,7 +10,7 @@ spec:
     pods:
       cidrBlocks: [${ POD_CIDR }]
   infrastructureRef:
-{% if CAPI_VERSION == "v1alpha3" %}
+{% if CAPM3_VERSION == "v1alpha3" %}
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 {% else %}
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
@@ -22,7 +22,7 @@ spec:
     apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
     name: ${ CLUSTER_NAME }
 ---
-{% if CAPI_VERSION == "v1alpha3" %}
+{% if CAPM3_VERSION == "v1alpha3" %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 {% else %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
@@ -37,7 +37,7 @@ spec:
     port: ${ API_ENDPOINT_PORT }
   noCloudProvider: true
 ---
-{% if CAPI_VERSION != "v1alpha3" and IMAGE_OS != "Centos" %}
+{% if CAPM3_VERSION != "v1alpha3" and IMAGE_OS != "Centos" %}
 apiVersion: ipam.metal3.io/v1alpha1
 kind: IPPool
 metadata:
