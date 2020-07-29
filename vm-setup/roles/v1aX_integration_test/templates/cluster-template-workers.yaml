@@ -28,14 +28,14 @@ spec:
           kind: KubeadmConfigTemplate
       infrastructureRef:
         name: ${ CLUSTER_NAME }-workers
-{% if CAPI_VERSION == "v1alpha3" %}
+{% if CAPM3_VERSION == "v1alpha3" %}
         apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 {% else %}
         apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 {% endif %}
         kind: Metal3MachineTemplate
 ---
-{% if CAPI_VERSION == "v1alpha3" %}
+{% if CAPM3_VERSION == "v1alpha3" %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 {% else %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
@@ -52,7 +52,7 @@ spec:
         checksum: ${ IMAGE_CHECKSUM }
         checksumType: ${ IMAGE_CHECKSUM_TYPE }
         format: ${ IMAGE_FORMAT }
-{% if CAPI_VERSION != "v1alpha3" and IMAGE_OS != "Centos" %}
+{% if CAPM3_VERSION != "v1alpha3" and IMAGE_OS != "Centos" %}
       dataTemplate:
         name: ${ CLUSTER_NAME }-workers-template
 ---

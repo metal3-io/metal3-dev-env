@@ -1,5 +1,5 @@
 ---
-- name: "{{ CAPI_VERSION }} integration test"
+- name: "{{ CAPM3_VERSION }} integration test"
   hosts: virthost
   connection: local
   gather_facts: true

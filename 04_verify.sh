@@ -256,7 +256,7 @@ done
 echo ""
 
 # Verify v1alpha3+ Operators, Deployments, Replicasets
-if [ "${CAPI_VERSION}" != "v1alpha3" ]; then
+if [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA4_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA4_RS}"
 else
@@ -292,13 +292,8 @@ fi
 if [[ "${CAPM3_RUN_LOCAL}" == true ]]; then
   # shellcheck disable=SC2034
   RESULT_STR="CAPI operator locally running"
-  if [ "${CAPI_VERSION}" == "v1alpha1" ]; then
-    pgrep -f "go run ./cmd/manager/main.go" > /dev/null 2> /dev/null
-    process_status $?
-  else
-    pgrep -f "go run ./main.go" > /dev/null 2> /dev/null
-    process_status $?
-  fi
+  pgrep -f "go run ./main.go" > /dev/null 2> /dev/null
+  process_status $?
 fi
 if [[ "${BMO_RUN_LOCAL}" == true ]] || [[ "${CAPM3_RUN_LOCAL}" == true ]]; then
   echo ""

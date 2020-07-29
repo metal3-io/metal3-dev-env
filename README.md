@@ -43,13 +43,13 @@ hosts with 4 vCPUs and 4GB of RAM.
 Select:
 
 ```sh
-export CAPI_VERSION=v1alpha3
+export CAPM3_VERSION=v1alpha3
 ```
 
 or
 
 ```sh
-export CAPI_VERSION=v1alpha4
+export CAPM3_VERSION=v1alpha4
 ```
 
 The following environment variables need to be set for **Centos**:

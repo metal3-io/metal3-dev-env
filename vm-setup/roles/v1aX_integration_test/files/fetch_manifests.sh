@@ -21,8 +21,8 @@ manifests=(
   replicaset
 )
 
-if [[ "${CAPI_VERSION}" == "v1alpha4" ]]; then 
-   manifests+=("ippool" "ipclaim" "ipaddress" "m3data" "m3dataclaim" "m3datatemplate") 
+if [[ "${CAPM3_VERSION}" == "v1alpha4" ]]; then
+   manifests+=("ippool" "ipclaim" "ipaddress" "m3data" "m3dataclaim" "m3datatemplate")
 fi
 
 for kind in "${manifests[@]}"; do

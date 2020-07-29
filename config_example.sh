@@ -100,7 +100,7 @@
 # Accepted values : v1alpha3 v1alpha4
 # default: v1alpha3
 #
-#export CAPI_VERSION=v1alpha3
+#export CAPM3_VERSION=v1alpha3
 
 #export KUBERNETES_VERSION="v1.18.0"
 
