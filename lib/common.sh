@@ -35,13 +35,18 @@ MANAGE_PRO_BRIDGE=${MANAGE_PRO_BRIDGE:-y}
 MANAGE_INT_BRIDGE=${MANAGE_INT_BRIDGE:-y}
 # Internal interface, to bridge virbr0
 INT_IF=${INT_IF:-}
-#Root disk to deploy coreOS - use /dev/sda on BM
+# Root disk to deploy coreOS - use /dev/sda on BM
 ROOT_DISK_NAME=${ROOT_DISK_NAME-"/dev/sda"}
-#Container runtime
-CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
 # Hostname format
 NODE_HOSTNAME_FORMAT=${NODE_HOSTNAME_FORMAT:-"node-%d"}
-
+# Check OS type and version
+OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
+# Container runtime
+if [[ "${OS}" == ubuntu ]]; then
+  CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"docker"}
+else
+  CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
+fi
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   export POD_NAME="--pod ironic-pod"
@@ -51,6 +56,7 @@ else
   export POD_NAME_INFRA=""
 fi
 
+export OS
 export SSH_KEY=${SSH_KEY:-"${HOME}/.ssh/id_rsa"}
 export SSH_PUB_KEY=${SSH_PUB_KEY:-"${SSH_KEY}.pub"}
 # Generate user ssh key
@@ -204,9 +210,6 @@ if ! sudo -n uptime &> /dev/null ; then
   exit 1
 fi
 
-# Check OS type and version
-OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
-export OS
 OS_VERSION=$(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"' | cut -f1 -d'.')
 OS_VERSION_ID=$(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"')
 export OS_VERSION
