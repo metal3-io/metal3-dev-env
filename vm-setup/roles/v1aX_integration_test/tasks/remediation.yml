@@ -25,15 +25,15 @@
       MASTER_NODE_1_VM: "{{ MASTER_BMH_1 | replace('-','_') }}"
       MASTER_NODE_2_VM: "{{ MASTER_BMH_2 | replace('-','_') }}"
 
-  - name: Obtain the kubeconfig from target cluster
+  - name: Fetch the target cluster kubeconfig
     shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    
+
   - name: Get the name of the worker node
     shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep none | awk '{print $1}'"
     register: worker_node_name
 
   - name: Get the name of the master node
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep master | awk '{print $1}'"
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep master | awk '{print $1}' | sort"
     register: master_nodes_name
 
   - set_fact:
@@ -58,32 +58,19 @@
     become: yes
     become_user: root
 
-  - name: Rebooted node status
-    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
-    vars:
-      ansible_user: "{{ IMAGE_USERNAME }}"
-      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
-      ansible_python_interpreter: /usr/bin/python3
-    become: yes
-    become_user: "{{ IMAGE_USERNAME }}"
-    block:
-      - name: Wait until rebooted worker "{{ WORKER_BMH }}" becomes NotReady
-        shell: "kubectl get nodes | grep -w NotReady | awk '{print $1}'"
-        environment:
-          KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
-        retries: 150
-        delay: 3
-        register: not_ready_nodes
-        until: WORKER_NODE in not_ready_nodes.stdout_lines
+  - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes NotReady
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}'"
+    retries: 150
+    delay: 3
+    register: not_ready_nodes
+    until: WORKER_NODE in not_ready_nodes.stdout_lines
 
-      - name: Wait until rebooted worker becomes Ready again
-        shell: "kubectl get nodes | grep -w Ready | awk '{print $1}'"
-        environment:
-          KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
-        retries: 150
-        delay: 3
-        register: ready_nodes
-        until: WORKER_NODE in ready_nodes.stdout_lines
+  - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes Ready
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}'"
+    retries: 150
+    delay: 3
+    register: ready_nodes
+    until: WORKER_NODE in ready_nodes.stdout_lines
 
   - name: List only running VMs
     virt:
@@ -100,7 +87,7 @@
   - name: Power cycle a single worker node
     include: power_cycle.yml
     vars:
-      BMH_NODE: '{{ WORKER_BMH }}'
+      BMH_NODE: "{{ WORKER_BMH }}"
       LIBVIRT_VM: "{{ WORKER_NODE_VM }}"
       K8S_NODE: "{{ WORKER_NODE }}"
 
@@ -108,7 +95,7 @@
   - name: Power cycle a single master node
     include: power_cycle.yml
     vars: 
-      BMH_NODE: '{{ MASTER_BMH_0 }}'
+      BMH_NODE: "{{ MASTER_BMH_0 }}"
       LIBVIRT_VM: "{{ MASTER_NODE_0_VM }}"
       K8S_NODE: "{{ MASTER_NODE_0 }}"
 

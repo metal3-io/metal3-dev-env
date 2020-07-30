@@ -1,5 +1,4 @@
 ---
-
   - name: Define number of BMH's
     set_fact:
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
@@ -36,115 +35,72 @@
     set_fact:
       username: "{{ IMAGE_USERNAME }}"
 
-  - name: Verification test
-    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
-    vars:
-      ansible_user: "{{ username }}"
-      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
-      ansible_python_interpreter: /usr/bin/python3
-    become: yes
-    become_user: "{{ username }}"
-    block:
-      - name: Install python-pip3
-        package:
-          name: python3-pip
-          state: present
-          update_cache: yes
-        become: yes
-        become_user: root
+  - name: Fetch target cluster kubeconfig
+    shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-      - name: Install packages using pip3
-        pip:
-          executable: "pip3"
-          name: openshift
-          state: present
-        become: true
-        become_user: root
+  # Install Calico
+  - name: Download Calico manifest
+    get_url:
+      url: https://docs.projectcalico.org/v3.9/manifests/calico.yaml
+      dest: /tmp/
+      mode: '664'
+    register: calico_manifest
 
-      - name: Install jq
-        apt:
-          name: jq
-          state: present
-        become: yes
-        become_user: root
-        when:
-          ansible_distribution == "Ubuntu"
+  - name: Replace the POD_CIDR in calico config
+    replace:
+      path: /tmp/calico.yaml
+      regexp: "192.168.0.0/16"
+      replace: "{{ POD_CIDR }}"
+    register: updated_manifest
 
-      - name: Install jq
-        yum:
-          name: jq
-          state: present
-        become: yes
-        become_user: root
-        when:
-          ansible_distribution == "CentOS"
+  - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
+    blockinfile:
+      path: /tmp/calico.yaml
+      insertafter: "{{ POD_CIDR }}"
+      block: |
+          # for indentation
+                      - name: IP_AUTODETECTION_METHOD
+                        value: "interface=enp2s0"
+    when:
+      ansible_distribution == "Ubuntu"
 
-      # Install Calico
-      - name: Download Calico manifest
-        get_url:
-          url: https://docs.projectcalico.org/v3.9/manifests/calico.yaml
-          dest: /tmp/
-          mode: '664'
-        register: calico_manifest
+  - name: Add IP_AUTODETECTION_METHOD in calico config Centos
+    blockinfile:
+      path: /tmp/calico.yaml
+      insertafter: "{{ POD_CIDR }}"
+      block: |
+          # for indentation
+                      - name: IP_AUTODETECTION_METHOD
+                        value: "interface=eth1"
+    when:
+      ansible_distribution == "CentOS"
 
-      - name: Replace the POD_CIDR in calico config
-        replace:
-          path: /tmp/calico.yaml
-          regexp: "192.168.0.0/16"
-          replace: "{{ POD_CIDR }}"
-        register: updated_manifest
+  - name: Apply Calico manifest
+    k8s:
+      state: present
+      src: "/tmp/calico.yaml"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: install_cni
 
-      - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
-        blockinfile:
-          path: /tmp/calico.yaml
-          insertafter: "{{ POD_CIDR }}"
-          block: |
-             # for indentation
-                         - name: IP_AUTODETECTION_METHOD
-                           value: "interface=enp2s0"
-        when:
-          ansible_distribution == "Ubuntu"
+  # Check for pods & nodes on the target cluster
+  - name: Check if pods in running state
+    shell: "kubectl get pods --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -A -o json | jq -r '.items[].status.phase' | grep -v Running"
+    retries: 150
+    delay: 20
+    register: running_pods
+    failed_when: >
+      (running_pods.stderr != "") or
+      (running_pods.rc > 1) or
+      (running_pods.stdout != "")
+    until: running_pods.stdout == ""
 
-      - name: Add IP_AUTODETECTION_METHOD in calico config Centos
-        blockinfile:
-          path: /tmp/calico.yaml
-          insertafter: "{{ POD_CIDR }}"
-          block: |
-             # for indentation
-                         - name: IP_AUTODETECTION_METHOD
-                           value: "interface=eth1"
-        when:
-          ansible_distribution == "CentOS"
-
-      - name: Apply Calico manifest
-        k8s:
-          state: present
-          src: "/tmp/calico.yaml"
-        register: install_cni
-
-      # Check for pods & nodes on the target cluster
-      - name: Check if pods in running state
-        shell: "kubectl get pods -A -o json | jq -r '.items[].status.phase' | grep -v Running"
-        environment:
-          KUBECONFIG: "/home/{{ username }}/.kube/config"
-        retries: 150
-        delay: 20
-        register: running_pods
-        failed_when: >
-          (running_pods.stderr != "") or
-          (running_pods.rc > 1) or
-          (running_pods.stdout != "")
-        until: running_pods.stdout == ""
-
-      - name: Check if nodes in ready state
-        shell: kubectl get nodes | grep -w Ready | wc -l
-        environment:
-          KUBECONFIG: "/home/{{ username }}/.kube/config"
-        retries: 150
-        delay: 3
-        register: ready_nodes
-        failed_when: >
-          (ready_nodes.stderr != "") or
-          (ready_nodes.rc != 0) or
-          (ready_nodes.stdout != NUMBER_OF_BMH)
-        until: ready_nodes.stdout == NUMBER_OF_BMH
+  - name: Check if nodes in ready state
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | wc -l"
+    retries: 150
+    delay: 3
+    register: ready_nodes
+    failed_when: >
+      (ready_nodes.stderr != "") or
+      (ready_nodes.rc != 0) or
+      (ready_nodes.stdout != NUMBER_OF_BMH)
+    until: ready_nodes.stdout == NUMBER_OF_BMH

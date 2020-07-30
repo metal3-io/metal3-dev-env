@@ -3,21 +3,12 @@
     shell: |
        kubectl annotate bmh "{{ BMH_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
 
-  - name: Wait until powered off "{{ BMH_NODE }}" becomes NotReady
-    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
-    vars:
-      ansible_user: "{{ IMAGE_USERNAME }}"
-      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
-      ansible_python_interpreter: /usr/bin/python3
-    shell: "kubectl get nodes | grep -w NotReady | awk '{print $1}'"
-    environment:
-      KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
+  - name: Wait until powered off "{{ K8S_NODE }}" becomes NotReady
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}'"
     retries: 150
     delay: 3
     register: not_ready_nodes
     until: K8S_NODE in not_ready_nodes.stdout_lines
-    become: yes
-    become_user: "{{ IMAGE_USERNAME }}"
 
   - pause:
       minutes: 1
@@ -49,17 +40,8 @@
     become_user: root
 
   - name: Wait until powered on "{{ K8S_NODE }}" becomes Ready
-    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
-    vars:
-      ansible_user: "{{ IMAGE_USERNAME }}"
-      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
-      ansible_python_interpreter: /usr/bin/python3
-    shell: "kubectl get nodes | grep -w Ready | awk '{print $1}'"
-    environment:
-      KUBECONFIG: "/home/{{ IMAGE_USERNAME }}/.kube/config"
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}'"
     retries: 150
     delay: 3
     register: ready_nodes
     until: K8S_NODE in ready_nodes.stdout_lines
-    become: yes
-    become_user: "{{ IMAGE_USERNAME }}"

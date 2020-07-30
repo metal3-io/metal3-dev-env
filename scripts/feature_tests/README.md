@@ -71,7 +71,7 @@ Currently the test-framework uses the following environment variables
 by default:
 
 ```bash
-export CAPM3_VERSION=v1alpha3
+export CAPM3_VERSION=v1alpha4
 export IMAGE_OS=Ubuntu
 export EPHEMERAL_CLUSTER=kind
 export CONTAINER_RUNTIME=docker
