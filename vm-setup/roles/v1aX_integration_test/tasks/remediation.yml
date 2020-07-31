@@ -29,11 +29,11 @@
     shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Get the name of the worker node
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep none | awk '{print $1}' | sort"
+    shell: kubectl get machines -n metal3 -o json | jq -r '.items[] | select (.metadata.labels."cluster.x-k8s.io/control-plane" == null) | select(.apiVersion=="cluster.x-k8s.io/v1alpha3") | .metadata.name'
     register: worker_node_name
 
   - name: Get the name of the master node
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep master | awk '{print $1}' | sort"
+    shell: kubectl get machines -n metal3 -o json | jq -r '.items[] | select (.metadata.labels."cluster.x-k8s.io/control-plane" != null) | select(.apiVersion=="cluster.x-k8s.io/v1alpha3") | .metadata.name' | sort
     register: master_nodes_name
 
   - set_fact:
