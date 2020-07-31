@@ -2,6 +2,6 @@
 
 METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../.."
 
-export ACTION="feature_test_deprovisioning"
+export ACTION="deprovision_controlplane"
 
 "${METAL3_DIR}"/scripts/run.sh

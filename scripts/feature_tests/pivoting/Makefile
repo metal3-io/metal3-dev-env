@@ -8,7 +8,7 @@ provision:
 	./../feature_test_provisioning.sh
 
 pivoting:
-	./../../v1alphaX/pivot.sh
+	./pivot.sh
 
 deprovision:
 	./../feature_test_deprovisioning.sh

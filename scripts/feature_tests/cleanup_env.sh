@@ -6,6 +6,8 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 # shellcheck disable=SC1091
+source lib/releases.sh
+# shellcheck disable=SC1091
 source lib/network.sh
 
 # Remove old SSH keys

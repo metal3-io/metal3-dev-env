@@ -13,6 +13,10 @@ source "${METAL3_DEV_ENV_DIR}/lib/common.sh"
 
 # shellcheck disable=SC1091
 # shellcheck disable=SC1090
+source "${METAL3_DEV_ENV_DIR}/lib/releases.sh"
+
+# shellcheck disable=SC1091
+# shellcheck disable=SC1090
 source "${METAL3_DEV_ENV_DIR}/lib/network.sh"
 
 # shellcheck disable=SC1091

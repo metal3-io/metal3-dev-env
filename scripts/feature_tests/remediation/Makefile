@@ -7,7 +7,7 @@ provision:
 	./../feature_test_provisioning.sh
 
 remediation:
-	./../../v1alphaX/remediation.sh
+	./remediation.sh
 
 deprovision:
 	./../feature_test_deprovisioning.sh

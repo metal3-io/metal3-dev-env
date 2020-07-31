@@ -60,22 +60,22 @@ function set_number_of_worker_node_replicas() {
 function provision_controlplane_node() {
     pushd "${METAL3_DEV_ENV_DIR}" || exit
     echo "Provisioning a controlplane node...."
-    bash ./scripts/v1alphaX/provision_cluster.sh
-    bash ./scripts/v1alphaX/provision_controlplane.sh
+    bash ./scripts/provision/cluster.sh
+    bash ./scripts/provision/controlplane.sh
     popd || exit
 }
 
 function provision_worker_node() {
     pushd "${METAL3_DEV_ENV_DIR}" || exit
     echo "Provisioning a worker node...."
-    bash ./scripts/v1alphaX/provision_worker.sh
+    bash ./scripts/provision/worker.sh
     popd || exit
 }
 
 function deprovision_cluster() {
     pushd "${METAL3_DEV_ENV_DIR}" || exit
     echo "Deprovisioning the cluster...."
-    bash ./scripts/v1alphaX/deprovision_cluster.sh
+    bash ./scripts/deprovision/cluster.sh
     popd || exit
 }
 
@@ -367,7 +367,7 @@ providers:
     type: InfrastructureProvider
 EOF
 
-# At first we install "v0.3.0" for which we need to move this 
+# At first we install "v0.3.0" for which we need to move this
 # to the CAPM3PATH repo root folder
 #
 # For the upgrade we need to do two things

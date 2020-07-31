@@ -1,17 +1,25 @@
 #!/bin/bash
 
-METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../.."
+set -xe
 
-# shellcheck disable=SC1091
+METAL3_DIR="$(dirname "$(readlink -f "${0}")")/.."
+
+ACTION="${ACTION:-"ci_test"}"
+
 # shellcheck disable=SC1090
+# shellcheck disable=SC1091
+source "${METAL3_DIR}/lib/logging.sh"
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
 source "${METAL3_DIR}/lib/common.sh"
-
-# shellcheck disable=SC1091
 # shellcheck disable=SC1090
+# shellcheck disable=SC1091
+source "${METAL3_DIR}/lib/releases.sh"
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
 source "${METAL3_DIR}/lib/network.sh"
-
-# shellcheck disable=SC1091
 # shellcheck disable=SC1090
+# shellcheck disable=SC1091
 source "${METAL3_DIR}/lib/images.sh"
 
 # Disable SSH strong authentication
@@ -19,6 +27,6 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
    -e "metal3_dir=$SCRIPTDIR" \
-   -e "v1aX_integration_test_action=remediation" \
+   -e "v1aX_integration_test_action=${ACTION}" \
    -i "${METAL3_DIR}/vm-setup/inventory.ini" \
    -b -vvv "${METAL3_DIR}/vm-setup/v1aX_integration_test.yml"
