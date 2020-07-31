@@ -29,7 +29,7 @@
     shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Get the name of the worker node
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep none | awk '{print $1}'"
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep none | awk '{print $1}' | sort"
     register: worker_node_name
 
   - name: Get the name of the master node
@@ -59,14 +59,14 @@
     become_user: root
 
   - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes NotReady
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}'"
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}' | sort"
     retries: 150
     delay: 3
     register: not_ready_nodes
     until: WORKER_NODE in not_ready_nodes.stdout_lines
 
   - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes Ready
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}'"
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
     retries: 150
     delay: 3
     register: ready_nodes
@@ -131,7 +131,7 @@
       - "{{ MASTER_BMH_2 }}"
 
   - name: Wait until powered on master nodes become Ready
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}'"
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
     register: ready_master
     retries: 150
     delay: 3

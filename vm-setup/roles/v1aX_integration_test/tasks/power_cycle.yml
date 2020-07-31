@@ -4,7 +4,7 @@
        kubectl annotate bmh "{{ BMH_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
 
   - name: Wait until powered off "{{ K8S_NODE }}" becomes NotReady
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}'"
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}' | sort"
     retries: 150
     delay: 3
     register: not_ready_nodes
@@ -40,7 +40,7 @@
     become_user: root
 
   - name: Wait until powered on "{{ K8S_NODE }}" becomes Ready
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}'"
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
     retries: 150
     delay: 3
     register: ready_nodes
