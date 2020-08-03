@@ -86,6 +86,9 @@ export CAPM3RELEASE=v0.3.2
 export CAPIRELEASE=v0.3.4
 ```
 
+Recommended resource requirements for the host machine: 8C CPUs, 32 GB RAM, 300
+GB disk space.
+
 ## CI jobs configuration
 
 We are running two jobs for the framework testing. One is
