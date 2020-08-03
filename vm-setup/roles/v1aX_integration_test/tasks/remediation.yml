@@ -1,46 +1,34 @@
 ---
-  - name: Get the name of a worker bmh name
-    shell: |
-       kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '.items[]
-       |select(.status.provisioning.state | contains("provisioned")) |select(.spec.consumerRef.name
-       | contains("{{ CLUSTER_NAME }}-workers")) | .metadata.name'
-    register: worker_bmh_name
+  - name: Get the master objects
+    shell: "kubectl get m3m -n {{ NAMESPACE }} -o json |  jq -r '.items[] | \
+            select(.metadata.name | contains(\"controlplane\")) | \
+            (.metadata.annotations.\"metal3.io/BareMetalHost\"),([.metadata.ownerReferences |.[] | \
+            select(.kind==\"Machine\")][0] | .name)'"
+    register: masters
 
-  - name: Get the names of master bmh name
-    shell: |
-       kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '.items[]
-       |select(.status.provisioning.state | contains("provisioned")) |select(.spec.consumerRef.name
-       | contains("{{ CLUSTER_NAME }}-controlplane")) | .metadata.name'
-    register: master_bmh_name
-
+  - name: Get the worker objects
+    shell: "kubectl get m3m -n {{ NAMESPACE }} -o json | jq -r '.items[] | \
+            select(.metadata.name | contains(\"workers\")) | \
+            (.metadata.annotations.\"metal3.io/BareMetalHost\"),([.metadata.ownerReferences |.[] | \
+            select(.kind==\"Machine\")][0] | .name)'"
+    register: workers
+ 
   - set_fact:
-      WORKER_BMH: "{{ worker_bmh_name.stdout }}"
-      MASTER_BMH_0: "{{ master_bmh_name.stdout_lines.0 }}"
-      MASTER_BMH_1: "{{ master_bmh_name.stdout_lines.1 }}"
-      MASTER_BMH_2: "{{ master_bmh_name.stdout_lines.2 }}"
-  
-  - set_fact:
-      WORKER_NODE_VM: "{{ WORKER_BMH | replace('-','_') }}"
-      MASTER_NODE_0_VM: "{{ MASTER_BMH_0 | replace('-','_') }}"
-      MASTER_NODE_1_VM: "{{ MASTER_BMH_1 | replace('-','_') }}"
-      MASTER_NODE_2_VM: "{{ MASTER_BMH_2 | replace('-','_') }}"
+      WORKER_BMH: "{{ workers.stdout_lines.0 | replace('metal3/','')}}"
+      WORKER_NODE: "{{ workers.stdout_lines.1 }}"
+      MASTER_BMH_0: "{{ masters.stdout_lines.0 | replace('metal3/','')}}"
+      MASTER_NODE_0: "{{ masters.stdout_lines.1 }}"
+      MASTER_BMH_1: "{{ masters.stdout_lines.2 | replace('metal3/','')}}"
+      MASTER_NODE_1: "{{ masters.stdout_lines.3 }}"
+      MASTER_BMH_2: "{{ masters.stdout_lines.4 | replace('metal3/','')}}"
+      MASTER_NODE_2: "{{ masters.stdout_lines.5 }}"
+      MASTER_VM_0: "{{ masters.stdout_lines.0 | replace('-','_') | replace('metal3/','') }}"
+      MASTER_VM_1: "{{ masters.stdout_lines.2 | replace('-','_') | replace('metal3/','') }}"
+      MASTER_VM_2: "{{ masters.stdout_lines.4 | replace('-','_') | replace('metal3/','') }}"
+      WORKER_VM: "{{ workers.stdout_lines.0 | replace('-','_') | replace('metal3/','') }}"
 
   - name: Fetch the target cluster kubeconfig
     shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
-  - name: Get the name of the worker node
-    shell: kubectl get machines -n metal3 -o json | jq -r '.items[] | select (.metadata.labels."cluster.x-k8s.io/control-plane" == null) | select(.apiVersion=="cluster.x-k8s.io/v1alpha3") | .metadata.name'
-    register: worker_node_name
-
-  - name: Get the name of the master node
-    shell: kubectl get machines -n metal3 -o json | jq -r '.items[] | select (.metadata.labels."cluster.x-k8s.io/control-plane" != null) | select(.apiVersion=="cluster.x-k8s.io/v1alpha3") | .metadata.name' | sort
-    register: master_nodes_name
-
-  - set_fact:
-      WORKER_NODE: "{{ worker_node_name.stdout }}"
-      MASTER_NODE_0: "{{ master_nodes_name.stdout_lines.0 }}"
-      MASTER_NODE_1: "{{ master_nodes_name.stdout_lines.1 }}"
-      MASTER_NODE_2: "{{ master_nodes_name.stdout_lines.2 }}"
 
   # Reboot a single worker node
   - name: Reboot "{{ WORKER_BMH }}"
@@ -54,7 +42,7 @@
     register: shutdown_vms
     retries: 50
     delay: 10
-    until: WORKER_NODE_VM in shutdown_vms.list_vms
+    until: WORKER_VM in shutdown_vms.list_vms
     become: yes
     become_user: root
 
@@ -79,7 +67,7 @@
     register: running_vms
     retries: 50
     delay: 10
-    until: WORKER_NODE_VM in running_vms.list_vms
+    until: WORKER_VM in running_vms.list_vms
     become: yes
     become_user: root
 
@@ -88,7 +76,7 @@
     include: power_cycle.yml
     vars:
       BMH_NODE: "{{ WORKER_BMH }}"
-      LIBVIRT_VM: "{{ WORKER_NODE_VM }}"
+      LIBVIRT_VM: "{{ WORKER_VM }}"
       K8S_NODE: "{{ WORKER_NODE }}"
 
   # Power cycle a single master node
@@ -96,7 +84,7 @@
     include: power_cycle.yml
     vars: 
       BMH_NODE: "{{ MASTER_BMH_0 }}"
-      LIBVIRT_VM: "{{ MASTER_NODE_0_VM }}"
+      LIBVIRT_VM: "{{ MASTER_VM_0 }}"
       K8S_NODE: "{{ MASTER_NODE_0 }}"
 
   # Power cycle two master nodes
@@ -118,8 +106,8 @@
     retries: 50
     delay: 10
     until:
-      - MASTER_NODE_1_VM in shutdown_vms.list_vms
-      - MASTER_NODE_2_VM in shutdown_vms.list_vms
+      - MASTER_VM_1 in shutdown_vms.list_vms
+      - MASTER_VM_2 in shutdown_vms.list_vms
     become: yes
     become_user: root
 
@@ -147,7 +135,7 @@
     retries: 50
     delay: 10
     until:
-      - MASTER_NODE_1_VM in running_vms.list_vms
-      - MASTER_NODE_2_VM in running_vms.list_vms
+      - MASTER_VM_1 in running_vms.list_vms
+      - MASTER_VM_2 in running_vms.list_vms
     become: yes
     become_user: root
