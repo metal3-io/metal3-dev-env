@@ -1,6 +1,6 @@
 # Upgrade script naming scheme
 
-* nodes: ```<i>cp | <j>w; i=1..n, j=0..n```
+* nodes: ```<i>cp | <j>w; i=1..n, j=0..n```; cp = control plane, w = worker
 * what: bootDiskImage | k8sVer | k8sBin
 * How: scaleInWorkers | scaleOutWorkers
 * other: extraNode

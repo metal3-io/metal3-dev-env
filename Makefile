@@ -29,6 +29,9 @@ lint:
 setup_env:
 	./scripts/feature_tests/setup_env.sh
 
+setup_env_ug:
+	./scripts/feature_tests/setup_env.sh "ug"
+
 cleanup_env:
 	./scripts/feature_tests/cleanup_env.sh
 
@@ -42,5 +45,7 @@ upgrade_test:
 	make -C ./scripts/feature_tests/upgrade/
 
 feature_tests: setup_env remediation_test cleanup_env pivoting_test
+
+feature_tests_upgrade: setup_env_ug upgrade_test
 
 .PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint

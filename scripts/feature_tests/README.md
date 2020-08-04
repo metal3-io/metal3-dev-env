@@ -78,6 +78,14 @@ export CONTAINER_RUNTIME=docker
 export NUM_NODES=4
 ```
 
+Environment variables needed for upgrade tests running clusterctl,
+set as default values:
+
+```bash
+export CAPM3RELEASE=v0.3.2
+export CAPIRELEASE=v0.3.4
+```
+
 ## CI jobs configuration
 
 We are running two jobs for the framework testing. One is
