@@ -11,3 +11,4 @@
       vars:
         go_version: 1.14
         go_install_clean: true
+        go_install_clean_full: false
