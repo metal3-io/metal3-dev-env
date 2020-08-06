@@ -94,7 +94,7 @@ kubectl set image deployments metal3-ironic \
 updated_ironic_image_count=$(kubectl get deployments metal3-ironic -n "${NAMESPACE}" -o json |
   jq '.spec.template.spec.containers[].image' | grep -c "${IRONIC_IMAGE_TAG}")
 
-if [ "${updated_ironic_image_count}" -lt 5 ]; then
+if [ "${updated_ironic_image_count}" -lt "${NUM_IRONIC_IMAGES}" ]; then
   echo "All ironic images are not updated properly"
   exit 1
 fi
