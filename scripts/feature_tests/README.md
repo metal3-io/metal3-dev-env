@@ -3,6 +3,7 @@
 ## Build Status
 
 [![Ubuntu V1alpha3 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/badge/icon?subject=Feature-tests)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
+[![Ubuntu V1alpha3 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/badge/icon?subject=Feature-tests-upgrade)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
 
 Feature tests framework is made to run a set of scripts for testing pivoting,
 remediation and upgrade functionalities of Metal3 project.
@@ -18,9 +19,12 @@ It is recommended to run test-framework CI especially when
 introducing a commit related to pivoting/remediation/upgrade, to ensure that new
 changes will not break the existing functionalities.
 
-Test-framework can be triggered by leaving `/test-features` comment on a pull
-request. The folder structure of the test-framework and its related scripts
-look as following:
+Test-framework can be triggered by leaving `/test-features` comment for
+remediation/pivoting and `/test-upgrade-features` comment for upgrade on a
+pull request.
+
+The folder structure of the test-framework and its related scripts look
+as following:
 
 ```ini
 ├── feature_tests
@@ -43,7 +47,7 @@ N (from the test-framework perspective N=4) number of ready BMH as an output.
 `feature_test_provisioning.sh` and `feature_test_deprovisioning.sh` are used by
 each feature test to provision/deprovision cluster and BMH.
 
-When the test-framework is triggered, it will:
+When the test-framework is triggered with `/test-features`, it will:
 
 - setup metal3-dev-env
   - run 01_\*, 02_\*, 03_\*, 04_\* scripts
@@ -53,15 +57,20 @@ When the test-framework is triggered, it will:
   - deprovision cluster and BMH
 - clean up the environment
   - run `cleanup_env.sh`
-- run upgrade tests
-  - provision cluster and BMH
-  - run remediation tests
-  - deprovision cluster and BMH
-- clean up the environment
-  - run `cleanup_env.sh`
 - run pivoting tests
   - provision cluster and BMH
-  - run remediation tests
+  - run pivoting tests
+  - deprovision cluster and BMH
+  - destroy the environment (i.e. run `make clean`)
+
+When the test-framework is triggered with `/test-upgrade-features`, it will:
+
+- setup metal3-dev-env
+  - export CAPM3RELEASE and CAPIRELEASE
+  - run 01_\*, 02_\*, 03_\*, 04_\* scripts
+- run upgrade tests
+  - provision cluster and BMH
+  - run upgrade tests
   - deprovision cluster and BMH
   - destroy the environment (i.e. run `make clean`)
 
@@ -91,13 +100,19 @@ GB disk space.
 
 ## CI jobs configuration
 
-We are running two jobs for the framework testing. One is
+We are running two jobs for the **remediation/pivoting** framework testing. One is
 [master](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
 job which runs every day, and second one is
 [airship_*_feature_tests_ubuntu](https://jenkins.nordix.org/view/Airship/job/airship_metal3io_metal3_dev_env_feature_tests_ubuntu/)
-that can be triggered with `/test-features` phrase on a pull request. Depending
-on where from the job
-is triggered, **\*** can be:
+that can be triggered with `/test-features` phrase on a pull request.
+
+We are running two jobs for the **upgrade** framework testing. One is
+[master](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
+job which runs every day, and second one is
+[airship_*_feature_tests_upgrade_ubuntu](https://jenkins.nordix.org/view/Airship/job/airship_metal3io_metal3_dev_env_feature_tests_upgrade_ubuntu/)
+that can be triggered with `/test-upgrade-features` phrase on a pull request.
+
+Depending on where from the job is triggered, **\*** can be:
 
 - metal3io_metal3_dev_env
 - metal3io_capi_m3
