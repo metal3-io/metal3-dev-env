@@ -64,25 +64,42 @@ function clone_repos() {
 function patch_clusterctl(){
   pushd "${CAPM3PATH}"
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
-    CAPM3_IMAGE_NAME="${CAPM3_LOCAL_IMAGE##*/}"
-    export MANIFEST_IMG="${REGISTRY}/localimages/$CAPM3_IMAGE_NAME"
-    export MANIFEST_TAG="latest"
-    make set-manifest-image
+    CAPM3_IMAGE_NAME_WITH_TAG="${CAPM3_LOCAL_IMAGE##*/}"
+  else
+    CAPM3_IMAGE_NAME_WITH_TAG="${CAPM3_IMAGE##*/}"
   fi
+  # CAPM3_IMAGE include tag so split them to CAPM3_IMAGE_NAME AND CAPM3_IMAGE_TAG, if any tag exist
+  CAPM3_IMAGE_NAME="${CAPM3_IMAGE_NAME_WITH_TAG%%:*}"
+  CAPM3_IMAGE_TAG="${CAPM3_IMAGE_NAME_WITH_TAG##*:}"
+  # Assign the image tag to latest if there is no tag in the image
+  if [ "${CAPM3_IMAGE_NAME}" == "${CAPM3_IMAGE_TAG}" ]; then
+    CAPM3_IMAGE_TAG="latest"
+  fi
+  export MANIFEST_IMG="${REGISTRY}/localimages/$CAPM3_IMAGE_NAME"
+  export MANIFEST_TAG="$CAPM3_IMAGE_TAG"
+  make set-manifest-image
 
   if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ] && [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
-    BMO_IMAGE_NAME="${BAREMETAL_OPERATOR_LOCAL_IMAGE##*/}"
-    export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$BMO_IMAGE_NAME"
-    export MANIFEST_TAG_BMO="latest"
-    make set-manifest-image-bmo
+    BMO_IMAGE_NAME_WITH_TAG="${BAREMETAL_OPERATOR_LOCAL_IMAGE##*/}"
+  else
+    BMO_IMAGE_NAME_WITH_TAG="${BAREMETAL_OPERATOR_IMAGE##*/}"
   fi
-
+  # Split the image to CAPM3_IMAGE_NAME AND CAPM3_IMAGE_TAG, if any tag exist
+  BMO_IMAGE_NAME="${BMO_IMAGE_NAME_WITH_TAG%%:*}"
+  BMO_IMAGE_TAG="${BMO_IMAGE_NAME_WITH_TAG##*:}"
+  # Assign the image tag to latest if there is no tag in the image
+  if [ "${BMO_IMAGE_NAME}" == "${BMO_IMAGE_TAG}" ]; then
+    BMO_IMAGE_TAG="latest"
+  fi
+  export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$BMO_IMAGE_NAME"
+  export MANIFEST_TAG_BMO="$BMO_IMAGE_TAG"
+  make set-manifest-image-bmo
   make release-manifests
+
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   cp out/*.yaml "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   popd
-
 }
 
 # Modifies the images to use the ones built locally in the kustomization
@@ -90,14 +107,22 @@ function update_kustomization_images(){
   for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     IMAGE=${!IMAGE_VAR}
     #shellcheck disable=SC2086
-    IMAGE_NAME="${IMAGE##*/}:latest"
+    IMAGE_NAME="${IMAGE##*/}"
     LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
-
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
     # Strip the tag for image replacement
     OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
     #shellcheck disable=SC2086
     kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
+  done
+  # Assign images from local image registry for kustomization
+  for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
+    IMAGE=${!IMAGE_VAR}
+    #shellcheck disable=SC2086
+    IMAGE_NAME="${IMAGE##*/}"
+    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
+    #shellcheck disable=SC2086
+    kustomize edit set image $IMAGE=$LOCAL_IMAGE
   done
 }
 
@@ -106,15 +131,22 @@ function update_images(){
   for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     IMAGE=${!IMAGE_VAR}
     #shellcheck disable=SC2086
-    IMAGE_NAME="${IMAGE##*/}:latest"
+    IMAGE_NAME="${IMAGE##*/}"
     LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
-
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
     # Strip the tag for image replacement
     OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
     eval "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
     export "${OLD_IMAGE_VAR?}"
   done
+  # Assign images from local image registry after update image
+  for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
+    IMAGE=${!IMAGE_VAR}
+    #shellcheck disable=SC2086
+    IMAGE_NAME="${IMAGE##*/}"
+    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
+    eval "$IMAGE_VAR"="$LOCAL_IMAGE"
+  done  
 }
 
 function kustomize_overlay_bmo() {

@@ -122,12 +122,28 @@ if [ "$EXT_IF" ]; then
   sudo iptables -A FORWARD --in-interface baremetal -j ACCEPT
 fi
 
-# Needed if we're going to use any locally built images
+# Local registry for images
 reg_state=$(sudo "$CONTAINER_RUNTIME" inspect registry --format  "{{.State.Status}}" || echo "error")
 if [[ "$reg_state" != "running" ]]; then
  sudo "${CONTAINER_RUNTIME}" rm registry -f || true
  sudo "${CONTAINER_RUNTIME}" run -d -p 5000:5000 --name registry "$DOCKER_REGISTRY_IMAGE"
 fi
+
+# Pushing images to local registry
+for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
+  IMAGE="${!IMAGE_VAR}"
+  #shellcheck disable=SC2086
+  IMAGE_NAME="${IMAGE##*/}"
+  #shellcheck disable=SC2086
+  LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME}"
+  sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}" 
+  
+  if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
+    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}" "${LOCAL_IMAGE}"
+  else
+    sudo "${CONTAINER_RUNTIME}" push "${LOCAL_IMAGE}"
+  fi
+done
 
 # Support for building local images
 for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
