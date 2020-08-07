@@ -35,7 +35,6 @@ EXTERNAL_SUBNET_V6_HOST: "{{ lookup('env', 'EXTERNAL_SUBNET_V6_HOST') | default(
 IRONIC_HOST_IP: "{{ lookup('env', 'IRONIC_HOST_IP') | default('172.22.0.2', true) }}"
 DEPLOY_KERNEL_URL: "{{ lookup('env', 'DEPLOY_KERNEL_URL') }}"
 DEPLOY_RAMDISK_URL: "{{ lookup('env', 'DEPLOY_RAMDISK_URL') }}"
-IRONIC_AUTH_STRATEGY: "{{ lookup('env', 'IRONIC_AUTH_STRATEGY') | default('noauth', true) }}"
 IRONIC_URL: "{{ lookup('env', 'IRONIC_URL') }}"
 IRONIC_INSPECTOR_URL: "{{ lookup('env', 'IRONIC_INSPECTOR_URL') }}"
 POD_CIDR: "{{ lookup('env', 'POD_CIDR') }}"
