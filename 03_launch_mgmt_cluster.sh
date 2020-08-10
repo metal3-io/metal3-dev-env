@@ -85,6 +85,22 @@ function patch_clusterctl(){
 
 }
 
+# Modifies the images to use the ones built locally in the kustomization
+function update_kustomization_images(){
+  for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
+    IMAGE=${!IMAGE_VAR}
+    #shellcheck disable=SC2086
+    IMAGE_NAME="${IMAGE##*/}:latest"
+    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
+
+    OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
+    # Strip the tag for image replacement
+    OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
+    #shellcheck disable=SC2086
+    kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
+  done
+}
+
 # Modifies the images to use the ones built locally
 function update_images(){
   for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
@@ -96,10 +112,6 @@ function update_images(){
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
     # Strip the tag for image replacement
     OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
-    #shellcheck disable=SC2086
-    if [ -z "${CAPM3_LOCAL_IMAGE}" ]; then
-      kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
-    fi
     eval "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
     export "${OLD_IMAGE_VAR?}"
   done
@@ -137,7 +149,7 @@ function deploy_kustomization() {
     pushd "$kustomize_overlay_path"
 
     # Add custom images in overlay, and override the images with local ones
-    update_images
+    update_kustomization_images
     popd
 
     kustomize build "$kustomize_overlay_path" | kubectl apply -f-
@@ -158,6 +170,8 @@ function launch_baremetal_operator() {
       BMO_CONFIG="${BMOPATH}/ironic-deployment/keepalived"
       deploy_kustomization
     fi
+
+    update_images
 
     if [ "${EPHEMERAL_CLUSTER}" = kind ]; then
       ${RUN_LOCAL_IRONIC_SCRIPT}
