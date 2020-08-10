@@ -33,6 +33,9 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -i vm-setup/inventory.ini \
   -b -vvv vm-setup/install-package-playbook.yml
 
+# shellcheck disable=SC1091
+source lib/releases.sh
+
 # Allow local non-root-user access to libvirt
 # Restart libvirtd service to get the new group membership loaded
 if ! id "$USER" | grep -q libvirt; then
@@ -78,6 +81,20 @@ if ! command -v kustomize 2>/dev/null ; then
     chmod +x kustomize
     sudo mv kustomize /usr/local/bin/.
     rm "kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+fi
+
+# install clusterctl client
+function install_clusterctl() {
+  curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/"${CAPIRELEASE}"/clusterctl-linux-amd64 -o clusterctl
+  chmod +x ./clusterctl
+  sudo mv ./clusterctl /usr/local/bin/clusterctl
+}
+
+if ! [ -x "$(command -v clusterctl)" ]; then
+  install_clusterctl
+elif [ "$(clusterctl version | grep -o -P '(?<=GitVersion:).*?(?=,)')" != "${CAPIRELEASE}" ]; then
+  sudo rm /usr/local/bin/clusterctl
+  install_clusterctl 
 fi
 
 # Clean-up any old ironic containers
