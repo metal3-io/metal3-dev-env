@@ -1,11 +1,11 @@
 ---
 # Ansible playbook related variables
 HOME: "{{ lookup('env', 'HOME') }}"
-NAMESPACE: metal3
+NAMESPACE: "{{ lookup('env', 'NAMESPACE') | default('metal3', true) }}"
 CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/templates"
 TEMP_GEN_DIR: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/files/manifests"
 MANIFESTS_DIR: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/files"
-EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('kind') }}"
+EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('kind', true) }}"
 CLUSTERCTL_PATH: "{{ HOME }}/go/src/github.com/metal3-io/cluster-api/bin"
 CLUSTER_APIENDPOINT_HOST: "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
 API_ENDPOINT_PORT: "{{ lookup('env', 'API_ENDPOINT_PORT') | default(6443, true) }}"
@@ -52,7 +52,7 @@ DEFAULT_HOSTS_MEMORY: "{{ lookup('env', 'DEFAULT_HOSTS_MEMORY') | default('4096'
 CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha3', true)}}"
 CAPM3_VERSION: "{{ lookup('env', 'CAPM3_VERSION') | default('v1alpha3', true)}}"
 IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images')}}"
-IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning')}}"
+IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning', true)}}"
 
 # Distibution specific environment variables
 IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('focal-server-cloudimg-amd64.img', true)}}"
@@ -68,37 +68,37 @@ IMAGE_URL_CENTOS: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME_CENTOS }}"
 IMAGE_CHECKSUM_CENTOS: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME_CENTOS }}.md5sum"
 
 provision_cluster_actions:
-    - "ci_test"
+    - "ci_test_provision"
     - "provision_cluster"
     - "feature_test_provisioning"
 provision_controlplane_actions:
-    - "ci_test"
+    - "ci_test_provision"
     - "provision_controlplane"
     - "feature_test_provisioning"
 provision_workers_actions:
-    - "ci_test"
+    - "ci_test_provision"
     - "provision_worker"
     - "feature_test_provisioning"
 deprovision_cluster_actions:
-    - "ci_test"
+    - "ci_test_deprovision"
     - "deprovision_cluster"
     - "feature_test_deprovisioning"
 deprovision_controlplane_actions:
-    - "ci_test"
+    - "ci_test_deprovision"
     - "deprovision_controlplane"
     - "feature_test_deprovisioning"
 deprovision_workers_actions:
-    - "ci_test"
+    - "ci_test_deprovision"
     - "deprovision_worker"
     - "feature_test_deprovisioning"
 verify_actions:
-    - "ci_test"
+    - "ci_test_provision"
     - "feature_test_provisioning"
     - "pivoting"
 cleanup_actions:
-    - "ci_test"
+    - "ci_test_deprovision"
     - "feature_test_deprovisioning"
 image_download_actions:
-    - "ci_test"
+    - "ci_test_provision"
     - "provision_controlplane"
     - "provision_worker"

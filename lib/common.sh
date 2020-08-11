@@ -129,9 +129,11 @@ CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
 NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/ironic_nodes.json"}
 NODES_PLATFORM=${NODES_PLATFORM:-"libvirt"}
-NAMESPACE=${NAMESPACE:-"metal3"}
+export NAMESPACE=${NAMESPACE:-"metal3"}
 
 export NUM_NODES=${NUM_NODES:-"2"}
+export NUM_OF_MASTER_REPLICAS="${NUM_OF_MASTER_REPLICAS:-"1"}"
+export NUM_OF_WORKER_REPLICAS="${NUM_OF_WORKER_REPLICAS:-"1"}"
 export VM_EXTRADISKS=${VM_EXTRADISKS:-"false"}
 
 # Docker registry for local images
