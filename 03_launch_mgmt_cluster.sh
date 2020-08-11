@@ -133,7 +133,6 @@ configMapGenerator:
   - DEPLOY_RAMDISK_URL=http://$IRONIC_HOST:6180/images/ironic-python-agent.initramfs
   - IRONIC_ENDPOINT=http://$IRONIC_HOST:6385/v1/
   - IRONIC_INSPECTOR_ENDPOINT=http://$IRONIC_HOST:5050/v1/
-  - IRONIC_AUTH_STRATEGY=noauth
   - CACHEURL=http://$IRONIC_HOST/images
   - IRONIC_FAST_TRACK=false
   name: ironic-bmo-configmap
