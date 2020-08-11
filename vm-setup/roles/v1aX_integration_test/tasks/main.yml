@@ -53,10 +53,6 @@
   include: move.yml
   when: v1aX_integration_test_action == "pivoting"
 
-- name: Fetch cluster manifests
-  shell: "{{ MANIFESTS_DIR }}/fetch_manifests.sh"
-  when: v1aX_integration_test_action == "ci_test"
-
 - name: Deprovision cluster
   k8s:
     state: absent
