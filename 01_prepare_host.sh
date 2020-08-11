@@ -57,6 +57,7 @@ elif [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
         curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
         chmod +x ./kind
         sudo mv kind /usr/local/bin/.
+        sudo "${CONTAINER_RUNTIME}" pull kindest/node:"${KUBERNETES_VERSION}"
     fi
 fi
 

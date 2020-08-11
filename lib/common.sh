@@ -162,7 +162,7 @@ else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
 fi
 
-#default hosts memory
+# default hosts memory
 export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-4096}
 
 # Cluster.
@@ -178,7 +178,7 @@ else
   echo "Management cluster forced to be minikube when container runtime is not docker"
   export EPHEMERAL_CLUSTER="minikube"
 fi
-#Kustomize version
+# Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.6.1"}
 
 #Kind version
