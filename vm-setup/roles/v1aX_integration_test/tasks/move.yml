@@ -95,7 +95,7 @@
     register: provisioned_machines
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    retries: 10
+    retries: 50
     delay: 20
     until: provisioned_machines.stdout == NUMBER_OF_BMH
 
