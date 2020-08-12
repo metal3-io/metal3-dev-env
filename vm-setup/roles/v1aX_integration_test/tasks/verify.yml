@@ -41,7 +41,7 @@
   # Install Calico
   - name: Download Calico manifest
     get_url:
-      url: https://docs.projectcalico.org/v3.9/manifests/calico.yaml
+      url: https://docs.projectcalico.org/manifests/calico.yaml
       dest: /tmp/
       mode: '664'
     register: calico_manifest
