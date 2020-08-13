@@ -143,10 +143,14 @@ cp_Metal3MachineTemplate_OUTPUT_FILE="/tmp/cp_new_image.yaml"
 wr_Metal3MachineTemplate_OUTPUT_FILE="/tmp/wr_new_image.yaml"
 CLUSTER_UID=$(kubectl get clusters -n "${NAMESPACE}" test1 -o json | jq '.metadata.uid' |
   cut -f2 -d\")
-generate_metal3MachineTemplate "test1-new-controlplane-image" "${CLUSTER_UID}" \
-  "${cp_Metal3MachineTemplate_OUTPUT_FILE}"
-generate_metal3MachineTemplate "test1-new-workers-image" "${CLUSTER_UID}" \
-  "${wr_Metal3MachineTemplate_OUTPUT_FILE}"
+generate_metal3MachineTemplate "${CLUSTER_NAME}-new-controlplane-image" "${CLUSTER_UID}" \
+  "${cp_Metal3MachineTemplate_OUTPUT_FILE}" \
+  "${CAPM3_VERSION}" "${CAPI_VERSION}" \
+  "${CLUSTER_NAME}-controlplane-template"
+generate_metal3MachineTemplate "${CLUSTER_NAME}-new-workers-image" "${CLUSTER_UID}" \
+  "${wr_Metal3MachineTemplate_OUTPUT_FILE}" \
+  "${CAPM3_VERSION}" "${CAPI_VERSION}" \
+  "${CLUSTER_NAME}-workers-template"
 
 kubectl apply -f "${cp_Metal3MachineTemplate_OUTPUT_FILE}"
 kubectl apply -f "${wr_Metal3MachineTemplate_OUTPUT_FILE}"

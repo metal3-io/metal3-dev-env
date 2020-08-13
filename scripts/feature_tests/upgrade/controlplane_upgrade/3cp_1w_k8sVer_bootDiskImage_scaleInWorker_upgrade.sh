@@ -32,10 +32,11 @@ manage_node_taints "${CLUSTER_APIENDPOINT_IP}"
 
 scale_workers_to 0
 worker_has_correct_replicas 0
+expected_free_nodes 1
 
 # k8s version upgrade
-CLUSTER_NAME=$(kubectl get clusters -n metal3 | grep Provisioned | cut -f1 -d' ')
-FROM_VERSION=$(kubectl get kcp -n metal3 -oyaml |
+CLUSTER_NAME=$(kubectl get clusters -n "${NAMESPACE}" | grep Provisioned | cut -f1 -d' ')
+FROM_VERSION=$(kubectl get kcp -n "${NAMESPACE}" -oyaml |
   grep "version: v1" | cut -f2 -d':' | awk '{$1=$1;print}')
 
 if [[ "${FROM_VERSION}" < "${UPGRADED_K8S_VERSION_2}" ]]; then
@@ -47,20 +48,22 @@ else
 fi
 
 # Node image version upgrade
-M3_MACHINE_TEMPLATE_NAME=$(kubectl get Metal3MachineTemplate -n metal3 -oyaml |
-  grep "name: " | grep controlplane | cut -f2 -d':' | awk '{$1=$1;print}')
+M3_MACHINE_TEMPLATE_NAME=$(kubectl get Metal3MachineTemplate -n "${NAMESPACE}" -oyaml |
+  grep "name: " | grep -o "${CLUSTER_NAME}-controlplane" -m1)
 
-Metal3MachineTemplate_OUTPUT_FILE="/tmp/new_image.yaml"
-CLUSTER_UID=$(kubectl get clusters -n metal3 "${CLUSTER_NAME}" -o json |
+Metal3MachineTemplate_OUTPUT_FILE="/tmp/cp31_image.yaml"
+CLUSTER_UID=$(kubectl get clusters -n "${NAMESPACE}" "${CLUSTER_NAME}" -o json |
   jq '.metadata.uid' | cut -f2 -d\")
 generate_metal3MachineTemplate new-controlplane-image "${CLUSTER_UID}" \
-  "${Metal3MachineTemplate_OUTPUT_FILE}"
+  "${Metal3MachineTemplate_OUTPUT_FILE}" \
+  "${CAPM3_VERSION}" "${CAPI_VERSION}" \
+  "${CLUSTER_NAME}-controlplane-template"
 kubectl apply -f "${Metal3MachineTemplate_OUTPUT_FILE}"
 
 echo "Upgrading a control plane node image and k8s version from ${FROM_VERSION}\
  to ${TO_VERSION} in cluster ${CLUSTER_NAME}"
 # Trigger the upgrade by replacing node image and k8s version in kcp yaml:
-kubectl get kcp -n metal3 -oyaml |
+kubectl get kcp -n "${NAMESPACE}" -oyaml |
   sed "s/version: ${FROM_VERSION}/version: ${TO_VERSION}/" |
   sed "s/name: ${M3_MACHINE_TEMPLATE_NAME}/name: new-controlplane-image/" | kubectl replace -f -
 
@@ -69,7 +72,7 @@ cp_nodes_using_new_bootDiskImage 3
 scale_workers_to 1
 worker_has_correct_replicas 1
 
-echo "Successfully upgrade 1 CP and 3 worker nodes"
+echo "Successfully upgrade 3 CP and 1 worker nodes"
 log_test_result "3cp_1w_k8sVer_bootDiskImage_scaleInWorker_upgrade.sh" "pass"
 
 deprovision_cluster

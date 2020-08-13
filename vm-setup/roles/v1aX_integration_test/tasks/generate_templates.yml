@@ -32,6 +32,3 @@
       - cluster
       - controlplane
       - workers
-    environment:
-      CAPM3RELEASE: "{{ CAPM3RELEASE }}"
-      CAPIRELEASE: "{{ CAPIRELEASE }}"

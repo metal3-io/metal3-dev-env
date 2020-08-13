@@ -5,20 +5,18 @@ export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 
 export IMAGE_OS=${IMAGE_OS:-"Ubuntu"}
 export IMAGE_USERNAME=${IMAGE_USERNAME:-"metal3"}
-export KUBERNETES_VERSION="v1.18.0"
-export KUBERNETES_BINARIES_VERSION="v1.18.0"
-export UPGRADED_K8S_VERSION_1="v1.18.1"
-export UPGRADED_K8S_VERSION_2="v1.18.2"
-export UPGRADED_BINARY_VERSION="v1.18.1"
+export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.18.0"}
+export KUBERNETES_BINARIES_VERSION=${KUBERNETES_BINARIES_VERSION:-"v1.18.0"}
+export UPGRADED_K8S_VERSION_1=${UPGRADED_K8S_VERSION_1:-"v1.18.1"}
+export UPGRADED_K8S_VERSION_2=${UPGRADED_K8S_VERSION_2:-"v1.18.2"}
+export UPGRADED_BINARY_VERSION=${UPGRADED_BINARY_VERSION:-"v1.18.1"}
+
 export CLUSTER_APIENDPOINT_IP=${CLUSTER_APIENDPOINT_IP:-"192.168.111.249"}
 export NUM_NODES=${NUM_NODES:-"4"}
 export NUM_IRONIC_IMAGES=${NUM_IRONIC_IMAGES:-"5"}
 
-export CAPM3RELEASE=${CAPM3RELEASE:-"v0.3.2"}
-export CAPIRELEASE=${CAPIRELEASE:-"v0.3.4"}
-
-export IMAGE_URL=${IMAGE_URL:-"http://172.22.0.1/images/bionic-server-cloudimg-amd64-raw.img"}
-export IMAGE_CHECKSUM=${IMAGE_CHECKSUM:-"http://172.22.0.1/images/bionic-server-cloudimg-amd64-raw.img.md5sum"}
+export IMAGE_RAW_URL="http://172.22.0.1/images/${IMAGE_RAW_NAME}"
+export IMAGE_RAW_CHECKSUM="http://172.22.0.1/images/${IMAGE_RAW_NAME}.md5sum"
 
 export CAPM3PATH=${CAPM3PATH:-"/home/${USER}/go/src/github.com/metal3-io/cluster-api-provider-metal3"}
 
@@ -26,27 +24,31 @@ function generate_metal3MachineTemplate() {
     NAME="${1}"
     CLUSTER_UID="${2}"
     Metal3MachineTemplate_OUTPUT_FILE="${3}"
+    CAPM3_ALPHA_VERSION="${4}"
+    CAPI_ALPHA_VERSION="${5}"
+    TEMPLATE_NAME="${6}"
 
 echo "
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+apiVersion: infrastructure.cluster.x-k8s.io/${CAPM3_ALPHA_VERSION}
 kind: Metal3MachineTemplate
 metadata:
   name: ${NAME}
   namespace: metal3
   ownerReferences:
-  - apiVersion: cluster.x-k8s.io/v1alpha3
+  - apiVersion: cluster.x-k8s.io/${CAPI_ALPHA_VERSION}
     kind: Cluster
     name: test1
     uid: ${CLUSTER_UID}
 spec:
   template:
     spec:
-      hostSelector: {}
+      dataTemplate:
+        name: ${TEMPLATE_NAME}
       image:
-        checksum: ${IMAGE_CHECKSUM}
+        checksum: ${IMAGE_RAW_CHECKSUM}
         checksumType: md5
         format: raw
-        url: ${IMAGE_URL}
+        url: ${IMAGE_RAW_URL}
 " >"${Metal3MachineTemplate_OUTPUT_FILE}"
 }
 
@@ -228,13 +230,22 @@ function controlplane_has_correct_replicas() {
 # Using the VIP verify that a worker has joined the cluster
 function worker_has_correct_replicas() {
     replicas="${1}"
-    echo "Waiting for all replicas of worker nodes to join the cluster"
+    wr_replicas=0
+    if [[ "${replicas}" -eq 0 ]]; then
+      echo "Waiting for all replicas of worker nodes to leave the cluster"
+    else
+      echo "Waiting for all replicas of worker nodes to join the cluster"
+    fi
 
     for i in {1..3600}; do
-        kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-          jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-        wr_replicas=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
-            awk 'NR>1' | grep -vc master)
+        if [[ "${replicas}" -eq 0 ]]; then
+            wr_replicas=$(kubectl get bmh -n metal3 | grep -c worker)
+        else
+            kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
+            jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
+            wr_replicas=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
+                awk 'NR>1' | grep -vc master)
+        fi
         if [[ "${wr_replicas}" == "${replicas}" ]]; then
             echo "Expected worker replicas have joined the cluster"
             break
@@ -243,8 +254,12 @@ function worker_has_correct_replicas() {
         fi
         sleep 10
         if [[ "${i}" -ge 1800 ]]; then
+          if [[ "${replicas}" -eq 0 ]]; then
+            log_error "Time out while waiting for workers to leave the cluster"
+          else
             log_error "Time out while waiting for workers to join the cluster"
-            break
+          fi
+          break
         fi
     done
 
@@ -276,9 +291,9 @@ function wr_nodes_using_new_bootDiskImage() {
     replicas="${1}"
     echo "Waiting for all worker nodes to use the new boot disk image"
     for i in {1..3600}; do
-        cp_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
+        worker_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
             grep -c 'new-workers-image')
-        if [[ "${cp_replicas}" == "${replicas}" ]]; then
+        if [[ "${worker_replicas}" == "${replicas}" ]]; then
             echo "All worker nodes provisioned with a new boot disk image"
             break
         else
@@ -329,7 +344,7 @@ function scale_controlplane_to() {
     kubectl get kcp -n metal3 test1 -o json |
         jq '.spec.replicas='"${scale_to}"'' | kubectl apply -f-
 }
-apply_cni() {
+function apply_cni() {
     kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
     jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
 

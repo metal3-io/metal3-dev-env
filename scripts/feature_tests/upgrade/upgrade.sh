@@ -34,11 +34,25 @@ pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade" || exit
 source 1cp_1w_bootDiskImage_cluster_upgrade.sh
 popd || exit
 
-# Run worker upgrade cases
-pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/workers_upgrade" || exit
-# shellcheck disable=SC1091
-source 1cp_3w_bootDiskImage_scaleInWorkers_upgrade_both.sh
+# Deploy a fresh metal3-dev-env after each test case
+# to overcome environmental flakiness
+pushd "${METAL3_DEV_ENV_DIR}" || exit
+make clean
+make setup_env
 popd || exit
+
+# Run worker upgrade cases
+#pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/workers_upgrade" || exit
+# shellcheck disable=SC1091
+#source 1cp_3w_bootDiskImage_scaleInWorkers_upgrade_both.sh
+#popd || exit
+
+# Deploy a fresh metal3-dev-env after each test case
+# to overcome environmental flakiness
+#pushd "${METAL3_DEV_ENV_DIR}" || exit
+#make clean
+#make setup_env
+#popd || exit
 
 # Run controlplane upgrade tests
 pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/controlplane_upgrade" || exit
@@ -46,10 +60,14 @@ pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/controlplane_upgrade"
 source 3cp_1w_k8sVer_bootDiskImage_scaleInWorker_upgrade.sh
 popd || exit
 
+# TODO: 1cp_1w_bootDiskImageANDK8sControllers_clusterLevel_upgrade requires
+# ironic running as a pod and thus minikube.
+# https://github.com/metal3-io/metal3-dev-env/issues/427 bug fix needed before
+# this case works in CI 
 # Run controlplane components upgrade tests | This should be the last one
-pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/combined_tests" || exit
+### pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/combined_tests" || exit
 # shellcheck disable=SC1091
-source 1cp_1w_bootDiskImageANDK8sControllers_clusterLevel_upgrade.sh
-popd || exit
+### source 1cp_1w_bootDiskImageANDK8sControllers_clusterLevel_upgrade.sh
+### popd || exit
 
 set +x
