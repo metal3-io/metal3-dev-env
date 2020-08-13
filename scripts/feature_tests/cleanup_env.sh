@@ -19,10 +19,7 @@ for name in ironic ironic-inspector ironic-endpoint-keepalived dnsmasq httpd mar
   sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f
 done
 
-pushd "${CAPIPATH}" || exit
-cd bin || exit
-./clusterctl delete --all -v5
-popd || exit
+clusterctl delete --all -v5
 
 pushd "${BMOPATH}" || exit
 kubectl delete -f "${WORKING_DIR}/bmhosts_crs.yaml" -n "${NAMESPACE}" --timeout 10s
@@ -62,11 +59,8 @@ pushd "${BMOPATH}" || exit
 ./tools/run_local_ironic.sh
 popd || exit
 
-pushd "${CAPIPATH}" || exit
-cd bin || exit
 # shellcheck disable=SC2153
-./clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5
-popd || exit
+clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5
 
 pushd "${BMOPATH}" || exit
 kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n "${NAMESPACE}"

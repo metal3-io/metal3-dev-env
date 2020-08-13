@@ -68,7 +68,7 @@
     when: CAPM3_VERSION == "v1alpha3"
 
   - name: Initialize Provider component in target cluster
-    shell: "{{ CLUSTERCTL_PATH }}/clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
+    shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
 
     # Check for pods & nodes on the target cluster
   - name: Check if pods in running state
@@ -85,7 +85,7 @@
     until: target_running_pods.stdout == ""
 
   - name: Pivot objects to target cluster
-    shell: "{{ CLUSTERCTL_PATH }}/clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
+    shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
 
   - name: Check if machines become running.
     shell: |
@@ -145,4 +145,4 @@
     when: EPHEMERAL_CLUSTER == "minikube"
 
   - name: Re-pivot everything back to source cluster
-    shell: "{{ CLUSTERCTL_PATH }}/clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"
+    shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"

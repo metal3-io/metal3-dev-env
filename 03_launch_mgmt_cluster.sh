@@ -237,19 +237,11 @@ function launch_cluster_api_provider_metal3() {
     kustomize_overlay_path=$(mktemp -d capm3-XXXXXXXXXX)
     mkdir -p "${HOME}"/.cluster-api
     touch "${HOME}"/.cluster-api/clusterctl.yaml
-    pushd "${CAPIPATH}"
-    if ! [ -x "$(command -v clusterctl)" ]; then
-      make clusterctl
-    fi
-    popd
 
     patch_clusterctl
 
-    pushd "${CAPIPATH}"
-    cd bin
      # shellcheck disable=SC2153
-    ./clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
-    popd
+    clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
 
     rm -rf "$kustomize_overlay_path"
 

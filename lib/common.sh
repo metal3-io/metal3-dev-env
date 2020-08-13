@@ -181,7 +181,8 @@ else
   echo "Management cluster forced to be minikube when container runtime is not docker"
   export EPHEMERAL_CLUSTER="minikube"
 fi
-# Kustomize version
+
+#Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.6.1"}
 
 #Kind version
