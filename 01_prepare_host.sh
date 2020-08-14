@@ -127,6 +127,12 @@ if [ ! -f "${IMAGE_NAME}" ] ; then
 fi
 popd
 
+# Pulling all the images except any local image.
+for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
+  IMAGE="${!IMAGE_VAR}"
+  sudo "${CONTAINER_RUNTIME}" pull "${IMAGE}" 
+ done
+
 # Start image downloader container
 #shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ipa-downloader ${POD_NAME} \
