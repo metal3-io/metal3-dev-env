@@ -84,16 +84,23 @@ function patch_clusterctl(){
   else
     BMO_IMAGE_NAME_WITH_TAG="${BAREMETAL_OPERATOR_IMAGE##*/}"
   fi
+  
   # Split the image to CAPM3_IMAGE_NAME AND CAPM3_IMAGE_TAG, if any tag exist
   BMO_IMAGE_NAME="${BMO_IMAGE_NAME_WITH_TAG%%:*}"
   BMO_IMAGE_TAG="${BMO_IMAGE_NAME_WITH_TAG##*:}"
+
   # Assign the image tag to latest if there is no tag in the image
   if [ "${BMO_IMAGE_NAME}" == "${BMO_IMAGE_TAG}" ]; then
     BMO_IMAGE_TAG="latest"
   fi
+
   export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$BMO_IMAGE_NAME"
   export MANIFEST_TAG_BMO="$BMO_IMAGE_TAG"
-  make set-manifest-image-bmo
+  
+  if [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
+    make set-manifest-image-bmo
+  fi
+  
   make release-manifests
 
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
