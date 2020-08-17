@@ -68,7 +68,7 @@ function patch_clusterctl(){
   else
     CAPM3_IMAGE_NAME_WITH_TAG="${CAPM3_IMAGE##*/}"
   fi
-  # CAPM3_IMAGE include tag so split them to CAPM3_IMAGE_NAME AND CAPM3_IMAGE_TAG, if any tag exist
+  # Split the image CAPM3_IMAGE_NAME AND CAPM3_IMAGE_TAG, if any tag exist
   CAPM3_IMAGE_NAME="${CAPM3_IMAGE_NAME_WITH_TAG%%:*}"
   CAPM3_IMAGE_TAG="${CAPM3_IMAGE_NAME_WITH_TAG##*:}"
   # Assign the image tag to latest if there is no tag in the image
@@ -85,7 +85,7 @@ function patch_clusterctl(){
     BMO_IMAGE_NAME_WITH_TAG="${BAREMETAL_OPERATOR_IMAGE##*/}"
   fi
   
-  # Split the image to CAPM3_IMAGE_NAME AND CAPM3_IMAGE_TAG, if any tag exist
+  # Split the image to BMO_IMAGE_NAME AND BMO_IMAGE_TAG, if any tag exist
   BMO_IMAGE_NAME="${BMO_IMAGE_NAME_WITH_TAG%%:*}"
   BMO_IMAGE_TAG="${BMO_IMAGE_NAME_WITH_TAG##*:}"
 

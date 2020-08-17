@@ -124,9 +124,13 @@ fi
 
 # Local registry for images
 reg_state=$(sudo "$CONTAINER_RUNTIME" inspect registry --format  "{{.State.Status}}" || echo "error")
-if [[ "$reg_state" != "running" ]]; then
- sudo "${CONTAINER_RUNTIME}" rm registry -f || true
- sudo "${CONTAINER_RUNTIME}" run -d -p 5000:5000 --name registry "$DOCKER_REGISTRY_IMAGE"
+
+# ubuntu_install_requirements.sh script restarts docker daemon which causes local registry container to be in exited state.
+if [[ "$reg_state" == "exited" ]]; then
+  sudo "${CONTAINER_RUNTIME}" start registry  
+elif [[ "$reg_state" != "running" ]]; then
+  sudo "${CONTAINER_RUNTIME}" rm registry -f || true
+  sudo "${CONTAINER_RUNTIME}" run -d -p 5000:5000 --name registry "$DOCKER_REGISTRY_IMAGE"
 fi
 
 # Pushing images to local registry
