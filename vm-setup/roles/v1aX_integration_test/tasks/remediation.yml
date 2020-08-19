@@ -12,7 +12,7 @@
             (.metadata.annotations.\"metal3.io/BareMetalHost\"),([.metadata.ownerReferences |.[] | \
             select(.kind==\"Machine\")][0] | .name)'"
     register: workers
- 
+
   - set_fact:
       WORKER_BMH: "{{ workers.stdout_lines.0 | replace('metal3/','')}}"
       WORKER_NODE: "{{ workers.stdout_lines.1 }}"
@@ -26,6 +26,7 @@
       MASTER_VM_1: "{{ masters.stdout_lines.2 | replace('-','_') | replace('metal3/','') }}"
       MASTER_VM_2: "{{ masters.stdout_lines.4 | replace('-','_') | replace('metal3/','') }}"
       WORKER_VM: "{{ workers.stdout_lines.0 | replace('-','_') | replace('metal3/','') }}"
+      NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
   - name: Fetch the target cluster kubeconfig
     shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
@@ -139,3 +140,104 @@
       - MASTER_VM_2 in running_vms.list_vms
     become: yes
     become_user: root
+
+  # Start Unhealthy node testing
+  - name: Scale KCP down to two replicas
+    shell: |
+      kubectl scale kcp "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=2
+
+  - name: Wait until KCP is scaled down and one node is Ready
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
+    retries: 200
+    delay: 20
+    register: ready_hosts
+    until: ready_hosts.stdout == "1"
+
+  - name: Mark "{{ WORKER_BMH }}" as unhealthy
+    shell: |
+      kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy=
+ 
+  - name: Delete worker Machine object "{{ WORKER_NODE }}"
+    shell: |
+      kubectl delete machine "{{ WORKER_NODE }}" -n "{{ NAMESPACE }}"
+
+  - name: Wait until worker BMH is in ready state
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | awk '{print $1}'
+    retries: 200
+    delay: 20
+    register: ready_bmh
+    until: WORKER_BMH in ready_bmh.stdout_lines
+
+  - name: Wait until three BMH are provisioned
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
+    retries: 200
+    delay: 20
+    register: provisioned_hosts
+    until: provisioned_hosts.stdout == "3"
+
+  - name: Scale up the machinedeployment
+    shell: kubectl scale machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=2
+  
+  - pause:
+     minutes: 1
+
+  - name: Wait and verify that none of the nodes start provisioning
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioning | wc -l
+    retries: 10
+    delay: 20
+    register: provisioning_hosts
+    until:
+      - provisioning_hosts.stdout == "0"
+      - provisioned_hosts.stdout == "3"
+
+  - name: Remove unhealthy annotation from "{{ WORKER_BMH }}"
+    shell: |
+      kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy-
+
+  - name: Wait until all "{{ NUMBER_OF_BMH }}" BMH are provisioned
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
+    retries: 200
+    delay: 20
+    register: provisioned_hosts
+    until: provisioned_hosts.stdout == NUMBER_OF_BMH
+
+  - name: Wait until "{{ NUMBER_OF_BMH }}" machines become running.
+    shell: |
+        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[]
+        | select (.status.phase == "Running" or .status.phase == "running")
+        | .metadata.name ] | length'
+    register: provisioned_machines
+    retries: 200
+    delay: 20
+    until: provisioned_machines.stdout == NUMBER_OF_BMH
+
+  - name: Scale down the machinedeployment
+    shell: kubectl scale machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=1
+
+  - name: Wait until one BMH is in ready state
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
+    retries: 200
+    delay: 20
+    register: ready_hosts
+    until: ready_hosts.stdout == "1"
+
+  - name: Scale KCP back to three replicas
+    shell: |
+      kubectl scale kcp "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=3
+  
+  - name: Wait until "{{ NUMBER_OF_BMH }}"" BMH are provisioned
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
+    retries: 200
+    delay: 20
+    register: provisioned_hosts
+    until: provisioned_hosts.stdout == NUMBER_OF_BMH
+
+  - name: Wait until all "{{ NUMBER_OF_BMH }}" machines become running.
+    shell: |
+        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[]
+        | select (.status.phase == "Running" or .status.phase == "running")
+        | .metadata.name ] | length'
+    register: provisioned_machines
+    retries: 200
+    delay: 20
+    until: provisioned_machines.stdout == NUMBER_OF_BMH
