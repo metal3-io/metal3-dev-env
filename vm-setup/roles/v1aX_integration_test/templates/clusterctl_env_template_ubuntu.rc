@@ -57,9 +57,8 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - systemctl enable --now docker kubelet
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo \"keepalived already running\";else systemctl start keepalived; fi
       - usermod -aG docker {{ IMAGE_USERNAME }}
-      - systemctl link /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
-      - systemctl enable monitor.keepalived.service
-      - systemctl start monitor.keepalived.service
+      - systemctl link /lib/systemd/system/monitor.keepalived.service 
+      - systemctl enable --now monitor.keepalived.service
     postKubeadmCommands:
       - mkdir -p /home/{{ IMAGE_USERNAME }}/.kube
       - cp /etc/kubernetes/admin.conf /home/{{ IMAGE_USERNAME }}/.kube/config
@@ -86,7 +85,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
               fi
               sleep 5
             done
-      - path: /etc/systemd/system/multi-user.target.wants/monitor.keepalived.service
+      - path: /lib/systemd/system/monitor.keepalived.service
         owner: root:root
         content: |
             [Unit]
