@@ -43,9 +43,9 @@ NODE_HOSTNAME_FORMAT=${NODE_HOSTNAME_FORMAT:-"node-%d"}
 OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
 # Container runtime
 if [[ "${OS}" == ubuntu ]]; then
-  CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"docker"}
+  export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"docker"}
 else
-  CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
+  export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
 fi
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
