@@ -132,6 +132,7 @@ elif [[ "$reg_state" != "running" ]]; then
   sudo "${CONTAINER_RUNTIME}" rm registry -f || true
   sudo "${CONTAINER_RUNTIME}" run -d -p 5000:5000 --name registry "$DOCKER_REGISTRY_IMAGE"
 fi
+sleep 5
 
 # Pushing images to local registry
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
@@ -143,7 +144,7 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
   sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}" 
   
   if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}" "${LOCAL_IMAGE}"
+    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
   else
     sudo "${CONTAINER_RUNTIME}" push "${LOCAL_IMAGE}"
   fi
@@ -187,7 +188,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f "${DOCKERFILE}"
   cd - || exit
   if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${!IMAGE_VAR}" "${!IMAGE_VAR}"
+    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${!IMAGE_VAR}"
   else
     sudo "${CONTAINER_RUNTIME}" push "${!IMAGE_VAR}"
   fi
