@@ -52,8 +52,8 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - chmod a+x kubeadm kubelet kubectl
       - mv kubeadm kubelet kubectl /usr/local/bin/
       - mkdir -p /etc/systemd/system/kubelet.service.d
-      - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
-      - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+      - retrieve.configuration.files.sh \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" /etc/systemd/system/kubelet.service
+      - retrieve.configuration.files.sh \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
       - systemctl enable --now docker kubelet
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo \"keepalived already running\";else systemctl start keepalived; fi
       - usermod -aG docker {{ IMAGE_USERNAME }}
@@ -65,6 +65,24 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - systemctl enable --now keepalived
       - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube/config
     files:
+      - path: /usr/local/bin/retrieve.configuration.files.sh
+        owner: root:root
+        permissions: '0755'
+        content: |
+            #!/bin/bash
+            set -e
+            url=\"\${1}\"
+            dst=\"\${2}\"
+            filename=\"\$(basename \${url})\"
+            tmpfile=\"/tmp/\${filename}\"
+            curl -sSL -w \"%{http_code}\" \"\${url}\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /tmp/\"\${filename}\"
+            http_status=\$(cat \"\${tmpfile}\" | tail -n 1)
+            if [ \"\${http_status}\" != \"200\" ]; then
+              echo \"Error: unable to retrieve \${filename} file\";
+              exit 1;
+            else
+              cat \"\${tmpfile}\"| sed '\$d' > \"\${dst}\";
+            fi
       - path: /usr/local/bin/monitor.keepalived.sh
         owner: root:root
         permissions: '0755'
@@ -186,8 +204,8 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - chmod a+x kubeadm kubelet kubectl
         - mv kubeadm kubelet kubectl /usr/local/bin/
         - mkdir -p /etc/systemd/system/kubelet.service.d
-        - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service
-        - curl -sSL \"https://raw.githubusercontent.com/kubernetes/release/{{KUBERNETES_BINARIES_CONFIG_VERSION}}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+        - retrieve.configuration.files.sh \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" /etc/systemd/system/kubelet.service
+        - retrieve.configuration.files.sh \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
         - systemctl enable --now docker kubelet
         - usermod -aG docker {{ IMAGE_USERNAME }}
       files:
@@ -204,6 +222,24 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
                         dhcp4: false
                 version: 2
 {% endif %}
+        - path: /usr/local/bin/retrieve.configuration.files.sh
+          owner: root:root
+          permissions: '0755'
+          content: |
+              #!/bin/bash
+              set -e
+              url=\"\${1}\"
+              dst=\"\${2}\"
+              filename=\"\$(basename \${url})\"
+              tmpfile=\"/tmp/\${filename}\"
+              curl -sSL -w \"%{http_code}\" \"\${url}\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /tmp/\"\${filename}\"
+              http_status=\$(cat \"\${tmpfile}\" | tail -n 1)
+              if [ \"\${http_status}\" != \"200\" ]; then
+                echo \"Error: unable to retrieve \${filename} file\";
+                exit 1;
+              else
+                cat \"\${tmpfile}\"| sed '\$d' > \"\${dst}\";
+              fi
         - path : /etc/netplan/52-ironicendpoint.yaml
           owner: root:root
           permissions: '0644'
