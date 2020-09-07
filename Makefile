@@ -46,6 +46,10 @@ upgrade_test:
 
 feature_tests: setup_env remediation_test cleanup_env pivoting_test
 
-feature_tests_upgrade: setup_env_ug upgrade_test
+# feature_tests_upgrade: override CAPM3RELEASE="v0.3.2"
+# feature_tests_upgrade: override CAPIRELEASE="v0.3.4"
+ # TODO: uncomment above 'override' lines when
+# https://github.com/metal3-io/metal3-dev-env/issues/427 is fixed
+feature_tests_upgrade: setup_env upgrade_test
 
 .PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint
