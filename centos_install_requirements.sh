@@ -41,7 +41,7 @@ sudo dnf -y install \
   python3-pip \
   wget
 
-sudo pip3 install ansible==2.9.8
+sudo pip3 install ansible
 
 if [[ $DISTRO == "centos7" ]]; then
   # Install pip since it is used by the k8s Ansible module
