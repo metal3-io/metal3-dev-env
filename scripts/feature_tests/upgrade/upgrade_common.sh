@@ -214,7 +214,7 @@ function controlplane_has_correct_replicas() {
         cp_replicas=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
             awk 'NR>1' | grep -c master)
         if [[ "${cp_replicas}" == "${replicas}" ]]; then
-            echo "Successfully provisioned controlplane replica nodes: ${CP_NODE_NAME}"
+            echo "Successfully provisioned controlplane replica nodes"
             break
         else
             echo -n "+"
@@ -237,23 +237,30 @@ function worker_has_correct_replicas() {
       echo "Waiting for all replicas of worker nodes to join the cluster"
     fi
 
-    for i in {1..3600}; do
+    for i in {1..1800}; do
+        wr_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned | grep -c worker)
         if [[ "${replicas}" -eq 0 ]]; then
-            wr_replicas=$(kubectl get bmh -n metal3 | grep -c worker)
-        else
-            kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-            jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-            wr_replicas=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
-                awk 'NR>1' | grep -vc master)
-        fi
-        if [[ "${wr_replicas}" == "${replicas}" ]]; then
-            echo "Expected worker replicas have joined the cluster"
-            break
+            if [[ "${wr_replicas}" -eq "${replicas}" ]]; then
+                echo "Expected worker replicas have left the cluster"
+                break
+            fi
+        elif [[ "${wr_replicas}" -eq "${replicas}" ]]; then
+            for ind in {1..1800}; do
+                kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
+                jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
+                wr_nodes=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
+                    awk 'NR>1' | grep -vc master)
+                if [[ "${wr_nodes}" -eq "${replicas}" ]]; then
+                    echo "Expected worker replicas have joined the cluster"
+                    break 2
+                fi
+                sleep 10
+            done
         else
             echo -n "*"
         fi
         sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
+        if [[ "${i}" -ge 1800 || "${ind}" -ge 1800 ]]; then
           if [[ "${replicas}" -eq 0 ]]; then
             log_error "Time out while waiting for workers to leave the cluster"
           else
