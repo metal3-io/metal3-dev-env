@@ -63,11 +63,15 @@ function clone_repos() {
 
 function patch_clusterctl(){
   pushd "${CAPM3PATH}"
+  mkdir -p "${HOME}"/.cluster-api
+  touch "${HOME}"/.cluster-api/clusterctl.yaml
+
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
     CAPM3_IMAGE_NAME_WITH_TAG="${CAPM3_LOCAL_IMAGE##*/}"
   else
     CAPM3_IMAGE_NAME_WITH_TAG="${CAPM3_IMAGE##*/}"
   fi
+
   # Split the image CAPM3_IMAGE_NAME AND CAPM3_IMAGE_TAG, if any tag exist
   CAPM3_IMAGE_NAME="${CAPM3_IMAGE_NAME_WITH_TAG%%:*}"
   CAPM3_IMAGE_TAG="${CAPM3_IMAGE_NAME_WITH_TAG##*:}"
@@ -75,6 +79,7 @@ function patch_clusterctl(){
   if [ "${CAPM3_IMAGE_NAME}" == "${CAPM3_IMAGE_TAG}" ]; then
     CAPM3_IMAGE_TAG="latest"
   fi
+
   export MANIFEST_IMG="${REGISTRY}/localimages/$CAPM3_IMAGE_NAME"
   export MANIFEST_TAG="$CAPM3_IMAGE_TAG"
   make set-manifest-image
@@ -259,10 +264,6 @@ function apply_bm_hosts() {
 #
 function launch_cluster_api_provider_metal3() {
     pushd "${CAPM3PATH}"
-    mkdir -p "${HOME}"/.cluster-api
-    touch "${HOME}"/.cluster-api/clusterctl.yaml
-
-    patch_clusterctl
 
      # shellcheck disable=SC2153
     clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
@@ -322,6 +323,9 @@ fi
 if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
   ${RUN_LOCAL_IRONIC_SCRIPT}
 fi
+
+patch_clusterctl
+
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   launch_baremetal_operator
   launch_cluster_api_provider_metal3
