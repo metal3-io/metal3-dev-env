@@ -55,13 +55,17 @@ if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
       chmod +x docker-machine-driver-kvm2
       sudo mv docker-machine-driver-kvm2 /usr/local/bin/.
   fi
-elif [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
-    if ! command -v kind 2>/dev/null ; then
-        curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
-        chmod +x ./kind
-        sudo mv kind /usr/local/bin/.
-        sudo "${CONTAINER_RUNTIME}" pull kindest/node:"${KUBERNETES_VERSION}"
-    fi
+#Install Kind for both Kind and tilt
+else
+  if ! command -v kind 2>/dev/null ; then
+      curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
+      chmod +x ./kind
+      sudo mv kind /usr/local/bin/.
+      sudo "${CONTAINER_RUNTIME}" pull kindest/node:"${KUBERNETES_VERSION}"
+  fi
+  if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
+    curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+  fi
 fi
 
 KUBECTL_LATEST=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
@@ -94,7 +98,7 @@ if ! [ -x "$(command -v clusterctl)" ]; then
   install_clusterctl
 elif [ "$(clusterctl version | grep -o -P '(?<=GitVersion:).*?(?=,)')" != "${CAPIRELEASE}" ]; then
   sudo rm /usr/local/bin/clusterctl
-  install_clusterctl 
+  install_clusterctl
 fi
 
 # Clean-up any old ironic containers
@@ -130,7 +134,7 @@ popd
 # Pulling all the images except any local image.
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
   IMAGE="${!IMAGE_VAR}"
-  sudo "${CONTAINER_RUNTIME}" pull "${IMAGE}" 
+  sudo "${CONTAINER_RUNTIME}" pull "${IMAGE}"
  done
 
 # Start image downloader container

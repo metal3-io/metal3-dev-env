@@ -11,6 +11,10 @@ source lib/network.sh
 # shellcheck disable=SC1091
 source lib/images.sh
 
+if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
+  exit 0
+fi
+
 check_bm_hosts() {
     local FAILS_CHECK="${FAILS}"
     local NAME ADDRESS USER PASSWORD MAC CRED_NAME CRED_SECRET \

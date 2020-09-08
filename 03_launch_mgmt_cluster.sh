@@ -84,7 +84,7 @@ function patch_clusterctl(){
   else
     BMO_IMAGE_NAME_WITH_TAG="${BAREMETAL_OPERATOR_IMAGE##*/}"
   fi
-  
+
   # Split the image to BMO_IMAGE_NAME AND BMO_IMAGE_TAG, if any tag exist
   BMO_IMAGE_NAME="${BMO_IMAGE_NAME_WITH_TAG%%:*}"
   BMO_IMAGE_TAG="${BMO_IMAGE_NAME_WITH_TAG##*:}"
@@ -96,11 +96,11 @@ function patch_clusterctl(){
 
   export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$BMO_IMAGE_NAME"
   export MANIFEST_TAG_BMO="$BMO_IMAGE_TAG"
-  
+
   if [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
     make set-manifest-image-bmo
   fi
-  
+
   make release-manifests
 
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
@@ -153,7 +153,7 @@ function update_images(){
     IMAGE_NAME="${IMAGE##*/}"
     LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
     eval "$IMAGE_VAR"="$LOCAL_IMAGE"
-  done  
+  done
 }
 
 function kustomize_overlay_bmo() {
@@ -211,10 +211,6 @@ function launch_baremetal_operator() {
 
     update_images
 
-    if [ "${EPHEMERAL_CLUSTER}" = kind ]; then
-      ${RUN_LOCAL_IRONIC_SCRIPT}
-    fi
-
     if [ "${BMO_RUN_LOCAL}" = true ] && [ "${CAPM3_VERSION}" == "v1alpha3" ]; then
       touch bmo.out.log
       touch bmo.err.log
@@ -252,20 +248,10 @@ function make_bm_hosts() {
 function apply_bm_hosts() {
     pushd "${BMOPATH}"
     list_nodes | make_bm_hosts > "${WORKING_DIR}/bmhosts_crs.yaml"
-    kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n metal3
+    if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
+      kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n metal3
+    fi
     popd
-}
-
-function kustomize_overlay_capm3() {
-  overlay_path=$1
-  provider_cmpt=$2
-
-  cat <<EOF> "$overlay_path/kustomization.yaml"
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-- $(realpath --relative-to="$overlay_path" "$provider_cmpt")
-EOF
 }
 
 #
@@ -273,7 +259,6 @@ EOF
 #
 function launch_cluster_api_provider_metal3() {
     pushd "${CAPM3PATH}"
-    kustomize_overlay_path=$(mktemp -d capm3-XXXXXXXXXX)
     mkdir -p "${HOME}"/.cluster-api
     touch "${HOME}"/.cluster-api/clusterctl.yaml
 
@@ -281,8 +266,6 @@ function launch_cluster_api_provider_metal3() {
 
      # shellcheck disable=SC2153
     clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
-
-    rm -rf "$kustomize_overlay_path"
 
     if [ "${CAPM3_RUN_LOCAL}" == true ]; then
       touch capm3.out.log
@@ -318,7 +301,7 @@ create_clouds_yaml
 
 if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
   launch_kind
-else
+elif [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
   init_minikube
 
   sudo su -l -c 'minikube start' "${USER}"
@@ -336,6 +319,11 @@ else
   fi
 fi
 
-launch_baremetal_operator
-launch_cluster_api_provider_metal3
+if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
+  ${RUN_LOCAL_IRONIC_SCRIPT}
+fi
+if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
+  launch_baremetal_operator
+  launch_cluster_api_provider_metal3
+fi
 apply_bm_hosts
