@@ -9,7 +9,7 @@ assured that they are persisted.
 
 | Name | Option | Allowed values | Default |
 | :------ | :------- | :--------------- | :-------- |
-| EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind | Ubuntu default is kind, while CentOS is minikube. |
+| EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind, tilt | Ubuntu default is kind. Only minikube is supported on CentOS |
 | EXTERNAL_SUBNET                | This is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts.                                                                                                                    | CIDR                               | 192.168.111.0/24                                             |
 | SSH_PUB_KEY                    | This SSH key will be automatically injected into the provisioned host by the provision_host.sh script.                                                                                                                                                   |                           | ~/.ssh/id_rsa.pub                                            |
 | CONTAINER_RUNTIME              | Select the Container Runtime                                                                                                                                                                                                                             | "docker", "podman"                   | "podman"                                                     |

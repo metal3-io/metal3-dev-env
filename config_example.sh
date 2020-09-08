@@ -152,3 +152,10 @@
 # %d format field that will be replaced with an integer representing the number
 # of the node.
 # export NODE_HOSTNAME_FORMAT="node-%d"
+
+# Ephemeral cluster used as management cluster for cluster API
+# (can be "kind", "minikube" or "tilt"). Only "minikube" is supported with
+# CentOS
+# Selecting "tilt" does not deploy a management cluster, it is left up to the
+# user
+# export EPHEMERAL_CLUSTER=minikube

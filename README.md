@@ -74,6 +74,12 @@ You can check a list of all the environment variables [here](vars.md)
 ./03_launch_mgmt_cluster.sh
 ```
 
+or
+
+```sh
+make
+```
+
 ### Deploy the target cluster
 
 ```sh
@@ -93,3 +99,48 @@ You can check a list of all the environment variables [here](vars.md)
 ```sh
 kubectl delete cluster "${CLUSTER_NAME:-"test1"}" -n metal3
 ```
+
+### Deploying with Tilt
+
+It is possible to use Tilt to run the CAPI and CAPM3 components. For this, run:
+
+```sh
+export EPHEMERAL_CLUSTER="tilt"
+make
+```
+
+Then clone the Cluster API Provider Metal3 repository, and follow the
+[instructions](https://github.com/metal3-io/cluster-api-provider-metal3/blob/master/docs/dev-setup.md#tilt-development-environment).
+That will mostly be the three following blocks of commands.
+
+```sh
+source lib/common.sh
+source lib/network.sh
+source lib/images.sh
+```
+
+and go to the CAPM3 repository and run
+
+```sh
+make tilt-settings
+```
+
+Please refer to the CAPM3 instructions to include BMO and IPAM. Then run :
+
+```sh
+make tilt-up
+```
+
+Once the cluster is running, you can create the BareMetalHosts :
+
+```sh
+kubectl create namespace metal3
+kubectl apply -n metal3 -f /opt/metal3-dev-env/bmhosts_crs.yaml
+```
+
+Afterwards, you can deploy a target cluster.
+
+If you are running tilt on a remote machine, you can forward the web interface
+by adding the following parameter to the ssh command `-L 10350:127.0.0.1:10350`
+
+Then you can access the Tilt dashboard locally [here](http://127.0.0.1:10350)
