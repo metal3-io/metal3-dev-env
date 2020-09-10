@@ -48,7 +48,7 @@ spec:
         checksum: ${ IMAGE_CHECKSUM }
         checksumType: ${ IMAGE_CHECKSUM_TYPE }
         format: ${ IMAGE_FORMAT }
-{% if CAPM3_VERSION != "v1alpha3" and IMAGE_OS != "Centos" %}
+{% if CAPM3_VERSION != "v1alpha3" %}
       dataTemplate:
         name: ${ CLUSTER_NAME }-controlplane-template
 ---

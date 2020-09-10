@@ -37,7 +37,7 @@ spec:
     port: ${ API_ENDPOINT_PORT }
   noCloudProvider: true
 ---
-{% if CAPM3_VERSION != "v1alpha3" and IMAGE_OS != "Centos" %}
+{% if CAPM3_VERSION != "v1alpha3" %}
 apiVersion: ipam.metal3.io/v1alpha1
 kind: IPPool
 metadata:
