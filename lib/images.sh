@@ -3,8 +3,8 @@
 # Image url and checksum
 IMAGE_OS=${IMAGE_OS:-Centos}
 if [[ "${IMAGE_OS}" == "Ubuntu" ]]; then
-  export IMAGE_NAME=${IMAGE_NAME:-focal-server-cloudimg-amd64.img}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://cloud-images.ubuntu.com/focal/current}
+  export IMAGE_NAME=${IMAGE_NAME:-UBUNTU_NODE_IMAGE_K8S_v1.18.8.qcow2}
+  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.18.8/}
 elif [[ "${IMAGE_OS}" == "FCOS" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-fedora-coreos-30.20191014.0-openstack.x86_64.qcow2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://builds.coreos.fedoraproject.org/prod/streams/testing/builds/30.20191014.0/x86_64/}

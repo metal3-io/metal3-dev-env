@@ -33,27 +33,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - ip link set dev enp2s0 up
       - dhclient enp2s0
 {% endif %}
-      - apt update -y
-      - apt-get install -y conntrack socat
       - netplan apply
-      - >-
-        apt install net-tools gcc linux-headers-$(uname -r) bridge-utils
-        apt-transport-https ca-certificates curl gnupg-agent
-        software-properties-common -y
-      - apt install -y keepalived && systemctl stop keepalived
-      - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-      - add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"
-      - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-      - echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list
-      - apt update -y
-      - apt install docker-ce docker-ce-cli containerd.io -y
-      - echo  \"Installing kubernetes binaries\"
-      - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{ KUBERNETES_BINARIES_VERSION }}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
-      - chmod a+x kubeadm kubelet kubectl
-      - mv kubeadm kubelet kubectl /usr/local/bin/
-      - mkdir -p /etc/systemd/system/kubelet.service.d
-      - retrieve.configuration.files.sh \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" /etc/systemd/system/kubelet.service
-      - retrieve.configuration.files.sh \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
       - systemctl enable --now docker kubelet
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo \"keepalived already running\";else systemctl start keepalived; fi
       - usermod -aG docker {{ IMAGE_USERNAME }}
@@ -66,24 +46,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - systemctl enable --now keepalived
       - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube/config
     files:
-      - path: /usr/local/bin/retrieve.configuration.files.sh
-        owner: root:root
-        permissions: '0755'
-        content: |
-            #!/bin/bash
-            set -e
-            url=\"\${1}\"
-            dst=\"\${2}\"
-            filename=\"\$(basename \${url})\"
-            tmpfile=\"/tmp/\${filename}\"
-            curl -sSL -w \"%{http_code}\" \"\${url}\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /tmp/\"\${filename}\"
-            http_status=\$(cat \"\${tmpfile}\" | tail -n 1)
-            if [ \"\${http_status}\" != \"200\" ]; then
-              echo \"Error: unable to retrieve \${filename} file\";
-              exit 1;
-            else
-              cat \"\${tmpfile}\"| sed '\$d' > \"\${dst}\";
-            fi
       - path: /usr/local/bin/monitor.keepalived.sh
         owner: root:root
         permissions: '0755'
@@ -188,25 +150,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - ip link set dev enp2s0 up
         - dhclient enp2s0
 {% endif %}
-        - apt update -y
         - netplan apply
-        - >-
-          apt install apt-transport-https ca-certificates
-          curl gnupg-agent software-properties-common -y
-        - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-        - add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"
-        - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-        - echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' > /etc/apt/sources.list.d/kubernetes.list
-        - apt update -y
-        - apt-get install -y conntrack socat
-        - apt install docker-ce docker-ce-cli containerd.io -y
-        - echo  \"Installing kubernetes binaries\"
-        - curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/{{KUBERNETES_BINARIES_VERSION}}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
-        - chmod a+x kubeadm kubelet kubectl
-        - mv kubeadm kubelet kubectl /usr/local/bin/
-        - mkdir -p /etc/systemd/system/kubelet.service.d
-        - retrieve.configuration.files.sh \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service\" /etc/systemd/system/kubelet.service
-        - retrieve.configuration.files.sh \"https://raw.githubusercontent.com/kubernetes/release/{{ KUBERNETES_BINARIES_CONFIG_VERSION }}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf\" /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
         - systemctl enable --now docker kubelet
         - usermod -aG docker {{ IMAGE_USERNAME }}
       files:
@@ -223,24 +167,6 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
                         dhcp4: false
                 version: 2
 {% endif %}
-        - path: /usr/local/bin/retrieve.configuration.files.sh
-          owner: root:root
-          permissions: '0755'
-          content: |
-              #!/bin/bash
-              set -e
-              url=\"\${1}\"
-              dst=\"\${2}\"
-              filename=\"\$(basename \${url})\"
-              tmpfile=\"/tmp/\${filename}\"
-              curl -sSL -w \"%{http_code}\" \"\${url}\" | sed \"s:/usr/bin:/usr/local/bin:g\" > /tmp/\"\${filename}\"
-              http_status=\$(cat \"\${tmpfile}\" | tail -n 1)
-              if [ \"\${http_status}\" != \"200\" ]; then
-                echo \"Error: unable to retrieve \${filename} file\";
-                exit 1;
-              else
-                cat \"\${tmpfile}\"| sed '\$d' > \"\${dst}\";
-              fi
         - path : /etc/netplan/52-ironicendpoint.yaml
           owner: root:root
           permissions: '0644'
