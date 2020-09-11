@@ -34,7 +34,7 @@ buildClusterctl
 
 # Install initial version folder structure
 pushd /tmp/cluster-api-clone || exit
-cmd/clusterctl/hack/local-overrides.py
+cmd/clusterctl/hack/create-local-repository.py
 popd || exit
 
 create_clusterctl_configuration
@@ -73,13 +73,19 @@ fi
 
 sleep 30 # Wait for the controllers to be up and running
 
-health_controllers=$(kubectl get pods -A | grep -E "capm3-system|capi-kubeadm|metal3" |
-  grep -vc 'Running')
-if [ "${health_controllers}" -ne 0 ]; then
-  log_error "Some of the upgraded controlplane components are not healthy"
-  log_test_result "1cp_1w_bootDiskImageANDK8sCotrollers_clusterLevel_upgrade.sh" "fail"
-  exit 1
-fi
+for i in {1..10}; do
+  health_controllers=$(kubectl get pods -A | grep -E "capm3-system|capi-kubeadm|metal3" |
+    grep -vc 'Running')
+  if [ "${health_controllers}" -eq 0 ]; then
+    break
+  fi
+  if [[ "${i}" -ge 10 ]]; then
+    log_error "Some of the upgraded controlplane components are not healthy"
+    log_test_result "1cp_1w_bootDiskImageANDK8sCotrollers_clusterLevel_upgrade.sh" "fail"
+    exit 1
+  fi
+  sleep 10
+done
 
 # ----------- upgrade ironic image ------
 
@@ -131,8 +137,16 @@ for container in ironic ironic-inspector ironic-dnsmasq ironic-httpd mariadb; do
       grep -ic running
   )
   if [ "${running_containers_count}" -eq 0 ]; then
-    echo "Upgrade of ironic image for container ${container} has failed"
-    exit 1
+    sleep 30
+    running_containers_count_retry=$(
+      kubectl get "${ironic_pod}" -n "${NAMESPACE}" -o json |
+        jq ".status.containerStatuses[] | select(.name == \"${container}\") | .state" |
+        grep -ic running
+      )
+    if [ "${running_containers_count_retry}" -eq 0 ]; then
+      echo "Upgrade of ironic image for container ${container} has failed"
+      exit 1
+    fi
   fi
 done
 
@@ -143,35 +157,39 @@ cp_Metal3MachineTemplate_OUTPUT_FILE="/tmp/cp_new_image.yaml"
 wr_Metal3MachineTemplate_OUTPUT_FILE="/tmp/wr_new_image.yaml"
 CLUSTER_UID=$(kubectl get clusters -n "${NAMESPACE}" test1 -o json | jq '.metadata.uid' |
   cut -f2 -d\")
-generate_metal3MachineTemplate "${CLUSTER_NAME}-new-controlplane-image" "${CLUSTER_UID}" \
-  "${cp_Metal3MachineTemplate_OUTPUT_FILE}" \
+generate_metal3MachineTemplate "${CLUSTER_NAME}-new-controlplane-image" \
+  "${CLUSTER_UID}" "${cp_Metal3MachineTemplate_OUTPUT_FILE}" \
   "${CAPM3_VERSION}" "${CAPI_VERSION}" \
   "${CLUSTER_NAME}-controlplane-template"
-generate_metal3MachineTemplate "${CLUSTER_NAME}-new-workers-image" "${CLUSTER_UID}" \
-  "${wr_Metal3MachineTemplate_OUTPUT_FILE}" \
+generate_metal3MachineTemplate "${CLUSTER_NAME}-new-workers-image" \
+  "${CLUSTER_UID}" "${wr_Metal3MachineTemplate_OUTPUT_FILE}" \
   "${CAPM3_VERSION}" "${CAPI_VERSION}" \
   "${CLUSTER_NAME}-workers-template"
 
-kubectl apply -f "${cp_Metal3MachineTemplate_OUTPUT_FILE}"
-kubectl apply -f "${wr_Metal3MachineTemplate_OUTPUT_FILE}"
-
 # controllers
-kubectl get kcp -n "${NAMESPACE}" test1 -o json |
+kubectl get kubeadmcontrolplane -n "${NAMESPACE}" test1 -o json |
   jq ".spec.infrastructureTemplate.name=\"test1-new-controlplane-image\" |
   .spec.version=\"${UPGRADED_K8S_VERSION_2}\"" |
   kubectl apply -f-
+sleep 10
 kubectl get machinedeployment -n "${NAMESPACE}" test1 -o json |
   jq ".spec.strategy.rollingUpdate.maxSurge=1|.spec.strategy.rollingUpdate.maxUnavailable=0 |
   .spec.template.spec.version=\"${UPGRADED_K8S_VERSION_2}\"" |
   kubectl apply -f-
 sleep 10
+kubectl get machinedeployment -n "${NAMESPACE}" test1 -o json |
+  jq '.spec.template.spec.infrastructureRef.name="test1-new-workers-image"' |
+  kubectl apply -f-
 
-# Verify kubernetes version upgrade
-verify_kubernetes_version_upgrade "${UPGRADED_K8S_VERSION_2}" 2
+kubectl apply -f "${cp_Metal3MachineTemplate_OUTPUT_FILE}"
+kubectl apply -f "${wr_Metal3MachineTemplate_OUTPUT_FILE}"
 
 # Verify new boot disk image usage
 cp_nodes_using_new_bootDiskImage 1
 wr_nodes_using_new_bootDiskImage 1
+
+# Verify kubernetes version upgrade
+# verify_kubernetes_version_upgrade "${UPGRADED_K8S_VERSION_2}" 2
 
 # Verify nodes are freed
 expected_free_nodes 2
