@@ -159,3 +159,6 @@
 # Selecting "tilt" does not deploy a management cluster, it is left up to the
 # user
 # export EPHEMERAL_CLUSTER=minikube
+
+# Secure Ironic deployment with TLS ("true" or "false")
+# export IRONIC_TLS_SETUP="true"

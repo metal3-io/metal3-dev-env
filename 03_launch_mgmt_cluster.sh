@@ -10,17 +10,86 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
-if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
-  IRONIC_HOST="${CLUSTER_URL_HOST}"
-  export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
+IRONIC_HOST="${CLUSTER_URL_HOST}"
+export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
+
+if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
+  export IRONIC_BASE_URL="https://${CLUSTER_URL_HOST}"
+
+  export IRONIC_CACERT_FILE="${IRONIC_CACERT_FILE:-"${WORKING_DIR}/certs/ironic-ca.pem"}"
+  export IRONIC_CAKEY_FILE="${IRONIC_CAKEY_FILE:-"${WORKING_DIR}/certs/ironic-ca.key"}"
+  export IRONIC_CERT_FILE="${IRONIC_CERT_FILE:-"${WORKING_DIR}/certs/ironic.crt"}"
+  export IRONIC_KEY_FILE="${IRONIC_KEY_FILE:-"${WORKING_DIR}/certs/ironic.key"}"
+
+  export IRONIC_INSPECTOR_CACERT_FILE="${IRONIC_INSPECTOR_CACERT_FILE:-"${WORKING_DIR}/certs/ironic-ca.pem"}"
+  export IRONIC_INSPECTOR_CAKEY_FILE="${IRONIC_INSPECTOR_CAKEY_FILE:-"${WORKING_DIR}/certs/ironic-ca.key"}"
+  export IRONIC_INSPECTOR_CERT_FILE="${IRONIC_INSPECTOR_CERT_FILE:-"${WORKING_DIR}/certs/ironic-inspector.crt"}"
+  export IRONIC_INSPECTOR_KEY_FILE="${IRONIC_INSPECTOR_KEY_FILE:-"${WORKING_DIR}/certs/ironic-inspector.key"}"
+
+  pushd "${WORKING_DIR}"
+  mkdir -p "${WORKING_DIR}/certs"
+  pushd "${WORKING_DIR}/certs"
+
+  # Generate CA Key files
+  if [ ! -f "${IRONIC_CAKEY_FILE}" ]; then
+    openssl genrsa -out "${IRONIC_CAKEY_FILE}" 2048
+  fi
+  if [ ! -f "${IRONIC_INSPECTOR_CAKEY_FILE}" ]; then
+    openssl genrsa -out "${IRONIC_INSPECTOR_CAKEY_FILE}" 2048
+  fi
+
+  # Generate CA cert files
+  if [ ! -f "${IRONIC_CACERT_FILE}" ]; then
+    openssl req -x509 -new -nodes -key "${IRONIC_CAKEY_FILE}" -sha256 -days 1825 -out "${IRONIC_CACERT_FILE}" -subj /CN="ironic CA"/
+  fi
+  if [ ! -f "${IRONIC_INSPECTOR_CACERT_FILE}" ]; then
+    openssl req -x509 -new -nodes -key "${IRONIC_INSPECTOR_CAKEY_FILE}" -sha256 -days 1825 -out "${IRONIC_INSPECTOR_CACERT_FILE}" -subj /CN="ironic inspector CA"/
+  fi
+
+  # Generate Key files
+  if [ ! -f "${IRONIC_KEY_FILE}" ]; then
+    openssl genrsa -out "${IRONIC_KEY_FILE}" 2048
+  fi
+  if [ ! -f "${IRONIC_INSPECTOR_KEY_FILE}" ]; then
+    openssl genrsa -out "${IRONIC_INSPECTOR_KEY_FILE}" 2048
+  fi
+
+  # Generate CSR and certificate files
+  if [ ! -f "${IRONIC_CERT_FILE}" ]; then
+    openssl req -new -key "${IRONIC_KEY_FILE}" -out /tmp/ironic.csr -subj /CN="${IRONIC_HOST}"/
+    openssl x509 -req -in /tmp/ironic.csr -CA "${IRONIC_CACERT_FILE}" -CAkey "${IRONIC_CAKEY_FILE}" -CAcreateserial -out "${IRONIC_CERT_FILE}" -days 825 -sha256 -extfile <(printf "subjectAltName=IP:%s" "${IRONIC_HOST_IP}")
+  fi
+  if [ ! -f "${IRONIC_INSPECTOR_CERT_FILE}" ]; then
+    openssl req -new -key "${IRONIC_INSPECTOR_KEY_FILE}" -out /tmp/ironic.csr -subj /CN="${IRONIC_HOST}"/
+    openssl x509 -req -in /tmp/ironic.csr -CA "${IRONIC_CACERT_FILE}" -CAkey "${IRONIC_CAKEY_FILE}" -CAcreateserial -out "${IRONIC_INSPECTOR_CERT_FILE}" -days 825 -sha256 -extfile <(printf "subjectAltName=IP:%s" "${IRONIC_HOST_IP}")
+  fi
+
+  #Populate the CA certificate B64 variable
+  if [ "${IRONIC_CACERT_FILE}" == "${IRONIC_INSPECTOR_CACERT_FILE}" ]; then
+    IRONIC_CA_CERT_B64="${IRONIC_CA_CERT_B64:-"$(base64 -w 0 < "${IRONIC_CACERT_FILE}")"}"
+  else
+    IRONIC_CA_CERT_B64="${IRONIC_CA_CERT_B64:-"$(base64 -w 0 < "${IRONIC_CACERT_FILE}")$(base64 -w 0 < "${IRONIC_INSPECTOR_CACERT_FILE}")"}"
+  fi
+  export IRONIC_CA_CERT_B64
+
+  popd
+  popd
 else
-  IRONIC_HOST="${PROVISIONING_URL_HOST}"
-  export IRONIC_HOST_IP="${PROVISIONING_IP}"
+  export IRONIC_BASE_URL="http://${CLUSTER_URL_HOST}"
+  export IRONIC_NO_CA_CERT="true"
+
+  # Unset all TLS related variables to prevent a TLS deployment
+  unset IRONIC_CA_CERT_B64
+  unset IRONIC_CACERT_FILE
+  unset IRONIC_CERT_FILE
+  unset IRONIC_KEY_FILE
+  unset IRONIC_INSPECTOR_CACERT_FILE
+  unset IRONIC_INSPECTOR_CERT_FILE
+  unset IRONIC_INSPECTOR_KEY_FILE
 fi
 
-# Disable Basic Authentication towards Ironic in BMO and do not provide additional certs
+# Disable Basic Authentication towards Ironic in BMO
 # Those variables are used in the CAPM3 component files
-export IRONIC_NO_CA_CERT="true"
 export IRONIC_NO_BASIC_AUTH="true"
 export IRONIC_INSPECTOR_NO_BASIC_AUTH="true"
 
@@ -109,8 +178,8 @@ configMapGenerator:
   - DHCP_RANGE=$CLUSTER_DHCP_RANGE
   - DEPLOY_KERNEL_URL=http://$IRONIC_HOST:6180/images/ironic-python-agent.kernel
   - DEPLOY_RAMDISK_URL=http://$IRONIC_HOST:6180/images/ironic-python-agent.initramfs
-  - IRONIC_ENDPOINT=http://$IRONIC_HOST:6385/v1/
-  - IRONIC_INSPECTOR_ENDPOINT=http://$IRONIC_HOST:5050/v1/
+  - IRONIC_ENDPOINT=$IRONIC_BASE_URL:6385/v1/
+  - IRONIC_INSPECTOR_ENDPOINT=$IRONIC_BASE_URL:5050/v1/
   - CACHEURL=http://$IRONIC_HOST/images
   - IRONIC_FAST_TRACK=false
   name: ironic-bmo-configmap
@@ -141,7 +210,14 @@ function deploy_kustomization() {
 function launch_baremetal_operator() {
   pushd "${BMOPATH}"
 
-  BMO_CONFIG="${BMOPATH}/deploy/default"
+  if [ "${IRONIC_TLS_SETUP}" != "true" ]; then
+    BMO_CONFIG="${BMOPATH}/deploy/default"
+  else
+    BMO_CONFIG="${BMOPATH}/deploy/tls/default"
+    cp "${IRONIC_CACERT_FILE}" "${BMOPATH}/deploy/tls/default/ca.crt"
+    [ "${IRONIC_CACERT_FILE}" == "${IRONIC_INSPECTOR_CACERT_FILE}" ] || \
+    cat "${IRONIC_INSPECTOR_CACERT_FILE}" >> "${BMOPATH}/deploy/tls/default/ca.crt"
+  fi
   deploy_kustomization
 
   if [ "${BMO_RUN_LOCAL}" = true ]; then
@@ -151,6 +227,30 @@ function launch_baremetal_operator() {
     nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
   fi
   popd
+}
+
+#
+# Launch Ironic locally for Kind and Tilt, in cluster for Minikube
+#
+function launch_ironic() {
+  if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
+    ${RUN_LOCAL_IRONIC_SCRIPT}
+  else
+    if [ "${IRONIC_TLS_SETUP}" != "true" ]; then
+      BMO_CONFIG="${BMOPATH}/ironic-deployment/keepalived"
+    else
+      BMO_CONFIG="${BMOPATH}/ironic-deployment/tls/keepalived"
+      cp "${IRONIC_CACERT_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic-ca.crt"
+      cp "${IRONIC_INSPECTOR_CACERT_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic-inspector-ca.crt"
+
+      cp "${IRONIC_CERT_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic.crt"
+      cp "${IRONIC_KEY_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic.key"
+
+      cp "${IRONIC_INSPECTOR_CERT_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic-inspector.crt"
+      cp "${IRONIC_INSPECTOR_KEY_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic-inspector.key"
+    fi
+    deploy_kustomization
+  fi
 }
 
 # ------------
@@ -401,9 +501,4 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   apply_bm_hosts
 fi
 
-if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
-  ${RUN_LOCAL_IRONIC_SCRIPT}
-else
-  BMO_CONFIG="${BMOPATH}/ironic-deployment/keepalived"
-  deploy_kustomization
-fi
+launch_ironic
