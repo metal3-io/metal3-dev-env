@@ -163,5 +163,10 @@ network_address INITIAL_IRONICBRIDGE_IP "$PROVISIONING_NETWORK" 9
 
 export DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL:-"http://${CLUSTER_URL_HOST}:6180/images/ironic-python-agent.kernel"}
 export DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL:-"http://${CLUSTER_URL_HOST}:6180/images/ironic-python-agent.initramfs"}
-export IRONIC_URL=${IRONIC_URL:-"http://${CLUSTER_URL_HOST}:6385/v1/"}
-export IRONIC_INSPECTOR_URL=${IRONIC_INSPECTOR_URL:-"http://${CLUSTER_URL_HOST}:5050/v1/"}
+if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
+  export IRONIC_URL=${IRONIC_URL:-"https://${CLUSTER_URL_HOST}:6385/v1/"}
+  export IRONIC_INSPECTOR_URL=${IRONIC_INSPECTOR_URL:-"https://${CLUSTER_URL_HOST}:5050/v1/"}
+else
+  export IRONIC_URL=${IRONIC_URL:-"http://${CLUSTER_URL_HOST}:6385/v1/"}
+  export IRONIC_INSPECTOR_URL=${IRONIC_INSPECTOR_URL:-"http://${CLUSTER_URL_HOST}:5050/v1/"}
+fi
