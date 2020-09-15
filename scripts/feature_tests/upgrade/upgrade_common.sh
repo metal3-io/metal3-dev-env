@@ -15,11 +15,13 @@ export CLUSTER_APIENDPOINT_IP=${CLUSTER_APIENDPOINT_IP:-"192.168.111.249"}
 export NUM_NODES=${NUM_NODES:-"4"}
 export NUM_IRONIC_IMAGES=${NUM_IRONIC_IMAGES:-"5"}
 
+export IMAGE_RAW_NAME=${IMAGE_RAW_NAME:-"UBUNTU_NODE_IMAGE_K8S_v1.18.8-raw.img"}
 export IMAGE_RAW_URL="http://172.22.0.1/images/${IMAGE_RAW_NAME}"
 export IMAGE_RAW_CHECKSUM="http://172.22.0.1/images/${IMAGE_RAW_NAME}.md5sum"
 
 export CAPM3PATH=${CAPM3PATH:-"/home/${USER}/go/src/github.com/metal3-io/cluster-api-provider-metal3"}
 
+# -------------- To be called Before Pivoting -------------- #
 function generate_metal3MachineTemplate() {
     NAME="${1}"
     CLUSTER_UID="${2}"
@@ -28,6 +30,8 @@ function generate_metal3MachineTemplate() {
     CAPI_ALPHA_VERSION="${5}"
     TEMPLATE_NAME="${6}"
 
+    export CAPM3_ALPHA_VERSION=${CAPM3_ALPHA_VERSION:-"v1alpha4"}
+    export CAPI_ALPHA_VERSION=${CAPI_ALPHA_VERSION:-"v1alpha3"}
 echo "
 apiVersion: infrastructure.cluster.x-k8s.io/${CAPM3_ALPHA_VERSION}
 kind: Metal3MachineTemplate
@@ -75,35 +79,10 @@ function provision_worker_node() {
     popd || exit
 }
 
-function deprovision_cluster() {
-    pushd "${METAL3_DEV_ENV_DIR}" || exit
-    echo "Deprovisioning the cluster...."
-    bash ./scripts/deprovision/cluster.sh
-    popd || exit
-}
-
-function wait_for_cluster_deprovisioned() {
-    echo "Waiting for cluster to be deprovisioned"
-    for i in {1..3600}; do
-        cluster_count=$(kubectl get clusters -n metal3 2>/dev/null | awk 'NR>1' | wc -l)
-        if [[ "${cluster_count}" -eq "0" ]]; then
-            ready_bmhs=$(kubectl get bmh -n metal3 | awk 'NR>1' | grep -c 'ready')
-            if [[ "${ready_bmhs}" -eq "${NUM_NODES}" ]]; then
-                echo ''
-                echo "Successfully deprovisioned the cluster"
-                break
-            fi
-        else
-            echo -n "-"
-        fi
-        sleep 10
-    done
-}
-
 function deploy_workload_on_workers() {
     echo "Deploy workloads on workers"
     # Deploy workloads
-cat <<EOF | kubectl apply -f -
+    cat <<EOF | kubectl apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -127,7 +106,7 @@ EOF
     for i in {1..1800}; do
         workload_replicas=$(kubectl get deployments workload-1-deployment \
             -o json | jq '.status.readyReplicas')
-        if [[ "$workload_replicas" == "10" ]]; then
+        if [[ "${workload_replicas}" -eq 10 ]]; then
             echo ''
             echo "Successfully deployed workloads across the cluster"
             break
@@ -144,12 +123,9 @@ EOF
 }
 
 function manage_node_taints() {
-    kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-    jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-
     # Enable workload on masters
     # untaint all masters (one workers also gets untainted, doesn't matter):
-    kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml taint nodes --all node-role.kubernetes.io/master-
+    kubectl  taint nodes --all node-role.kubernetes.io/master-
 }
 
 function start_logging() {
@@ -185,12 +161,10 @@ function controlplane_is_provisioned() {
     echo "Waiting for provisioning of controlplane node to complete"
 
     for i in {1..3600}; do
-        kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-          jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-        kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml version /dev/null 2>&1
+        kubectl version /dev/null 2>&1
         # shellcheck disable=SC2181
-        if [[ "$?" == '0' ]]; then
-            CP_NODE_NAME=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes -o json | jq '.items[0].metadata.name')
+        if [[ "$?" -eq 0 ]]; then
+            CP_NODE_NAME=$(kubectl  get nodes -o json | jq '.items[0].metadata.name')
             echo "Successfully provisioned a controlplane node: ${CP_NODE_NAME}"
             break
         else
@@ -209,12 +183,10 @@ function controlplane_has_correct_replicas() {
     replicas="${1}"
     echo "Waiting for all replicas of controlplane node"
     for i in {1..3600}; do
-        kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-          jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-        cp_replicas=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
+        cp_replicas=$(kubectl  get nodes |
             awk 'NR>1' | grep -c master)
-        if [[ "${cp_replicas}" == "${replicas}" ]]; then
-            echo "Successfully provisioned controlplane replica nodes"
+        if [[ "${cp_replicas}" -eq "${replicas}" ]]; then
+            echo "Successfully provisioned controlplane replica nodes: ${CP_NODE_NAME}"
             break
         else
             echo -n "+"
@@ -232,9 +204,9 @@ function worker_has_correct_replicas() {
     replicas="${1}"
     wr_replicas=0
     if [[ "${replicas}" -eq 0 ]]; then
-      echo "Waiting for all replicas of worker nodes to leave the cluster"
+        echo "Waiting for all replicas of worker nodes to leave the cluster"
     else
-      echo "Waiting for all replicas of worker nodes to join the cluster"
+        echo "Waiting for all replicas of worker nodes to join the cluster"
     fi
 
     for i in {1..1800}; do
@@ -246,9 +218,7 @@ function worker_has_correct_replicas() {
             fi
         elif [[ "${wr_replicas}" -eq "${replicas}" ]]; then
             for ind in {1..1800}; do
-                kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-                jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-                wr_nodes=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
+                wr_nodes=$(kubectl  get nodes |
                     awk 'NR>1' | grep -vc master)
                 if [[ "${wr_nodes}" -eq "${replicas}" ]]; then
                     echo "Expected worker replicas have joined the cluster"
@@ -261,59 +231,14 @@ function worker_has_correct_replicas() {
         fi
         sleep 10
         if [[ "${i}" -ge 1800 || "${ind}" -ge 1800 ]]; then
-          if [[ "${replicas}" -eq 0 ]]; then
-            log_error "Time out while waiting for workers to leave the cluster"
-          else
-            log_error "Time out while waiting for workers to join the cluster"
-          fi
-          break
-        fi
-    done
-
-}
-# From the developer machine, verify that new image is being used
-function cp_nodes_using_new_bootDiskImage() {
-    replicas="${1}"
-    echo "Waiting for all CP nodes to to use the new boot disk image"
-    for i in {1..3600}; do
-        cp_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
-            grep -c 'new-controlplane-image')
-        if [[ "${cp_replicas}" == "${replicas}" ]]; then
-            echo "All CP nodes provisioned with a new boot disk image"
-            break
-        else
-            echo -n "*+"
-        fi
-        sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
-            log_error "Time out while waiting for CP nodes to be provisioned \
-            with a new boot disk image"
+            if [[ "${replicas}" -eq 0 ]]; then
+                log_error "Time out while waiting for workers to leave the cluster"
+            else
+                log_error "Time out while waiting for workers to join the cluster"
+            fi
             break
         fi
     done
-
-}
-# From the developer machine, verify that a number of nodes are freed (ready state)
-function wr_nodes_using_new_bootDiskImage() {
-    replicas="${1}"
-    echo "Waiting for all worker nodes to use the new boot disk image"
-    for i in {1..3600}; do
-        worker_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
-            grep -c 'new-workers-image')
-        if [[ "${worker_replicas}" == "${replicas}" ]]; then
-            echo "All worker nodes provisioned with a new boot disk image"
-            break
-        else
-            echo -n "*-"
-        fi
-        sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
-            log_error "Time out while waiting for worker nodes to be provisioned\
-             with a new boot disk image"
-            break
-        fi
-    done
-
 }
 # From the developer machine, verify that a number of nodes are freed (ready state)
 function expected_free_nodes() {
@@ -322,7 +247,7 @@ function expected_free_nodes() {
     for i in {1..3600}; do
         released_nodes=$(kubectl get bmh -n metal3 | awk '{{print $3}}' |
             grep -c 'ready')
-        if [[ "${released_nodes}" == "${node_count}" ]]; then
+        if [[ "${released_nodes}" -eq "${node_count}" ]]; then
             echo "Original nodes are released"
             break
         else
@@ -352,11 +277,53 @@ function scale_controlplane_to() {
         jq '.spec.replicas='"${scale_to}"'' | kubectl apply -f-
 }
 function apply_cni() {
-    kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-    jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
+    kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+}
 
-    kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml \
-    apply -f https://docs.projectcalico.org/manifests/calico.yaml
+# -------------- To be called After Pivoting ----------------#
+# From the developer machine, verify that new image is being used
+function cp_nodes_using_new_bootDiskImage() {
+    replicas="${1}"
+    echo "Waiting for all CP nodes to to use the new boot disk image"
+    for i in {1..3600}; do
+        cp_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
+            grep -c 'new-controlplane-image')
+        if [[ "${cp_replicas}" -eq "${replicas}" ]]; then
+            echo "All CP nodes provisioned with a new boot disk image"
+            break
+        else
+            echo -n "*+"
+        fi
+        sleep 10
+        if [[ "${i}" -ge 1800 ]]; then
+            log_error "Time out while waiting for CP nodes to be provisioned \
+            with a new boot disk image"
+            break
+        fi
+    done
+
+}
+# From the developer machine, verify that a number of nodes are freed (ready state)
+function wr_nodes_using_new_bootDiskImage() {
+    replicas="${1}"
+    echo "Waiting for all worker nodes to use the new boot disk image"
+    for i in {1..3600}; do
+        worker_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
+            grep -c 'new-workers-image')
+        if [[ "${worker_replicas}" -eq "${replicas}" ]]; then
+            echo "All worker nodes provisioned with a new boot disk image"
+            break
+        else
+            echo -n "*-"
+        fi
+        sleep 10
+        if [[ "${i}" -ge 1800 ]]; then
+            log_error "Time out while waiting for worker nodes to be provisioned\
+             with a new boot disk image"
+            break
+        fi
+    done
+
 }
 
 function cleanup_clusterctl_configuration() {
@@ -374,7 +341,7 @@ function cleanup_clusterctl_configuration() {
 }
 
 function create_clusterctl_configuration() {
-cat <<EOF >/home/"${USER}"/.cluster-api/clusterctl.yaml
+    cat <<EOF >/home/"${USER}"/.cluster-api/clusterctl.yaml
 providers:
   - name: cluster-api
     url: /home/$USER/.cluster-api/overrides/cluster-api/v0.3.6/core-components.yaml
@@ -390,13 +357,13 @@ providers:
     type: InfrastructureProvider
 EOF
 
-# At first we install "v0.3.0" for which we need to move this
-# to the CAPM3PATH repo root folder
-#
-# For the upgrade we need to do two things
-# 1. copy v0.3.0 folder to v0.3.6
-# 2. update $HOME/.cluster-api/clusterctl.yaml accordingly
-cat <<EOF >clusterctl-settings-metal3.json
+    # At first we install "v0.3.0" for which we need to move this
+    # to the CAPM3PATH repo root folder
+    #
+    # For the upgrade we need to do two things
+    # 1. copy v0.3.0 folder to v0.3.6
+    # 2. update $HOME/.cluster-api/clusterctl.yaml accordingly
+    cat <<EOF >clusterctl-settings-metal3.json
 {
    "name": "infrastructure-metal3",
     "config": {
@@ -443,7 +410,7 @@ function buildClusterctl() {
     sudo mv bin/clusterctl /usr/local/bin
 
     # create required configuration files
-cat <<EOF >clusterctl-settings.json
+    cat <<EOF >clusterctl-settings.json
 {
   "providers": [ "cluster-api", "bootstrap-kubeadm", "control-plane-kubeadm"]
 }
@@ -457,10 +424,8 @@ function verify_kubernetes_version_upgrade() {
     echo "Waiting for all nodes to be upgraded to ${expected_k8s_version}"
 
     for i in {1..3600}; do
-        kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-          jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-        upgraded_cp=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes | awk 'NR>1' | grep -c "${expected_k8s_version}")
-        if [[ "${upgraded_cp}" == "${expected_nodes}" ]]; then
+        upgraded_cp=$(kubectl  get nodes | awk 'NR>1' | grep -c "${expected_k8s_version}")
+        if [[ "${upgraded_cp}" -eq "${expected_nodes}" ]]; then
             echo "Upgrade of Kubernetes version of all nodes done successfully"
             break
         else
@@ -473,4 +438,30 @@ function verify_kubernetes_version_upgrade() {
         fi
     done
 
+}
+
+# -------------- To be called After Pivoting-back -----------#
+function deprovision_cluster() {
+    pushd "${METAL3_DEV_ENV_DIR}" || exit
+    echo "Deprovisioning the cluster...."
+    bash ./scripts/deprovision/cluster.sh
+    popd || exit
+}
+
+function wait_for_cluster_deprovisioned() {
+    echo "Waiting for cluster to be deprovisioned"
+    for i in {1..3600}; do
+        cluster_count=$(kubectl get clusters -n metal3 2>/dev/null | awk 'NR>1' | wc -l)
+        if [[ "${cluster_count}" -eq "0" ]]; then
+            ready_bmhs=$(kubectl get bmh -n metal3 | awk 'NR>1' | grep -c 'ready')
+            if [[ "${ready_bmhs}" -eq "${NUM_NODES}" ]]; then
+                echo ''
+                echo "Successfully deprovisioned the cluster"
+                break
+            fi
+        else
+            echo -n "-"
+        fi
+        sleep 10
+    done
 }

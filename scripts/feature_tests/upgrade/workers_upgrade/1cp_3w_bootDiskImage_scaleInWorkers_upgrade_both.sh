@@ -19,7 +19,19 @@ set_number_of_master_node_replicas 1
 set_number_of_worker_node_replicas 3
 
 provision_controlplane_node
+
+# Get kubeconfig before pivoting | will be overriden when pivoting
+# Relevant when re-using the cluster for successive tests
+kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
+export KUBECONFIG=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml
+
 controlplane_is_provisioned
+
+# Get kubeconfig before pivoting | will be overriden when pivoting
+# Relevant when re-using the cluster for successive tests
+kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
+export KUBECONFIG=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml
+
 controlplane_has_correct_replicas 1
 
 # apply CNI
@@ -32,6 +44,13 @@ deploy_workload_on_workers
 
 scale_workers_to 2
 worker_has_correct_replicas 2
+
+# Do pivoting
+# This will be replace by a bash script specific to pivoting from upgrade scripts
+export ACTION="upgrading"
+pushd "/home/ubuntu/metal3-dev-env/scripts/feature_tests/pivoting/"
+make pivoting
+popd
 
 # upgrade a Controlplane
 echo "Create a new metal3MachineTemplate with new node image for both controlplane node"
@@ -80,6 +99,16 @@ wr_nodes_using_new_bootDiskImage 3
 
 echo "Upgrading of both (1M + 3W) using scaling in of workers has succeeded"
 log_test_result "1cp_3w_bootDiskImage_scaleInWorkers_upgrade_both.sh" "pass"
+
+# ------------------pivot back here ----------------------- #
+# This needs to be replaced by a script that does pivot-back
+export ACTION="pivotBack"
+pushd "/home/ubuntu/metal3-dev-env/scripts/feature_tests/pivoting/"
+make pivoting
+popd
+# Test cleanup
+
+unset KUBECONFIG # point to ~/.kube/config
 
 deprovision_cluster
 wait_for_cluster_deprovisioned

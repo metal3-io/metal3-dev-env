@@ -14,9 +14,14 @@ echo '' >~/.ssh/known_hosts
 start_logging "${1}"
 # Provision original nodes
 set_number_of_master_node_replicas 1
-set_number_of_worker_node_replicas 1
+set_number_of_worker_node_replicas 3 # Temporary solution for moving all BMHs
 
 provision_controlplane_node
+
+# Get kubeconfig before pivoting | will be overriden when pivoting
+# Relevant when re-using the cluster for successive tests
+kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
+export KUBECONFIG=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml
 
 controlplane_is_provisioned
 controlplane_has_correct_replicas 1
@@ -27,6 +32,12 @@ apply_cni
 provision_worker_node
 worker_has_correct_replicas 1
 
+# Do pivoting
+# This will be replace by a bash script specific to pivoting from upgrade scripts
+export ACTION="upgrading"
+pushd "/home/ubuntu/metal3-dev-env/scripts/feature_tests/pivoting/"
+make pivoting
+popd
 # ----------- upgrade controlplane components ---------------
 cleanup_clusterctl_configuration
 
@@ -186,6 +197,17 @@ log_test_result "1cp_1w_bootDiskImageANDK8sCotrollers_clusterLevel_upgrade.sh" "
 
 # Test cleanup
 cleanup_clusterctl_configuration
+
+# ------------------pivot back here ----------------------- #
+# This needs to be replaced by a script that does pivot-back
+export ACTION="pivotBack"
+pushd "/home/ubuntu/metal3-dev-env/scripts/feature_tests/pivoting/"
+make pivoting
+popd
+# Test cleanup
+
+unset KUBECONFIG # point to ~/.kube/config
+
 deprovision_cluster
 wait_for_cluster_deprovisioned
 

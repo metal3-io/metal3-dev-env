@@ -67,3 +67,6 @@ cleanup_clusterctl_configuration
 echo "Successfully upgraded cluster-api, controlplane and controlplane-kubeadm components"
 log_test_result "upgrade_CAPI_and_CAPM3_with_clusterctl.sh" "pass"
 set +x
+
+
+# This test case is no longer relevant as it is included in the combined tests
