@@ -214,8 +214,6 @@ function launch_baremetal_operator() {
       deploy_kustomization
     fi
 
-    update_images
-
     if [ "${BMO_RUN_LOCAL}" = true ] && [ "${CAPM3_VERSION}" == "v1alpha3" ]; then
       touch bmo.out.log
       touch bmo.err.log
@@ -320,14 +318,16 @@ elif [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
   fi
 fi
 
-if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
-  ${RUN_LOCAL_IRONIC_SCRIPT}
-fi
-
 patch_clusterctl
 
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   launch_baremetal_operator
   launch_cluster_api_provider_metal3
 fi
+
+if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
+  update_images
+  ${RUN_LOCAL_IRONIC_SCRIPT}
+fi
+
 apply_bm_hosts
