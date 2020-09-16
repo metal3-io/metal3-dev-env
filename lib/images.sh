@@ -11,6 +11,9 @@ elif [[ "${IMAGE_OS}" == "FCOS" ]]; then
 elif [[ "${IMAGE_OS}" == "Centos" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-CENTOS_8.2_NODE_IMAGE_K8S_v1.19.3.qcow2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.19.3}
+elif [[ "${IMAGE_OS}" == "Flatcar" ]]; then
+  export IMAGE_NAME=${IMAGE_NAME:-flatcar_production_qemu_image.img.bz2}
+  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://stable.release.flatcar-linux.net/amd64-usr/current/}
 else
   export IMAGE_NAME=${IMAGE_NAME:-cirros-0.5.1-x86_64-disk.img}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-http://download.cirros-cloud.net/0.5.1}

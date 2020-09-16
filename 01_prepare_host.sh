@@ -171,6 +171,13 @@ if [ ! -f "${IMAGE_NAME}" ] ; then
       IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
       export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
     fi
+    if [ "$(echo "${IMAGE_NAME}" | rev | cut -d . -f 1 | rev)" == "bz2" ] ; then
+        bunzip2 "${IMAGE_NAME}"
+	IMAGE_NAME="$(basename "${IMAGE_NAME}" .bz2)"
+	export IMAGE_NAME
+	IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
+	export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
+    fi
     qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
     md5sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.md5sum"
 fi
