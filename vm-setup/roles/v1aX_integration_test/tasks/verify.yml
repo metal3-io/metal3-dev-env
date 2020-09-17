@@ -72,6 +72,8 @@
           # for indentation
                       - name: IP_AUTODETECTION_METHOD
                         value: "interface=eth1"
+                      - name: FELIX_IPTABLESBACKEND
+                        value: "NFT"
     when:
       ansible_distribution == "CentOS"
 
