@@ -84,7 +84,7 @@ FILESYSTEM=${FILESYSTEM:="/"}
 
 # CAPM3 version, defaults to CAPI_VERSION for backwards compatibility, and to v1alpha3
 # TODO remove the defaulting to CAPI_VERSION if multiple CAPI_VERSION work with a CAPM3 version
-export CAPM3_VERSION="${CAPM3_VERSION:-${CAPI_VERSION:-"v1alpha3"}}"
+export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha4"}"
 CAPM3_VERSION_LIST="v1alpha3 v1alpha4"
 if ! echo "${CAPM3_VERSION_LIST}" | grep -wq "${CAPM3_VERSION}"; then
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
@@ -105,14 +105,12 @@ CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-
   CAPM3BRANCH="${CAPM3BRANCH:-master}"
   # Required CAPI version
   # TODO if this requires to support multiple CAPI versions, use a list check like CAPM#_VERSION
   export CAPI_VERSION="v1alpha3"
 
 else
-
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.3}"
   # Required CAPI version
   export CAPI_VERSION="v1alpha3"
