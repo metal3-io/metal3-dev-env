@@ -127,7 +127,7 @@ EOF
     for i in {1..1800}; do
         workload_replicas=$(kubectl get deployments workload-1-deployment \
             -o json | jq '.status.readyReplicas')
-        if [[ "$workload_replicas" == "10" ]]; then
+        if [[ "${workload_replicas}" -eq 10 ]]; then
             echo ''
             echo "Successfully deployed workloads across the cluster"
             break
@@ -189,7 +189,7 @@ function controlplane_is_provisioned() {
           jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
         kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml version /dev/null 2>&1
         # shellcheck disable=SC2181
-        if [[ "$?" == '0' ]]; then
+        if [[ "$?" -eq 0 ]]; then
             CP_NODE_NAME=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes -o json | jq '.items[0].metadata.name')
             echo "Successfully provisioned a controlplane node: ${CP_NODE_NAME}"
             break
@@ -213,8 +213,8 @@ function controlplane_has_correct_replicas() {
           jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
         cp_replicas=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
             awk 'NR>1' | grep -c master)
-        if [[ "${cp_replicas}" == "${replicas}" ]]; then
-            echo "Successfully provisioned controlplane replica nodes"
+        if [[ "${cp_replicas}" -eq "${replicas}" ]]; then
+            echo "Successfully provisioned controlplane replica nodes: ${CP_NODE_NAME}"
             break
         else
             echo -n "+"
@@ -269,7 +269,6 @@ function worker_has_correct_replicas() {
           break
         fi
     done
-
 }
 # From the developer machine, verify that new image is being used
 function cp_nodes_using_new_bootDiskImage() {
@@ -278,7 +277,7 @@ function cp_nodes_using_new_bootDiskImage() {
     for i in {1..3600}; do
         cp_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
             grep -c 'new-controlplane-image')
-        if [[ "${cp_replicas}" == "${replicas}" ]]; then
+        if [[ "${cp_replicas}" -eq "${replicas}" ]]; then
             echo "All CP nodes provisioned with a new boot disk image"
             break
         else
@@ -300,7 +299,7 @@ function wr_nodes_using_new_bootDiskImage() {
     for i in {1..3600}; do
         worker_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
             grep -c 'new-workers-image')
-        if [[ "${worker_replicas}" == "${replicas}" ]]; then
+        if [[ "${worker_replicas}" -eq "${replicas}" ]]; then
             echo "All worker nodes provisioned with a new boot disk image"
             break
         else
@@ -322,7 +321,7 @@ function expected_free_nodes() {
     for i in {1..3600}; do
         released_nodes=$(kubectl get bmh -n metal3 | awk '{{print $3}}' |
             grep -c 'ready')
-        if [[ "${released_nodes}" == "${node_count}" ]]; then
+        if [[ "${released_nodes}" -eq "${node_count}" ]]; then
             echo "Original nodes are released"
             break
         else
@@ -460,7 +459,7 @@ function verify_kubernetes_version_upgrade() {
         kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
           jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
         upgraded_cp=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes | awk 'NR>1' | grep -c "${expected_k8s_version}")
-        if [[ "${upgraded_cp}" == "${expected_nodes}" ]]; then
+        if [[ "${upgraded_cp}" -eq "${expected_nodes}" ]]; then
             echo "Upgrade of Kubernetes version of all nodes done successfully"
             break
         else
