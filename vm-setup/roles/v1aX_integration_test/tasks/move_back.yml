@@ -1,0 +1,23 @@
+############### Pivot back to source cluster ##############
+
+  # Remove Ironic from target cluster
+  - name: Remove Ironic from target cluster
+    k8s:
+      name: metal3-ironic
+      kind: Deployment
+      state: absent
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Install Ironic in Source cluster (Ephemeral Cluster is kind)
+    shell: "bash /home/$USER/go/src/github.com/metal3-io/baremetal-operator/tools/run_local_ironic.sh"
+    environment:
+      CONTAINER_RUNTIME: "{{ CONTAINER_RUNTIME }}"
+    when: EPHEMERAL_CLUSTER == "kind"
+
+  - name: Install Ironic in Source cluster (Ephemeral Cluster is minikube)
+    shell: "kustomize build /home/$USER/go/src/github.com/metal3-io/baremetal-operator/ironic-deployment/keepalived/ | kubectl apply -n {{ NAMESPACE }} -f -"
+    when: EPHEMERAL_CLUSTER == "minikube"
+
+  - name: Re-pivot everything back to source cluster
+    shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"
