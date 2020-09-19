@@ -1,7 +1,7 @@
 use_firewalld: true
 baremetal_interface: baremetal
 provisioning_interface: provisioning
-external_subnet_v4: "192.168.111.0/24"
+external_subnet_v4: "{{ lookup('env', 'EXTERNAL_SUBNET_V4') | default('192.168.111.0/24', true) }}"
 vbmc_port_range: "6230:6235"
 sushy_port: 8000
 firewall_rule_state: present
