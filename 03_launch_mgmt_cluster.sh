@@ -18,6 +18,12 @@ else
   export IRONIC_HOST_IP="${PROVISIONING_IP}"
 fi
 
+# Disable Basic Authentication towards Ironic in BMO and do not provide additional certs
+# Those variables are used in the CAPM3 component files
+export IRONIC_NO_CA_CERT="true"
+export IRONIC_NO_BASIC_AUTH="true"
+export IRONIC_INSPECTOR_NO_BASIC_AUTH="true"
+
 function clone_repos() {
     mkdir -p "${M3PATH}"
     if [[ -d "${BMOPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
