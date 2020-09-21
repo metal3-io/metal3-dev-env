@@ -10,9 +10,13 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
-IRONIC_HOST="${CLUSTER_URL_HOST}"
+export IRONIC_HOST="${CLUSTER_URL_HOST}"
 export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
 
+sudo mkdir -p "${IRONIC_DATA_DIR}"
+sudo chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
+
+# Create certificates and related files for TLS
 if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
   export IRONIC_BASE_URL="https://${CLUSTER_URL_HOST}"
 
@@ -61,7 +65,7 @@ if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
   fi
   if [ ! -f "${IRONIC_INSPECTOR_CERT_FILE}" ]; then
     openssl req -new -key "${IRONIC_INSPECTOR_KEY_FILE}" -out /tmp/ironic.csr -subj /CN="${IRONIC_HOST}"/
-    openssl x509 -req -in /tmp/ironic.csr -CA "${IRONIC_CACERT_FILE}" -CAkey "${IRONIC_CAKEY_FILE}" -CAcreateserial -out "${IRONIC_INSPECTOR_CERT_FILE}" -days 825 -sha256 -extfile <(printf "subjectAltName=IP:%s" "${IRONIC_HOST_IP}")
+    openssl x509 -req -in /tmp/ironic.csr -CA "${IRONIC_INSPECTOR_CACERT_FILE}" -CAkey "${IRONIC_INSPECTOR_CAKEY_FILE}" -CAcreateserial -out "${IRONIC_INSPECTOR_CERT_FILE}" -days 825 -sha256 -extfile <(printf "subjectAltName=IP:%s" "${IRONIC_HOST_IP}")
   fi
 
   #Populate the CA certificate B64 variable
@@ -74,6 +78,7 @@ if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
 
   popd
   popd
+  unset IRONIC_NO_CA_CERT
 else
   export IRONIC_BASE_URL="http://${CLUSTER_URL_HOST}"
   export IRONIC_NO_CA_CERT="true"
@@ -88,10 +93,65 @@ else
   unset IRONIC_INSPECTOR_KEY_FILE
 fi
 
-# Disable Basic Authentication towards Ironic in BMO
-# Those variables are used in the CAPM3 component files
-export IRONIC_NO_BASIC_AUTH="true"
-export IRONIC_INSPECTOR_NO_BASIC_AUTH="true"
+
+# Create usernames and passwords and other files related to basic auth
+if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
+
+  IRONIC_AUTH_DIR="${IRONIC_AUTH_DIR:-"${IRONIC_DATA_DIR}/auth/"}"
+  mkdir -p "${IRONIC_AUTH_DIR}"
+
+  #If usernames and passwords are unset, read them from file or generate them
+  if [ -z "${IRONIC_USERNAME:-}" ]; then
+    if [ ! -f "${IRONIC_AUTH_DIR}ironic-username" ]; then
+        IRONIC_USERNAME="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 12 | head -n 1)"
+        echo "$IRONIC_USERNAME" > "${IRONIC_AUTH_DIR}ironic-username"
+    else
+        IRONIC_USERNAME="$(cat "${IRONIC_AUTH_DIR}ironic-username")"
+    fi
+  fi
+  if [ -z "${IRONIC_PASSWORD:-}" ]; then
+    if [ ! -f "${IRONIC_AUTH_DIR}ironic-password" ]; then
+        IRONIC_PASSWORD="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 12 | head -n 1)"
+        echo "$IRONIC_PASSWORD" > "${IRONIC_AUTH_DIR}ironic-password"
+    else
+        IRONIC_PASSWORD="$(cat "${IRONIC_AUTH_DIR}ironic-password")"
+    fi
+  fi
+  if [ -z "${IRONIC_INSPECTOR_USERNAME:-}" ]; then
+    if [ ! -f "${IRONIC_AUTH_DIR}ironic-inspector-username" ]; then
+        IRONIC_INSPECTOR_USERNAME="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 12 | head -n 1)"
+        echo "$IRONIC_INSPECTOR_USERNAME" > "${IRONIC_AUTH_DIR}ironic-inspector-username"
+    else
+        IRONIC_INSPECTOR_USERNAME="$(cat "${IRONIC_AUTH_DIR}ironic-inspector-username")"
+    fi
+  fi
+  if [ -z "${IRONIC_INSPECTOR_PASSWORD:-}" ]; then
+    if [ ! -f "${IRONIC_AUTH_DIR}ironic-inspector-password" ]; then
+        IRONIC_INSPECTOR_PASSWORD="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 12 | head -n 1)"
+        echo "$IRONIC_INSPECTOR_PASSWORD" > "${IRONIC_AUTH_DIR}ironic-inspector-password"
+    else
+        IRONIC_INSPECTOR_PASSWORD="$(cat "${IRONIC_AUTH_DIR}ironic-inspector-password")"
+    fi
+  fi
+
+  export IRONIC_USERNAME
+  export IRONIC_PASSWORD
+  export IRONIC_INSPECTOR_USERNAME
+  export IRONIC_INSPECTOR_PASSWORD
+
+  unset IRONIC_NO_BASIC_AUTH
+  unset IRONIC_INSPECTOR_NO_BASIC_AUTH
+else
+  # Disable Basic Authentication towards Ironic in BMO
+  # Those variables are used in the CAPM3 component files
+  export IRONIC_NO_BASIC_AUTH="true"
+  export IRONIC_INSPECTOR_NO_BASIC_AUTH="true"
+
+  unset IRONIC_USERNAME
+  unset IRONIC_PASSWORD
+  unset IRONIC_INSPECTOR_USERNAME
+  unset IRONIC_INSPECTOR_PASSWORD
+fi
 
 # -----------------------
 # Repositories management
@@ -138,6 +198,7 @@ function clone_repos() {
 # This is v1a3 specific for BMO, all versions for Ironic
 #
 function update_kustomization_images(){
+  FILE_PATH=$1
   for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     IMAGE=${!IMAGE_VAR}
     #shellcheck disable=SC2086
@@ -146,8 +207,7 @@ function update_kustomization_images(){
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
     # Strip the tag for image replacement
     OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
-    #shellcheck disable=SC2086
-    kustomize edit set image $OLD_IMAGE=$LOCAL_IMAGE
+    sed -i -E "s $OLD_IMAGE$ $LOCAL_IMAGE g" "$FILE_PATH"
   done
   # Assign images from local image registry for kustomization
   for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
@@ -155,53 +215,8 @@ function update_kustomization_images(){
     #shellcheck disable=SC2086
     IMAGE_NAME="${IMAGE##*/}"
     LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
-    #shellcheck disable=SC2086
-    kustomize edit set image $IMAGE=$LOCAL_IMAGE
+    sed -i -E "s $IMAGE$ $LOCAL_IMAGE g" "$FILE_PATH"
   done
-}
-
-#
-# kustomization for V1a3 BMO kustomization and v1a3 and v1a4 kustomization for
-# Ironic. In V1a4 we deploy BMO through CAPM3.
-#
-function kustomize_overlay() {
-  overlay_path=$1
-  cat <<EOF > "$overlay_path/kustomization.yaml"
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-configMapGenerator:
-- behavior: merge
-  literals:
-  - PROVISIONING_IP=$CLUSTER_PROVISIONING_IP
-  - PROVISIONING_INTERFACE=$CLUSTER_PROVISIONING_INTERFACE
-  - PROVISIONING_CIDR=$PROVISIONING_CIDR
-  - DHCP_RANGE=$CLUSTER_DHCP_RANGE
-  - DEPLOY_KERNEL_URL=http://$IRONIC_HOST:6180/images/ironic-python-agent.kernel
-  - DEPLOY_RAMDISK_URL=http://$IRONIC_HOST:6180/images/ironic-python-agent.initramfs
-  - IRONIC_ENDPOINT=$IRONIC_BASE_URL:6385/v1/
-  - IRONIC_INSPECTOR_ENDPOINT=$IRONIC_BASE_URL:5050/v1/
-  - CACHEURL=http://$IRONIC_HOST/images
-  - IRONIC_FAST_TRACK=false
-  name: ironic-bmo-configmap
-resources:
-- $(realpath --relative-to="$overlay_path" "$BMO_CONFIG")
-EOF
-}
-
-#
-# For BMO and Ironic in v1a3, only Ironic in v1a4.
-#
-function deploy_kustomization() {
-  kustomize_overlay_path=$(mktemp -d bmo-XXXXXXXXXX)
-  kustomize_overlay "$kustomize_overlay_path"
-  pushd "$kustomize_overlay_path"
-
-  # Add custom images in overlay, and override the images with local ones
-  update_kustomization_images
-  popd
-
-  kustomize build "$kustomize_overlay_path" | kubectl apply -f-
-  rm -rf "$kustomize_overlay_path"
 }
 
 #
@@ -210,17 +225,49 @@ function deploy_kustomization() {
 function launch_baremetal_operator() {
   pushd "${BMOPATH}"
 
-  if [ "${IRONIC_TLS_SETUP}" != "true" ]; then
-    BMO_CONFIG="${BMOPATH}/deploy/default"
-  else
-    BMO_CONFIG="${BMOPATH}/deploy/tls/default"
-    cp "${IRONIC_CACERT_FILE}" "${BMOPATH}/deploy/tls/default/ca.crt"
-    [ "${IRONIC_CACERT_FILE}" == "${IRONIC_INSPECTOR_CACERT_FILE}" ] || \
-    cat "${IRONIC_INSPECTOR_CACERT_FILE}" >> "${BMOPATH}/deploy/tls/default/ca.crt"
-  fi
-  deploy_kustomization
+  # Deploy BMO using deploy.sh script
 
+  # Update container images to use local ones
+  cp "${BMOPATH}/deploy/operator/bmo.yaml" "${BMOPATH}/deploy/operator/bmo.yaml.orig"
+  update_kustomization_images "${BMOPATH}/deploy/operator/bmo.yaml"
+
+  # Update Configmap parameters with correct urls
+  cp "${BMOPATH}/deploy/default/ironic_bmo_configmap.env" "${BMOPATH}/deploy/default/ironic_bmo_configmap.env.orig"
+  cat << EOF | sudo tee "${BMOPATH}/deploy/default/ironic_bmo_configmap.env"
+DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
+DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
+IRONIC_ENDPOINT=${IRONIC_URL}
+IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
+EOF
+
+  # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
+  "${BMOPATH}/tools/deploy.sh" true false "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
+
+  # Restore original files
+  mv "${BMOPATH}/deploy/default/ironic_bmo_configmap.env.orig" "${BMOPATH}/deploy/default/ironic_bmo_configmap.env"
+  mv "${BMOPATH}/deploy/operator/bmo.yaml.orig" "${BMOPATH}/deploy/operator/bmo.yaml"
+
+  # If BMO should run locally, scale down the deployment and run BMO
   if [ "${BMO_RUN_LOCAL}" = true ]; then
+    if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
+      sudo mkdir -p /opt/metal3/certs/ca/
+      cp "${IRONIC_CACERT_FILE}" /opt/metal3/certs/ca/crt
+      if [ "${IRONIC_CACERT_FILE}" != "${IRONIC_INSPECTOR_CACERT_FILE}" ]; then
+        cat "${IRONIC_INSPECTOR_CACERT_FILE}" >> /opt/metal3/certs/ca/crt
+      fi
+    fi
+    if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
+      sudo mkdir -p /opt/metal3/auth/ironic
+      cp "${IRONIC_AUTH_DIR}ironic-username" /opt/metal3/auth/ironic/username
+      cp "${IRONIC_AUTH_DIR}ironic-password" /opt/metal3/auth/ironic/password
+      sudo mkdir -p /opt/metal3/auth/ironic-inspector
+      cp "${IRONIC_AUTH_DIR}ironic-inspector-username" /opt/metal3/auth/ironic-inspector/username
+      cp "${IRONIC_AUTH_DIR}ironic-inspector-password" /opt/metal3/auth/ironic-inspector/password
+    fi
+
+    export IRONIC_ENDPOINT=${IRONIC_URL}
+    export IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
+
     touch bmo.out.log
     touch bmo.err.log
     kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
@@ -230,27 +277,76 @@ function launch_baremetal_operator() {
 }
 
 #
+# Modifies the images to use the ones built locally
+# Updates the environment variables to refer to the images
+# pushed to the local registry for caching.
+#
+function update_images(){
+  for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
+    IMAGE=${!IMAGE_VAR}
+    #shellcheck disable=SC2086
+    IMAGE_NAME="${IMAGE##*/}"
+    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
+    OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
+    # Strip the tag for image replacement
+    OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
+    eval "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
+    export "${OLD_IMAGE_VAR?}"
+  done
+  # Assign images from local image registry after update image
+  # This allows to use cached images for faster downloads
+  for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
+    IMAGE=${!IMAGE_VAR}
+    #shellcheck disable=SC2086
+    IMAGE_NAME="${IMAGE##*/}"
+    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
+    eval "$IMAGE_VAR"="$LOCAL_IMAGE"
+  done
+}
+
+#
 # Launch Ironic locally for Kind and Tilt, in cluster for Minikube
 #
 function launch_ironic() {
+  pushd "${BMOPATH}"
+
   if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
+    update_images
     ${RUN_LOCAL_IRONIC_SCRIPT}
   else
-    if [ "${IRONIC_TLS_SETUP}" != "true" ]; then
-      BMO_CONFIG="${BMOPATH}/ironic-deployment/keepalived"
-    else
-      BMO_CONFIG="${BMOPATH}/ironic-deployment/tls/keepalived"
-      cp "${IRONIC_CACERT_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic-ca.crt"
-      cp "${IRONIC_INSPECTOR_CACERT_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic-inspector-ca.crt"
+    # Deploy Ironic using deploy.sh script
 
-      cp "${IRONIC_CERT_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic.crt"
-      cp "${IRONIC_KEY_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic.key"
+    # Update container images to use local ones
+    cp "${BMOPATH}/ironic-deployment/ironic/ironic.yaml" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig"
+    cp "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml" "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml.orig"
+    update_kustomization_images "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
+    update_kustomization_images "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml"
 
-      cp "${IRONIC_INSPECTOR_CERT_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic-inspector.crt"
-      cp "${IRONIC_INSPECTOR_KEY_FILE}" "${BMOPATH}/ironic-deployment/tls/keepalived/ironic-inspector.key"
-    fi
-    deploy_kustomization
+    # Update Configmap parameters with correct urls
+    cp "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig"
+    cat << EOF | sudo tee "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+HTTP_PORT=6180
+PROVISIONING_IP=${CLUSTER_PROVISIONING_IP}
+PROVISIONING_CIDR=${PROVISIONING_CIDR}
+PROVISIONING_INTERFACE=${CLUSTER_PROVISIONING_INTERFACE}
+DHCP_RANGE=${CLUSTER_DHCP_RANGE}
+DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
+DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
+IRONIC_ENDPOINT=${IRONIC_URL}
+IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
+CACHEURL=http://$IRONIC_HOST/images
+IRONIC_FAST_TRACK=false
+EOF
+    # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
+    "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
+
+    # Restore original files
+    mv "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+    mv "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
+    mv "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml.orig" "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml"
+
   fi
+  popd
 }
 
 # ------------
@@ -407,34 +503,6 @@ function create_clouds_yaml() {
   cp clouds.yaml "${SCRIPTDIR}"/_clouds_yaml/
 }
 
-#
-# Modifies the images to use the ones built locally
-# Updates the environment variables to refer to the images
-# pushed to the local registry for caching.
-#
-function update_images(){
-  for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
-    IMAGE=${!IMAGE_VAR}
-    #shellcheck disable=SC2086
-    IMAGE_NAME="${IMAGE##*/}"
-    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
-    OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
-    # Strip the tag for image replacement
-    OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
-    eval "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
-    export "${OLD_IMAGE_VAR?}"
-  done
-  # Assign images from local image registry after update image
-  # This allows to use cached images for faster downloads
-  for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
-    IMAGE=${!IMAGE_VAR}
-    #shellcheck disable=SC2086
-    IMAGE_NAME="${IMAGE##*/}"
-    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
-    eval "$IMAGE_VAR"="$LOCAL_IMAGE"
-  done
-}
-
 # ------------------------
 # Management cluster infra
 # ------------------------
@@ -492,8 +560,6 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
     kubectl create namespace metal3
   fi
 fi
-
-update_images
 
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   patch_clusterctl
