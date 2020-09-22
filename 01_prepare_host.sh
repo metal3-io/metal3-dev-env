@@ -33,6 +33,14 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -i vm-setup/inventory.ini \
   -b -vvv vm-setup/install-package-playbook.yml
 
+# Add usr/local/go/bin to the PATH environment variable
+GOBINARY="/usr/local/go/bin"
+if [[ ":$PATH:" != *":$GOBINARY:"* ]]; then
+  echo export PATH="$PATH":/usr/local/go/bin >> ~/.bashrc
+  # shellcheck disable=SC1090
+  source ~/.bashrc
+fi
+
 # shellcheck disable=SC1091
 source lib/releases.sh
 
