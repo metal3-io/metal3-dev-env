@@ -51,11 +51,11 @@
 
 - name: pivot
   include: move.yml
-  when: v1aX_integration_test_action == "pivoting" or v1aX_integration_test_action == "upgrading"
+  when: v1aX_integration_test_action in pivot_actions
 
 - name: repivot
   include: move_back.yml
-  when: v1aX_integration_test_action == "pivoting"
+  when: v1aX_integration_test_action == "repivoting"
 
 - name: Deprovision worker nodes
   k8s:

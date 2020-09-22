@@ -1,4 +1,8 @@
 ---
+  - name: Define number of BMH's
+    set_fact:
+      NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
+
   - name: Remove ironic container from source cluster (Ephemeral Cluster is kind)
     docker_container:
       name: "{{ item }}"
