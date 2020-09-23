@@ -15,3 +15,6 @@ repivoting:
 
 deprovision:
 	./../feature_test_deprovisioning.sh
+
+upgrading:
+	./upgrade.sh
