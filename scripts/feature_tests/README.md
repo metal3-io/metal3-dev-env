@@ -2,9 +2,10 @@
 
 ## Build Status
 
-[![Ubuntu V1alpha3 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/badge/icon?subject=Feature-tests)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
-[![Centos V1alpha3 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_centos/badge/icon?subject=Feature-tests-centos)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_centos/)
-[![Ubuntu V1alpha3 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/badge/icon?subject=Feature-tests-upgrade)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
+[![Ubuntu V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/badge/icon?subject=Feature-tests)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
+[![Centos V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_centos/badge/icon?subject=Feature-tests-centos)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_centos/)
+[![Ubuntu V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/badge/icon?subject=Feature-tests-upgrade)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
+[![Centos V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_centos/badge/icon?subject=Feature-tests-upgrade-centos)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_centos/)
 
 Feature tests framework is made to run a set of scripts for testing pivoting,
 remediation and upgrade functionalities of Metal3 project.
@@ -20,10 +21,17 @@ It is recommended to run test-framework CI especially when
 introducing a commit related to pivoting/remediation/upgrade, to ensure that new
 changes will not break the existing functionalities.
 
-Test-framework can be triggered by leaving `/test-features` and
-`/test-features-centos` (Ubuntu and Centos based respectively) comments for
-remediation/pivoting and `/test-upgrade-features` comment for upgrade on a pull
-request.
+Test-framework can be triggered by leaving
+
+- `/test-features` (Ubuntu based)
+- `/test-features-centos` (Centos based)
+
+comments for remediation/pivoting and
+
+- `/test-upgrade-features` (Ubuntu based)
+- `/test-upgrade-features-centos` (Centos based, combined tests running clusterctl)
+
+comments for upgrade on a pull request.
 
 The folder structure of the test-framework and its related scripts look
 as following:
@@ -83,10 +91,11 @@ When the test-framework is triggered with `/test-features` or
   - deprovision cluster and BMH
   - destroy the environment (i.e. run `make clean`)
 
-When the test-framework is triggered with `/test-upgrade-features`, it will:
+When the test-framework is triggered with `/test-upgrade-features` or
+`/test-upgrade-features-centos`, it will:
 
 - setup metal3-dev-env
-  - export CAPM3RELEASE and CAPIRELEASE
+  - if **centos** option is run, `upgrade_vars.sh` is sourced
   - run 01_\*, 02_\*, 03_\*, 04_\* scripts
 - run upgrade tests
   - provision cluster and BMH
@@ -117,14 +126,6 @@ export CONTAINER_RUNTIME=podman
 export NUM_NODES=4
 ```
 
-Environment variables needed for upgrade tests running clusterctl,
-set as default values:
-
-```bash
-export CAPM3RELEASE=v0.3.2
-export CAPIRELEASE=v0.3.4
-```
-
 Recommended resource requirements for the host machine are: 8C CPUs, 32 GB RAM,
 300 GB disk space.
 
@@ -144,11 +145,18 @@ and
 that can be run when triggered with `/test-features` and `/test-features-centos`
 phrases for Ubuntu and Centos, accordingly on a pull request.
 
-We are running two jobs for the **upgrade** framework testing. One is
+We are running two master jobs for the **upgrade** framework testing. One is
 [master](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
-job which runs every day, and second one is
+job for Ubuntu and the other
+[master](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_centos/)
+job for Centos which runs every night.
+
+Similarly two other jobs,
 [airship_*_feature_tests_upgrade_ubuntu](https://jenkins.nordix.org/view/Airship/job/airship_metal3io_metal3_dev_env_feature_tests_upgrade_ubuntu/)
-that can be triggered with `/test-upgrade-features` phrase on a pull request.
+and
+[airship_*_feature_tests_upgrade_centos](https://jenkins.nordix.org/view/Airship/job/airship_metal3io_metal3_dev_env_feature_tests_upgrade_centos/)
+that can be triggered with `/test-upgrade-features` and `/test-upgrade-features-centos`
+phrases for Ubuntu and Centos, accordingly on a pull request.
 
 Depending on where from the job is triggered, **\*** can be:
 
