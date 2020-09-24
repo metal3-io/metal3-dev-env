@@ -38,7 +38,7 @@
         | .metadata.name ] | length'
     register: deprovisioned_nodes
     retries: 150
-    delay: 3
+    delay: 10
     until: deprovisioned_nodes.stdout ==  NUM_NODES
 
   - name: Wait until no metal3machines are remaining
