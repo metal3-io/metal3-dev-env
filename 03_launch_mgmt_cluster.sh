@@ -117,22 +117,8 @@ if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
         IRONIC_PASSWORD="$(cat "${IRONIC_AUTH_DIR}ironic-password")"
     fi
   fi
-  if [ -z "${IRONIC_INSPECTOR_USERNAME:-}" ]; then
-    if [ ! -f "${IRONIC_AUTH_DIR}ironic-inspector-username" ]; then
-        IRONIC_INSPECTOR_USERNAME="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 12 | head -n 1)"
-        echo "$IRONIC_INSPECTOR_USERNAME" > "${IRONIC_AUTH_DIR}ironic-inspector-username"
-    else
-        IRONIC_INSPECTOR_USERNAME="$(cat "${IRONIC_AUTH_DIR}ironic-inspector-username")"
-    fi
-  fi
-  if [ -z "${IRONIC_INSPECTOR_PASSWORD:-}" ]; then
-    if [ ! -f "${IRONIC_AUTH_DIR}ironic-inspector-password" ]; then
-        IRONIC_INSPECTOR_PASSWORD="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 12 | head -n 1)"
-        echo "$IRONIC_INSPECTOR_PASSWORD" > "${IRONIC_AUTH_DIR}ironic-inspector-password"
-    else
-        IRONIC_INSPECTOR_PASSWORD="$(cat "${IRONIC_AUTH_DIR}ironic-inspector-password")"
-    fi
-  fi
+  IRONIC_INSPECTOR_USERNAME="${IRONIC_INSPECTOR_USERNAME:-"${IRONIC_USERNAME}"}"
+  IRONIC_INSPECTOR_PASSWORD="${IRONIC_INSPECTOR_PASSWORD:-"${IRONIC_PASSWORD}"}"
 
   export IRONIC_USERNAME
   export IRONIC_PASSWORD
@@ -493,14 +479,20 @@ function launch_cluster_api_provider_metal3() {
 # Miscellaneous
 # -------------
 
+function render_j2_config () {
+  python3 -c 'import os; import sys; import jinja2; sys.stdout.write(jinja2.Template(sys.stdin.read()).render(env=os.environ))' < "${1}"
+}
+
 #
 # Write out a clouds.yaml for this environment
 #
 function create_clouds_yaml() {
-  sed -e "s/__CLUSTER_URL_HOST__/$CLUSTER_URL_HOST/g" clouds.yaml.template > clouds.yaml
   # To bind this into the ironic-client container we need a directory
   mkdir -p "${SCRIPTDIR}"/_clouds_yaml
-  cp clouds.yaml "${SCRIPTDIR}"/_clouds_yaml/
+  if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
+    cp "${IRONIC_CACERT_FILE}" "${SCRIPTDIR}"/_clouds_yaml/ironic-ca.crt
+  fi
+  render_j2_config "${SCRIPTDIR}"/clouds.yaml.j2 > _clouds_yaml/clouds.yaml
 }
 
 # ------------------------

@@ -1,5 +1,0 @@
-clouds:
-  metal3:
-    auth_type: none
-    baremetal_endpoint_override: http://__CLUSTER_URL_HOST__:6385
-    baremetal_introspection_endpoint_override: http://__CLUSTER_URL_HOST__:5050
