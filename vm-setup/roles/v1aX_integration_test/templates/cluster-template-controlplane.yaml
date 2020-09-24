@@ -98,11 +98,6 @@ spec:
         - id: provision
           link: enp1s0
           ipAddressFromIPPool: provisioning-pool
-          routes:
-            - network: 0.0.0.0
-              prefix: 0
-              gateway:
-                fromIPPool: provisioning-pool
 {% endif %}                
 {% endif %}
 {% if IP_STACK == 'v6' or IP_STACK == 'v4v6'%}
