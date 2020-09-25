@@ -100,6 +100,11 @@ CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
+IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
+IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
+IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
+IPAMBRANCH="${IPAMBRANCH:-master}"
+
 CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
@@ -162,6 +167,8 @@ if [ "${CAPM3_VERSION}" == "v1alpha3" ]; then
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
 fi
+
+export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:master"}
 
 # default hosts memory
 export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-4096}

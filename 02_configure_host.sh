@@ -127,7 +127,7 @@ reg_state=$(sudo "$CONTAINER_RUNTIME" inspect registry --format  "{{.State.Statu
 
 # ubuntu_install_requirements.sh script restarts docker daemon which causes local registry container to be in exited state.
 if [[ "$reg_state" == "exited" ]]; then
-  sudo "${CONTAINER_RUNTIME}" start registry  
+  sudo "${CONTAINER_RUNTIME}" start registry
 elif [[ "$reg_state" != "running" ]]; then
   sudo "${CONTAINER_RUNTIME}" rm registry -f || true
   sudo "${CONTAINER_RUNTIME}" run -d -p 5000:5000 --name registry "$DOCKER_REGISTRY_IMAGE"
@@ -141,8 +141,8 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
   IMAGE_NAME="${IMAGE##*/}"
   #shellcheck disable=SC2086
   LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME}"
-  sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}" 
-  
+  sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
+
   if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
     sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
   else
@@ -182,7 +182,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   fi
 
   #shellcheck disable=SC2086
-  export $IMAGE_VAR="${IMAGE##*/}:latest"
+  export $IMAGE_VAR="${IMAGE##*/}"
   #shellcheck disable=SC2086
   export $IMAGE_VAR="${REGISTRY}/localimages/${!IMAGE_VAR}"
   sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f "${DOCKERFILE}"

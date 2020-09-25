@@ -52,6 +52,19 @@ function clone_repos() {
       popd
     fi
 
+    if [[ -d "${IPAMPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+      rm -rf "${IPAMPATH}"
+    fi
+    if [ ! -d "${IPAMPATH}" ] ; then
+      pushd "${M3PATH}"
+      git clone "${IPAMREPO}" "${IPAMPATH}"
+      popd
+      pushd "${IPAMPATH}"
+      git checkout "${IPAMBRANCH}"
+      git pull -r || true
+      popd
+    fi
+
     #TODO Consider option to download prebaked clusterctl binary
     if [[ -d "${CAPIPATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
       rm -rf "${CAPIPATH}"
@@ -67,49 +80,62 @@ function clone_repos() {
     fi
 }
 
+function update_capm3_imports(){
+  pushd "${CAPM3PATH}"
+
+  cp config/bmo/kustomization.yaml config/bmo/kustomization.yaml.orig
+  FOLDERS="$(grep github.com/metal3-io/baremetal-operator/ "config/bmo/kustomization.yaml" | \
+  awk '{ print $2 }' | sed -e 's#^github.com/metal3-io/baremetal-operator/##' -e 's/?ref=.*$//')"
+  BMO_REAL_PATH="$(realpath --relative-to="${CAPM3PATH}/config/bmo" "${BMOPATH}")"
+  for folder in $FOLDERS; do
+    sed -i -e "s#github.com/metal3-io/baremetal-operator/${folder}?ref=.*#${BMO_REAL_PATH}/${folder}#" "config/bmo/kustomization.yaml"
+  done
+
+  make hack/tools/bin/kustomize
+  ./hack/tools/bin/kustomize build "${IPAMPATH}/config/" > config/ipam/metal3-ipam-components.yaml
+  sed -i -e "s#https://github.com/metal3-io/ip-address-manager/releases/download/v.*/ipam-components.yaml#metal3-ipam-components.yaml#" "config/ipam/kustomization.yaml"
+  popd
+}
+
+function update_capm3_image(){
+  IMPORT=$1
+  ORIG_IMAGE=$2
+  # Split the image IMAGE_NAME AND IMAGE_TAG, if any tag exist
+  TMP_IMAGE="${ORIG_IMAGE##*/}"
+  TMP_IMAGE_NAME="${TMP_IMAGE%%:*}"
+  TMP_IMAGE_TAG="${TMP_IMAGE##*:}"
+  # Assign the image tag to latest if there is no tag in the image
+  if [ "${TMP_IMAGE_NAME}" == "${TMP_IMAGE_TAG}" ]; then
+    TMP_IMAGE_TAG="latest"
+  fi
+
+  if [ "${IMPORT}" == "CAPM3" ]; then
+    export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
+    export MANIFEST_TAG="${TMP_IMAGE_TAG}"
+    make set-manifest-image
+  elif [ "${IMPORT}" == "BMO" ]; then
+    export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
+    export MANIFEST_TAG_BMO="$TMP_IMAGE_TAG"
+    make set-manifest-image-bmo
+  elif [ "${IMPORT}" == "IPAM" ]; then
+    export MANIFEST_IMG_IPAM="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
+    export MANIFEST_TAG_IPAM="$TMP_IMAGE_TAG"
+    make set-manifest-image-ipam
+  fi
+}
+
 function patch_clusterctl(){
   pushd "${CAPM3PATH}"
   mkdir -p "${HOME}"/.cluster-api
   touch "${HOME}"/.cluster-api/clusterctl.yaml
 
-  if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
-    CAPM3_IMAGE_NAME_WITH_TAG="${CAPM3_LOCAL_IMAGE##*/}"
-  else
-    CAPM3_IMAGE_NAME_WITH_TAG="${CAPM3_IMAGE##*/}"
-  fi
-
-  # Split the image CAPM3_IMAGE_NAME AND CAPM3_IMAGE_TAG, if any tag exist
-  CAPM3_IMAGE_NAME="${CAPM3_IMAGE_NAME_WITH_TAG%%:*}"
-  CAPM3_IMAGE_TAG="${CAPM3_IMAGE_NAME_WITH_TAG##*:}"
-  # Assign the image tag to latest if there is no tag in the image
-  if [ "${CAPM3_IMAGE_NAME}" == "${CAPM3_IMAGE_TAG}" ]; then
-    CAPM3_IMAGE_TAG="latest"
-  fi
-
-  export MANIFEST_IMG="${REGISTRY}/localimages/$CAPM3_IMAGE_NAME"
-  export MANIFEST_TAG="$CAPM3_IMAGE_TAG"
-  make set-manifest-image
-
-  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ] && [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
-    BMO_IMAGE_NAME_WITH_TAG="${BAREMETAL_OPERATOR_LOCAL_IMAGE##*/}"
-  else
-    BMO_IMAGE_NAME_WITH_TAG="${BAREMETAL_OPERATOR_IMAGE##*/}"
-  fi
-
-  # Split the image to BMO_IMAGE_NAME AND BMO_IMAGE_TAG, if any tag exist
-  BMO_IMAGE_NAME="${BMO_IMAGE_NAME_WITH_TAG%%:*}"
-  BMO_IMAGE_TAG="${BMO_IMAGE_NAME_WITH_TAG##*:}"
-
-  # Assign the image tag to latest if there is no tag in the image
-  if [ "${BMO_IMAGE_NAME}" == "${BMO_IMAGE_TAG}" ]; then
-    BMO_IMAGE_TAG="latest"
-  fi
-
-  export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$BMO_IMAGE_NAME"
-  export MANIFEST_TAG_BMO="$BMO_IMAGE_TAG"
+  # At this point the images have been updated with update_images
+  update_capm3_image CAPM3 "${CAPM3_IMAGE}"
 
   if [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
-    make set-manifest-image-bmo
+    update_capm3_image BMO "${BAREMETAL_OPERATOR_IMAGE}"
+    update_capm3_image IPAM "${IPAM_IMAGE}"
+    update_capm3_imports
   fi
 
   make release-manifests
@@ -169,7 +195,7 @@ function update_images(){
 
 function kustomize_overlay_bmo() {
   overlay_path=$1
-cat <<EOF> "$overlay_path/kustomization.yaml"
+cat <<EOF > "$overlay_path/kustomization.yaml"
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 configMapGenerator:
@@ -324,15 +350,18 @@ elif [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
   fi
 fi
 
-patch_clusterctl
-
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   launch_baremetal_operator
+fi
+
+update_images
+
+if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
+  patch_clusterctl
   launch_cluster_api_provider_metal3
 fi
 
 if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
-  update_images
   ${RUN_LOCAL_IRONIC_SCRIPT}
 fi
 
