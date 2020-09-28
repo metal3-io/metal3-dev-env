@@ -104,7 +104,7 @@ function install_clusterctl() {
 
 if ! [ -x "$(command -v clusterctl)" ]; then
   install_clusterctl
-elif [ "$(clusterctl version | grep -o -P '(?<=GitVersion:).*?(?=,)')" != "${CAPIRELEASE}" ]; then
+elif [ "$(clusterctl version | grep -o -P '(?<=GitVersion:).*?(?=,)')" != "\"${CAPIRELEASE}\"" ]; then
   sudo rm /usr/local/bin/clusterctl
   install_clusterctl
 fi
