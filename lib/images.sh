@@ -9,8 +9,8 @@ elif [[ "${IMAGE_OS}" == "FCOS" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-fedora-coreos-30.20191014.0-openstack.x86_64.qcow2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://builds.coreos.fedoraproject.org/prod/streams/testing/builds/30.20191014.0/x86_64/}
 elif [[ "${IMAGE_OS}" == "Centos" ]]; then
-  export IMAGE_NAME=${IMAGE_NAME:-CentOS-8-GenericCloud-8.1.1911-20200113.3.x86_64.qcow2}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://cloud.centos.org/centos/8/x86_64/images/}
+  export IMAGE_NAME=${IMAGE_NAME:-CENTOS_8.2_NODE_IMAGE_K8S_v1.18.8.qcow2}
+  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.18.8}
 else
   export IMAGE_NAME=${IMAGE_NAME:-cirros-0.4.0-x86_64-disk.img}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-http://download.cirros-cloud.net/0.4.0}
