@@ -43,7 +43,9 @@ feature_tests/
 ├── feature_test_provisioning.sh
 ├── pivoting
 │   ├── Makefile
-│   └── pivot.sh
+│   ├── pivot.sh
+│   ├── repivot.sh
+│   └── upgrade.sh
 ├── README.md
 ├── remediation
 │   ├── Makefile
