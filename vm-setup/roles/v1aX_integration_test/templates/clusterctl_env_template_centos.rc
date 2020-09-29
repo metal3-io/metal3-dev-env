@@ -1,3 +1,4 @@
+export REGISTRY='{{ REGISTRY }}'
 export IRONIC_HOST_IP='{{ IRONIC_HOST_IP }}'
 export DEPLOY_KERNEL_URL='{{ DEPLOY_KERNEL_URL }}'
 export DEPLOY_RAMDISK_URL='{{ DEPLOY_RAMDISK_URL }}'
@@ -183,7 +184,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
         permissions: '0644'
         content: |
           {
-            \"insecure-registries\" : [\"192.168.111.1:5000\"]
+            \"insecure-registries\" : [\"{{ REGISTRY }}\"]
           }
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
@@ -283,6 +284,6 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
           permissions: '0644'
           content: |
             {
-              \"insecure-registries\" : [\"192.168.111.1:5000\"]
+              \"insecure-registries\" : [\"{{ REGISTRY }}\"]
             }
 "

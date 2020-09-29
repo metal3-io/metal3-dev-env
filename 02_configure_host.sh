@@ -130,7 +130,7 @@ if [[ "$reg_state" == "exited" ]]; then
   sudo "${CONTAINER_RUNTIME}" start registry
 elif [[ "$reg_state" != "running" ]]; then
   sudo "${CONTAINER_RUNTIME}" rm registry -f || true
-  sudo "${CONTAINER_RUNTIME}" run -d -p 5000:5000 --name registry "$DOCKER_REGISTRY_IMAGE"
+  sudo "${CONTAINER_RUNTIME}" run -d -p "${REGISTRY_PORT}":5000 --name registry "$DOCKER_REGISTRY_IMAGE"
 fi
 sleep 5
 
