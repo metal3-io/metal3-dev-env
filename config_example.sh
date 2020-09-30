@@ -117,11 +117,11 @@
 
 # Image for target hosts deployment
 #
-#export IMAGE_NAME="cirros-0.4.0-x86_64-disk.img"
+#export IMAGE_NAME="cirros-0.5.1-x86_64-disk.img"
 
 # Location of the image to download
 #
-#export IMAGE_LOCATION="http://download.cirros-cloud.net/0.4.0"
+#export IMAGE_LOCATION="http://download.cirros-cloud.net/0.5.1"
 
 # Image username for ssh
 #
