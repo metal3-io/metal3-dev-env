@@ -92,6 +92,7 @@ verify_actions:
     - "ci_test_provision"
     - "feature_test_provisioning"
     - "pivoting"
+    - "upgrading"  
 pivot_actions:
     - "pivoting"    
     - "upgrading"
