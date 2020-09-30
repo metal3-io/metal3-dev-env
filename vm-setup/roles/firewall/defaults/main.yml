@@ -2,6 +2,7 @@ use_firewalld: true
 baremetal_interface: baremetal
 provisioning_interface: provisioning
 external_subnet_v4: "{{ lookup('env', 'EXTERNAL_SUBNET_V4') | default('192.168.111.0/24', true) }}"
+registry_port: "{{ lookup('env', 'REGISTRY_PORT') | default('5000', true) }}"
 vbmc_port_range: "6230:6235"
 sushy_port: 8000
 firewall_rule_state: present
@@ -15,7 +16,7 @@ provisioning_host_ports:
   # Caching HTTP Server
   - "80"
   # Container image registry
-  - "5000"
+  - "{{ registry_port }}"
   # DNS for registry naming resolution
   - "53"
 pxe_udp_ports:
