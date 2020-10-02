@@ -136,6 +136,13 @@ pushd "$IRONIC_IMAGE_DIR"
 
 if [ ! -f "${IMAGE_NAME}" ] ; then
     curl --insecure --compressed -O -L "${IMAGE_LOCATION}/${IMAGE_NAME}"
+    if [ "$(echo "${IMAGE_NAME}" | rev | cut -d . -f 1 | rev)" == "xz" ] ; then
+        unxz -v "${IMAGE_NAME}"
+      IMAGE_NAME="$(basename "${IMAGE_NAME}" .xz)"
+      export IMAGE_NAME
+      IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
+      export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
+    fi
     qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
     md5sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.md5sum"
 fi
