@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# shellcheck disable=SC1091
+source lib/common.sh
+
 function get_latest_release() {
   set +x
   if [ -z "${GITHUB_TOKEN:-}" ]; then
@@ -8,7 +11,15 @@ function get_latest_release() {
     release="$(curl -H "Authorization: token ${GITHUB_TOKEN}" -sL "${1}")" || ( set -x && exit 1 )
   fi
   # This gets the latest release as vx.y.z , ignoring any version with a suffix starting with - , for example -rc0
-  release_tag="$(echo "$release" | jq -r "[.[].tag_name | select( startswith(\"${2:-""}\")) | select(contains(\"-\")==false)] | max ")"
+  release_tags_unsorted="$(echo "$release" | jq -r "[.[].tag_name | select( startswith(\"${2:-""}\")) | select(contains(\"-\")==false)]" \
+    | cut -sf2 -d\"  | tr '.' ' ' )"
+  if [[ $OS == ubuntu ]]; then
+    release_tags_sorted="$(echo "$release_tags_unsorted" | sort -n +1 +2 )"
+  else
+    release_tags_sorted="$(echo "$release_tags_unsorted" | sort -nk1 -nk2 -nk3 )"
+  fi
+  release_tag="$(echo "$release_tags_sorted" | tail -n 1 | tr ' ' '.')"
+
   if [[ "$release_tag" == "null" ]]; then
     set -x
     exit 1
