@@ -145,7 +145,7 @@ EOF
 
 function manage_node_taints() {
     kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-    jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
+      jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
 
     # Enable workload on masters
     # untaint all masters (one workers also gets untainted, doesn't matter):
@@ -238,7 +238,7 @@ function worker_has_correct_replicas() {
     fi
 
     for i in {1..1800}; do
-        wr_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned | grep -c worker)
+        wr_replicas=$(kubectl get bmh -n "${NAMESPACE}" | grep -i provisioned | grep -c worker)
         if [[ "${replicas}" -eq 0 ]]; then
             if [[ "${wr_replicas}" -eq "${replicas}" ]]; then
                 echo "Expected worker replicas have left the cluster"

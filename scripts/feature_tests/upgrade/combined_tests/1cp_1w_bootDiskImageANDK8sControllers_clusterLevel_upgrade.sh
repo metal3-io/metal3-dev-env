@@ -188,9 +188,6 @@ kubectl apply -f "${wr_Metal3MachineTemplate_OUTPUT_FILE}"
 cp_nodes_using_new_bootDiskImage 1
 wr_nodes_using_new_bootDiskImage 1
 
-# Verify kubernetes version upgrade
-# verify_kubernetes_version_upgrade "${UPGRADED_K8S_VERSION_2}" 2
-
 # Verify nodes are freed
 expected_free_nodes 2
 
