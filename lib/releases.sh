@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# shellcheck disable=SC1091
-source lib/common.sh
-
 function get_latest_release() {
   set +x
   if [ -z "${GITHUB_TOKEN:-}" ]; then
