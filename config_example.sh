@@ -102,7 +102,7 @@
 #
 #export CAPM3_VERSION=v1alpha3
 
-#export KUBERNETES_VERSION="v1.18.0"
+#export KUBERNETES_VERSION="v1.18.8"
 
 # Version of kubelet, kubeadm and kubectl binaries
 #export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
