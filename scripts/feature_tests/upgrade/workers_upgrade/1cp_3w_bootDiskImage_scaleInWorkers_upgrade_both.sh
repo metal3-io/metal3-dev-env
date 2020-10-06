@@ -19,19 +19,29 @@ set_number_of_master_node_replicas 1
 set_number_of_worker_node_replicas 3
 
 provision_controlplane_node
+sleep 60
+get_target_kubeconfig
+point_to_target_cluster
+
 controlplane_is_provisioned
 controlplane_has_correct_replicas 1
 
-# apply CNI
-apply_cni
-
+point_to_management_cluster
 provision_worker_node
+
+point_to_target_cluster
 worker_has_correct_replicas 3
 
 deploy_workload_on_workers
-
 scale_workers_to 2
 worker_has_correct_replicas 2
+
+point_to_management_cluster
+pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/pivoting" || exit
+export NUM_OF_MASTER_REPLICAS=1
+export NUM_OF_WORKER_REPLICAS=3
+make upgrade
+popd || exit
 
 # upgrade a Controlplane
 echo "Create a new metal3MachineTemplate with new node image for both controlplane node"
@@ -81,7 +91,12 @@ wr_nodes_using_new_bootDiskImage 3
 echo "Upgrading of both (1M + 3W) using scaling in of workers has succeeded"
 log_test_result "1cp_3w_bootDiskImage_scaleInWorkers_upgrade_both.sh" "pass"
 
+pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/pivoting" || exit
+export NUM_OF_MASTER_REPLICAS=1
+export NUM_OF_WORKER_REPLICAS=3
+make upgrade
+popd || exit
+
 deprovision_cluster
 wait_for_cluster_deprovisioned
-
 set +x

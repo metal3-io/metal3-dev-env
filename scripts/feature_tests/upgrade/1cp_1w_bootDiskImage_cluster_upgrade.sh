@@ -11,19 +11,30 @@ echo '' >~/.ssh/known_hosts
 
 start_logging "${1}"
 # Provision original nodes
-set_number_of_master_node_replicas 1
+set_number_of_master_node_replicas 3
 set_number_of_worker_node_replicas 1
 
 provision_controlplane_node
+sleep 60
 
+get_target_kubeconfig
+point_to_target_cluster
 controlplane_is_provisioned
+controlplane_has_correct_replicas 3
+
+point_to_management_cluster
+provision_worker_node
+
+point_to_target_cluster
+worker_has_correct_replicas 1
+
+scale_controlplane_to 1
 controlplane_has_correct_replicas 1
 
-# apply CNI
-apply_cni
-
-provision_worker_node
-worker_has_correct_replicas 1
+point_to_management_cluster
+pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/pivoting" || exit
+make upgrade
+popd || exit
 
 # Change boot disk image
 echo "Create a new metal3MachineTemplate with new node image for both \
@@ -70,6 +81,12 @@ echo "Boot disk upgrade of both controlplane and worker nodes has succeeded."
 log_test_result "1cp_1w_bootDiskImage_cluster_upgrade.sh" "pass"
 
 # Test cleanup
+
+point_to_management_cluster
+pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/pivoting" || exit
+make repivoting
+popd || exit
+
 deprovision_cluster
 wait_for_cluster_deprovisioned
 
