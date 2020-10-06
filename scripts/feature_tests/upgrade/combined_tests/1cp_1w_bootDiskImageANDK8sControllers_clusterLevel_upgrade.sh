@@ -17,15 +17,16 @@ set_number_of_master_node_replicas 1
 set_number_of_worker_node_replicas 1
 
 provision_controlplane_node
-
-controlplane_is_provisioned
+set_kubeconfig_towards_target_cluster
 controlplane_has_correct_replicas 1
 
-# apply CNI
-apply_cni
+point_to_management_cluster
 
 provision_worker_node
+point_to_target_cluster
 worker_has_correct_replicas 1
+
+point_to_management_cluster
 
 # ----------- upgrade controlplane components ---------------
 cleanup_clusterctl_configuration
@@ -90,12 +91,10 @@ done
 # ----------- upgrade ironic image ------
 
 # Upgrade container images
-for container in ironic ironic-dnsmasq ironic-httpd mariadb; do
+for container in ironic-api ironic-conductor ironic-inspector ironic-dnsmasq ironic-httpd mariadb; do
   kubectl set image deployments metal3-ironic \
     $container=quay.io/metal3-io/ironic:"${IRONIC_IMAGE_TAG}" -n "${NAMESPACE}"
 done
-kubectl set image deployments metal3-ironic \
-  ironic-inspector=quay.io/metal3-io/ironic-inspector:"${IRONIC_IMAGE_TAG}" -n "${NAMESPACE}"
 
 updated_ironic_image_count=$(kubectl get deployments metal3-ironic -n "${NAMESPACE}" -o json |
   jq '.spec.template.spec.containers[].image' | grep -c "${IRONIC_IMAGE_TAG}")
@@ -130,23 +129,31 @@ else
 fi
 
 # Check that ironic containers are running
-for container in ironic ironic-inspector ironic-dnsmasq ironic-httpd mariadb; do
+for container in ironic-api ironic-conductor ironic-inspector ironic-dnsmasq ironic-httpd mariadb; do
   running_containers_count=$(
     kubectl get "${ironic_pod}" -n "${NAMESPACE}" -o json |
       jq ".status.containerStatuses[] | select(.name == \"${container}\") | .state" |
       grep -ic running
   )
   if [ "${running_containers_count}" -eq 0 ]; then
-    sleep 30
-    running_containers_count_retry=$(
-      kubectl get "${ironic_pod}" -n "${NAMESPACE}" -o json |
-        jq ".status.containerStatuses[] | select(.name == \"${container}\") | .state" |
-        grep -ic running
-      )
-    if [ "${running_containers_count_retry}" -eq 0 ]; then
-      echo "Upgrade of ironic image for container ${container} has failed"
-      exit 1
-    fi
+    for i in {1..100}; do
+      sleep 30
+      running_containers_count_retry=$(
+        kubectl get "${ironic_pod}" -n "${NAMESPACE}" -o json |
+          jq ".status.containerStatuses[] | select(.name == \"${container}\") | .state" |
+          grep -ic running
+        )
+      if [ "${running_containers_count_retry}" -eq 1 ]; then
+              echo "Upgraded ${ironic_pod} and container ${container} running after retries"
+              break
+      fi
+      if [[ "${i}" -ge 100 ]]; then
+        echo "Upgrade of ironic image for container ${container} has failed"
+        exit 1
+      fi
+    done
+  else
+    echo "Upgraded ${ironic_pod} and container ${container} running"
   fi
 done
 
@@ -191,9 +198,13 @@ wr_nodes_using_new_bootDiskImage 1
 # Verify nodes are freed
 expected_free_nodes 2
 
+point_to_target_cluster
+
 # verify that extra nodes are not removed
 controlplane_has_correct_replicas 1
 worker_has_correct_replicas 1
+
+point_to_management_cluster
 
 # Report result
 echo "Boot disk upgrade of both controlplane and worker nodes has succeeded."
