@@ -21,6 +21,7 @@ packages:
         - gir1.2-polkit-1.0
         - libpolkit-agent-1-0
         - libpolkit-gobject-1-0
+        - apache2-utils
     bionic:
       packages:
         - libvirt-bin
@@ -66,6 +67,7 @@ packages:
          - python-netaddr
          - virt-install
          - python-six
+         - httpd-tools
     rhel8:
         packages:
          - curl
@@ -97,3 +99,4 @@ packages:
          - network-scripts
          - firewalld
          - python3-six
+         - httpd-tools

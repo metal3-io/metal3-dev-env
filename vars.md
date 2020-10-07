@@ -43,3 +43,18 @@ assured that they are persisted.
 | VM_EXTRADISKS            | Add extra disks to the virtual machines provisioned. By default the size of the extra disk is set in the libvirt Ansible role to 8 GB        | "true", "false" | "false" |
 | DEFAULT_HOSTS_MEMORY     | Set the default memory size in MB for the virtual machines provisioned.        |  | 4096 |
 | CLUSTER_NAME             | Set the name of the target cluster |  | test1 |
+| IRONIC_TLS_SETUP | Enable TLS for Ironic and inspector | "true", "false" | "true" |
+| IRONIC_BASIC_AUTH | Enable HTTP basic authentication for Ironic and inspector | "true", "false" | "true" |
+| IRONIC_CA_CERT_B64 | Base 64 encoded CA certificate of Ironic |  |   |
+| IRONIC_CACERT_FILE | path to the CA certificate of Ironic |  | /opt/metal3-dev-env/certs/ironic-ca.pem |
+| IRONIC_INSPECTOR_CACERT_FILE | path to the CA certificate of Ironic inspector |  | /opt/metal3-dev-env/certs/ironic-ca.pem |
+| IRONIC_CAKEY_FILE | path to the CA key of Ironic |  | /opt/metal3-dev-env/certs/ironic-ca.key |
+| IRONIC_INSPECTOR_CAKEY_FILE | path to the CA key of Ironic inspector |  | /opt/metal3-dev-env/certs/ironic-ca.key |
+| IRONIC_CERT_FILE | path to the certificate of Ironic |  | /opt/metal3-dev-env/certs/ironic.crt |
+| IRONIC_INSPECTOR_CERT_FILE | path to the CA certificate of Ironic inspector |  | /opt/metal3-dev-env/certs/ironic-inspector.crt |
+| IRONIC_KEY_FILE | path to the certificate key of Ironic |  | /opt/metal3-dev-env/certs/ironic.key |
+| IRONIC_INSPECTOR_KEY_FILE | path to the certificate key of Ironic inspector |  | /opt/metal3-dev-env/certs/ironic-inspector.key |
+| IRONIC_USERNAME | Username for Ironic basic auth |  |  |
+| IRONIC_INSPECTOR_USERNAME | Username for Ironic inspector basic auth |  |  |
+| IRONIC_PASSWORD | Password for Ironic basic auth |  |  |
+| IRONIC_INSPECTOR_PASSWORD | Password for Ironic inspector basic auth |  |  |
