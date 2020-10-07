@@ -47,7 +47,7 @@ if [[ "${OS}" == ubuntu ]]; then
 else
   export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
 fi
-
+# Pod names
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   export POD_NAME="--pod ironic-pod"
   export POD_NAME_INFRA="--pod infra-pod"
@@ -68,19 +68,19 @@ fi
 FILESYSTEM=${FILESYSTEM:="/"}
 
 # Environment variables
-# M3PATH : Path to clone the metal3 dev env repo
-# BMOPATH : Path to clone the baremetal operator repo
-# CAPM3PATH: Path to clone the CAPI operator repo
-# CAPIPATH: Path to clone the Cluster-api repo
+# M3PATH : Path to clone the Metal3 Development Environment repository
+# BMOPATH : Path to clone the Bare Metal Operator repository
+# CAPM3PATH : Path to clone the Cluster API Provider Metal3 repository
+# CAPIPATH : Path to clone the Cluster API repository
 #
-# BMOREPO : Baremetal operator repository URL
-# BMOBRANCH : Baremetal operator repository branch to checkout
-# CAPM3REPO : CAPI operator repository URL
-# CAPM3BRANCH : CAPI repository branch to checkout
+# BMOREPO : Baremetal Operator repository URL
+# BMOBRANCH : Baremetal Operator repository branch to checkout
+# CAPM3REPO : Cluster API Provider Metal3 repository URL
+# CAPM3BRANCH : Cluster API Provider Metal3 repository branch to checkout
 # FORCE_REPO_UPDATE : discard existing directories
 #
-# BMO_RUN_LOCAL : run the baremetal operator locally (not in Kubernetes cluster)
-# CAPM3_RUN_LOCAL : run the CAPI operator locally
+# BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
+# CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
 
 # CAPM3 version, defaults to CAPI_VERSION for backwards compatibility, and to v1alpha3
 # TODO remove the defaulting to CAPI_VERSION if multiple CAPI_VERSION work with a CAPM3 version
@@ -121,7 +121,6 @@ else
   export CAPI_VERSION="v1alpha3"
 fi
 
-
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
@@ -132,8 +131,9 @@ CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
 NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/ironic_nodes.json"}
 NODES_PLATFORM=${NODES_PLATFORM:-"libvirt"}
-export NAMESPACE=${NAMESPACE:-"metal3"}
 
+# Metal3
+export NAMESPACE=${NAMESPACE:-"metal3"}
 export NUM_NODES=${NUM_NODES:-"2"}
 export NUM_OF_MASTER_REPLICAS="${NUM_OF_MASTER_REPLICAS:-"1"}"
 export NUM_OF_WORKER_REPLICAS="${NUM_OF_WORKER_REPLICAS:-"1"}"
@@ -170,18 +170,20 @@ else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
 fi
 
+# IPAM controller image
 export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:master"}
 
-# default hosts memory
+# Default hosts memory
 export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-4096}
 
-# Cluster.
+# Cluster
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 export CLUSTER_APIENDPOINT_IP=${CLUSTER_APIENDPOINT_IP:-"192.168.111.249"}
 export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.18.8"}
 export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
 export KUBERNETES_BINARIES_CONFIG_VERSION=${KUBERNETES_BINARIES_CONFIG_VERSION:-"v0.2.7"}
 
+# Ephemeral Cluster
 if [ "${CONTAINER_RUNTIME}" == "docker" ]; then
   export EPHEMERAL_CLUSTER=${EPHEMERAL_CLUSTER:-"kind"}
 else
@@ -270,6 +272,7 @@ case ${FSTYPE} in
   ;;
 esac
 
+# Create and grant permissions to Working Dir if it doesn't exist
 if [ ! -d "$WORKING_DIR" ]; then
   echo "Creating Working Dir"
   sudo mkdir "$WORKING_DIR"

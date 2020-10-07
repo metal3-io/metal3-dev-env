@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Image url and checksum
+# Image name and location
 IMAGE_OS=${IMAGE_OS:-Centos}
 if [[ "${IMAGE_OS}" == "Ubuntu" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-UBUNTU_NODE_IMAGE_K8S_v1.18.8.qcow2}
@@ -16,11 +16,13 @@ else
   export IMAGE_LOCATION=${IMAGE_LOCATION:-http://download.cirros-cloud.net/0.5.1}
 fi
 
+# Image url and checksum
 export IMAGE_URL=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}
 export IMAGE_CHECKSUM=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}.md5sum
 
 # Target node username
 export IMAGE_USERNAME=${IMAGE_USERNAME:-metal3}
 
+# Image basename and rawname
 IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
 export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
