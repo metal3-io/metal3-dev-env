@@ -189,11 +189,11 @@ else
   export EPHEMERAL_CLUSTER="minikube"
 fi
 
-#Kustomize version
-export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.6.1"}
+# Kustomize version
+export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.8.4"}
 
-#Kind version
-export KIND_VERSION=${KIND_VERSION:-"v0.8.1"}
+# Kind version
+export KIND_VERSION=${KIND_VERSION:-"v0.9.0"}
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
