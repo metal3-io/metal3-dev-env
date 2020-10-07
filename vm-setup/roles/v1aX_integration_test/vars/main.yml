@@ -55,8 +55,8 @@ IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-d
 IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning', true)}}"
 
 # Distibution specific environment variables
-IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_v1.18.8.qcow2', true)}}"
-RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_v1.18.8-raw.img', true)}}"
+IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_NODE_IMAGE_K8S_v1.18.8.qcow2', true)}}"
+RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_NODE_IMAGE_K8S_v1.18.8-raw.img', true)}}"
 IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.18.8/', true)}}"
 IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
 IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.md5sum"
