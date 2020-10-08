@@ -31,7 +31,7 @@ function prefixlen() {
 # Provisioning Interface
 export CLUSTER_PROVISIONING_INTERFACE=${CLUSTER_PROVISIONING_INTERFACE:-"ironicendpoint"}
 
-#POD CIDR
+# POD CIDR
 export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"}
 
 # Enables single-stack IPv6
@@ -110,7 +110,6 @@ if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]] && [[ -n "${EXTERNAL_SUBNET_V6}" ]
     network_address MINIKUBE_BMNET_V6_IP "${EXTERNAL_SUBNET_V6}" 9
 fi
 
-
 if [[ -n "${EXTERNAL_SUBNET_V4}" ]]; then
   prefixlen EXTERNAL_SUBNET_V4_PREFIX "$EXTERNAL_SUBNET_V4"
   export EXTERNAL_SUBNET_V4_PREFIX
@@ -149,6 +148,7 @@ else
   export BAREMETALV6_POOL_RANGE_END=""
 fi
 
+# Registry Port
 export REGISTRY_PORT=${REGISTRY_PORT:-"5000"}
 
 if [[ -n "${EXTERNAL_SUBNET_V4_HOST}" ]]; then
@@ -156,8 +156,6 @@ if [[ -n "${EXTERNAL_SUBNET_V4_HOST}" ]]; then
 else
   export REGISTRY=${REGISTRY:-"[${EXTERNAL_SUBNET_V6_HOST}]:${REGISTRY_PORT}"}
 fi
-
-
 
 network_address INITIAL_IRONICBRIDGE_IP "$PROVISIONING_NETWORK" 9
 
