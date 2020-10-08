@@ -16,7 +16,10 @@
     when: EPHEMERAL_CLUSTER == "kind"
 
   - name: Install Ironic in Source cluster (Ephemeral Cluster is minikube)
-    shell: "kustomize build /home/$USER/go/src/github.com/metal3-io/baremetal-operator/ironic-deployment/keepalived/ | kubectl apply -n {{ NAMESPACE }} -f -"
+    shell: "{{ BMOPATH }}/tools/deploy.sh {{ DEPLOY_BMO }} {{ DEPLOY_IRONIC }} {{ DEPLOY_TLS }} {{ DEPLOY_BASIC_AUTH }} {{ DEPLOY_KEEPALIVED }}"
+    environment:
+      IRONIC_HOST: "{{ IRONIC_HOST }}"
+      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
     when: EPHEMERAL_CLUSTER == "minikube"
 
   - name: Re-pivot everything back to source cluster

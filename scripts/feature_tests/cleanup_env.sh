@@ -9,6 +9,10 @@ source lib/common.sh
 source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
+# shellcheck disable=SC1091
+source lib/ironic_tls_setup.sh
+# shellcheck disable=SC1091
+source lib/ironic_basic_auth.sh
 
 # Remove old SSH keys
 ssh-keygen -f /home/"${USER}"/.ssh/known_hosts -R "${CLUSTER_APIENDPOINT_IP}"
