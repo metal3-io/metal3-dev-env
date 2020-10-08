@@ -546,10 +546,9 @@ clone_repos
 create_clouds_yaml
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   start_management_cluster
+  kubectl create namespace metal3
   if [ "${CAPM3_VERSION}" == "v1alpha3" ]; then
     launch_baremetal_operator
-  else
-    kubectl create namespace metal3
   fi
 fi
 
