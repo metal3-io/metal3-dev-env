@@ -256,7 +256,7 @@ EOF
 
     touch bmo.out.log
     touch bmo.err.log
-    kubectl scale deployment baremetal-operator-controller-manager -n metal3 --replicas=0
+    kubectl scale deployment baremetal-operator-controller-manager -n baremetal-operator-system --replicas=0
     nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
   fi
   popd
