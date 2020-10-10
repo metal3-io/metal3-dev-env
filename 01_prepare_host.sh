@@ -130,7 +130,7 @@ podman)
 esac
 
 
-# Download IPA and CentOS 7 Images
+# Download IPA and CentOS 8 Images
 mkdir -p "$IRONIC_IMAGE_DIR"
 pushd "$IRONIC_IMAGE_DIR"
 
