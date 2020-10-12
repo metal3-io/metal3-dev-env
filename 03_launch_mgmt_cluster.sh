@@ -436,15 +436,16 @@ function patch_clusterctl(){
     update_component_image BMO "${BAREMETAL_OPERATOR_IMAGE}"
     update_component_image IPAM "${IPAM_IMAGE}"
     update_capm3_imports
-
-    mv config/bmo/kustomization.yaml.orig config/bmo/kustomization.yaml
-    mv config/ipam/kustomization.yaml.orig config/ipam/kustomization.yaml
-
-    rm config/bmo/bmo-components.yaml
-    rm config/ipam/metal3-ipam-components.yaml
   fi
 
   make release-manifests
+
+  if [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
+    mv config/bmo/kustomization.yaml.orig config/bmo/kustomization.yaml
+    mv config/ipam/kustomization.yaml.orig config/ipam/kustomization.yaml
+    rm config/bmo/bmo-components.yaml
+    rm config/ipam/metal3-ipam-components.yaml
+  fi
 
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
