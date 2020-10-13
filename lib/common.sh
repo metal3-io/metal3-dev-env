@@ -227,12 +227,12 @@ export OS_VERSION
 export OS_VERSION_ID
 if [[ $OS == centos ]]; then
   if [[ ${OS_VERSION} != 7 && ${OS_VERSION} != 8 ]]; then
-    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 18.04"
+    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 20.04"
     exit 1
   fi
 elif [[ $OS == rhel ]]; then
   if [[ ${OS_VERSION} -ne 8 ]]; then
-    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 18.04"
+    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 20.04"
     exit 1
   fi
 elif [[ $OS == ubuntu ]]; then
