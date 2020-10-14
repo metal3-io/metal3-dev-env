@@ -116,7 +116,7 @@ EOF
   mv "${BMOPATH}/config/manager/manager.yaml.orig" "${BMOPATH}/config/manager/manager.yaml"
 
   # If BMO should run locally, scale down the deployment and run BMO
-  if [ "${BMO_RUN_LOCAL}" = true ]; then
+  if [ "${BMO_RUN_LOCAL}" == "true" ]; then
     if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
       sudo mkdir -p /opt/metal3/certs/ca/
       cp "${IRONIC_CACERT_FILE}" /opt/metal3/certs/ca/crt
