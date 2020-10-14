@@ -43,12 +43,21 @@
 
   # Install BMO
   - name: Install Baremetal Operator
-    shell: "kustomize build /home/$USER/go/src/github.com/metal3-io/baremetal-operator/deploy/default/ | kubectl --kubeconfig=/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml apply -n {{ NAMESPACE }} -f -"
+    shell: "{{ BMOPATH }}/tools/deploy.sh {{ DEPLOY_BMO }} {{ DEPLOY_IRONIC }} {{ DEPLOY_TLS }} {{ DEPLOY_BASIC_AUTH }} {{ DEPLOY_KEEPALIVED }}"
+    vars:
+      DEPLOY_BMO: true
+      DEPLOY_IRONIC: false
+    environment:
+      IRONIC_HOST: "{{ IRONIC_HOST }}"
+      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
     when: CAPM3_VERSION == "v1alpha3"
 
   # Install Ironic
   - name: Install Ironic
-    shell: "kustomize build /home/$USER/go/src/github.com/metal3-io/baremetal-operator/ironic-deployment/keepalived/ | kubectl --kubeconfig=/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml apply -n {{ NAMESPACE }} -f -"
+    shell: "{{ BMOPATH }}/tools/deploy.sh {{ DEPLOY_BMO }} {{ DEPLOY_IRONIC }} {{ DEPLOY_TLS }} {{ DEPLOY_BASIC_AUTH }} {{ DEPLOY_KEEPALIVED }}"
+    environment:
+      IRONIC_HOST: "{{ IRONIC_HOST }}"
+      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
 
   - name: Pivoting test
     delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
@@ -74,7 +83,7 @@
   - name: Initialize Provider component in target cluster
     shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
 
-    # Check for pods & nodes on the target cluster
+  # Check for pods & nodes on the target cluster
   - name: Check if pods in running state
     shell: "kubectl get pods -A -o json | jq -r '.items[].status.phase' | grep -v Running"
     environment:

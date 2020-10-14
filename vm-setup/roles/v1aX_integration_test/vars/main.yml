@@ -31,6 +31,7 @@ BAREMETALV6_POOL_RANGE_START: "{{ lookup('env', 'BAREMETALV6_POOL_RANGE_START') 
 BAREMETALV6_POOL_RANGE_END: "{{ lookup('env', 'BAREMETALV6_POOL_RANGE_END') | default('fd55::200', true) }}"
 EXTERNAL_SUBNET_V6_PREFIX: "{{ lookup('env', 'EXTERNAL_SUBNET_V6_PREFIX') | default('64', true) }}"
 EXTERNAL_SUBNET_V6_HOST: "{{ lookup('env', 'EXTERNAL_SUBNET_V6_HOST') | default('fd55::1', true) }}"
+IRONIC_HOST: "{{ lookup('env', 'IRONIC_HOST') | default('172.22.0.2', true) }}"
 IRONIC_HOST_IP: "{{ lookup('env', 'IRONIC_HOST_IP') | default('172.22.0.2', true) }}"
 DEPLOY_KERNEL_URL: "{{ lookup('env', 'DEPLOY_KERNEL_URL') }}"
 DEPLOY_RAMDISK_URL: "{{ lookup('env', 'DEPLOY_RAMDISK_URL') }}"
@@ -64,6 +65,16 @@ IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.md5sum"
 IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_NAME') | default('CENTOS_8.2_NODE_IMAGE_K8S_v1.18.8.qcow2', true)}}"
 RAW_IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('CENTOS_8.2_NODE_IMAGE_K8S_v1.18.8-raw.img', true)}}"
 IMAGE_LOCATION_CENTOS: 'https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.18.8/'
+
+# Environment variables to install Ironic with TLS and Basic Auth
+GOPATH: "{{ lookup('env', 'GOPATH')}}"
+IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true)}}"
+IRONIC_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true)}}"
+DEPLOY_BMO: "{{ lookup('env', 'DEPLOY_BMO') | default('false', true)}}"
+DEPLOY_IRONIC: "{{ lookup('env', 'DEPLOY_IRONIC') | default('true', true)}}"
+DEPLOY_TLS: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true)}}"
+DEPLOY_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true)}}"
+DEPLOY_KEEPALIVED: "{{ lookup('env', 'DEPLOY_KEEPALIVED') | default('true', true)}}"
 
 provision_cluster_actions:
     - "ci_test_provision"

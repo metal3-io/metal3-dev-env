@@ -21,6 +21,12 @@ source "${METAL3_DIR}/lib/network.sh"
 # shellcheck disable=SC1090
 # shellcheck disable=SC1091
 source "${METAL3_DIR}/lib/images.sh"
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
+source "${METAL3_DIR}/lib/ironic_tls_setup.sh"
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
+source "${METAL3_DIR}/lib/ironic_basic_auth.sh"
 
 # Disable SSH strong authentication
 export ANSIBLE_HOST_KEY_CHECKING=False
