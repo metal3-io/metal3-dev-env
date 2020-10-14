@@ -70,11 +70,6 @@ IMAGE_LOCATION_CENTOS: 'https://artifactory.nordix.org/artifactory/airship/image
 GOPATH: "{{ lookup('env', 'GOPATH')}}"
 IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true)}}"
 IRONIC_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true)}}"
-DEPLOY_BMO: "{{ lookup('env', 'DEPLOY_BMO') | default('false', true)}}"
-DEPLOY_IRONIC: "{{ lookup('env', 'DEPLOY_IRONIC') | default('true', true)}}"
-DEPLOY_TLS: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true)}}"
-DEPLOY_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true)}}"
-DEPLOY_KEEPALIVED: "{{ lookup('env', 'DEPLOY_KEEPALIVED') | default('true', true)}}"
 
 provision_cluster_actions:
     - "ci_test_provision"
