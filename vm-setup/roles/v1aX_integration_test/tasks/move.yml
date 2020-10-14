@@ -8,7 +8,8 @@
       name: "{{ item }}"
       state: absent
     with_items:
-       - ironic
+       - ironic-api
+       - ironic-conductor
        - ironic-inspector
        - dnsmasq
        - httpd
@@ -47,6 +48,7 @@
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
     when: CAPM3_VERSION == "v1alpha3"
 
   # Install Ironic
@@ -55,6 +57,7 @@
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
 
   - name: Pivoting test
     delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
