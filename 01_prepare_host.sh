@@ -112,10 +112,7 @@ elif [ "$(clusterctl version | grep -o -P '(?<=GitVersion:").*?(?=",)')" != "${C
 fi
 
 # Clean-up any old ironic containers
-for name in ironic ironic-inspector dnsmasq httpd mariadb ipa-downloader; do
-    sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name
-    sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f
-done
+remove_ironic_containers
 
 # Clean-up existing pod, if podman
 case $CONTAINER_RUNTIME in
