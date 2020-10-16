@@ -426,3 +426,14 @@ function init_minikube() {
           --type network --config
     fi
 }
+
+#
+# Kill and remove the running ironic containers
+#
+function remove_ironic_containers() {
+  #shellcheck disable=SC2015
+  for name in ipa-downloader ironic ironic-api ironic-conductor ironic-inspector ironic-endpoint-keepalived dnsmasq httpd mariadb vbmc sushy-tools httpd-infra; do
+    sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name || true
+    sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f || true
+  done
+}
