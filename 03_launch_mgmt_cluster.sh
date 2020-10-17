@@ -203,7 +203,7 @@ DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
 IRONIC_ENDPOINT=${IRONIC_URL}
 IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
 CACHEURL=http://$IRONIC_HOST/images
-IRONIC_FAST_TRACK=false
+IRONIC_FAST_TRACK=true
 EOF
     # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
     "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
