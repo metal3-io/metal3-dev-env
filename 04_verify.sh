@@ -89,7 +89,7 @@ check_bm_hosts() {
 }
 
 
-#Verify that a resource exists in a type
+# Verify that a resource exists in a type
 check_k8s_entity() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
@@ -117,7 +117,7 @@ check_k8s_entity() {
 }
 
 
-#Verify that a resource exists in a type
+# Verify that a resource exists in a type
 check_k8s_rs() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
@@ -148,7 +148,7 @@ check_k8s_rs() {
 }
 
 
-#Verify that a resource exists in a type
+# Verify that a resource exists in a type
 check_k8s_pods() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
@@ -167,7 +167,7 @@ check_k8s_pods() {
   return "$((FAILS-FAILS_CHECK))"
 }
 
-#Verify a container is running
+# Verify a container is running
 check_container(){
   local NAME="$1"
   RESULT_STR="Container ${NAME} running"
@@ -238,7 +238,7 @@ for bridge in ${BRIDGES}; do
 done
 
 
-#Verify Kubernetes cluster is reachable
+# Verify Kubernetes cluster is reachable
 RESULT_STR="Kubernetes cluster reachable"
 kubectl version > /dev/null
 process_status $?

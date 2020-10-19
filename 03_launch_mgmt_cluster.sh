@@ -58,7 +58,7 @@ function clone_repos() {
 }
 
 # ------------------------------------
-# BMO  and Ironic deployment functions
+# BMO and Ironic deployment functions
 # ------------------------------------
 
 #
@@ -337,7 +337,7 @@ function patch_clusterctl(){
 }
 
 #
-# Launch the cluster-api provider.
+# Launch the cluster-api provider metal3.
 #
 function launch_cluster_api_provider_metal3() {
   pushd "${CAPM3PATH}"

@@ -63,7 +63,7 @@ if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
       chmod +x docker-machine-driver-kvm2
       sudo mv docker-machine-driver-kvm2 /usr/local/bin/.
   fi
-#Install Kind for both Kind and tilt
+# Install Kind for both Kind and tilt
 else
   if ! command -v kind 2>/dev/null ; then
       curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
@@ -95,7 +95,7 @@ if ! command -v kustomize 2>/dev/null ; then
     rm "kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
 fi
 
-# install clusterctl client
+# Install clusterctl client
 function install_clusterctl() {
   curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/"${CAPIRELEASE}"/clusterctl-linux-amd64 -o clusterctl
   chmod +x ./clusterctl
