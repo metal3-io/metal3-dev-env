@@ -123,10 +123,18 @@ spec:
       labels:
         app: workload-1
     spec:
-      nodeName: "${WORKER_NAME}"
       containers:
       - name: nginx
         image: nginx
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: type
+                operator: In
+                values:
+                - worker
 EOF
 
     echo "Waiting for workloads to be ready"
@@ -144,7 +152,7 @@ EOF
             log_error " Workload failed to be deployed on the cluster"
             deprovision_cluster
             wait_for_cluster_deprovisioned
-            break
+            exit 1
         fi
     done
 }
@@ -200,7 +208,7 @@ function controlplane_is_provisioned() {
         sleep 10
         if [[ "${i}" -ge 1800 ]]; then
             log_error "Controlplane provisioning took longer than expected."
-            break
+            exit 1
         fi
     done
 }
@@ -221,7 +229,7 @@ function controlplane_has_correct_replicas() {
         sleep 10
         if [[ "${i}" -ge 1800 ]]; then
             log_error "Controlplane replicas not provisioned in expected time frame"
-            break
+            exit 1
         fi
     done
 }
@@ -262,7 +270,7 @@ function worker_has_correct_replicas() {
             else
                 log_error "Time out while waiting for workers to join the cluster"
             fi
-            break
+            exit 1
         fi
     done
 }
@@ -283,7 +291,7 @@ function cp_nodes_using_new_bootDiskImage() {
         if [[ "${i}" -ge 1800 ]]; then
             log_error "Time out while waiting for CP nodes to be provisioned \
             with a new boot disk image"
-            break
+            exit 1
         fi
     done
 
@@ -305,7 +313,7 @@ function wr_nodes_using_new_bootDiskImage() {
         if [[ "${i}" -ge 1800 ]]; then
             log_error "Time out while waiting for worker nodes to be provisioned\
              with a new boot disk image"
-            break
+            exit 1
         fi
     done
 
@@ -326,7 +334,7 @@ function expected_free_nodes() {
         sleep 10
         if [[ "${i}" -ge 1800 ]]; then
             log_error "Time out while waiting for original nodes to be released"
-            break
+            exit 1
         fi
     done
 
@@ -460,7 +468,7 @@ function verify_kubernetes_version_upgrade() {
         sleep 10
         if [[ "${i}" -ge 1800 ]]; then
             log_error "Time out while waiting for upgrade of kubernetes version of all nodes"
-            break
+            exit 1
         fi
     done
 }
