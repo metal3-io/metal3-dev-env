@@ -192,7 +192,7 @@ else
 fi
 
 # Kustomize version
-export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.8.4"}
+export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.8.5"}
 
 # Kind version
 export KIND_VERSION=${KIND_VERSION:-"v0.9.0"}
