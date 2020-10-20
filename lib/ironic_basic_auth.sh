@@ -3,7 +3,7 @@ if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
     IRONIC_AUTH_DIR="${IRONIC_AUTH_DIR:-"${IRONIC_DATA_DIR}/auth/"}"
     mkdir -p "${IRONIC_AUTH_DIR}"
 
-    #If usernames and passwords are unset, read them from file or generate them
+    # If usernames and passwords are unset, read them from file or generate them
     if [ -z "${IRONIC_USERNAME:-}" ]; then
         if [ ! -f "${IRONIC_AUTH_DIR}ironic-username" ]; then
             IRONIC_USERNAME="$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 12 | head -n 1)"

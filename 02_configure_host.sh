@@ -8,7 +8,7 @@ source lib/common.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
-# root needs a private key to talk to libvirt
+# Root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
 if sudo [ ! -f /root/.ssh/id_rsa_virt_power ]; then
   sudo ssh-keygen -f /root/.ssh/id_rsa_virt_power -P ""
@@ -94,7 +94,7 @@ else
       fi
   fi
 
-  # restart the libvirt network so it applies an ip to the bridge
+  # Restart the libvirt network so it applies an ip to the bridge
   if [ "$MANAGE_BR_BRIDGE" == "y" ] ; then
       sudo virsh net-destroy baremetal
       sudo virsh net-start baremetal
