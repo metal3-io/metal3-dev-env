@@ -48,12 +48,12 @@
 #export BMOBRANCH="${BMOBRANCH:-master}"
 
 #
-# Set the Cluster Api metal3 provider repository to clone
+# Set the Cluster Api Metal3 provider repository to clone
 #
 #export CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-metal3.git}"
 
 #
-# Set the Cluster Api metal3 provider branch to checkout
+# Set the Cluster Api Metal3 provider branch to checkout
 #
 #export CAPM3BRANCH="${CAPM3BRANCH:-master}"
 
@@ -68,7 +68,7 @@
 #export BMO_RUN_LOCAL=true
 
 #
-# Run a local CAPI operator instead of deploying in Kubernetes
+# Run a local CAPM3 operator instead of deploying in Kubernetes
 #
 #export CAPM3_RUN_LOCAL=true
 
@@ -98,7 +98,7 @@
 
 # Select the Cluster API provider Metal3 version
 # Accepted values : v1alpha3 v1alpha4
-# default: v1alpha3
+# default: v1alpha4
 #
 #export CAPM3_VERSION=v1alpha3
 
