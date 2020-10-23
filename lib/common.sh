@@ -138,6 +138,7 @@ export NUM_NODES=${NUM_NODES:-"2"}
 export NUM_OF_MASTER_REPLICAS="${NUM_OF_MASTER_REPLICAS:-"1"}"
 export NUM_OF_WORKER_REPLICAS="${NUM_OF_WORKER_REPLICAS:-"1"}"
 export VM_EXTRADISKS=${VM_EXTRADISKS:-"false"}
+export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}
 
 # Docker registry for local images
 export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"docker.io/registry:latest"}
