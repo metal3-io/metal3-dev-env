@@ -162,3 +162,7 @@
 
 # Secure Ironic deployment with TLS ("true" or "false")
 # export IRONIC_TLS_SETUP="true"
+
+# Set nodeDrainTimeout for controlplane and worker template, otherwise default value will be  '0s'. 
+#
+#export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}

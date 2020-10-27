@@ -58,3 +58,4 @@ assured that they are persisted.
 | IRONIC_INSPECTOR_USERNAME | Username for Ironic inspector basic auth |  |  |
 | IRONIC_PASSWORD | Password for Ironic basic auth |  |  |
 | IRONIC_INSPECTOR_PASSWORD | Password for Ironic inspector basic auth |  |  |
+| NODE_DRAIN_TIMEOUT | Set the nodeDrainTimeout for controlplane and worker template |  | '0s' |
