@@ -30,15 +30,15 @@ function get_latest_release() {
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}/releases}"
 CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
 
-# CAPM3 and CAPI releases
+# CAPI release and branch 
+export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.3.")}"
+CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
+
+# CAPM3 releases
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.4.")}"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.3.")}"
-  CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
 else
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.3.")}"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.3.")}"
-  CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
 fi
 
 # On first iteration, jq might not be installed
