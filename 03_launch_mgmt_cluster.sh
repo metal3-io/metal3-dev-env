@@ -193,7 +193,7 @@ function launch_ironic() {
     # Update Configmap parameters with correct urls
     cp "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig"
     cat << EOF | sudo tee "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
-HTTP_PORT=6180
+HTTP_PORT=${HTTP_PORT}
 PROVISIONING_IP=${CLUSTER_PROVISIONING_IP}
 PROVISIONING_CIDR=${PROVISIONING_CIDR}
 PROVISIONING_INTERFACE=${CLUSTER_PROVISIONING_INTERFACE}
