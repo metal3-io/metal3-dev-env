@@ -32,7 +32,6 @@ CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL
 
 # CAPI release and branch 
 export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.3.")}"
-CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
 
 # CAPM3 releases
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
