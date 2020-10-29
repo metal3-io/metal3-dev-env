@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Create usernames and passwords and other files related to basic auth
 if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
     IRONIC_AUTH_DIR="${IRONIC_AUTH_DIR:-"${IRONIC_DATA_DIR}/auth/"}"
