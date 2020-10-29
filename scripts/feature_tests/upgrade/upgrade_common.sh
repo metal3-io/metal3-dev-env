@@ -5,20 +5,25 @@ export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 
 export IMAGE_OS=${IMAGE_OS:-"Ubuntu"}
 export IMAGE_USERNAME=${IMAGE_USERNAME:-"metal3"}
-export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.18.0"}
-export KUBERNETES_BINARIES_VERSION=${KUBERNETES_BINARIES_VERSION:-"v1.18.0"}
-export UPGRADED_K8S_VERSION_1=${UPGRADED_K8S_VERSION_1:-"v1.18.1"}
-export UPGRADED_K8S_VERSION_2=${UPGRADED_K8S_VERSION_2:-"v1.18.2"}
-export UPGRADED_BINARY_VERSION=${UPGRADED_BINARY_VERSION:-"v1.18.1"}
+export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.18.8"}
+export KUBERNETES_BINARIES_VERSION=${KUBERNETES_BINARIES_VERSION:-"v1.18.8"}
+export UPGRADED_K8S_VERSION_1=${UPGRADED_K8S_VERSION_1:-"v1.18.9"}
+# UPGRADED_K8S_VERSION_2:-"v1.19.0" to be used when verified to work
+export UPGRADED_K8S_VERSION_2=${UPGRADED_K8S_VERSION_2:-"v1.18.9"}
+export UPGRADED_BINARY_VERSION=${UPGRADED_BINARY_VERSION:-"v1.18.9"}
 
 export CLUSTER_APIENDPOINT_IP=${CLUSTER_APIENDPOINT_IP:-"192.168.111.249"}
 export NUM_NODES=${NUM_NODES:-"4"}
-export NUM_IRONIC_IMAGES=${NUM_IRONIC_IMAGES:-"5"}
+export NUM_IRONIC_IMAGES=${NUM_IRONIC_IMAGES:-"6"}
 
 export IMAGE_RAW_URL="http://172.22.0.1/images/${IMAGE_RAW_NAME}"
 export IMAGE_RAW_CHECKSUM="http://172.22.0.1/images/${IMAGE_RAW_NAME}.md5sum"
 
 export CAPM3PATH=${CAPM3PATH:-"/home/${USER}/go/src/github.com/metal3-io/cluster-api-provider-metal3"}
+
+export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
+export TARGET_KUBECONFIG_SECRET=${TARGET_SECRET:-"${CLUSTER_NAME}-kubeconfig"}
+export TARGET_KUBECONFIG_FILE=${TARGET_KUBECONFIG_FILE:-"/tmp/kubeconfig-${CLUSTER_NAME}.yaml"}
 
 function generate_metal3MachineTemplate() {
     NAME="${1}"
@@ -101,8 +106,8 @@ function wait_for_cluster_deprovisioned() {
 }
 
 function deploy_workload_on_workers() {
-    echo "Deploy workloads on workers"
-    # Deploy workloads
+echo "Deploy workloads on workers"
+# Deploy workloads
 cat <<EOF | kubectl apply -f -
 apiVersion: apps/v1
 kind: Deployment
@@ -118,6 +123,7 @@ spec:
       labels:
         app: workload-1
     spec:
+      nodeName: "${WORKER_NAME}"
       containers:
       - name: nginx
         image: nginx
@@ -144,17 +150,14 @@ EOF
 }
 
 function manage_node_taints() {
-    kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-      jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-
     # Enable workload on masters
     # untaint all masters (one workers also gets untainted, doesn't matter):
-    kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml taint nodes --all node-role.kubernetes.io/master-
+    kubectl taint nodes --all node-role.kubernetes.io/master-
 }
 
 function start_logging() {
     log_file="${1}"
-    log_file+=$(date +".%Y.%m.%d-%T-upgrade.result.txt")
+    log_file+=$(date +"%Y.%m.%d-%T-upgrade.result.txt")
 
     echo "${log_file}"
 
@@ -185,12 +188,10 @@ function controlplane_is_provisioned() {
     echo "Waiting for provisioning of controlplane node to complete"
 
     for i in {1..3600}; do
-        kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-          jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-        kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml version /dev/null 2>&1
+        kubectl version /dev/null 2>&1
         # shellcheck disable=SC2181
         if [[ "$?" -eq 0 ]]; then
-            CP_NODE_NAME=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes -o json | jq '.items[0].metadata.name')
+            CP_NODE_NAME=$(kubectl get nodes -o json | jq '.items[0].metadata.name')
             echo "Successfully provisioned a controlplane node: ${CP_NODE_NAME}"
             break
         else
@@ -202,16 +203,14 @@ function controlplane_is_provisioned() {
             break
         fi
     done
-
 }
 # Using the VIP, verify that required replicas of CP are present
 function controlplane_has_correct_replicas() {
     replicas="${1}"
+
     echo "Waiting for all replicas of controlplane node"
     for i in {1..3600}; do
-        kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-          jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-        cp_replicas=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
+        cp_replicas=$(kubectl get nodes |
             awk 'NR>1' | grep -c master)
         if [[ "${cp_replicas}" -eq "${replicas}" ]]; then
             echo "Successfully provisioned controlplane replica nodes: ${CP_NODE_NAME}"
@@ -225,20 +224,19 @@ function controlplane_has_correct_replicas() {
             break
         fi
     done
-
 }
 # Using the VIP verify that a worker has joined the cluster
 function worker_has_correct_replicas() {
     replicas="${1}"
     wr_replicas=0
     if [[ "${replicas}" -eq 0 ]]; then
-      echo "Waiting for all replicas of worker nodes to leave the cluster"
+        echo "Waiting for all replicas of worker nodes to leave the cluster"
     else
-      echo "Waiting for all replicas of worker nodes to join the cluster"
+        echo "Waiting for all replicas of worker nodes to join the cluster"
     fi
 
     for i in {1..1800}; do
-        wr_replicas=$(kubectl get bmh -n "${NAMESPACE}" | grep -i provisioned | grep -c worker)
+        wr_replicas=$(kubectl get nodes | awk 'NR>1' | grep -vc master)
         if [[ "${replicas}" -eq 0 ]]; then
             if [[ "${wr_replicas}" -eq "${replicas}" ]]; then
                 echo "Expected worker replicas have left the cluster"
@@ -246,9 +244,7 @@ function worker_has_correct_replicas() {
             fi
         elif [[ "${wr_replicas}" -eq "${replicas}" ]]; then
             for ind in {1..1800}; do
-                kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-                jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-                wr_nodes=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes |
+                wr_nodes=$(kubectl get nodes |
                     awk 'NR>1' | grep -vc master)
                 if [[ "${wr_nodes}" -eq "${replicas}" ]]; then
                     echo "Expected worker replicas have joined the cluster"
@@ -261,12 +257,12 @@ function worker_has_correct_replicas() {
         fi
         sleep 10
         if [[ "${i}" -ge 1800 || "${ind}" -ge 1800 ]]; then
-          if [[ "${replicas}" -eq 0 ]]; then
-            log_error "Time out while waiting for workers to leave the cluster"
-          else
-            log_error "Time out while waiting for workers to join the cluster"
-          fi
-          break
+            if [[ "${replicas}" -eq 0 ]]; then
+                log_error "Time out while waiting for workers to leave the cluster"
+            else
+                log_error "Time out while waiting for workers to join the cluster"
+            fi
+            break
         fi
     done
 }
@@ -351,23 +347,20 @@ function scale_controlplane_to() {
         jq '.spec.replicas='"${scale_to}"'' | kubectl apply -f-
 }
 function apply_cni() {
-    kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-    jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-
-    kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml \
-    apply -f https://docs.projectcalico.org/manifests/calico.yaml
+    kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 }
 
+# ----->
 function cleanup_clusterctl_configuration() {
     # Delete old environment and create new one
     rm -rf /tmp/cluster-api-clone
     mkdir /tmp/cluster-api-clone
 
     # clean up if previous test has failed.
-    rm -rf /home/"${USER}"/.cluster-api/dev-repository/cluster-api/v0.3.8
-    rm -rf /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/v0.3.8
-    rm -rf /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/v0.3.8
-    rm -rf /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/v0.3.8
+    rm -rf /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPI_REL_TO_VERSION}"
+    rm -rf /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPI_REL_TO_VERSION}"
+    rm -rf /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPI_REL_TO_VERSION}"
+    rm -rf /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3_REL_TO_VERSION}"
 
     echo '' >/home/"${USER}"/.cluster-api/clusterctl.yaml
 }
@@ -376,16 +369,16 @@ function create_clusterctl_configuration() {
 cat <<EOF >/home/"${USER}"/.cluster-api/clusterctl.yaml
 providers:
   - name: cluster-api
-    url: /home/$USER/.cluster-api/dev-repository/cluster-api/v0.3.5/core-components.yaml
+    url: /home/$USER/.cluster-api/dev-repository/cluster-api/${CAPIRELEASE}/core-components.yaml
     type: CoreProvider
   - name: kubeadm
-    url: /home/$USER/.cluster-api/dev-repository/bootstrap-kubeadm/v0.3.5/bootstrap-components.yaml
+    url: /home/$USER/.cluster-api/dev-repository/bootstrap-kubeadm/${CAPIRELEASE}/bootstrap-components.yaml
     type: BootstrapProvider
   - name: kubeadm
-    url: /home/$USER/.cluster-api/dev-repository/control-plane-kubeadm/v0.3.5/control-plane-components.yaml
+    url: /home/$USER/.cluster-api/dev-repository/control-plane-kubeadm/${CAPIRELEASE}/control-plane-components.yaml
     type: ControlPlaneProvider
   - name: metal3
-    url: /home/$USER/.cluster-api/overrides/infrastructure-metal3/v0.3.2/infrastructure-components.yaml
+    url: /home/$USER/.cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}/infrastructure-components.yaml
     type: InfrastructureProvider
 EOF
 
@@ -400,7 +393,7 @@ cat <<EOF >clusterctl-settings-metal3.json
    "name": "infrastructure-metal3",
     "config": {
       "componentsFile": "infrastructure-components.yaml",
-      "nextVersion": "v0.3.8"
+      "nextVersion": "${CAPM3_REL_TO_VERSION}"
     }
 }
 EOF
@@ -412,28 +405,29 @@ EOF
 function makeCrdChanges() {
     # Make changes on CRDs
     sed -i 's/\bma\b/ma2020/g' \
-        /home/"${USER}"/.cluster-api/dev-repository/cluster-api/v0.3.8/core-components.yaml
+        /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPI_REL_TO_VERSION}"/core-components.yaml
     sed -i 's/singular: kubeadmconfig/singular: kubeadmconfig2020/' \
-        /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/v0.3.8/bootstrap-components.yaml
+        /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPI_REL_TO_VERSION}"/bootstrap-components.yaml
     sed -i 's/kcp/kcp2020/' \
-        /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/v0.3.8/control-plane-components.yaml
+        /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPI_REL_TO_VERSION}"/control-plane-components.yaml
     sed -i 's/\bm3c\b/m3c2020/g' \
-        /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/v0.3.8/infrastructure-components.yaml
+        /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3_REL_TO_VERSION}"/infrastructure-components.yaml
 
 }
 
 function createNextVersionControllers() {
     # Create a new version
-    cp -r /home/"${USER}"/.cluster-api/dev-repository/cluster-api/v0.3.5 \
-        /home/"${USER}"/.cluster-api/dev-repository/cluster-api/v0.3.8
-    cp -r /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/v0.3.5 \
-        /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/v0.3.8
-    cp -r /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/v0.3.5 \
-        /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/v0.3.8
-    cp -r /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/v0.3.2 \
-        /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/v0.3.8
+    cp -r /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPIRELEASE}" \
+        /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPI_REL_TO_VERSION}"
+    cp -r /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPIRELEASE}" \
+        /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPI_REL_TO_VERSION}"
+    cp -r /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPIRELEASE}" \
+        /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPI_REL_TO_VERSION}"
+    cp -r /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}" \
+        /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3_REL_TO_VERSION}"
 
 }
+# <------
 
 function buildClusterctl() {
     git clone https://github.com/kubernetes-sigs/cluster-api.git /tmp/cluster-api-clone
@@ -456,9 +450,7 @@ function verify_kubernetes_version_upgrade() {
     echo "Waiting for all nodes to be upgraded to ${expected_k8s_version}"
 
     for i in {1..3600}; do
-        kubectl get secrets "${CLUSTER_NAME}"-kubeconfig -n "${NAMESPACE}" -o json | \
-          jq -r '.data.value'| base64 -d > /tmp/kubeconfig-"${CLUSTER_NAME}".yaml
-        upgraded_cp=$(kubectl --kubeconfig=/tmp/kubeconfig-"${CLUSTER_NAME}".yaml get nodes | awk 'NR>1' | grep -c "${expected_k8s_version}")
+        upgraded_cp=$(kubectl get nodes | awk 'NR>1' | grep -c "${expected_k8s_version}")
         if [[ "${upgraded_cp}" -eq "${expected_nodes}" ]]; then
             echo "Upgrade of Kubernetes version of all nodes done successfully"
             break
@@ -471,5 +463,31 @@ function verify_kubernetes_version_upgrade() {
             break
         fi
     done
+}
 
+function get_target_kubeconfig() {
+    kubectl get secrets "${TARGET_KUBECONFIG_SECRET}" -n "${NAMESPACE}" -o json | jq -r '.data.value' | base64 -d >"${TARGET_KUBECONFIG_FILE}"
+
+}
+
+function point_to_target_cluster() {
+    export KUBECONFIG="${TARGET_KUBECONFIG_FILE}"
+
+}
+
+function point_to_management_cluster() {
+    unset KUBECONFIG
+}
+
+function set_kubeconfig_towards_target_cluster() {
+  for i in {1..50}; do
+      point_to_management_cluster
+      get_target_kubeconfig
+      sleep 15
+      if [ -s "${TARGET_KUBECONFIG_FILE}" ]; then
+          point_to_target_cluster
+          echo "set_kubeconfig_towards_target_cluster successful"
+          break
+      fi
+  done
 }
