@@ -26,6 +26,7 @@ source lib/images.sh
 
 # Install requirements
 ansible-galaxy install -r vm-setup/requirements.yml
+ansible-galaxy collection install ansible.netcommon
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -e "working_dir=$WORKING_DIR" \
