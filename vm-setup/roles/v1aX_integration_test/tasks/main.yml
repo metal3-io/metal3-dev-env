@@ -1,8 +1,4 @@
 ---
-- name: Define BMOPATH
-  set_fact:
-    BMOPATH: "{{ GOPATH }}/src/github.com/metal3-io/baremetal-operator"
-
 - name: Install openshift client in CentOS 8 using pip3
   pip:
     executable: "pip3"
