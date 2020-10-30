@@ -47,7 +47,7 @@ sudo apt -y update
 
 # Install python packages not included as rpms
 sudo pip3 install \
-  ansible==2.9.13 \
+  ansible \
   python-apt \
   openshift \
   pyYAML
