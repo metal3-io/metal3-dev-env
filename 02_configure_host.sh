@@ -156,15 +156,6 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   IMAGE="${!IMAGE_VAR}"
   BRANCH="${!BRANCH_IMAGE_VAR:-master}"
 
-  case ${IMAGE_VAR%_LOCAL_IMAGE} in
-    'BAREMETAL_OPERATOR')
-      DOCKERFILE="./build/Dockerfile"
-    ;;
-    *)
-      DOCKERFILE="./Dockerfile"
-    ;;
-  esac
-
   # Is it a git repo?
   if [[ "$IMAGE" =~ "://" ]] ; then
     REPOPATH=~/${IMAGE##*/}
@@ -185,7 +176,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   export $IMAGE_VAR="${IMAGE##*/}"
   #shellcheck disable=SC2086
   export $IMAGE_VAR="${REGISTRY}/localimages/${!IMAGE_VAR}"
-  sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f "${DOCKERFILE}"
+  sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f ./Dockerfile
   cd - || exit
   if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
     sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${!IMAGE_VAR}"
