@@ -103,8 +103,12 @@ verify_actions:
     - "pivoting"
     - "upgrading"  
 pivot_actions:
+    - "ci_test_provision"
     - "pivoting"    
     - "upgrading"
+repivot_actions:
+    - "ci_test_provision"
+    - "repivoting"
 cleanup_actions:
     - "ci_test_deprovision"
     - "feature_test_deprovisioning"

@@ -59,7 +59,7 @@
 
 - name: repivot
   include: move_back.yml
-  when: v1aX_integration_test_action == "repivoting"
+  when: v1aX_integration_test_action in repivot_actions
 
 - name: Deprovision worker nodes
   k8s:
