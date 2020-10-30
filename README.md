@@ -144,3 +144,28 @@ If you are running tilt on a remote machine, you can forward the web interface
 by adding the following parameter to the ssh command `-L 10350:127.0.0.1:10350`
 
 Then you can access the Tilt dashboard locally [here](http://127.0.0.1:10350)
+
+### Recreating local ironic containers
+
+In case, you want recreate the local ironic containers enabled with TLS, you
+need to use the following instructions:
+
+```sh
+source lib/common.sh
+source lib/network.sh
+
+export IRONIC_HOST="${CLUSTER_URL_HOST}"
+export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
+
+source lib/ironic_tls_setup.sh
+source lib/ironic_basic_auth.sh
+
+cd ${BMOPATH}
+./tools/run_local_ironic.sh
+```
+
+Here `${BMOPATH}` points to the baremetal operator directory. For more
+information, regarding the TLS setup and running ironic locally please refer to
+these documents:
+[TLS](https://github.com/metal3-io/cluster-api-provider-metal3/blob/master/docs/getting-started.md)
+, [Run local ironic](https://github.com/metal3-io/baremetal-operator/blob/master/docs/dev-setup.md).
