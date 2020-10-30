@@ -59,25 +59,11 @@
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
 
-  - name: Pivoting test
-    delegate_to: "{{ CLUSTER_APIENDPOINT_IP }}"
-    vars:
-      ansible_user: "{{ IMAGE_USERNAME }}"
-      ansible_ssh_private_key_file: "{{ SSH_PRIVATE_KEY }}"
-      ansible_python_interpreter: /usr/bin/python3
-    become: yes
-    become_user: "{{ IMAGE_USERNAME }}"
-    block:
-      - name: Clone Baremetal Operator
-        git:
-          repo: 'https://github.com/metal3-io/baremetal-operator.git'
-          dest: "/home/{{ IMAGE_USERNAME }}/baremetal-operator"
-
-      - name: Label BMO CRDs.
-        shell: 'kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }} --overwrite '
-        with_items:
-          - clusterctl.cluster.x-k8s.io=""
-          - cluster.x-k8s.io/provider="metal3"
+  - name: Label BMO CRDs in target cluster.
+    shell: 'kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite '
+    with_items:
+      - clusterctl.cluster.x-k8s.io=""
+      - cluster.x-k8s.io/provider="metal3"
     when: CAPM3_VERSION == "v1alpha3"
 
   - name: Initialize Provider component in target cluster
