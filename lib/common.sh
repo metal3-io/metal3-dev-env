@@ -90,19 +90,19 @@ if ! echo "${CAPM3_VERSION_LIST}" | grep -wq "${CAPM3_VERSION}"; then
   exit 1
 fi
 
-M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
-BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
+export M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
+export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 # shellcheck disable=SC2034
-RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
+export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 
-CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
-CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
-CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
+export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
+export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
+export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
-IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
-IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
-IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
-IPAMBRANCH="${IPAMBRANCH:-master}"
+export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
+export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
+export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
+export IPAMBRANCH="${IPAMBRANCH:-master}"
 
 CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 
