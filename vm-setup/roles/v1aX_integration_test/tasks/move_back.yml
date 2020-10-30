@@ -10,7 +10,7 @@
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Install Ironic in Source cluster (Ephemeral Cluster is kind)
-    shell: "bash /home/$USER/go/src/github.com/metal3-io/baremetal-operator/tools/run_local_ironic.sh"
+    shell: "{{ BMOPATH }}/tools/run_local_ironic.sh"
     environment:
       CONTAINER_RUNTIME: "{{ CONTAINER_RUNTIME }}"
     when: EPHEMERAL_CLUSTER == "kind"
