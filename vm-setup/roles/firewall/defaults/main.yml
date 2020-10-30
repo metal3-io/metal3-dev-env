@@ -3,13 +3,16 @@ baremetal_interface: baremetal
 provisioning_interface: provisioning
 external_subnet_v4: "{{ lookup('env', 'EXTERNAL_SUBNET_V4') | default('192.168.111.0/24', true) }}"
 registry_port: "{{ lookup('env', 'REGISTRY_PORT') | default('5000', true) }}"
+http_port: "{{ lookup('env', 'HTTP_PORT') | default('6180', true) }}"
+ironic_inspector_port: "{{ lookup('env', 'IRONIC_INSPECTOR_PORT') | default('5050', true) }}"
+ironic_api_port: "{{ lookup('env', 'IRONIC_API_PORT') | default('6385', true) }}"
 vbmc_port_range: "6230:6235"
 sushy_port: 8000
 firewall_rule_state: present
 ironic_ports:
-  - "6180"
-  - "5050"
-  - "6385"
+  - "{{ http_port }}"
+  - "{{ ironic_inspector_port }}"
+  - "{{ ironic_api_port }}"
   - "9999"
   - "80"
 provisioning_host_ports:
