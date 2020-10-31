@@ -1,4 +1,13 @@
 ---
+- name: Install ACL for ansible file permission controls
+  apt:
+    state: present
+    pkg:
+      - acl
+  become: true
+  become_user: root
+  when: CAPM3_VERSION == "v1alpha3"
+
 - name: Install openshift client in CentOS 8 using pip3
   pip:
     executable: "pip3"
