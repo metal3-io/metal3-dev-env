@@ -32,6 +32,9 @@ setup_env:
 setup_env_ug:
 	./scripts/feature_tests/setup_env.sh "ug"
 
+setup_env_no_tls:
+	./scripts/feature_tests/setup_env.sh "no-tls"
+
 cleanup_env:
 	./scripts/feature_tests/cleanup_env.sh
 
@@ -46,7 +49,7 @@ upgrade_test:
 
 feature_tests: setup_env remediation_test cleanup_env pivoting_test
 
-feature_tests_upgrade: setup_env upgrade_test
+feature_tests_upgrade: setup_env_no_tls upgrade_test
 
 feature_tests_upgrade_centos: setup_env_ug upgrade_test
 
