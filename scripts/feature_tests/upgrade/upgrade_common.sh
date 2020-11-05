@@ -236,7 +236,7 @@ function worker_has_correct_replicas() {
     fi
 
     for i in {1..1800}; do
-        wr_replicas=$(kubectl get nodes | awk 'NR>1' | grep -vc master)
+        wr_replicas=$(kubectl get nodes | awk 'NR>1' | grep -v master | grep -wc Ready)
         if [[ "${replicas}" -eq 0 ]]; then
             if [[ "${wr_replicas}" -eq "${replicas}" ]]; then
                 echo "Expected worker replicas have left the cluster"
