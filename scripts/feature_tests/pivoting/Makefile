@@ -2,10 +2,13 @@ M3PATH := "$(dirname "$(readlink -f "${0}")")../../../"
 export NUM_OF_MASTER_REPLICAS := 3
 export NUM_OF_WORKER_REPLICAS := 1
 
-all: provision pivoting repivoting deprovision
+all: provision fetch_manifests pivoting repivoting deprovision
 
 provision:
 	./../feature_test_provisioning.sh
+
+fetch_manifests:
+	./../../fetch_manifests.sh
 
 pivoting:
 	./pivot.sh
