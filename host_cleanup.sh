@@ -11,12 +11,11 @@ remove_ironic_containers
 
 # Remove existing pod
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-  if  sudo "${CONTAINER_RUNTIME}" pod exists ironic-pod ; then
-      sudo "${CONTAINER_RUNTIME}" pod rm ironic-pod -f
-  fi
-  if  sudo "${CONTAINER_RUNTIME}" pod exists infra-pod ; then
-      sudo "${CONTAINER_RUNTIME}" pod rm infra-pod -f
-  fi
+  for pod in ironic-pod infra-pod; do
+    if  sudo "${CONTAINER_RUNTIME}" pod exists "${pod}" ; then
+        sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
+    fi
+  done
 fi
 
 # Kill the locally running operators
