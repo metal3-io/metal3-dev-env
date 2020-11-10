@@ -15,6 +15,7 @@ NUM_OF_WORKER_REPLICAS: "{{ lookup('env', 'NUM_OF_WORKER_REPLICAS') | default(1,
 NUM_NODES: "{{ lookup('env', 'NUM_NODES') | default(2, true) }}"
 NODE_DRAIN_TIMEOUT: "{{ lookup('env', 'NODE_DRAIN_TIMEOUT') | default('0s', true) }}"
 BMOPATH: "{{ lookup('env', 'BMOPATH') }}"
+IRONIC_DATA_DIR: "{{ lookup('env', 'IRONIC_DATA_DIR') }}"
 KUBECONFIG_PATH: "/home/ubuntu/.kube/config"
 KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.18.8', true) }}"
 
