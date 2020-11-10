@@ -177,21 +177,9 @@ function update_images(){
 function launch_ironic() {
   pushd "${BMOPATH}"
 
-  if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
-    update_images
-    ${RUN_LOCAL_IRONIC_SCRIPT}
-  else
-    # Deploy Ironic using deploy.sh script
-
-    # Update container images to use local ones
-    cp "${BMOPATH}/ironic-deployment/ironic/ironic.yaml" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig"
-    cp "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml" "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml.orig"
-    update_kustomization_images "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
-    update_kustomization_images "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml"
-
     # Update Configmap parameters with correct urls
     cp "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig"
-    cat << EOF | sudo tee "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+    cat << EOF | sudo tee "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
 PROVISIONING_IP=${CLUSTER_PROVISIONING_IP}
 PROVISIONING_CIDR=${PROVISIONING_CIDR}
@@ -204,15 +192,33 @@ IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
 CACHEURL=http://$IRONIC_HOST/images
 IRONIC_FAST_TRACK=true
 EOF
+
+  if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
+    update_images
+    ${RUN_LOCAL_IRONIC_SCRIPT}
+  else
+    # Deploy Ironic using deploy.sh script
+
+    # Update container images to use local ones
+    cp "${BMOPATH}/ironic-deployment/ironic/ironic.yaml" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig"
+    cp "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml" "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml.orig"
+    update_kustomization_images "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
+    update_kustomization_images "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml"
+
+    # Copy the generated configmap for ironic deployment
+    cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+    
     # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
     "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
 
     # Restore original files
-    mv "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
     mv "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
     mv "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml.orig" "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml"
 
   fi
+  
+  # Restore original files
+  mv "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
   popd
 }
 
