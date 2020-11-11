@@ -94,7 +94,7 @@
 # Set the driver. The default value is 'mixed' (alternate nodes between ipmi
 # and redfish).
 #
-#export BMC_DRIVER="redfish"
+#export BMC_DRIVER="mixed"
 
 # Select the Cluster API provider Metal3 version
 # Accepted values : v1alpha3 v1alpha4
