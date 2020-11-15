@@ -9,7 +9,11 @@
     <type arch='{{ libvirt_arch }}' machine='q35'>hvm</type>
 {% if libvirt_firmware  == 'uefi' %}
      <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.secboot.fd</loader>
+{% if libvirt_secure_boot|bool %}
+     <nvram template="/usr/share/OVMF/OVMF_VARS.secboot.fd">/var/lib/libvirt/qemu/nvram/{{ item.name }}.fd</nvram>
+{% else %}
      <nvram>/var/lib/libvirt/qemu/nvram/{{ item.name }}.fd</nvram>
+{% endif %}
 {% endif %}
     <boot dev='network'/>
     <bootmenu enable='no'/>
