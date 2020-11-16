@@ -63,3 +63,7 @@ assured that they are persisted.
 | IRONIC_INSPECTOR_PORT | Ironic Inspector port |  | 5050 |
 | IRONIC_API_PORT | Ironic Api port |  | 6385 |
 | NODE_DRAIN_TIMEOUT | Set the nodeDrainTimeout for controlplane and worker template |  | '0s' |
+| MARIADB_KEY_FILE | Path to the key of MariaDB | | /opt/metal3-dev-env/certs/mariadb.key |
+| MARIADB_CERT_FILE | Path to the cert of MariaDB | | /opt/metal3-dev-env/certs/mariadb.crt |
+| MARIADB_CAKEY_FILE | Path to the CA key of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.key |
+| MARIADB_CACERT_FILE | Path to the CA certificate of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.pem | 

@@ -22,6 +22,8 @@ fi
 source "$CONFIG"
 
 # Set variables
+export MARIADB_HOST="mariaDB"
+export MARIADB_HOST_IP="127.0.0.1"
 # Additional DNS
 ADDN_DNS=${ADDN_DNS:-}
 # External interface for routing traffic through the host
