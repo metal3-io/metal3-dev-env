@@ -18,7 +18,7 @@ source lib/ironic_basic_auth.sh
 ssh-keygen -f /home/"${USER}"/.ssh/known_hosts -R "${CLUSTER_APIENDPOINT_IP}"
 
 # Kill and remove the running ironic containers
-for name in ironic ironic-inspector ironic-endpoint-keepalived dnsmasq httpd mariadb; do
+for name in ironic ironic-inspector ironic-endpoint-keepalived dnsmasq httpd mariadb ironic-log-watch ironic-inspector-log-watch; do
   sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name
   sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f
 done
