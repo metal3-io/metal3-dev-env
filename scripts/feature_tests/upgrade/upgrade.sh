@@ -44,7 +44,7 @@ else
     # Run controlplane components upgrade tests
     pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/combined_tests" || exit
     # shellcheck disable=SC1091
-    source 1cp_1w_bootDiskImageANDK8sControllers_clusterLevel_upgrade.sh
+    #source 1cp_1w_bootDiskImageANDK8sControllers_clusterLevel_upgrade.sh
     popd || exit
 fi
 
