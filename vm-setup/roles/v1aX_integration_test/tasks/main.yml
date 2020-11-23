@@ -8,15 +8,6 @@
   become_user: root
   when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '8'
 
-- name: Install openshift client in CentOS 7 using pip
-  pip:
-    executable: "pip"
-    name: openshift
-    state: present
-  become: yes
-  become_user: root
-  when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '7'
-
 - name: "Generate templates for v1alpha3"
   include: generate_templates.yml
 
