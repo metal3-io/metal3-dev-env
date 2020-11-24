@@ -1,0 +1,113 @@
+---
+- name: Install required Ubuntu packages
+  block:
+    - name: Update all packages to their latest version
+      apt:
+        name: "*"
+        state: latest
+
+    - name: Fetch yarn gpg key
+      apt_key:
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+
+    - name: Add yarn release key
+      lineinfile:
+        path: /etc/apt/sources.list.d/yarn.list
+        line: deb https://dl.yarnpkg.com/debian/ stable main
+        create: yes
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Add OS release key
+      lineinfile:
+        path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+        line: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+        create: yes
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Fetch OS release key
+      apt_key:
+        url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/Release.key"
+        state: present
+
+    - name: Update all packages to their latest version
+      apt:
+        name: "*"
+        state: latest
+
+    - name: Set update-alternatives to python3
+      community.general.alternatives:
+        name: python
+        path: /usr/bin/python3.6
+        link: /usr/bin/python
+      when: OS_VERSION_ID == "18.04"
+
+    - name: Set update-alternatives to python3
+      community.general.alternatives:
+        name: python
+        path: /usr/bin/python3.8
+        link: /usr/bin/python
+      when: OS_VERSION_ID != "18.04"
+
+    - name: Podman
+      block:
+        - name: Install podman
+          apt: 
+            name: podman
+            state: present
+
+    - name: Registries configuration for podman
+      blockinfile:
+        path: /etc/containers/registries.conf
+        block: |
+            [registries.insecure]
+            registries = ['{{ REGISTRY }}']
+      become: yes
+      when: CONTAINER_RUNTIME == "podman"
+
+    - name: Install docker
+      block:
+        - name: Add Docker’s GPG key
+          apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
+
+        - name: Add Docker Repository
+          apt_repository:
+            repo: "deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            state: present
+
+        - name: Update all packages to their latest version
+          apt:
+            name: "*"
+            state: latest
+
+        - name: Install docker
+          apt: name={{ item }} state=latest update_cache=yes
+          loop: [ 'docker-ce', 'docker-ce-cli', 'containerd.io' ]
+
+        - name: Template daemon.json to /etc/docker/daemon.json
+          template:
+            src: "{{ DAEMON_JSON_PATH }}/daemon.json"
+            dest: /etc/docker/daemon.json
+            owner: root
+            group: root
+
+        - name: Enable docker systemd service
+          service:
+            name: docker
+            state: started
+            enabled: yes
+
+        - name: Add current user to the docker group
+          user:
+            name: "{{ lookup('env','USER') }}"
+            groups: docker
+            append: yes
+      when: CONTAINER_RUNTIME == "docker"
+      become: yes
+  become: yes

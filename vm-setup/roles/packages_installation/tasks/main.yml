@@ -1,5 +1,7 @@
 - name: Install packages on Ubuntu
   block:
+    - name: Install required packages for Ubuntu
+      include: ubuntu_required_packages.yml
     - name: Install common packages using standard package manager for Ubuntu
       package:
         name: "{{ packages.ubuntu.common.packages}}"
@@ -16,6 +18,12 @@
       package:
         name: "{{ packages.ubuntu.focal.packages}}"
         state: present
+      become: true
+    - name: Install packages specific to Podman
+      package:
+        name: "{{ packages.ubuntu.podman.packages}}"
+        state: present
+      when: CONTAINER_RUNTIME == "podman"
       become: true
     - name: Install packages using pip3
       pip:

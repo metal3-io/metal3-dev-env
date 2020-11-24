@@ -12,27 +12,41 @@ if [[ $(id -u) == 0 ]]; then
 fi
 
 if [[ $OS == ubuntu ]]; then
-  # shellcheck disable=SC1091
-  source ubuntu_install_requirements.sh
+  sudo apt -y install python3-pip
+else
+  sudo dnf -y install python3-pip
+fi
+
+sudo pip3 install ansible
+
+# Install requirements
+ansible-galaxy install -r vm-setup/requirements.yml
+ansible-galaxy collection install ansible.netcommon
+
+# TODO(fmuyassarov) Remove the conditional statement
+# once centos_install_requirements.sh is also moved to
+# an Ansible script.
+if [[ $OS == ubuntu ]]; then
+  ANSIBLE_FORCE_COLOR=true ansible-playbook \
+    -e "working_dir=$WORKING_DIR" \
+    -e "metal3_dir=$SCRIPTDIR" \
+    -e "virthost=$HOSTNAME" \
+    -i vm-setup/inventory.ini \
+    -b -vvv vm-setup/install-package-playbook.yml
 else
   # shellcheck disable=SC1091
   source centos_install_requirements.sh
+  ANSIBLE_FORCE_COLOR=true ansible-playbook \
+    -e "working_dir=$WORKING_DIR" \
+    -e "virthost=$HOSTNAME" \
+    -i vm-setup/inventory.ini \
+    -b -vvv vm-setup/install-package-playbook.yml
 fi
 
 # shellcheck disable=SC1091
 source lib/network.sh
 # shellcheck disable=SC1091
 source lib/images.sh
-
-# Install requirements
-ansible-galaxy install -r vm-setup/requirements.yml
-ansible-galaxy collection install ansible.netcommon
-
-ANSIBLE_FORCE_COLOR=true ansible-playbook \
-  -e "working_dir=$WORKING_DIR" \
-  -e "virthost=$HOSTNAME" \
-  -i vm-setup/inventory.ini \
-  -b -vvv vm-setup/install-package-playbook.yml
 
 # Add usr/local/go/bin to the PATH environment variable
 GOBINARY="/usr/local/go/bin"

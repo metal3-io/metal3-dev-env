@@ -2,13 +2,16 @@ packages:
   ubuntu:
     common:
       packages:
+        - python3-setuptools
+        - zlib1g-dev
+        - openssh-server
+        - wget
         - curl
         - dnsmasq
         - nmap
         - ovmf
         - patch
         - psmisc
-        - wget
         - libvirt-clients
         - libvirt-dev
         - bridge-utils
@@ -22,15 +25,26 @@ packages:
         - libpolkit-agent-1-0
         - libpolkit-gobject-1-0
         - apache2-utils
+    podman:
+      packages:
+        - apt-transport-https
+        - ca-certificates
+        - gnupg-agent
+        - software-properties-common
     bionic:
       packages:
         - libvirt-bin
         - libpolkit-backend-1-0
+        - libssl1.0-dev
     focal:
       packages:
         - libvirt-daemon
         - libvirt-daemon-system
+        - libssl-dev
     pip3:
+     - python-apt
+     - openshift
+     - pyYAML
      - virtualbmc
      - lxml
      - netaddr
@@ -100,3 +114,8 @@ packages:
          - firewalld
          - python3-six
          - httpd-tools
+
+DAEMON_JSON_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/files"
+CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') }}"
+OS_VERSION_ID: "{{ lookup('env', 'OS_VERSION_ID') }}"
+REGISTRY: "{{ lookup('env', 'REGISTRY') }}"

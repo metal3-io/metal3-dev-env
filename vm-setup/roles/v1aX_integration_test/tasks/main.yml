@@ -4,7 +4,7 @@
     executable: "pip3"
     name: openshift
     state: present
-  become: true
+  become: yes
   become_user: root
   when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '8'
 
@@ -13,7 +13,7 @@
     executable: "pip"
     name: openshift
     state: present
-  become: true
+  become: yes
   become_user: root
   when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '7'
 
