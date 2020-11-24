@@ -7,6 +7,7 @@
 #    - Which variable to write the result into
 #    - Network CIDR (e.g. 172.22.0.0/24)
 #    - Which address (e.g. first, second, etc)
+
 function network_address() {
   resultvar=$1
   network=$2
