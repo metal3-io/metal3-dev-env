@@ -60,12 +60,12 @@
             name: podman
             state: present
 
-    - name: Registries configuration for podman
-      blockinfile:
-        path: /etc/containers/registries.conf
-        block: |
-            [registries.insecure]
-            registries = ['{{ REGISTRY }}']
+        - name: Registries configuration for podman
+          blockinfile:
+            path: /etc/containers/registries.conf
+            block: |
+                [registries.insecure]
+                registries = ['{{ REGISTRY }}']
       become: yes
       when: CONTAINER_RUNTIME == "podman"
 
