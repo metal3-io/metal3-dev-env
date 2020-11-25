@@ -39,20 +39,6 @@
         name: "*"
         state: latest
 
-    - name: Set update-alternatives to python3
-      community.general.alternatives:
-        name: python
-        path: /usr/bin/python3.6
-        link: /usr/bin/python
-      when: OS_VERSION_ID == "18.04"
-
-    - name: Set update-alternatives to python3
-      community.general.alternatives:
-        name: python
-        path: /usr/bin/python3.8
-        link: /usr/bin/python
-      when: OS_VERSION_ID != "18.04"
-
     - name: Podman
       block:
         - name: Install podman
@@ -97,11 +83,11 @@
             owner: root
             group: root
 
-        - name: Enable docker systemd service
+        - name: Restart docker systemd service
           service:
             name: docker
-            state: started
-            enabled: yes
+            state: restarted
+            daemon_reload: yes
 
         - name: Add current user to the docker group
           user:

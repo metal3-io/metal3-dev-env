@@ -12,12 +12,28 @@ if [[ $(id -u) == 0 ]]; then
 fi
 
 if [[ $OS == ubuntu ]]; then
+  sudo apt-get update
   sudo apt -y install python3-pip
+
+  # Set update-alternatives to python3
+  if [[ ${OS_VERSION_ID} == "18.04" ]]; then
+    sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+  elif [[ ${OS_VERSION_ID} == "20.04" ]]; then
+    sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
+  fi
+
 else
   sudo dnf -y install python3-pip
+  sudo alternatives --set python /usr/bin/python3
 fi
 
 sudo pip3 install ansible
+
+# NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
+# becuase there are some vars exported in network.sh and used by
+# install-package-playbook.yml.
+# shellcheck disable=SC1091
+source lib/network.sh
 
 # Install requirements
 ansible-galaxy install -r vm-setup/requirements.yml
