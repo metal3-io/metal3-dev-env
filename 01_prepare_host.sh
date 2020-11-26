@@ -14,14 +14,12 @@ fi
 if [[ $OS == ubuntu ]]; then
   sudo apt-get update
   sudo apt -y install python3-pip
-
   # Set update-alternatives to python3
   if [[ ${DISTRO} == "ubuntu18" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
   elif [[ ${DISTRO} == "ubuntu20" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
   fi
-
 else
   sudo dnf -y install python3-pip
   sudo alternatives --set python /usr/bin/python3
@@ -39,25 +37,12 @@ source lib/network.sh
 ansible-galaxy install -r vm-setup/requirements.yml
 ansible-galaxy collection install ansible.netcommon
 
-# TODO(fmuyassarov) Remove the conditional statement
-# once centos_install_requirements.sh is also moved to
-# an Ansible script.
-if [[ $OS == ubuntu ]]; then
-  ANSIBLE_FORCE_COLOR=true ansible-playbook \
-    -e "working_dir=$WORKING_DIR" \
-    -e "metal3_dir=$SCRIPTDIR" \
-    -e "virthost=$HOSTNAME" \
-    -i vm-setup/inventory.ini \
-    -b -vvv vm-setup/install-package-playbook.yml
-else
-  # shellcheck disable=SC1091
-  source centos_install_requirements.sh
-  ANSIBLE_FORCE_COLOR=true ansible-playbook \
-    -e "working_dir=$WORKING_DIR" \
-    -e "virthost=$HOSTNAME" \
-    -i vm-setup/inventory.ini \
-    -b -vvv vm-setup/install-package-playbook.yml
-fi
+ANSIBLE_FORCE_COLOR=true ansible-playbook \
+  -e "working_dir=$WORKING_DIR" \
+  -e "metal3_dir=$SCRIPTDIR" \
+  -e "virthost=$HOSTNAME" \
+  -i vm-setup/inventory.ini \
+  -b -vvv vm-setup/install-package-playbook.yml
 
 # shellcheck disable=SC1091
 source lib/network.sh

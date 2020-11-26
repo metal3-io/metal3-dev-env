@@ -16,25 +16,26 @@
       package:
         name: "{{ packages.ubuntu.focal.packages}}"
         state: present
-      become: true
     - name: Install packages specific to Podman
       package:
         name: "{{ packages.ubuntu.podman.packages}}"
         state: present
       when: CONTAINER_RUNTIME == "podman"
-      become: true
     - name: Install packages using pip3
       pip:
         executable: "pip3"
         name: "{{ packages.ubuntu.pip3 }}"
         state: present
-  become: true
+  become: yes
   when: ansible_facts['distribution'] == "Ubuntu"
 
-- name: Install packages on rhel8
-  when: ansible_lsb.major_release|int == 8
-  package:
-      name: "{{ packages.centos.rhel8.packages }}"
-      state: present
-  become: true
+- name: Install packages on CentOS/RHEL8
+  block:
+    - name: Install packages on CentOS/RHEL8
+      package:
+          name: "{{ packages.centos.rhel8.packages }}"
+          state: present
+    - name: Install required packages for Ubuntu
+      include: ubuntu_required_packages.yml
+  become: yes
   when: ansible_os_family == "RedHat"

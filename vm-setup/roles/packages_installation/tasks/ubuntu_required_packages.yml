@@ -1,4 +1,5 @@
 ---
+# Perform Centos/Rhel related configurations
 - name: Install required Ubuntu packages
   block:
     - name: Update all packages to their latest version

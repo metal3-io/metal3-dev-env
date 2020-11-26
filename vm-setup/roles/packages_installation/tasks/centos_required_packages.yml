@@ -1,0 +1,51 @@
+# Perform CentOS/RHEL8 related configurations
+- name: Example using fail and when together
+  fail:
+    msg: Only Podman is supported in CentOS/RHEL8
+  when: CONTAINER_RUNTIME != "podman"
+
+- name: Enable SELinux
+  ansible.posix.selinux:
+    policy: targeted
+    state: permissive
+  when: ansible_selinux.status == "enabled"
+
+- name: Remove any previous tripleo-repos to avoid version conflicts
+  dnf:
+    name: python*-tripleo-repos
+    state: absent
+
+- name: Upgrade all packages
+  dnf:
+    name: "*"
+    state: latest
+
+# Install additional repos as needed for each OS version
+- name: Enable external repository
+  dnf:
+    name: extras
+    enablerepo: extras
+    state: present
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '8'
+
+- name: Enable repository ansible-2-for-rhel-8-x86_64-rpms
+  community.general.rhsm_repository:
+    name: ansible-2-for-rhel-8-x86_64-rpms
+    state: enabled
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+
+- name: Install Podman
+  block:
+    - name: Install podman
+      apt: 
+        name: podman
+        state: present
+
+    - name: Registries configuration for podman
+      blockinfile:
+        path: /etc/containers/registries.conf
+        block: |
+            [registries.insecure]
+            registries = ['{{ REGISTRY }}']
+  become: yes
+  when: CONTAINER_RUNTIME == "podman"

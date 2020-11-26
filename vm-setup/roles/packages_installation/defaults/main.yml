@@ -54,6 +54,7 @@ packages:
   centos:
     rhel8:
         packages:
+         - libselinux-utils
          - curl
          - dnsmasq
          - edk2-ovmf
