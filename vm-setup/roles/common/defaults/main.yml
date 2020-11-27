@@ -26,6 +26,11 @@ ironic_prefix: ""
 
 baremetal_network_cidr_v4: "{{ lookup('env', 'EXTERNAL_SUBNET_V4')|default('', true) }}"
 baremetal_network_cidr_v6: "{{ lookup('env', 'EXTERNAL_SUBNET_V6')|default('', true) }}"
+virsh_dhcp_v4_start: "{{ lookup('env', 'VIRSH_DHCP_V4_START')|default('', true) }}"
+virsh_dhcp_v4_end: "{{ lookup('env', 'VIRSH_DHCP_V4_END')|default('', true) }}"
+virsh_dhcp_v6_start: "{{ lookup('env', 'VIRSH_DHCP_V6_START')|default('', true) }}"
+virsh_dhcp_v6_end: "{{ lookup('env', 'VIRSH_DHCP_V6_END')|default('', true) }}"
+
 
 # Set this to `false` if you don't want your vms
 # to have a VNC console available.
@@ -52,13 +57,13 @@ networks:
     address_v4: "{{ baremetal_network_cidr_v4|nthhost(1)|default('', true) }}"
     netmask_v4: "{{ baremetal_network_cidr_v4|ipaddr('netmask') }}"
     dhcp_range_v4:
-      - "{{ baremetal_network_cidr_v4|nthhost(20) }}"
-      - "{{ baremetal_network_cidr_v4|nthhost(60) }}"
+      - "{{ virsh_dhcp_v4_start }}"
+      - "{{ virsh_dhcp_v4_end }}"
     address_v6: "{{ baremetal_network_cidr_v6|nthhost(1)|default('', true) }}"
     prefix_v6: "{{ baremetal_network_cidr_v6|ipaddr('prefix') }}"
     dhcp_range_v6:
-      - "{{ baremetal_network_cidr_v6|nthhost(20) }}"
-      - "{{ baremetal_network_cidr_v6|nthhost(60) }}"
+      - "{{ virsh_dhcp_v6_start }}"
+      - "{{ virsh_dhcp_v6_end }}"
     nat_port_range:
       - 1024
       - 65535
