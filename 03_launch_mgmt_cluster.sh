@@ -449,6 +449,10 @@ function start_management_cluster () {
 # -----------------------------
 
 clone_repos
+
+# Kill and remove the running ironic containers
+"$BMOPATH"/tools/remove_local_ironic.sh
+
 create_clouds_yaml
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   start_management_cluster
