@@ -32,7 +32,7 @@ if [[ "${IMAGE_OS}" == "Ubuntu" ]]; then
     # Run controlplane and worker upgrade tests
     pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/controlplane_upgrade" || exit
     # shellcheck disable=SC1091
-   # source 3cp_1w_k8sVer_bootDiskImage_scaleInWorker_upgrade.sh
+    source 3cp_1w_k8sVer_bootDiskImage_scaleInWorker_upgrade.sh
     popd || exit
 else
     # shellcheck disable=SC1091
