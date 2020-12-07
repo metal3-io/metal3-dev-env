@@ -6,47 +6,35 @@
       package:
         name: "{{ packages.ubuntu.common.packages}}"
         state: present
-      become: true
     - name: Install packages using standard package manager for Ubuntu 18.04
       when: ansible_distribution_version == "18.04"
       package:
         name: "{{ packages.ubuntu.bionic.packages}}"
         state: present
-      become: true
     - name: Install packages using standard package manager for Ubuntu 20.04
       when: ansible_distribution_version == "20.04"
       package:
         name: "{{ packages.ubuntu.focal.packages}}"
         state: present
-      become: true
+      become: yes
     - name: Install packages specific to Podman
       package:
         name: "{{ packages.ubuntu.podman.packages}}"
         state: present
       when: CONTAINER_RUNTIME == "podman"
-      become: true
+      become: yes
     - name: Install packages using pip3
       pip:
         executable: "pip3"
         name: "{{ packages.ubuntu.pip3 }}"
         state: present
-      become: true
+  become: yes
   when: ansible_facts['distribution'] == "Ubuntu"
 
-
-- name: Install packages on CentOS
-  block:
-    - name: Install packages using standard package manager
-      block:
-        - name: Install packages on rhel7
-          when: ansible_lsb.major_release|int == 7
-          package:
-             name: "{{ packages.centos.rhel7.packages }}"
-             state: present
-        - name: Install packages on rhel8
-          when: ansible_lsb.major_release|int == 8
-          package:
-             name: "{{ packages.centos.rhel8.packages }}"
-             state: present
-      become: true
+- name: Install packages on rhel8
+  when: ansible_lsb.major_release|int == 8
+  package:
+      name: "{{ packages.centos.rhel8.packages }}"
+      state: present
+  become: yes
   when: ansible_os_family == "RedHat"

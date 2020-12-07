@@ -16,9 +16,9 @@ if [[ $OS == ubuntu ]]; then
   sudo apt -y install python3-pip
 
   # Set update-alternatives to python3
-  if [[ ${OS_VERSION_ID} == "18.04" ]]; then
+  if [[ ${DISTRO} == "ubuntu18" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
-  elif [[ ${OS_VERSION_ID} == "20.04" ]]; then
+  elif [[ ${DISTRO} == "ubuntu20" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
   fi
 

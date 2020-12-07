@@ -42,7 +42,18 @@ ROOT_DISK_NAME=${ROOT_DISK_NAME-"/dev/sda"}
 # Hostname format
 NODE_HOSTNAME_FORMAT=${NODE_HOSTNAME_FORMAT:-"node-%d"}
 # Check OS type and version
-OS=$(awk -F= '/^ID=/ { print $2 }' /etc/os-release | tr -d '"')
+# shellcheck disable=SC1091
+source /etc/os-release
+export DISTRO="${ID}${VERSION_ID%.*}"
+export OS="${ID}"
+export OS_VERSION_ID=$VERSION_ID
+export SUPPORTED_DISTROS=(centos8 rhel8 ubuntu18 ubuntu20)
+
+if [[ ! "${SUPPORTED_DISTROS[*]}" =~ $DISTRO ]]; then
+   echo "Supported OS distros for the host are: CentOS8 or RHEL8 or Ubuntu20.04"
+   exit 1
+fi
+
 # Container runtime
 if [[ "${OS}" == ubuntu ]]; then
   export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"docker"}
@@ -58,7 +69,6 @@ else
   export POD_NAME_INFRA=""
 fi
 
-export OS
 export SSH_KEY=${SSH_KEY:-"${HOME}/.ssh/id_rsa"}
 export SSH_PUB_KEY=${SSH_PUB_KEY:-"${SSH_KEY}.pub"}
 # Generate user ssh key
@@ -214,35 +224,9 @@ if ! sudo -n uptime &> /dev/null ; then
   exit 1
 fi
 
-OS_VERSION=$(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"' | cut -f1 -d'.')
-OS_VERSION_ID=$(awk -F= '/^VERSION_ID=/ { print $2 }' /etc/os-release | tr -d '"')
-export OS_VERSION
-export OS_VERSION_ID
-if [[ $OS == centos ]]; then
-  if [[ ${OS_VERSION} != 7 && ${OS_VERSION} != 8 ]]; then
-    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 20.04"
-    exit 1
-  fi
-elif [[ $OS == rhel ]]; then
-  if [[ ${OS_VERSION} -ne 8 ]]; then
-    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 20.04"
-    exit 1
-  fi
-elif [[ $OS == ubuntu ]]; then
-  if [[ ${OS_VERSION_ID} != "18.04" && ${OS_VERSION_ID} != "20.04" ]]; then
-    # Ubuntu 18.04 is supported, but the target VM cannot use UEFI, hence we are deprecating it
-    echo "Required CentOS 7/8 or RHEL 8 or Ubuntu 20.04"
-    exit 1
-  fi
-else
-  echo "Unsupported OS: $OS"
-  exit 1
-fi
-
 # Use firewalld on CentOS/RHEL, iptables everywhere else
 export USE_FIREWALLD=False
-if [[ ($OS == "rhel" || $OS = "centos") && ${OS_VERSION} == 8 ]]
-then
+if [[ $DISTRO == "rhel8" || $DISTRO == "centos8" ]]; then
   export USE_FIREWALLD=True
 fi
 
