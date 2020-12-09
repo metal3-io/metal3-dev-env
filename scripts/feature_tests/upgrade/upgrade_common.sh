@@ -244,7 +244,7 @@ function worker_has_correct_replicas() {
     fi
 
     for i in {1..1800}; do
-        wr_replicas=$(kubectl get nodes | awk 'NR>1' | grep -v master | grep -wc Ready)
+        wr_replicas=$(kubectl get nodes | awk 'NR>1' | grep -vc master)
         if [[ "${replicas}" -eq 0 ]]; then
             if [[ "${wr_replicas}" -eq "${replicas}" ]]; then
                 echo "Expected worker replicas have left the cluster"
@@ -252,8 +252,7 @@ function worker_has_correct_replicas() {
             fi
         elif [[ "${wr_replicas}" -eq "${replicas}" ]]; then
             for ind in {1..1800}; do
-                wr_nodes=$(kubectl get nodes |
-                    awk 'NR>1' | grep -vc master)
+                wr_nodes=$(kubectl get nodes | awk 'NR>1' | grep -vc master)
                 if [[ "${wr_nodes}" -eq "${replicas}" ]]; then
                     echo "Expected worker replicas have joined the cluster"
                     break 2
@@ -323,8 +322,7 @@ function expected_free_nodes() {
     node_count="${1}"
     echo "Waiting for original nodes to be freed"
     for i in {1..3600}; do
-        released_nodes=$(kubectl get bmh -n metal3 | awk '{{print $3}}' |
-            grep -c 'ready')
+        released_nodes=$(kubectl get bmh -n metal3 | awk '{{print $2}}' | grep -c 'ready')
         if [[ "${released_nodes}" -eq "${node_count}" ]]; then
             echo "Original nodes are released"
             break
