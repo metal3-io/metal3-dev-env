@@ -17,8 +17,13 @@ source lib/ironic_basic_auth.sh
 # Remove old SSH keys
 ssh-keygen -f /home/"${USER}"/.ssh/known_hosts -R "${CLUSTER_APIENDPOINT_IP}"
 
-# Kill and remove the running ironic containers
-"$BMOPATH"/tools/remove_local_ironic.sh
+if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
+  # Kill and remove the running ironic containers
+  "$BMOPATH"/tools/remove_local_ironic.sh
+else 
+  # Scale down ironic
+  kubectl scale deploy -n "${NAMESPACE}" metal3-ironic --replicas=0
+fi
 
 clusterctl delete --all -v5
 
@@ -55,10 +60,17 @@ done
 
 delete_finalizers
 
-# Re-create ironic containers and BMH
-pushd "${BMOPATH}" || exit
-./tools/run_local_ironic.sh
-popd || exit
+if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
+  # Re-create ironic containers and BMH 
+  pushd "${BMOPATH}" || exit
+  ./tools/run_local_ironic.sh
+  popd || exit
+else 
+  # Scale up ironic
+  kubectl scale deploy -n "${NAMESPACE}" metal3-ironic --replicas=1
+fi
+
+
 
 # shellcheck disable=SC2153
 clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5
