@@ -193,6 +193,10 @@ CACHEURL=http://$IRONIC_HOST/images
 IRONIC_FAST_TRACK=true
 EOF
 
+  if [ "$NODES_PLATFORM" == "libvirt" ] ; then
+    echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
+  fi
+
   if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
     update_images
     ${RUN_LOCAL_IRONIC_SCRIPT}
