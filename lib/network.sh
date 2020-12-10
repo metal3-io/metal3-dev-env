@@ -119,8 +119,12 @@ if [[ -n "${EXTERNAL_SUBNET_V4}" ]]; then
   fi
 
   # Calculate DHCP range for baremetal network (20 to 60 is the libvirt dhcp)
+  network_address VIRSH_DHCP_V4_START "$EXTERNAL_SUBNET_V4" 20
+  network_address VIRSH_DHCP_V4_END "$EXTERNAL_SUBNET_V4" 60
   network_address BAREMETALV4_POOL_RANGE_START "$EXTERNAL_SUBNET_V4" 100
   network_address BAREMETALV4_POOL_RANGE_END "$EXTERNAL_SUBNET_V4" 200
+  export VIRSH_DHCP_V4_START
+  export VIRSH_DHCP_V4_END
   export BAREMETALV4_POOL_RANGE_START
   export BAREMETALV4_POOL_RANGE_END
 else
@@ -138,8 +142,12 @@ if [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
   fi
 
   # Calculate DHCP range for baremetal network (20 to 60 is the libvirt dhcp) IPv6
+  network_address VIRSH_DHCP_V6_START "$EXTERNAL_SUBNET_V6" 20
+  network_address VIRSH_DHCP_V6_END "$EXTERNAL_SUBNET_V6" 60
   network_address BAREMETALV6_POOL_RANGE_START "$EXTERNAL_SUBNET_V6" 100
   network_address BAREMETALV6_POOL_RANGE_END "$EXTERNAL_SUBNET_V6" 200
+  export VIRSH_DHCP_V6_START
+  export VIRSH_DHCP_V6_END
   export BAREMETALV6_POOL_RANGE_START
   export BAREMETALV6_POOL_RANGE_END
 else
