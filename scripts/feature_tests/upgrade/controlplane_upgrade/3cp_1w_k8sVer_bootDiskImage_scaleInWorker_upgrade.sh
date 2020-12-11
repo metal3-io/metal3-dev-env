@@ -56,7 +56,8 @@ if [[ "${FROM_VERSION}" < "${UPGRADED_K8S_VERSION_2}" ]]; then
 elif [[ "${FROM_VERSION}" > "${KUBERNETES_VERSION}" ]]; then
   TO_VERSION="${KUBERNETES_VERSION}"
 else
-  exit 0
+  echo "Provided kubernetes version is not correct........."
+  exit 1
 fi
 
 # Controlplane node image upgrade
