@@ -64,6 +64,12 @@ And the following environment variables need to be set for **Ubuntu**:
 export IMAGE_OS=Ubuntu
 ```
 
+And the following environment variables need to be set for **Flatcar**:
+
+```sh
+export IMAGE_OS=Flatcar
+```
+
 You can check a list of all the environment variables [here](vars.md)
 
 ### Deploy the metal3 Dev env
