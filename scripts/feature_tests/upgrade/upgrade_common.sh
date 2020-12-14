@@ -1,5 +1,11 @@
 #!/bin/bash
 
+export CAPIRELEASE="v0.3.12"
+export CAPIRELEASE_HARDCODED="v0.3.8"
+export CAPM3RELEASE="v0.4.0" 
+export CAPI_REL_TO_VERSION="v0.3.14"
+export CAPM3_REL_TO_VERSION="v0.4.1"
+
 export NAMESPACE=${NAMESPACE:-"metal3"}
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 
@@ -13,8 +19,9 @@ export UPGRADED_BINARY_VERSION=${UPGRADED_BINARY_VERSION:-"v1.20.3"}
 
 export CLUSTER_APIENDPOINT_IP=${CLUSTER_APIENDPOINT_IP:-"192.168.111.249"}
 export NUM_NODES=${NUM_NODES:-"4"}
-export NUM_IRONIC_IMAGES=${NUM_IRONIC_IMAGES:-"6"}
+export NUM_IRONIC_IMAGES=${NUM_IRONIC_IMAGES:-"5"}
 
+export IMAGE_RAW_NAME="CENTOS_8.2_NODE_IMAGE_K8S_v1.20.2-raw.img"
 export IMAGE_RAW_URL="http://172.22.0.1/images/${IMAGE_RAW_NAME}"
 export IMAGE_RAW_CHECKSUM="http://172.22.0.1/images/${IMAGE_RAW_NAME}.md5sum"
 
@@ -28,18 +35,20 @@ function generate_metal3MachineTemplate() {
     NAME="${1}"
     CLUSTER_UID="${2}"
     Metal3MachineTemplate_OUTPUT_FILE="${3}"
+    # shellcheck disable=SC2034
     CAPM3_ALPHA_VERSION="${4}"
+    # shellcheck disable=SC2034
     CAPI_ALPHA_VERSION="${5}"
     TEMPLATE_NAME="${6}"
 
 echo "
-apiVersion: infrastructure.cluster.x-k8s.io/${CAPM3_ALPHA_VERSION}
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: Metal3MachineTemplate
 metadata:
   name: ${NAME}
   namespace: metal3
   ownerReferences:
-  - apiVersion: cluster.x-k8s.io/${CAPI_ALPHA_VERSION}
+  - apiVersion: cluster.x-k8s.io/v1alpha3
     kind: Cluster
     name: test1
     uid: ${CLUSTER_UID}
@@ -371,21 +380,21 @@ function cleanup_clusterctl_configuration() {
 }
 
 function create_clusterctl_configuration() {
-cat <<EOF >/home/"${USER}"/.cluster-api/clusterctl.yaml
-providers:
-  - name: cluster-api
-    url: /home/$USER/.cluster-api/dev-repository/cluster-api/${CAPIRELEASE}/core-components.yaml
-    type: CoreProvider
-  - name: kubeadm
-    url: /home/$USER/.cluster-api/dev-repository/bootstrap-kubeadm/${CAPIRELEASE}/bootstrap-components.yaml
-    type: BootstrapProvider
-  - name: kubeadm
-    url: /home/$USER/.cluster-api/dev-repository/control-plane-kubeadm/${CAPIRELEASE}/control-plane-components.yaml
-    type: ControlPlaneProvider
-  - name: metal3
-    url: /home/$USER/.cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}/infrastructure-components.yaml
-    type: InfrastructureProvider
-EOF
+#cat <<EOF >/home/"${USER}"/.cluster-api/clusterctl.yaml
+#providers:
+#  - name: cluster-api
+#    url: /home/$USER/.cluster-api/dev-repository/cluster-api/${CAPIRELEASE}/core-components.yaml
+#    type: CoreProvider
+#  - name: kubeadm
+#    url: /home/$USER/.cluster-api/dev-repository/bootstrap-kubeadm/${CAPIRELEASE}/bootstrap-components.yaml
+#    type: BootstrapProvider
+#  - name: kubeadm
+#    url: /home/$USER/.cluster-api/dev-repository/control-plane-kubeadm/${CAPIRELEASE}/control-plane-components.yaml
+#    type: ControlPlaneProvider
+#  - name: metal3
+#    url: /home/$USER/.cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}/infrastructure-components.yaml
+#    type: InfrastructureProvider
+#EOF
 
 # At first we install "v0.3.2" for which we need to move this
 # to the CAPM3PATH repo root folder
@@ -409,24 +418,23 @@ EOF
 
 function makeCrdChanges() {
     # Make changes on CRDs
-    sed -i 's/\bma\b/ma2020/g' \
+    sed -i 's/description: Machine/description: upgradedMachine/g' \
         /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPI_REL_TO_VERSION}"/core-components.yaml
-    sed -i 's/singular: kubeadmconfig/singular: kubeadmconfig2020/' \
+    sed -i 's/description: KubeadmConfig/description: upgradedKubeadmConfig/' \
         /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPI_REL_TO_VERSION}"/bootstrap-components.yaml
-    sed -i 's/kcp/kcp2020/' \
+    sed -i 's/description: KubeadmControlPlane/description: upgradedKubeadmControlPlane/' \
         /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPI_REL_TO_VERSION}"/control-plane-components.yaml
     sed -i 's/\bm3c\b/m3c2020/g' \
-        /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3_REL_TO_VERSION}"/infrastructure-components.yaml
-
+        /home/"${USER}"/.cluster-api/dev-repository/infrastructure-metal3/"${CAPM3_REL_TO_VERSION}"/infrastructure-components.yaml
 }
 
 function createNextVersionControllers() {
     # Create a new version
-    cp -r /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPIRELEASE}" \
+    cp -r /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPIRELEASE_HARDCODED}" \
         /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPI_REL_TO_VERSION}"
-    cp -r /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPIRELEASE}" \
+    cp -r /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPIRELEASE_HARDCODED}" \
         /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPI_REL_TO_VERSION}"
-    cp -r /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPIRELEASE}" \
+    cp -r /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPIRELEASE_HARDCODED}" \
         /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPI_REL_TO_VERSION}"
     cp -r /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}" \
         /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3_REL_TO_VERSION}"
@@ -437,13 +445,15 @@ function createNextVersionControllers() {
 function buildClusterctl() {
     git clone https://github.com/kubernetes-sigs/cluster-api.git /tmp/cluster-api-clone
     pushd /tmp/cluster-api-clone || exit
+    git checkout "${CAPIRELEASE}"
     make clusterctl
     sudo mv bin/clusterctl /usr/local/bin
 
 # create required configuration files
 cat <<EOF >clusterctl-settings.json
 {
-  "providers": [ "cluster-api", "bootstrap-kubeadm", "control-plane-kubeadm"]
+          "providers": ["cluster-api","bootstrap-kubeadm","control-plane-kubeadm", "infrastructure-metal3"],
+          "provider_repos": ["/home/centos/go/src/github.com/metal3-io/cluster-api-provider-metal3"]
 }
 EOF
     popd || exit

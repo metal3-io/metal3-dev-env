@@ -46,6 +46,77 @@ scale_workers_to 0
 worker_has_correct_replicas 0
 expected_free_nodes 1
 
+# Add ironic upgrade here
+
+# shellcheck disable=SC2034
+IRONIC_IMAGE_TAG=master # default = latest
+# ----------- start of upgrade ironic image ------
+# Upgrade container images
+for container in ironic-api ironic-dnsmasq ironic-httpd mariadb; do
+  kubectl set image deployments metal3-ironic \
+    $container=quay.io/metal3-io/ironic:"${IRONIC_IMAGE_TAG}" -n "${NAMESPACE}"
+done
+kubectl set image deployments metal3-ironic \
+  ironic-inspector=quay.io/metal3-io/ironic-inspector:"${IRONIC_IMAGE_TAG}" -n "${NAMESPACE}"
+
+# Delete Both old and new pods to avoid port conflict when both scheduled on the same node
+#kubectl get pods -n metal3 -o name | xargs kubectl delete -n metal3
+kubectl scale deployment -n metal3 metal3-ironic --replicas 0 
+kubectl scale deployment -n metal3 metal3-ironic --replicas 1
+
+sleep 120 # wait until images are downloaded
+updated_ironic_image_count=$(kubectl get deployments metal3-ironic -n "${NAMESPACE}" -o json |
+  jq '.spec.template.spec.containers[].image' | grep -c "${IRONIC_IMAGE_TAG}")
+
+if [ "${updated_ironic_image_count}" -lt "${NUM_IRONIC_IMAGES}" ]; then
+ echo "All ironic images are not updated properly"
+  exit 1
+fi
+
+# Check if old and new ironic pods are running, wait until the old terminates
+ironic_pod_count=$(kubectl get pods -n "${NAMESPACE}" -o name | grep -c metal3-ironic)
+ironic_pod=$(kubectl get pods -n "${NAMESPACE}" -o name | grep metal3-ironic)
+
+if [ "${ironic_pod_count}" -gt 1 ]; then
+  for i in {1..300}; do
+	  sleep 15
+	  ironic_pod_count=$(kubectl get pods -n "${NAMESPACE}" -o name | grep -c metal3-ironic)
+	  if [ "${ironic_pod_count}" -eq 1 ]; then
+		  ironic_pod=$(kubectl get pods -n "${NAMESPACE}" -o name | grep metal3-ironic)
+		  break
+	  fi
+    if [[ "${i}" -ge 300 ]]; then
+      ironic_pod=$(kubectl get pods -n "${NAMESPACE}" -o name | grep metal3-ironic)
+      log_error " Ironic pods failed: ${ironic_pod}"
+      exit 1
+    fi
+  done
+else
+  echo "New ironic pod id: ${ironic_pod}"
+fi
+
+# Check that ironic containers are running
+for container in ironic-api ironic-inspector ironic-dnsmasq ironic-httpd mariadb; do
+  running_containers_count=$(
+    kubectl get "${ironic_pod}" -n "${NAMESPACE}" -o json |
+      jq ".status.containerStatuses[] | select(.name == \"${container}\") | .state" |
+      grep -ic running
+  )
+  if [ "${running_containers_count}" -eq 0 ]; then
+    sleep 30
+    running_containers_count_retry=$(
+      kubectl get "${ironic_pod}" -n "${NAMESPACE}" -o json |
+        jq ".status.containerStatuses[] | select(.name == \"${container}\") | .state" |
+        grep -ic running
+      )
+    if [ "${running_containers_count_retry}" -eq 0 ]; then
+      echo "Upgrade of ironic image for container ${container} has failed"
+      exit 1
+    fi
+  fi
+done
+# ----------- end of upgrade ironic image ------
+
 # k8s version upgrade
 CLUSTER_NAME=$(kubectl get clusters -n "${NAMESPACE}" | grep -i provisioned | cut -f1 -d' ')
 FROM_VERSION=$(kubectl get kcp -n "${NAMESPACE}" -oyaml |
