@@ -163,7 +163,7 @@ mkdir -p "$IRONIC_IMAGE_DIR"
 pushd "$IRONIC_IMAGE_DIR"
 
 if [ ! -f "${IMAGE_NAME}" ] ; then
-    curl --insecure --compressed -O -L "${IMAGE_LOCATION}/${IMAGE_NAME}"
+    curl -f --insecure --compressed -O -L "${IMAGE_LOCATION}/${IMAGE_NAME}"
     IMAGE_SUFFIX="${IMAGE_NAME##*.}"
     if [ "${IMAGE_SUFFIX}" == "xz" ] ; then
       unxz -v "${IMAGE_NAME}"
