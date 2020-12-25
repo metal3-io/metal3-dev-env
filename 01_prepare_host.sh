@@ -163,23 +163,26 @@ mkdir -p "$IRONIC_IMAGE_DIR"
 pushd "$IRONIC_IMAGE_DIR"
 
 if [ ! -f "${IMAGE_NAME}" ] ; then
-    curl --insecure --compressed -O -L "${IMAGE_LOCATION}/${IMAGE_NAME}"
-    if [ "$(echo "${IMAGE_NAME}" | rev | cut -d . -f 1 | rev)" == "xz" ] ; then
-        unxz -v "${IMAGE_NAME}"
+    curl -f --insecure --compressed -O -L "${IMAGE_LOCATION}/${IMAGE_NAME}"
+    IMAGE_SUFFIX="${IMAGE_NAME##*.}"
+    if [ "${IMAGE_SUFFIX}" == "xz" ] ; then
+      unxz -v "${IMAGE_NAME}"
       IMAGE_NAME="$(basename "${IMAGE_NAME}" .xz)"
       export IMAGE_NAME
       IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
       export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
     fi
-    if [ "$(echo "${IMAGE_NAME}" | rev | cut -d . -f 1 | rev)" == "bz2" ] ; then
+    if [ "${IMAGE_SUFFIX}" == "bz2" ] ; then
         bunzip2 "${IMAGE_NAME}"
-	IMAGE_NAME="$(basename "${IMAGE_NAME}" .bz2)"
-	export IMAGE_NAME
-	IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
-	export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
+        IMAGE_NAME="$(basename "${IMAGE_NAME}" .bz2)"
+        export IMAGE_NAME
+        IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
+        export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
     fi
-    qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
-    md5sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.md5sum"
+    if [ "${IMAGE_SUFFIX}" != "iso" ] ; then
+        qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
+        md5sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.md5sum"
+    fi
 fi
 popd
 
