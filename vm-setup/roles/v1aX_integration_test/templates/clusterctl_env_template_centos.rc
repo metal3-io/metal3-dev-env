@@ -33,8 +33,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
 {% if CAPM3_VERSION == "v1alpha3" %}
       - ifup eth1
 {% endif %}
-      - usermod -aG docker {{ IMAGE_USERNAME }}
-      - systemctl enable --now docker keepalived kubelet
+      - systemctl enable --now crio keepalived kubelet
       - systemctl link /lib/systemd/system/monitor.keepalived.service
       - systemctl enable monitor.keepalived.service
       - systemctl start monitor.keepalived.service
@@ -162,13 +161,10 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
           gpgcheck=1
           repo_gpgcheck=0
           gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-      - path : /etc/docker/daemon.json
-        owner: root:root
-        permissions: '0644'
+      - path : /etc/containers/registries.conf
         content: |
-          {
-            \"insecure-registries\" : [\"{{ REGISTRY }}\"]
-          }
+          [registries.insecure]
+          registries = ['{{ REGISTRY }}']
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
       users:
@@ -180,8 +176,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
 {% if CAPM3_VERSION == "v1alpha3" %}
         - ifup eth1
 {% endif %}
-        - usermod -aG docker {{ IMAGE_USERNAME }}
-        - systemctl enable --now docker kubelet
+        - systemctl enable --now crio kubelet
       files:
         - path: /usr/local/bin/retrieve.configuration.files.sh
           owner: root:root
@@ -248,11 +243,10 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
             gpgcheck=1
             repo_gpgcheck=0
             gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-        - path : /etc/docker/daemon.json
+        - path : /etc/containers/registries.conf
           owner: root:root
           permissions: '0644'
           content: |
-            {
-              \"insecure-registries\" : [\"{{ REGISTRY }}\"]
-            }
+            [registries.insecure]
+            registries = ['{{ REGISTRY }}']
 "

@@ -35,9 +35,8 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       - dhclient enp2s0
 {% endif %}
       - netplan apply
-      - systemctl enable --now docker kubelet
+      - systemctl enable --now crio kubelet
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo \"keepalived already running\";else systemctl start keepalived; fi
-      - usermod -aG docker {{ IMAGE_USERNAME }}
       - systemctl link /lib/systemd/system/monitor.keepalived.service
       - systemctl enable monitor.keepalived.service
       - systemctl start monitor.keepalived.service
@@ -132,13 +131,10 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
                 addresses:
                 - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
 {% endif %}
-      - path : /etc/docker/daemon.json
-        owner: root:root
-        permissions: '0644'
+      - path : /etc/containers/registries.conf
         content: |
-          {
-            \"insecure-registries\" : [\"{{ REGISTRY }}\"]
-          }
+          [registries.insecure]
+          registries = ['{{ REGISTRY }}']
 "
 export WORKERS_KUBEADM_EXTRA_CONFIG="
       users:
@@ -152,8 +148,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         - dhclient enp2s0
 {% endif %}
         - netplan apply
-        - systemctl enable --now docker kubelet
-        - usermod -aG docker {{ IMAGE_USERNAME }}
+        - systemctl enable --now crio kubelet
       files:
 {% if CAPM3_VERSION == "v1alpha3" %}
         - path: /etc/netplan/51-cloud-config.yaml
@@ -184,11 +179,8 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
                   addresses:
                   - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
 {% endif %}
-        - path : /etc/docker/daemon.json
-          owner: root:root
-          permissions: '0644'
+        - path : /etc/containers/registries.conf
           content: |
-            {
-              \"insecure-registries\" : [\"{{ REGISTRY }}\"]
-            }
+             [registries.insecure]
+             registries = ['{{ REGISTRY }}']
 "
