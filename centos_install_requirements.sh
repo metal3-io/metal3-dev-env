@@ -7,7 +7,7 @@ source lib/logging.sh
 source lib/common.sh
 
 sudo dnf install -y libselinux-utils
-if selinuxenabled ; then
+if getenforce | grep Enforcing; then
     sudo setenforce permissive
     sudo sed -i "s/=enforcing/=permissive/g" /etc/selinux/config
 fi
