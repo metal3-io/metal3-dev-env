@@ -30,7 +30,7 @@ fi
 sudo pip3 install ansible
 
 # NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
-# becuase there are some vars exported in network.sh and used by
+# because there are some vars exported in network.sh and used by
 # install-package-playbook.yml.
 # shellcheck disable=SC1091
 source lib/network.sh
