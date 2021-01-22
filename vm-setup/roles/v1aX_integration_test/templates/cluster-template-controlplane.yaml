@@ -24,12 +24,22 @@ spec:
         kubeletExtraArgs:
           node-labels: "metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}"
           provider-id: "metal3://{{ '{{ ds.meta_data.uuid }}' }}"
+          featureGates: "AllAlpha=false,RunAsGroup=true"
+          container-runtime: "remote"
+          cgroup-driver: "systemd"
+          container-runtime-endpoint: "unix:///var/run/crio/crio.sock"
+          runtime-request-timeout: "5m"
     initConfiguration:
       nodeRegistration:
         name: "{{ '{{ ds.meta_data.name }}' }}"
         kubeletExtraArgs:
           node-labels: "metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}"
           provider-id: "metal3://{{ '{{ ds.meta_data.uuid }}' }}"
+          feature-gates: "AllAlpha=false,RunAsGroup=true"
+          container-runtime: "remote"
+          cgroup-driver: "systemd"
+          container-runtime-endpoint: "unix:///var/run/crio/crio.sock"
+          runtime-request-timeout: "5m"
 ${ CTLPLANE_KUBEADM_EXTRA_CONFIG }
 ---
 {% if CAPM3_VERSION == "v1alpha3" %}

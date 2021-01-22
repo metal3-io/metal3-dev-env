@@ -17,6 +17,8 @@
        - ironic-endpoint-keepalived
        - ironic-log-watch
        - ironic-inspector-log-watch
+    become: yes
+    become_user: root
     when: EPHEMERAL_CLUSTER == "kind"
 
   - name: Remove Ironic from from source cluster (Ephemeral Cluster is minikube)
