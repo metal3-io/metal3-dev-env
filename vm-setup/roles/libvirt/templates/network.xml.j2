@@ -2,14 +2,14 @@
 {% set netmask_v4 = item.netmask_v4|default("") %}
 {% set prefix_v6 = item.prefix_v6|default("") %}
 
-{% if item.dns.options is defined %}
 <network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
   <dnsmasq:options>
+    <!-- Risk reduction for CVE-2020-25684, CVE-2020-25685, and CVE-2020-25686. See: https://access.redhat.com/security/vulnerabilities/RHSB-2021-001 -->
+    <dnsmasq:option value="cache-size=0"/>
+    {% if item.dns.options is defined %}
     <dnsmasq:option value='{{ item.dns.options }}'/>
+    {% endif %}
   </dnsmasq:options>
-{% else %}
-<network>
-{% endif %}
 
   <name>{{ item.name }}</name>
   <bridge name='{{ item.bridge }}'/>
