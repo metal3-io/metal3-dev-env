@@ -142,8 +142,11 @@ export NUM_OF_WORKER_REPLICAS="${NUM_OF_WORKER_REPLICAS:-"1"}"
 export VM_EXTRADISKS=${VM_EXTRADISKS:-"false"}
 export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}
 
+# Registry for pulling images
+export OVERRIDE_DOCKER_IO_REGISTRY=${OVERRIDE_DOCKER_IO_REGISTRY:-"docker.io"}
+
 # Docker registry for local images
-export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"docker.io/registry:latest"}
+export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"${OVERRIDE_DOCKER_IO_REGISTRY}/registry:latest"}
 
 # VBMC and Redfish images
 export VBMC_IMAGE=${VBMC_IMAGE:-"quay.io/metal3-io/vbmc"}
@@ -178,6 +181,7 @@ export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:master"}
 
 # Default hosts memory
 export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-4096}
+
 
 # Cluster
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
