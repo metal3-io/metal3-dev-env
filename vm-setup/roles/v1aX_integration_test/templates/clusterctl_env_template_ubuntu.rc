@@ -133,6 +133,9 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
 {% endif %}
       - path : /etc/containers/registries.conf
         content: |
+          [registries.search]
+          registries = ['docker.io']
+
           [registries.insecure]
           registries = ['{{ REGISTRY }}']
 "
@@ -181,6 +184,9 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
 {% endif %}
         - path : /etc/containers/registries.conf
           content: |
+             [registries.search]
+             registries = ['docker.io']
+ 
              [registries.insecure]
              registries = ['{{ REGISTRY }}']
 "

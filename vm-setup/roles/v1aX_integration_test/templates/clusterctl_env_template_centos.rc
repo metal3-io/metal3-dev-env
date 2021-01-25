@@ -165,6 +165,9 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
           gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
       - path : /etc/containers/registries.conf
         content: |
+          [registries.search]
+          registries = ['docker.io']
+
           [registries.insecure]
           registries = ['{{ REGISTRY }}']
 "
@@ -251,6 +254,9 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
           owner: root:root
           permissions: '0644'
           content: |
+            [registries.search]
+            registries = ['docker.io']
+
             [registries.insecure]
             registries = ['{{ REGISTRY }}']
 "
