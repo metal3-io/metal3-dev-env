@@ -198,7 +198,7 @@ fi
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.8.5"}
 
 # Kind version
-export KIND_VERSION=${KIND_VERSION:-"v0.9.0"}
+export KIND_VERSION=${KIND_VERSION:-"v0.10.0"}
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
