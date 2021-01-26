@@ -107,6 +107,7 @@ pivot_actions:
     - "ci_test_provision"
     - "pivoting"    
     - "upgrading"
+    - "post_pivot"
 repivot_actions:
     - "ci_test_provision"
     - "repivoting"
