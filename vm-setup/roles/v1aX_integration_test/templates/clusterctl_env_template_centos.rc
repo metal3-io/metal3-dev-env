@@ -30,6 +30,8 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       sshAuthorizedKeys:
       - {{ SSH_PUB_KEY_CONTENT }}
     preKubeadmCommands:
+      - systemctl restart NetworkManager.service
+      - ifup eth0
 {% if CAPM3_VERSION == "v1alpha3" %}
       - ifup eth1
 {% endif %}
@@ -173,6 +175,8 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         sshAuthorizedKeys:
         - {{ SSH_PUB_KEY_CONTENT }}
       preKubeadmCommands:
+        - systemctl restart NetworkManager.service
+        - ifup eth0
 {% if CAPM3_VERSION == "v1alpha3" %}
         - ifup eth1
 {% endif %}
