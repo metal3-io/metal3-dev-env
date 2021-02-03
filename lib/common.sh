@@ -176,6 +176,27 @@ fi
 # IPAM controller image
 export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:master"}
 
+# fmuyassarov:(NOTE)
+# We are prepulling Kind node image while creating Jenkins CI image,
+# to avoid Docker hub pull rate limit issue. When CI runs
+# Kind cluster, the Kind image will be available to be used.
+export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"kindest/node:v1.20.2@sha256:8f7ea6e7642c0da54f04a7ee10431549c0257315b3a634f6ef2fecaaedb19bab"}
+
+# fmuyassarov:(NOTE)
+# We need these variables in order to prepull
+# container images while building Jenkins CI image.
+export CALICO_CNI_IMG="${CALICO_CNI_IMG:-"docker.io/calico/cni:v3.17.1"}"
+export CALICO_POD2DAEMON_IMG="${CALICO_POD2DAEMON_IMG:-"docker.io/calico/pod2daemon-flexvol:v3.17.1"}"
+export CALICO_NODE_IMG="${CALICO_NODE_IMG:-"docker.io/calico/node:v3.17.1"}"
+export CALICO_KUBE_CONTROLLERS_IMG="${CALICO_NODE_IMG:-"docker.io/calico/kube-controllers:v3.17.1"}"
+# We need golang container image when runing CI jobs from BMO, CAPM3, IPAM, repositories,
+# while building container image
+export GOLANG_IMG="${GOLANG_IMG:-"registry.hub.docker.com/library/golang:1.15.3"}"
+# We need centos container image when runing CI jobs from
+# ironic-image and ironic-inspector-image repositories,
+# while building ironic container images.
+export CENTOS_IMG="${CENTOS_IMG:-"docker.io/centos:centos8"}"
+
 # Default hosts memory
 export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-4096}
 

@@ -100,7 +100,7 @@ else
       curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
       chmod +x ./kind
       sudo mv kind /usr/local/bin/.
-      sudo "${CONTAINER_RUNTIME}" pull kindest/node:"${KUBERNETES_VERSION}"
+      sudo "${CONTAINER_RUNTIME}" pull "${KIND_NODE_IMAGE}"
   fi
   if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
     curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
@@ -208,3 +208,12 @@ if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
   configure_minikube
   init_minikube
 fi
+
+# Download Calico images and other container images
+for container in $(env | grep "CALICO_*" | cut -f2 -d'='); do
+  sudo "${CONTAINER_RUNTIME}" pull "${container}"
+done
+
+for container in "${DOCKER_REGISTRY_IMAGE}" "${GOLANG_IMG}" "${CENTOS_IMG}"; do
+  sudo "${CONTAINER_RUNTIME}" pull "${container}"
+done

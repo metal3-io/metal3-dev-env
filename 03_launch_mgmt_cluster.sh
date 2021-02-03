@@ -415,7 +415,7 @@ function create_clouds_yaml() {
 # Start a KinD management cluster
 #
 function launch_kind() {
-  cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=kindest/node:${KUBERNETES_VERSION} --config=- " "$USER"
+  cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "$USER"
   kind: Cluster
   apiVersion: kind.x-k8s.io/v1alpha4
   containerdConfigPatches:
@@ -423,6 +423,10 @@ function launch_kind() {
     [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${REGISTRY}"]
       endpoint = ["http://${REGISTRY}"]
 EOF
+
+  for image in $(env | grep "CALICO_*" | cut -f2 -d'='); do
+    kind load docker-image "${image}"
+  done
 }
 
 #
@@ -435,6 +439,11 @@ function start_management_cluster () {
     init_minikube
 
     sudo su -l -c 'minikube start' "${USER}"
+
+    for image in $(env | grep "CALICO_*" | cut -f2 -d'='); do
+      sudo su -l -c 'minikube cache add' "${USER}"
+    done
+
     if [[ -n "${MINIKUBE_BMNET_V6_IP}" ]]; then
       sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
       sudo su -l -c "minikube ssh -- sudo ip addr add $MINIKUBE_BMNET_V6_IP/64 dev eth3" "${USER}"
