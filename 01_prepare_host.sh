@@ -107,6 +107,7 @@ else
   fi
 fi
 
+
 KUBECTL_LATEST=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
 KUBECTL_LOCAL=$(kubectl version --client --short | cut -d ":" -f2 | sed 's/[[:space:]]//g' 2> /dev/null)
 KUBECTL_PATH=$(whereis -b kubectl | cut -d ":" -f2 | awk '{print $1}')
