@@ -2,7 +2,7 @@
 - name: Install openshift client in CentOS 8 using pip3
   pip:
     executable: "pip3"
-    name: openshift
+    name: openshift==0.11.2
     state: present
   become: yes
   become_user: root
