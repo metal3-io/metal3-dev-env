@@ -88,7 +88,7 @@ function deprovision_cluster() {
 
 function wait_for_cluster_deprovisioned() {
     echo "Waiting for cluster to be deprovisioned"
-    for i in {1..3600}; do
+    for i in {1..600}; do
         cluster_count=$(kubectl get clusters -n metal3 2>/dev/null | awk 'NR>1' | wc -l)
         if [[ "${cluster_count}" -eq "0" ]]; then
             ready_bmhs=$(kubectl get bmh -n metal3 | awk 'NR>1' | grep -c 'ready')
@@ -137,7 +137,7 @@ spec:
 EOF
 
     echo "Waiting for workloads to be ready"
-    for i in {1..1800}; do
+    for i in {1..600}; do
         workload_replicas=$(kubectl get deployments workload-1-deployment \
             -o json | jq '.status.readyReplicas')
         if [[ "${workload_replicas}" -eq 10 ]]; then
@@ -147,7 +147,7 @@ EOF
         fi
         echo -n "*"
         sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
+        if [[ "${i}" -eq 600 ]]; then
             log_error " Workload failed to be deployed on the cluster"
             deprovision_cluster
             wait_for_cluster_deprovisioned
@@ -194,7 +194,7 @@ function log_error() {
 function controlplane_is_provisioned() {
     echo "Waiting for provisioning of controlplane node to complete"
 
-    for i in {1..3600}; do
+    for i in {1..1800}; do
         kubectl version /dev/null 2>&1
         # shellcheck disable=SC2181
         if [[ "$?" -eq 0 ]]; then
@@ -205,7 +205,7 @@ function controlplane_is_provisioned() {
             echo -n "-"
         fi
         sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
+        if [[ "${i}" -eq 1800 ]]; then
             log_error "Controlplane provisioning took longer than expected."
             exit 1
         fi
@@ -216,7 +216,7 @@ function controlplane_has_correct_replicas() {
     replicas="${1}"
 
     echo "Waiting for all replicas of controlplane node"
-    for i in {1..3600}; do
+    for i in {1..1800}; do
         cp_replicas=$(kubectl get nodes |
             awk 'NR>1' | grep -c master)
         if [[ "${cp_replicas}" -eq "${replicas}" ]]; then
@@ -226,7 +226,7 @@ function controlplane_has_correct_replicas() {
             echo -n "+"
         fi
         sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
+        if [[ "${i}" -eq 1800 ]]; then
             log_error "Controlplane replicas not provisioned in expected time frame"
             exit 1
         fi
@@ -242,7 +242,7 @@ function worker_has_correct_replicas() {
         echo "Waiting for all replicas of worker nodes to join the cluster"
     fi
 
-    for i in {1..1800}; do
+    for i in {1..600}; do
         wr_replicas=$(kubectl get nodes | awk 'NR>1' | grep -vc master)
         if [[ "${replicas}" -eq 0 ]]; then
             if [[ "${wr_replicas}" -eq "${replicas}" ]]; then
@@ -250,7 +250,7 @@ function worker_has_correct_replicas() {
                 break
             fi
         elif [[ "${wr_replicas}" -eq "${replicas}" ]]; then
-            for ind in {1..1800}; do
+            for ind in {1..600}; do
                 wr_nodes=$(kubectl get nodes | awk 'NR>1' | grep -vc master)
                 if [[ "${wr_nodes}" -eq "${replicas}" ]]; then
                     echo "Expected worker replicas have joined the cluster"
@@ -262,7 +262,7 @@ function worker_has_correct_replicas() {
             echo -n "*"
         fi
         sleep 10
-        if [[ "${i}" -ge 1800 || "${ind}" -ge 1800 ]]; then
+        if [[ "${i}" -eq 600 || "${ind}" -eq 600 ]]; then
             if [[ "${replicas}" -eq 0 ]]; then
                 log_error "Time out while waiting for workers to leave the cluster"
             else
@@ -276,7 +276,7 @@ function worker_has_correct_replicas() {
 function cp_nodes_using_new_bootDiskImage() {
     replicas="${1}"
     echo "Waiting for all CP nodes to to use the new boot disk image"
-    for i in {1..3600}; do
+    for i in {1..1800}; do
         cp_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
             grep -c 'new-controlplane-image')
         if [[ "${cp_replicas}" -eq "${replicas}" ]]; then
@@ -286,7 +286,7 @@ function cp_nodes_using_new_bootDiskImage() {
             echo -n "*+"
         fi
         sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
+        if [[ "${i}" -eq 1800 ]]; then
             log_error "Time out while waiting for CP nodes to be provisioned \
             with a new boot disk image"
             exit 1
@@ -298,7 +298,7 @@ function cp_nodes_using_new_bootDiskImage() {
 function wr_nodes_using_new_bootDiskImage() {
     replicas="${1}"
     echo "Waiting for all worker nodes to use the new boot disk image"
-    for i in {1..3600}; do
+    for i in {1..600}; do
         worker_replicas=$(kubectl get bmh -n metal3 | grep -i provisioned |
             grep -c 'new-workers-image')
         if [[ "${worker_replicas}" -eq "${replicas}" ]]; then
@@ -308,7 +308,7 @@ function wr_nodes_using_new_bootDiskImage() {
             echo -n "*-"
         fi
         sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
+        if [[ "${i}" -eq 600 ]]; then
             log_error "Time out while waiting for worker nodes to be provisioned\
              with a new boot disk image"
             exit 1
@@ -320,7 +320,7 @@ function wr_nodes_using_new_bootDiskImage() {
 function expected_free_nodes() {
     node_count="${1}"
     echo "Waiting for original nodes to be freed"
-    for i in {1..3600}; do
+    for i in {1..600}; do
         released_nodes=$(kubectl get bmh -n metal3 | awk '{{print $2}}' | grep -c 'ready')
         if [[ "${released_nodes}" -eq "${node_count}" ]]; then
             echo "Original nodes are released"
@@ -329,7 +329,7 @@ function expected_free_nodes() {
             echo -n "**"
         fi
         sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
+        if [[ "${i}" -eq 600 ]]; then
             log_error "Time out while waiting for original nodes to be released"
             exit 1
         fi
@@ -454,7 +454,7 @@ function verify_kubernetes_version_upgrade() {
     expected_nodes=${2}
     echo "Waiting for all nodes to be upgraded to ${expected_k8s_version}"
 
-    for i in {1..3600}; do
+    for i in {1..1800}; do
         upgraded_cp=$(kubectl get nodes | awk 'NR>1' | grep -c "${expected_k8s_version}")
         if [[ "${upgraded_cp}" -eq "${expected_nodes}" ]]; then
             echo "Upgrade of Kubernetes version of all nodes done successfully"
@@ -463,7 +463,7 @@ function verify_kubernetes_version_upgrade() {
             echo -n "*"
         fi
         sleep 10
-        if [[ "${i}" -ge 1800 ]]; then
+        if [[ "${i}" -eq 1800 ]]; then
             log_error "Time out while waiting for upgrade of kubernetes version of all nodes"
             exit 1
         fi
