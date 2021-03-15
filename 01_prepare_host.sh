@@ -39,25 +39,13 @@ source lib/network.sh
 ansible-galaxy install -r vm-setup/requirements.yml
 ansible-galaxy collection install ansible.netcommon
 
-# TODO(fmuyassarov) Remove the conditional statement
-# once centos_install_requirements.sh is also moved to
-# an Ansible script.
-if [[ $OS == ubuntu ]]; then
-  ANSIBLE_FORCE_COLOR=true ansible-playbook \
-    -e "working_dir=$WORKING_DIR" \
-    -e "metal3_dir=$SCRIPTDIR" \
-    -e "virthost=$HOSTNAME" \
-    -i vm-setup/inventory.ini \
-    -b -vvv vm-setup/install-package-playbook.yml
-else
-  # shellcheck disable=SC1091
-  source centos_install_requirements.sh
-  ANSIBLE_FORCE_COLOR=true ansible-playbook \
-    -e "working_dir=$WORKING_DIR" \
-    -e "virthost=$HOSTNAME" \
-    -i vm-setup/inventory.ini \
-    -b -vvv vm-setup/install-package-playbook.yml
-fi
+# Install required packages
+ANSIBLE_FORCE_COLOR=true ansible-playbook \
+  -e "working_dir=$WORKING_DIR" \
+  -e "metal3_dir=$SCRIPTDIR" \
+  -e "virthost=$HOSTNAME" \
+  -i vm-setup/inventory.ini \
+  -b -vvv vm-setup/install-package-playbook.yml
 
 # shellcheck disable=SC1091
 source lib/network.sh

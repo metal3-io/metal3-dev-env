@@ -63,7 +63,6 @@ packages:
          - psmisc
          - vim-enhanced
          - wget
-         - ansible
          - bind-utils
          - jq
          - libguestfs-tools

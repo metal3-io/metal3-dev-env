@@ -31,10 +31,13 @@
   become: yes
   when: ansible_facts['distribution'] == "Ubuntu"
 
-- name: Install packages on rhel8
-  when: ansible_lsb.major_release|int == 8
-  package:
-      name: "{{ packages.centos.rhel8.packages }}"
-      state: present
+- name: Install packages on CentOS/RHEL8
+  block:
+    - name: Install packages on CentOS/RHEL8
+      package:
+          name: "{{ packages.centos.rhel8.packages }}"
+          state: present
+    - name: Perform CentOS/RHEL8 required configurations
+      include: centos_required_packages.yml
   become: yes
   when: ansible_os_family == "RedHat"
