@@ -1,2 +1,3 @@
 # Can be set to "teardown" to destroy a previous configuration
 virtbmc_action: setup
+sushy_ignore_boot_device: False
