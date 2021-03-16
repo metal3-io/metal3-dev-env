@@ -27,7 +27,7 @@ else
   sudo alternatives --set python /usr/bin/python3
 fi
 
-sudo pip3 install ansible
+sudo pip3 install ansible "jinja2>=2.10"
 
 # NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
 # because there are some vars exported in network.sh and used by
