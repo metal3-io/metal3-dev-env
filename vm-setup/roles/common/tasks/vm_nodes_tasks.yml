@@ -5,7 +5,7 @@
 - set_fact:
     vm_nodes_index: "{{vm_nodes_index|default(0)|int}}"
 - set_fact:
-    vm_nodes: "{{vm_nodes|default([]) + [
+    vm_nodes: "{{vm_nodes + [
                  {'name': ironic_prefix + '%s_%s'|format(flavor.key, item),
                   'flavor': flavor.key,
                   'virtualbmc_port': virtualbmc_base_port|int+vm_nodes_index|int+item} ]}}"

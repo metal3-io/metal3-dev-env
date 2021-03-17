@@ -3,7 +3,12 @@
 - set_fact:
     generate_vm_nodes: "{{vm_nodes is not defined}}"
 
-- name: Define vm_nodes if not already defined
+- name: Set an empty default for vm_nodes if not already defined
+  set_fact:
+    vm_nodes: []
+  when: generate_vm_nodes
+
+- name: Populate vm_nodes if not already defined
   when: generate_vm_nodes
   include_tasks: vm_nodes_tasks.yml
   loop: "{{flavors|dict2items}}"

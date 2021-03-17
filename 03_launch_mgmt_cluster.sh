@@ -252,7 +252,7 @@ function make_bm_hosts() {
 function apply_bm_hosts() {
   pushd "${BMOPATH}"
   list_nodes | make_bm_hosts > "${WORKING_DIR}/bmhosts_crs.yaml"
-  if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
+  if [[ -n "$(list_nodes)" ]]; then
     kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n metal3
   fi
   popd
