@@ -46,6 +46,66 @@ scale_workers_to 0
 worker_has_correct_replicas 0
 expected_free_nodes 1
 
+# shellcheck disable=SC2034
+IRONIC_IMAGE_TAG=master
+kubectl scale deploy metal3-ironic -n metal3 --replicas 0
+sleep 120
+# Upgrade containers that use ironic image
+for container in mariadb ironic-api ironic-dnsmasq ironic-conductor ironic-log-watch;do
+   kubectl set image deploy metal3-ironic \
+   "${container}"=quay.io/metal3-io/ironic:"${IRONIC_IMAGE_TAG}" -n "${NAMESPACE}"
+done
+
+# Upgrade containers that use ironic-inspector image
+for container in ironic-inspector httpd-reverse-proxy ironic-inspector-log-watch; do
+   kubectl set image deploy metal3-ironic \
+   "${container}"=quay.io/metal3-io/ironic-inspector:"${IRONIC_IMAGE_TAG}" -n "${NAMESPACE}"
+done
+kubectl scale deploy metal3-ironic -n metal3 --replicas 1
+
+updated_ironic_image_count=$(kubectl get deployments metal3-ironic -n "${NAMESPACE}" -o json |
+  jq '.spec.template.spec.containers[].image' | grep -c "${IRONIC_IMAGE_TAG}")
+
+if [ "${updated_ironic_image_count}" -lt "${NUM_IRONIC_IMAGES}" ]; then
+ echo "All ironic images are not updated properly"
+  exit 1
+fi
+# Check if old and new ironic pods are running, wait until the old terminates
+ironic_pod_count=$(kubectl get pods -n "${NAMESPACE}" -o name | grep -c metal3-ironic)
+ironic_pod=$(kubectl get pods -n "${NAMESPACE}" -o name | grep metal3-ironic)
+
+if [ "${ironic_pod_count}" -gt 1 ]; then
+  for i in {1..300}; do
+	  sleep 15
+	  ironic_pod_count=$(kubectl get pods -n "${NAMESPACE}" -o name | grep -c metal3-ironic)
+	  if [ "${ironic_pod_count}" -eq 1 ]; then
+		  ironic_pod=$(kubectl get pods -n "${NAMESPACE}" -o name | grep metal3-ironic)
+		  break
+	  fi
+    if [[ "${i}" -ge 300 ]]; then
+      ironic_pod=$(kubectl get pods -n "${NAMESPACE}" -o name | grep metal3-ironic)
+      log_error " Ironic pods failed: ${ironic_pod}"
+      exit 1
+    fi
+  done
+else
+  echo "New ironic pod id: ${ironic_pod}"
+fi
+
+# Check that ironic containers are running
+for wait in {1..12}; do
+  not_running_containers_count=$(kubectl get "${ironic_pod}" -n "${NAMESPACE}" -o json | 
+	  jq '.status.containerStatuses[].ready' | grep -ic false)
+  if [ "${not_running_containers_count}" == "0" ]; then break; fi
+  if [ "${wait}" -ge 12 ]; then
+    echo "some of the ironic containers are not running"
+    kubectl get "${ironic_pod}" -n "${NAMESPACE}" -o json |
+        jq '.status.containerStatuses[]| select(.ready==false)|.name'
+    exit 1
+  fi
+  sleep 10
+done
+
 # k8s version upgrade
 CLUSTER_NAME=$(kubectl get clusters -n "${NAMESPACE}" | grep -i provisioned | cut -f1 -d' ')
 FROM_VERSION=$(kubectl get kcp -n "${NAMESPACE}" -oyaml |
