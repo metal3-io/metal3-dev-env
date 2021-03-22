@@ -17,7 +17,7 @@ NODE_DRAIN_TIMEOUT: "{{ lookup('env', 'NODE_DRAIN_TIMEOUT') | default('0s', true
 BMOPATH: "{{ lookup('env', 'BMOPATH') }}"
 IRONIC_DATA_DIR: "{{ lookup('env', 'IRONIC_DATA_DIR') }}"
 KUBECONFIG_PATH: "/home/ubuntu/.kube/config"
-KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.20.2', true) }}"
+KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.20.4', true) }}"
 
 KUBERNETES_BINARIES_VERSION: "{{ lookup('env', 'KUBERNETES_BINARIES_VERSION') | default(lookup('env', 'KUBERNETES_VERSION') | default('v1.18.0', true), true) }}"
 KUBERNETES_BINARIES_CONFIG_VERSION: "{{ lookup('env', 'KUBERNETES_BINARIES_CONFIG_VERSION') | default('v0.2.7', true) }}"
@@ -59,15 +59,15 @@ IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-d
 IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning', true)}}"
 
 # Distibution specific environment variables
-IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_v1.20.2.qcow2', true)}}"
-RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_v1.20.2-raw.img', true)}}"
-IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.20.2/', true)}}"
+IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_v1.20.4.qcow2', true)}}"
+RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_v1.20.4-raw.img', true)}}"
+IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.20.4/', true)}}"
 IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
 IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.md5sum"
 
-IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_NAME') | default('CENTOS_8.2_NODE_IMAGE_K8S_v1.20.2.qcow2', true)}}"
-RAW_IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('CENTOS_8.2_NODE_IMAGE_K8S_v1.20.2-raw.img', true)}}"
-IMAGE_LOCATION_CENTOS: 'https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.20.2/'
+IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_NAME') | default('CENTOS_8.2_NODE_IMAGE_K8S_v1.20.4.qcow2', true)}}"
+RAW_IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('CENTOS_8.2_NODE_IMAGE_K8S_v1.20.4-raw.img', true)}}"
+IMAGE_LOCATION_CENTOS: 'https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.20.4/'
 
 # Environment variables to install Ironic with TLS and Basic Auth
 GOPATH: "{{ lookup('env', 'GOPATH')}}"
