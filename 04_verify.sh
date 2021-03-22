@@ -281,11 +281,13 @@ process_status $?
 echo ""
 
 ## Verify
-while read -r name address user password mac; do
-  iterate check_bm_hosts "${name}" "${address}" "${user}" \
-    "${password}" "${mac}"
-  echo ""
-done <<< "$(list_nodes)"
+if [[ -n "$(list_nodes)" ]]; then
+  while read -r name address user password mac; do
+    iterate check_bm_hosts "${name}" "${address}" "${user}" \
+      "${password}" "${mac}"
+    echo ""
+  done <<< "$(list_nodes)"
+fi
 
 # Verify that the operator are running locally
 if [[ "${BMO_RUN_LOCAL}" == true ]]; then
