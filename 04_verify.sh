@@ -224,6 +224,7 @@ EXPTD_V1ALPHA4_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:
   cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system:1"
 BRIDGES="provisioning baremetal"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
+[[ $IRONIC_TLS_SETUP == "true" ]] && EXPTD_CONTAINERS="${EXPTD_CONTAINERS} httpd-reverse-proxy"
 
 FAILS=0
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"

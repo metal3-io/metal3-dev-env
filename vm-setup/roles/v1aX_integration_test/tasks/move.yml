@@ -13,6 +13,7 @@
        - ironic-inspector
        - dnsmasq
        - httpd
+       - httpd-reverse-proxy
        - mariadb
        - ironic-endpoint-keepalived
        - ironic-log-watch

@@ -178,7 +178,8 @@ function update_images(){
 #
 function launch_ironic() {
   pushd "${BMOPATH}"
-
+  # Only enabling the inspector reverse proxy if and only if the ironic TLS is enabled
+  INSPECTOR_REVERSE_PROXY_SETUP="$IRONIC_TLS_SETUP" 
     # Update Configmap parameters with correct urls
     cp "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig"
     cat << EOF | sudo tee "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
@@ -193,6 +194,7 @@ IRONIC_ENDPOINT=${IRONIC_URL}
 IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
 CACHEURL=http://${PROVISIONING_URL_HOST}/images
 IRONIC_FAST_TRACK=true
+INSPECTOR_REVERSE_PROXY_SETUP=${INSPECTOR_REVERSE_PROXY_SETUP}
 EOF
 
   if [ "$NODES_PLATFORM" == "libvirt" ] ; then
