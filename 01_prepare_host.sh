@@ -88,7 +88,7 @@ else
       curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
       chmod +x ./kind
       sudo mv kind /usr/local/bin/.
-      sudo "${CONTAINER_RUNTIME}" pull kindest/node:"${KUBERNETES_VERSION}"
+      sudo "${CONTAINER_RUNTIME}" pull kindest/node:"${KIND_NODE_IMAGE_VERSION}"
   fi
   if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
     curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
