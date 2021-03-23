@@ -2,6 +2,8 @@
 
 function get_latest_release() {
   set +x
+  echo "${CAPM3RELEASE}=====>" # remove this line
+  echo "${CAPIRELEASE}=====>" # remove this line
   if [ -z "${GITHUB_TOKEN:-}" ]; then
     release="$(curl -sL "${1}")" || ( set -x && exit 1 )
   else
@@ -30,7 +32,6 @@ function get_latest_release() {
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}/releases}"
 CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
 
-# CAPI release and branch
 export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.3.")}"
 
 # CAPM3 releases
@@ -40,6 +41,7 @@ else
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.3.")}"
 fi
 
+
 # On first iteration, jq might not be installed
 if [[ "$CAPIRELEASE" == "" ]]; then
   command -v jq &> /dev/null && echo "Failed to fetch CAPI release from Github" && exit 1
@@ -48,3 +50,11 @@ fi
 if [[ "$CAPM3RELEASE" == "" ]]; then
   command -v jq &> /dev/null && echo "Failed to fetch CAPM3 release from Github" && exit 1
 fi
+
+
+# Needs a rework
+#if [[ "${TESTS_FOR}" == "feature_tests_upgrade"* ]]
+#then
+export CAPM3RELEASE="v0.4.0"
+export CAPIRELEASE="v0.3.12"
+#fi
