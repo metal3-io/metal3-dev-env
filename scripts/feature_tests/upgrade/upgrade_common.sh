@@ -359,7 +359,7 @@ function apply_cni() {
 function cleanup_clusterctl_configuration() {
     # Delete old environment and create new one
     rm -rf /tmp/cluster-api-clone
-    mkdir /tmp/cluster-api-clone
+    sudo rm -rf "$(which clusterctl)"
 
     # clean up if previous test has failed.
     rm -rf /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPI_REL_TO_VERSION}"
@@ -371,6 +371,13 @@ function cleanup_clusterctl_configuration() {
 }
 
 function create_clusterctl_configuration() {
+# Image is overriden in provider/container_name format
+# list of providers
+# cluster.x-k8s.io/provider: bootstrap-kubeadm
+# cluster.x-k8s.io/provider: cluste
+# cluster.x-k8s.io/provider: control-plane-kubeadm
+# cluster.x-k8s.io/provider: infrastructure-metal3
+
 cat <<EOF >/home/"${USER}"/.cluster-api/clusterctl.yaml
 providers:
   - name: cluster-api
@@ -382,17 +389,20 @@ providers:
   - name: kubeadm
     url: /home/$USER/.cluster-api/dev-repository/control-plane-kubeadm/${CAPIRELEASE}/control-plane-components.yaml
     type: ControlPlaneProvider
-  - name: metal3
+  - name: infrastructure-metal3
     url: /home/$USER/.cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}/infrastructure-components.yaml
     type: InfrastructureProvider
-EOF
+images:
+  cluster-api/cluster-api-controller:
+    tag: ${CAPI_REL_TO_VERSION}
+  control-plane-kubeadm/kubeadm-control-plane-controller:
+    tag: ${CAPI_REL_TO_VERSION}
+  bootstrap-kubeadm/kubeadm-bootstrap-controller:
+    tag: ${CAPI_REL_TO_VERSION}
+  infrastructure-metal3/manager:
+    tag: ${CAPM3_REL_TO_VERSION}
 
-# At first we install "v0.3.2" for which we need to move this
-# to the CAPM3PATH repo root folder
-#
-# For the upgrade we need to do two things
-# 1. copy v0.3.2 folder to v0.3.8
-# 2. update $HOME/.cluster-api/clusterctl.yaml accordingly
+EOF
 cat <<EOF >clusterctl-settings-metal3.json
 {
    "name": "infrastructure-metal3",
@@ -404,47 +414,47 @@ cat <<EOF >clusterctl-settings-metal3.json
 EOF
 
     mv clusterctl-settings-metal3.json "${CAPM3PATH}/clusterctl-settings.json"
-
 }
 
 function makeCrdChanges() {
     # Make changes on CRDs
-    sed -i 's/\bma\b/ma2020/g' \
+    sed -i 's/description: Machine/description: upgradedMachine/g' \
         /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPI_REL_TO_VERSION}"/core-components.yaml
-    sed -i 's/singular: kubeadmconfig/singular: kubeadmconfig2020/' \
+    sed -i 's/description: KubeadmConfig/description: upgradedKubeadmConfig/' \
         /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPI_REL_TO_VERSION}"/bootstrap-components.yaml
-    sed -i 's/kcp/kcp2020/' \
+    sed -i 's/description: KubeadmControlPlane/description: upgradedKubeadmControlPlane/' \
         /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPI_REL_TO_VERSION}"/control-plane-components.yaml
     sed -i 's/\bm3c\b/m3c2020/g' \
         /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3_REL_TO_VERSION}"/infrastructure-components.yaml
-
 }
 
 function createNextVersionControllers() {
     # Create a new version
-    cp -r /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPIRELEASE}" \
+    cp -r /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPIRELEASE_HARDCODED}" \
         /home/"${USER}"/.cluster-api/dev-repository/cluster-api/"${CAPI_REL_TO_VERSION}"
-    cp -r /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPIRELEASE}" \
+    cp -r /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPIRELEASE_HARDCODED}" \
         /home/"${USER}"/.cluster-api/dev-repository/bootstrap-kubeadm/"${CAPI_REL_TO_VERSION}"
-    cp -r /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPIRELEASE}" \
+    cp -r /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPIRELEASE_HARDCODED}" \
         /home/"${USER}"/.cluster-api/dev-repository/control-plane-kubeadm/"${CAPI_REL_TO_VERSION}"
     cp -r /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}" \
         /home/"${USER}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3_REL_TO_VERSION}"
 
 }
-# <------
 
 function buildClusterctl() {
     git clone https://github.com/kubernetes-sigs/cluster-api.git /tmp/cluster-api-clone
     pushd /tmp/cluster-api-clone || exit
+    git checkout "${CAPIRELEASE}"
     make clusterctl
     sudo mv bin/clusterctl /usr/local/bin
 
 # create required configuration files
 cat <<EOF >clusterctl-settings.json
 {
-  "providers": [ "cluster-api", "bootstrap-kubeadm", "control-plane-kubeadm"]
+          "providers": ["cluster-api","bootstrap-kubeadm","control-plane-kubeadm", "infrastructure-metal3"],
+          "provider_repos": ["/home/${USER}/go/src/github.com/metal3-io/cluster-api-provider-metal3"]
 }
+
 EOF
     popd || exit
 }
