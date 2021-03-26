@@ -21,6 +21,10 @@ fi
 # shellcheck disable=SC1090
 source "$CONFIG"
 
+# Just for testing VBMC/Sushy-tools local images
+export SUSHY_TOOLS_LOCAL_IMAGE="/home/${USER}/tested_repo/resources/sushy-tools"
+export VBMC_LOCAL_IMAGE="/home/${USER}/tested_repo/resources/vbmc"
+
 # Set variables
 export MARIADB_HOST="mariaDB"
 export MARIADB_HOST_IP="127.0.0.1"
