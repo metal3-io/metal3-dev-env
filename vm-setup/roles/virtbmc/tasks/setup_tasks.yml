@@ -96,4 +96,5 @@
     dest: "{{ working_dir }}/virtualbmc/sushy-tools/conf.py"
     content: |
       SUSHY_EMULATOR_LIBVIRT_URI = "{{ vbmc_libvirt_uri }}"
+      SUSHY_EMULATOR_IGNORE_BOOT_DEVICE = {{ sushy_ignore_boot_device }}
   become: true
