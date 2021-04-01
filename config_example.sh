@@ -31,6 +31,14 @@
 #
 #export SSH_PUB_KEY=~/.ssh/id_rsa.pub
 
+# Set the controlplane replica count
+#export NUM_OF_MASTER_REPLICAS=1
+
+# This variable defines if controlplane should scale-in or scale-out during upgrade
+# The field values can be 0 or 1. Default is 1. When set to 1 controlplane scale-out
+# When set to 0 controlplane scale-in. In case of scale-in NUM_OF_MASTER_REPLICAS must be >=3. 
+# export MAX_SURGE_VALUE=1
+
 #
 # Select the Container Runtime, can be "podman" or "docker"
 # Defaults to "podman"
