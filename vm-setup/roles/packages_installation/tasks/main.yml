@@ -39,5 +39,10 @@
           state: present
     - name: Perform CentOS/RHEL8 required configurations
       include: centos_required_packages.yml
+    - name: Install packages using pip3
+      pip:
+        executable: "pip3"
+        name: "{{ packages.centos.rhel8.pip3 }}"
+        state: present
   become: yes
   when: ansible_os_family == "RedHat"
