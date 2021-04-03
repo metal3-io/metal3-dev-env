@@ -36,7 +36,17 @@
       username: "{{ IMAGE_USERNAME }}"
 
   - name: Fetch target cluster kubeconfig
-    shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    community.kubernetes.k8s_info:
+      api_version: v1
+      kind: Secret
+      name: "{{ CLUSTER_NAME }}-kubeconfig"
+      namespace: "{{ NAMESPACE }}"
+    register: secret
+
+  - local_action: 
+      module: copy 
+      content: "{{ secret | json_query('resources[*].data.value') | b64decode}}"
+      dest: "{{ TARGET_KUBECONFIG }}"
 
   # Install Calico
   - name: Download Calico manifest
@@ -44,14 +54,12 @@
       url: https://docs.projectcalico.org/manifests/calico.yaml
       dest: /tmp/
       mode: '664'
-    register: calico_manifest
 
   - name: Replace the POD_CIDR in calico config
     replace:
       path: /tmp/calico.yaml
       regexp: "192.168.0.0/16"
       replace: "{{ POD_CIDR }}"
-    register: updated_manifest
 
   - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
     blockinfile:
@@ -79,12 +87,15 @@
     k8s:
       state: present
       src: "/tmp/calico.yaml"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: install_cni
+      kubeconfig: "{{ TARGET_KUBECONFIG }}"
 
-  # Check for pods & nodes on the target cluster
-  - name: Check if pods in running state
-    shell: "kubectl get pods --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -A -o json | jq -r '.items[].status.phase' | grep -v Running"
+  - name: Wait until target cluster Pods are in Running state
+    community.kubernetes.k8s_info:
+      api_version: v1
+      kind: Pod
+      kubeconfig: "{{ TARGET_KUBECONFIG }}"
+      field_selectors:
+        - status.phase=Running
     retries: 150
     delay: 20
     register: running_pods
@@ -94,8 +105,8 @@
       (running_pods.stdout != "")
     until: running_pods.stdout == ""
 
-  - name: Check if nodes in ready state
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | wc -l"
+  - name: Wait until target cluster Nodes are in Running state
+    shell: "kubectl get nodes --kubeconfig {{ TARGET_KUBECONFIG }} | grep -w Ready | wc -l"
     retries: 150
     delay: 3
     register: ready_nodes

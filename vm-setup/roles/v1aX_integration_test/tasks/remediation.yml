@@ -28,13 +28,31 @@
       WORKER_VM: "{{ workers.stdout_lines.0 | replace('-','_') | replace('metal3/','') }}"
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
-  - name: Fetch the target cluster kubeconfig
-    shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  - name: Fetch target cluster kubeconfig
+    community.kubernetes.k8s_info:
+      api_version: v1
+      kind: Secret
+      name: "{{ CLUSTER_NAME }}-kubeconfig"
+      namespace: "{{ NAMESPACE }}"
+    register: secret
+
+  - local_action: 
+      module: copy 
+      content: "{{ secret | json_query('resources[*].data.value') | b64decode}}"
+      dest: "{{ TARGET_KUBECONFIG }}"
 
   # Reboot a single worker node
   - name: Reboot "{{ WORKER_BMH }}"
-    shell: |
-       kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" reboot.metal3.io=
+    community.kubernetes.k8s:
+      state: present
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ WORKER_BMH }}"
+          namespace: "{{ NAMESPACE }}"
+          annotations:
+            reboot.metal3.io": ""
 
   - name: List only powered off VMs
     virt:
@@ -48,14 +66,14 @@
     become_user: root
 
   - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes NotReady
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}' | sort"
+    shell: "kubectl get nodes --kubeconfig {{ TARGET_KUBECONFIG }} | grep -w NotReady | awk '{print $1}' | sort"
     retries: 150
     delay: 3
     register: not_ready_nodes
     until: WORKER_NODE in not_ready_nodes.stdout_lines
 
   - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes Ready
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
+    shell: "kubectl get nodes --kubeconfig {{ TARGET_KUBECONFIG }} | grep -w Ready | awk '{print $1}' | sort"
     retries: 150
     delay: 3
     register: ready_nodes
@@ -89,9 +107,17 @@
       K8S_NODE: "{{ MASTER_NODE_0 }}"
 
   # Power cycle two master nodes
-  - name: Power off "{{ MASTER_BMH_1 }}" and "{{ MASTER_BMH_2 }}"
-    shell: |
-       kubectl annotate bmh "{{ item }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
+  - name: Power off master nodes
+    community.kubernetes.k8s:
+      state: present
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ item }}"
+          namespace: "{{ NAMESPACE }}"
+          annotations:
+            reboot.metal3.io/poweroff: ""
     with_items:
       - "{{ MASTER_BMH_1 }}"
       - "{{ MASTER_BMH_2 }}"
@@ -112,9 +138,17 @@
     become: yes
     become_user: root
 
-  - name: Power on masters
-    shell: |
-       kubectl annotate bmh "{{ item }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff-
+  - name: Power on master nodes
+    community.kubernetes.k8s:
+      state: present
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ item }}"
+          namespace: "{{ NAMESPACE }}"
+          annotations:
+            reboot.metal3.io/poweroff:
     with_items:
       - "{{ MASTER_BMH_1 }}"
       - "{{ MASTER_BMH_2 }}"
@@ -154,12 +188,24 @@
     until: ready_hosts.stdout == "1"
 
   - name: Mark "{{ WORKER_BMH }}" as unhealthy
-    shell: |
-      kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy=
- 
-  - name: Delete worker Machine object "{{ WORKER_NODE }}"
-    shell: |
-      kubectl delete machine "{{ WORKER_NODE }}" -n "{{ NAMESPACE }}"
+    community.kubernetes.k8s:
+      state: present
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ WORKER_BMH }}"
+          namespace: "{{ NAMESPACE }}"
+          annotations:
+            capi.metal3.io/unhealthy: ""
+
+  - name: Delete worker "{{ WORKER_NODE }}" Machine 
+    community.kubernetes.k8s:
+      state: absent
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: Machine
+      namespace: "{{ NAMESPACE }}"
+      name: "{{ WORKER_NODE }}"
 
   - name: Wait until worker BMH is in ready state
     shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | awk '{print $1}'
@@ -191,8 +237,16 @@
       - provisioned_hosts.stdout == "3"
 
   - name: Remove unhealthy annotation from "{{ WORKER_BMH }}"
-    shell: |
-      kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy-
+    community.kubernetes.k8s:
+      state: present
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ WORKER_BMH }}"
+          namespace: "{{ NAMESPACE }}"
+          annotations:
+            capi.metal3.io/unhealthy:
 
   - name: Wait until all "{{ NUMBER_OF_BMH }}" BMH are provisioned
     shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l

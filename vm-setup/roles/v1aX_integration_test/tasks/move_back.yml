@@ -7,7 +7,7 @@
       kind: Deployment
       state: absent
       namespace: "{{ NAMESPACE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      kubeconfig: "{{ TARGET_KUBECONFIG }}"
 
   - name: Install Ironic in Source cluster (Ephemeral Cluster is kind)
     shell: "{{ BMOPATH }}/tools/run_local_ironic.sh"
@@ -23,4 +23,4 @@
     when: EPHEMERAL_CLUSTER == "minikube"
 
   - name: Re-pivot everything back to source cluster
-    shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"
+    shell: "clusterctl move --kubeconfig {{ TARGET_KUBECONFIG }} --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"

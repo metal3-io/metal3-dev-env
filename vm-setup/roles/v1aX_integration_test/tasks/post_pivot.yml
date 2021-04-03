@@ -6,19 +6,19 @@
     shell: |
         kubectl taint nodes --all node-role.kubernetes.io/master-
     environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      KUBECONFIG: "{{ TARGET_KUBECONFIG }}"
     ignore_errors: yes
   
   - name: Scale worker down to 0.
     shell: |
         kubectl scale machinedeployment "{{ CLUSTER_NAME }}"  -n "{{ NAMESPACE }}" --replicas=0        
     environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      KUBECONFIG: "{{ TARGET_KUBECONFIG }}"
   
   - name: Wait until worker is scaled down and one bmh is Ready
     shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
     environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      KUBECONFIG: "{{ TARGET_KUBECONFIG }}"
     retries: 200
     delay: 20
     register: ready_hosts
@@ -28,12 +28,12 @@
     shell: |
         kubectl scale machinedeployment "{{ CLUSTER_NAME }}"  -n "{{ NAMESPACE }}" --replicas=1        
     environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      KUBECONFIG: "{{ TARGET_KUBECONFIG }}"
 
   - name: Wait until all "{{ NUMBER_OF_BMH }}" BMH are provisioned
     shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
     environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      KUBECONFIG: "{{ TARGET_KUBECONFIG }}"
     retries: 200
     delay: 20
     register: provisioned_hosts
@@ -45,7 +45,7 @@
         | select (.status.phase == "Running" or .status.phase == "running")
         | .metadata.name ] | length'
     environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      KUBECONFIG: "{{ TARGET_KUBECONFIG }}"
     register: provisioned_machines
     retries: 200
     delay: 20

@@ -1,10 +1,18 @@
 ---
   - name: Power off "{{ BMH_NODE }}"
-    shell: |
-       kubectl annotate bmh "{{ BMH_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
+    community.kubernetes.k8s:
+      state: present
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ BMH_NODE }}"
+          namespace: "{{ NAMESPACE }}"
+          annotations:
+            reboot.metal3.io/poweroff: ""
 
   - name: Wait until powered off "{{ K8S_NODE }}" becomes NotReady
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}' | sort"
+    shell: "kubectl get nodes --kubeconfig {{ TARGET_KUBECONFIG }} | grep -w NotReady | awk '{print $1}' | sort"
     retries: 150
     delay: 3
     register: not_ready_nodes
@@ -25,8 +33,16 @@
     become_user: root
 
   - name: Power on "{{ BMH_NODE }}"
-    shell: |
-       kubectl annotate bmh "{{ BMH_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff-
+    community.kubernetes.k8s:
+      state: present
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ BMH_NODE }}"
+          namespace: "{{ NAMESPACE }}"
+          annotations:
+            reboot.metal3.io/poweroff:
 
   - name: List only running VMs
     virt:
@@ -40,7 +56,7 @@
     become_user: root
 
   - name: Wait until powered on "{{ K8S_NODE }}" becomes Ready
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
+    shell: "kubectl get nodes --kubeconfig {{ TARGET_KUBECONFIG }} | grep -w Ready | awk '{print $1}' | sort"
     retries: 150
     delay: 3
     register: ready_nodes
