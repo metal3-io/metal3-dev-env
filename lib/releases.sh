@@ -55,6 +55,6 @@ fi
 # Needs a rework
 #if [[ "${TESTS_FOR}" == "feature_tests_upgrade"* ]]
 #then
-export CAPM3RELEASE="v0.4.0"
-export CAPIRELEASE="v0.3.12"
+#export CAPM3RELEASE="v0.4.0"
+#export CAPIRELEASE="v0.3.12"
 #fi

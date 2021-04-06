@@ -46,7 +46,7 @@ upgrade_test:
 
 feature_tests: setup_env remediation_test cleanup_env pivoting_test
 
-feature_tests_upgrade: setup_env upgrade_test
+feature_tests_upgrade: setup_env_ug upgrade_test
 
 feature_tests_upgrade_centos: setup_env_ug upgrade_test
 
