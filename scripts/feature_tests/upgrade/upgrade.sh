@@ -9,6 +9,10 @@ rm -rf /tmp/"$(date +%Y.%m.%d_upgrade.result.txt)"
 
 # shellcheck disable=SC1091
 # shellcheck disable=SC1090
+source "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/upgrade_vars.sh"
+
+# shellcheck disable=SC1091
+# shellcheck disable=SC1090
 source "${METAL3_DEV_ENV_DIR}/lib/common.sh"
 
 # shellcheck disable=SC1091
