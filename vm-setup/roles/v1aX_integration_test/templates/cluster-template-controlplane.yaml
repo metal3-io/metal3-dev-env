@@ -4,8 +4,11 @@ metadata:
   name: ${ CLUSTER_NAME }
   namespace: ${ NAMESPACE }
 spec:
+  rolloutStrategy:
+    rollingUpdate:
+      maxSurge: ${ MAX_SURGE_VALUE }
   nodeDrainTimeout: ${ NODE_DRAIN_TIMEOUT }
-  replicas: ${ CONTROL_PLANE_MACHINE_COUNT }
+  replicas: ${ NUM_OF_MASTER_REPLICAS }
   version: ${ KUBERNETES_VERSION }
   infrastructureTemplate:
     kind: Metal3MachineTemplate
