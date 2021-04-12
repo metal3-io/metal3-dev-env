@@ -85,7 +85,8 @@ packages:
          - python3-six
          - httpd-tools
         pip3:
-          - jmespath
+         - jmespath
+
 DAEMON_JSON_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/files"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') }}"
 OS_VERSION_ID: "{{ lookup('env', 'OS_VERSION_ID') }}"
