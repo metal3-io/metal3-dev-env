@@ -1,0 +1,477 @@
+---
+  - name: Define number of BMH's
+    set_fact:
+      NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
+
+  - name: Update maxSurge and maxUnavailable fields
+    shell: |
+           kubectl get machinedeployment -n {{NAMESPACE}} test1 -o json | 
+           jq '.spec.strategy.rollingUpdate.maxSurge=1|.spec.strategy.rollingUpdate.maxUnavailable=1' | 
+           kubectl apply -f-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Untaint all nodes
+    shell: |
+        kubectl taint nodes --all node-role.kubernetes.io/master-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    ignore_errors: yes
+
+  - name: Scale worker down to 0
+    shell: |
+        kubectl scale machinedeployment "{{ CLUSTER_NAME }}"  -n "{{ NAMESPACE }}" --replicas=0
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Wait until worker is scaled down and one bmh is Ready
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    register: ready_hosts
+    until: ready_hosts.stdout == "1"
+
+# ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+#                       Upgrade controlplane components                                 |
+# ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  - name: Gather variables that were missing on the source cluster
+    shell: | 
+            kubectl get cm -n capm3-system capm3-baremetal-operator-ironic -o json | 
+            jq -r '.data' | sed 's/: /=/'| cut -sf1- -d\" | sed 's/^/export/' | 
+            tr -d ',' | tr -d '"' | grep -E "_URL|_ENDPOINT" > /tmp/configmap.env.values
+            . /tmp/configmap.env.values
+            echo "export IRONIC_URL=${IRONIC_ENDPOINT}" >> /tmp/configmap.env.values
+            echo "export IRONIC_INSPECTOR_URL=${IRONIC_INSPECTOR_ENDPOINT}" >> /tmp/configmap.env.values
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Backup secrets for re-use when pods are re-created during the upgrade process
+    shell: |
+           kubectl get secrets -n capm3-system -o json |
+           jq '.items[]|del(.metadata|.managedFields,.uid,.resourceVersion)' > /tmp/secrets.with.values.yaml
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    ignore_errors: yes
+
+  - name: Cleanup - remove existing next versions of controlplane components CRDs
+    vars:
+      working_dir: "{{HOME}}/.cluster-api/dev-repository/"
+    file:
+      state: absent
+      path: "{{item}}" 
+    with_items:
+    - "{{working_dir}}/cluster-api/{{CAPI_REL_TO_VERSION}}/"
+    - "{{working_dir}}/bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}"
+    - "{{working_dir}}/control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}"
+    - "{{working_dir}}/infrastructure-metal3/{{CAPM3_REL_TO_VERSION}}"
+
+  - name: Generate clusterctl configuration file 
+    template:
+      src: clusterctl.yaml 
+      dest: "{{HOME}}/.cluster-api/clusterctl.yaml"
+
+  - name: Get clusterctl repo
+    ansible.builtin.git:
+      repo: 'https://github.com/kubernetes-sigs/cluster-api.git'
+      dest: /tmp/cluster-api-clone
+      version: "{{ CAPIRELEASE }}"
+
+  - name: Create clusterctl-setting.json for cluster-api repo
+    shell: |
+           cat <<EOF >/tmp/cluster-api-clone/clusterctl-settings.json
+           {
+             "providers": ["cluster-api","bootstrap-kubeadm","control-plane-kubeadm", "infrastructure-metal3"],
+             "provider_repos": ["{{M3PATH}}"]
+           }
+
+  - name: Create clusterctl-setting.json for capm3 repo
+    shell: |
+            cat <<EOF >"{{M3PATH}}/clusterctl-settings.json"
+            {
+              "name": "infrastructure-metal3",
+              "config": {
+              "componentsFile": "infrastructure-components.yaml",
+                 "nextVersion": "{{CAPM3_REL_TO_VERSION}}"
+              }
+            }
+
+  - name: Build clusterctl binary
+    shell: |
+           cd /tmp/cluster-api-clone/
+           make clusterctl
+           sudo mv bin/clusterctl /usr/local/bin
+           cd -
+
+  - name: Create local repository
+    shell: |
+           cd /tmp/cluster-api-clone/
+           cmd/clusterctl/hack/create-local-repository.py
+           cd -
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Create folder structure for next version controlplane components
+    vars:
+      working_dir: "{{HOME}}/.cluster-api"
+    file:
+      path: "{{ working_dir }}/{{ item }}"
+      state: directory
+      recurse: yes
+    with_items:
+    - dev-repository/cluster-api/{{ CAPI_REL_TO_VERSION }}
+    - dev-repository/bootstrap-kubeadm/{{ CAPI_REL_TO_VERSION }}
+    - dev-repository/control-plane-kubeadm/{{ CAPI_REL_TO_VERSION }}
+    - overrides/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}
+
+  - name: Create next version controller CRDs 
+    vars:
+      working_dir: "{{HOME}}/.cluster-api/"
+    copy: src="{{working_dir}}/{{item.src}}" dest="{{working_dir}}/{{item.dest}}"
+    with_items:
+    - { 
+        src: "dev-repository/cluster-api/{{CAPIRELEASE_HARDCODED}}/core-components.yaml", 
+        dest: "dev-repository/cluster-api/{{CAPI_REL_TO_VERSION}}/core-components.yaml" 
+      }
+    - { 
+        src: "dev-repository/bootstrap-kubeadm/{{CAPIRELEASE_HARDCODED}}/bootstrap-components.yaml",
+        dest: "dev-repository/bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/bootstrap-components.yaml" 
+      }
+    - { 
+        src: "dev-repository/control-plane-kubeadm/{{CAPIRELEASE_HARDCODED}}/control-plane-components.yaml",
+        dest: "dev-repository/control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/control-plane-components.yaml"
+      }
+    - { 
+        src: "overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/infrastructure-components.yaml",
+        dest: "overrides/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/infrastructure-components.yaml"
+      }
+
+  - name: Make changes on CRDs
+    vars:
+      working_dir: "{{HOME}}/.cluster-api"
+    shell: |
+            sed -i 's/description: Machine/description: upgradedMachine/g' \ 
+                {{working_dir}}/dev-repository/cluster-api/{{CAPI_REL_TO_VERSION}}/core-components.yaml
+            sed -i 's/description: KubeadmConfig/description: upgradedKubeadmConfig/' \
+                {{working_dir}}/dev-repository//bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/bootstrap-components.yaml
+            sed -i 's/description: KubeadmControlPlane/description: upgradedKubeadmControlPlane/' \
+                {{working_dir}}/dev-repository//control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/control-plane-components.yaml
+            sed -i 's/\bm3c\b/m3c2020/g' \
+                {{working_dir}}/dev-repository/infrastructure-metal3/{{CAPM3_REL_TO_VERSION}}/infrastructure-components.yaml
+            sed -i 's/\bm3c\b/m3c2020/g' \
+                {{working_dir}}/overrides/infrastructure-metal3/{{CAPM3_REL_TO_VERSION}}/infrastructure-components.yaml
+   
+  - name: Perform upgrade on the target cluster
+    shell: |
+           # Add missing environment variables
+           . /tmp/configmap.env.values
+           clusterctl upgrade apply --management-group capi-system/cluster-api --contract v1alpha3
+           sleep 30
+           # restore secrets to fill missing secret fields
+           kubectl replace -f /tmp/secrets.with.values.yaml
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Perform upgrade on the source cluster
+    shell: |
+           # Add missing environment variables
+           . /tmp/configmap.env.values
+           clusterctl upgrade apply --management-group capi-system/cluster-api --contract v1alpha3
+           sleep 30
+           # restore secrets to fill missing secret fields
+           kubectl replace -f /tmp/secrets.with.values.yaml
+    ignore_errors: yes
+
+  - name: Verify that CP component pods are running
+    shell: |
+           kubectl get pods -A | 
+           grep -E "capi-kubeadm-bootstrap-|capi-kubeadm-control-plane-|capi-|capm3-|metal3" | 
+           grep -vc 'Running'
+    register: non_healthy_controllers
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    until: non_healthy_controllers.stdout|int == 0
+    failed_when: non_healthy_controllers.stdout|int != 0
+
+  - name: Verify that CRDs are upgraded 
+    shell: |
+            kubectl explain machine | grep -i description -A1 | 
+            grep -ic upgradedMachine > /tmp/upgraded.crd.txt
+            kubectl explain kcp | grep -i description -A1 | 
+            grep -ci upgradedKubeadmControlPlane >> /tmp/upgraded.crd.txt
+            kubectl explain KubeadmConfig | grep -i description -A1 | 
+            grep -ci upgradedKubeadmConfig >> /tmp/upgraded.crd.txt
+            kubectl api-resources -o wide | grep -c m3c2020 >> /tmp/upgraded.crd.txt
+            cat /tmp/upgraded.crd.txt | grep -c 0
+    register: not_upgrade_cp_components
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    failed_when:  not_upgrade_cp_components.stdout|int != 0
+
+# ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+#                       Upgrade Ironic                                                  |
+# ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  - name: Scale down metal3-ironic deployment
+    shell: |
+            kubectl scale deploy metal3-ironic -n {{NAMESPACE}} --replicas 0
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    ignore_errors: yes
+
+  - name: Count running ironic pods
+    shell: |
+            kubectl get pods -n {{NAMESPACE}} | grep -c metal3-ironic 
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    register: count_ironic_pods
+    until: count_ironic_pods.stdout|int == 0
+    failed_when:  count_ironic_pods.stdout|int > 0
+
+  - name: Upgrade ironic image based containers 
+    shell: |
+            kubectl set image deployments metal3-ironic {{item}}=quay.io/metal3-io/ironic:{{IRONIC_IMAGE_TAG}} -n {{NAMESPACE}}
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    loop:
+      - mariadb
+      - ironic-api
+      - ironic-dnsmasq
+      - ironic-conductor
+      - ironic-log-watch
+
+  - name: Upgrade ironic-inspector image based containers 
+    shell: |
+            kubectl set image deployments metal3-ironic {{item}}=quay.io/metal3-io/ironic-inspector:{{IRONIC_IMAGE_TAG}} -n {{NAMESPACE}}
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    loop:
+      - ironic-inspector
+      - httpd-reverse-proxy
+      - ironic-inspector-log-watch
+        
+  - name: Scale up metal3-ironic deployment
+    shell: |
+            kubectl scale deploy metal3-ironic -n {{NAMESPACE}} --replicas 1
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"        
+
+  - name: Count running ironic pods, only upgraded pod should exist
+    shell: |
+            kubectl get pods -n {{NAMESPACE}} | grep -c metal3-ironic
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 100
+    delay: 10
+    register: count_ironic_pods
+    until: count_ironic_pods.stdout|int == 1
+    failed_when:  count_ironic_pods.stdout|int > 1
+
+  - name: Count number of upgraded ironic containers
+    shell: |
+            kubectl get deployments metal3-ironic -n {{NAMESPACE}} -o json |
+            jq '.spec.template.spec.containers[].image' |
+            grep -c "{{IRONIC_IMAGE_TAG}}"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml" 
+    register: upgraded_containers
+    failed_when:  upgraded_containers.stdout_lines[0]|int < 8
+
+  - name: Count running upgraded ironic containers
+    shell: |
+            ironic_pod_name=$(kubectl get pods -n {{NAMESPACE}} -o name| grep metal3-ironic | cut -f2 -d/)
+            kubectl get pods -n {{NAMESPACE}} ${ironic_pod_name}  -o json |
+            jq '.status.containerStatuses[]| select(.ready==true)|.name' | wc -l
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 100
+    delay: 10
+    register: running_upgraded_containers
+    until: running_upgraded_containers.stdout|int > 7
+    failed_when:  running_upgraded_containers.stdout|int < 8
+
+# ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+#                       Upgrade K8S version and boot-image                              |
+# ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+  - name: get cluster uid
+    shell: |
+            kubectl get clusters {{ CLUSTER_NAME }}  -n {{NAMESPACE}} -o json | jq '.metadata.uid' |   cut -f2 -d\"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: CLSTR_UID
+
+  - name: Genenrate controlplane Metal3MachineTemplate
+    vars:
+       CLUSTER_UID: "{{ CLSTR_UID.stdout }}"
+       M3MT_NAME: "{{CLUSTER_NAME}}-new-controlplane-image"
+       DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-controlplane-template"
+    template:
+      src: Metal3MachineTemplate.yml
+      dest: /tmp/cp_new_image.yaml
+
+  - name: Genenrate worker Metal3MachineTemplate
+    vars:
+      CLUSTER_UID: "{{ CLSTR_UID.stdout_lines[0] }}"
+      M3MT_NAME: "{{CLUSTER_NAME}}-new-workers-image"
+      DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-workers-template"
+    template:
+      src: Metal3MachineTemplate.yml
+      dest: /tmp/wr_new_image.yaml
+
+  - name: Create controlplane and worker Metal3MachineTemplates
+    community.kubernetes.k8s:
+      state: present
+      src: /tmp/cp_new_image.yaml
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Create controlplane and worker Metal3MachineTemplates
+    community.kubernetes.k8s:
+      state: present
+      src:  /tmp/wr_new_image.yaml
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Update boot-disk and kubernetes versions of controlplane nodes
+    shell: |
+            kubectl get kubeadmcontrolplane -n {{NAMESPACE}} {{ CLUSTER_NAME }} -o json |
+            jq '.spec.infrastructureTemplate.name="{{CLUSTER_NAME}}-new-controlplane-image" |
+               .spec.version="{{UPGRADED_K8S_VERSION}}"'|
+                kubectl apply -f-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Verify that controlplane nodes using the new node image
+    shell: |
+            kubectl get bmh -n {{NAMESPACE}} |
+            grep -i provisioned | grep -c 'new-controlplane-image'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    register: new_image_cp_nodes
+    until: new_image_cp_nodes.stdout|int == 3
+    failed_when: new_image_cp_nodes.stdout|int != 3
+
+  - name: Untaint all CP nodes after upgrade of controlplane nodes
+    shell: |
+        kubectl taint nodes --all node-role.kubernetes.io/master-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    ignore_errors: yes
+
+  - name: Wait for old etcd instance to leave the new etcd-cluster
+    pause:
+      minutes: 10
+
+  - name: Verify that the old controlplane node has left the cluster
+    shell: |
+            kubectl get bmh -n {{NAMESPACE}} | grep -i provisioned | grep -c "{{ CLUSTER_NAME }}-controlplane-"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    register: upgraded_cp_nodes_count
+    until: upgraded_cp_nodes_count.stdout|int == 0
+    failed_when: upgraded_cp_nodes_count.stdout|int != 0
+
+  - name: Wait for old etcd instance to leave the new etcd-cluster
+    pause:
+      minutes: 10
+
+  - name: Scale worker up to 1
+    shell: |
+        kubectl scale machinedeployment "{{ CLUSTER_NAME }}"  -n "{{ NAMESPACE }}" --replicas=1
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Wait until worker is scaled up and no bmh is in Ready state
+    shell: kubectl get node | awk 'NR>1'| grep -cv master
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    register: worker_nodes
+    until: worker_nodes.stdout|int == 1
+    failed_when: worker_nodes.stdout|int == 0
+
+  - name: Label worker for scheduling purpose
+    shell: |
+      WORKER_NAME=$(kubectl get nodes -n {{NAMESPACE}} | awk 'NR>1'| grep -v master | awk '{print $1}')
+      kubectl label node "${WORKER_NAME}" type=worker
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Copy workload manifest to /tmp
+    copy:
+      src: workload.yaml
+      dest: /tmp/workload.yaml
+
+  - name: Deploy workload with nodeAffinity 
+    community.kubernetes.k8s:
+      state: present
+      src: /tmp/workload.yaml
+      namespace: default
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - pause:
+      minutes: 5
+
+  - name: Show workload deployment status on worker node
+    shell: |
+            kubectl get pods | grep 'workload-1-deployment'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Verify workload deployment 
+    shell: |
+            kubectl get deployments workload-1-deployment -o json | jq '.status.readyReplicas'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    register: running_workload_pods
+    until: running_workload_pods.stdout|int == 10
+    failed_when: running_workload_pods.stdout|int != 10
+
+  - name: Update boot-disk and kubernetes versions of worker node
+    shell: |
+            kubectl get machinedeployment -n {{NAMESPACE}} {{ CLUSTER_NAME }} -o json |
+            jq '.spec.template.spec.infrastructureRef.name="{{ CLUSTER_NAME }}-new-workers-image" |
+            .spec.template.spec.version="{{UPGRADED_K8S_VERSION}}"'| kubectl apply -f-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Verify that worker node is using the new boot-image
+    shell: |
+            kubectl get bmh -n {{NAMESPACE}} |
+            grep -i provisioned | grep -c 'new-workers-image'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    register: new_image_wr_nodes
+    until: new_image_wr_nodes.stdout|int == 1
+    failed_when: new_image_wr_nodes.stdout|int != 1
+
+  - name: Verify that the upgraded worker node has joined the cluster
+    shell: |
+            kubectl get nodes | awk 'NR>1'| grep -vc master
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    register: joined_wr_node
+    until: joined_wr_node.stdout|int == 1
+    failed_when: joined_wr_node.stdout|int != 1
+
+  - name: Verify that kubernetes version is upgraded for CP and worker nodes
+    shell: |
+            kubectl get machines -n {{NAMESPACE}} -o json | 
+            jq '.items[].spec.version' | cut -f2 -d\" | sort -u
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: upgrade_k8s_version
+    failed_when: upgrade_k8s_version.stdout != "{{ UPGRADED_K8S_VERSION }}"

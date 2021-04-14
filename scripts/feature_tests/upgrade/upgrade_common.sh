@@ -28,18 +28,18 @@ function generate_metal3MachineTemplate() {
     NAME="${1}"
     CLUSTER_UID="${2}"
     Metal3MachineTemplate_OUTPUT_FILE="${3}"
-    CAPM3_ALPHA_VERSION="${4}"
-    CAPI_ALPHA_VERSION="${5}"
+    CAPM3_API_VERSION="${4}"
+    CAPI_API_VERSION="${5}"
     TEMPLATE_NAME="${6}"
 
 echo "
-apiVersion: infrastructure.cluster.x-k8s.io/${CAPM3_ALPHA_VERSION}
+apiVersion: infrastructure.cluster.x-k8s.io/${CAPM3_API_VERSION}
 kind: Metal3MachineTemplate
 metadata:
   name: ${NAME}
   namespace: metal3
   ownerReferences:
-  - apiVersion: cluster.x-k8s.io/${CAPI_ALPHA_VERSION}
+  - apiVersion: cluster.x-k8s.io/${CAPI_API_VERSION}
     kind: Cluster
     name: test1
     uid: ${CLUSTER_UID}

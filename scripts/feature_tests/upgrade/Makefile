@@ -1,11 +1,10 @@
-M3PATH := "$(dirname "$(readlink -f "${0}")")/../../"
-# This needs to be moved to upgrade.sh and different value should be set before
-# each use case.
-# export NUM_OF_MASTER_REPLICAS := 1
-# export NUM_OF_WORKER_REPLICAS := 1
+M3PATH := "$(dirname "$(readlink -f "${0}")")../../../"
+export NUM_OF_MASTER_REPLICAS := 3
+export NUM_OF_WORKER_REPLICAS := 1
 
-all: upgrade
-
-.PHONY: upgrade
+all: fetch_manifests upgrade
+fetch_manifests:
+	./../../fetch_manifests.sh
 upgrade:
-	bash upgrade.sh
+	./upgrade.sh
+
