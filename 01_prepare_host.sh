@@ -151,7 +151,7 @@ mkdir -p "$IRONIC_IMAGE_DIR"
 pushd "$IRONIC_IMAGE_DIR"
 
 if [ ! -f "${IMAGE_NAME}" ] ; then
-    curl -f --insecure --compressed -O -L "${IMAGE_LOCATION}/${IMAGE_NAME}"
+    wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
     IMAGE_SUFFIX="${IMAGE_NAME##*.}"
     if [ "${IMAGE_SUFFIX}" == "xz" ] ; then
       unxz -v "${IMAGE_NAME}"
