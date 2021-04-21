@@ -1,0 +1,150 @@
+---
+  - name: Define number of BMH's
+    set_fact:
+      NUMBER_OF_BMH_MD: "{{ NUM_OF_WORKER_REPLICAS|int }}"
+
+  - name: Get provisioned BMH name and UUID mapping before upgrade.
+    shell: |
+        kubectl get bmh -A -o json | jq '.items[]| select (.status.provisioning.state == "provisioned")
+        | "metal3/"+.metadata.name+"="+"metal3://"+.metadata.uid' | cut -f2 -d\" | sort > /tmp/before_upgrade_mapping_md.txt
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Update maxSurge and maxUnavailable fields in MachineDeployment
+    shell: |
+        kubectl get machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.strategy.rollingUpdate.maxSurge=0|.spec.strategy.rollingUpdate.maxUnavailable=1' | kubectl apply -f-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Update Metal3MachineTemplate nodeReuse field to 'True'.
+    shell: |
+        kubectl get m3mt "{{ CLUSTER_NAME }}"-workers -n "{{ NAMESPACE }}" -ojson | jq '.spec.nodeReuse=true' | kubectl apply -f-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: List only ready BMHs'.
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[] | select (.status.provisioning.state == "ready") | .metadata.name ]'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: ready_bmhs
+
+  - name: Remove node reuse labels from ready BMHs' if any
+    shell: |
+        kubectl label bmh "{{ item }}" -n "{{ NAMESPACE }}" infrastructure.cluster.x-k8s.io/node-reuse-
+    loop: "{{ ready_bmhs.stdout }}"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Mark all ready BMHs' with unhealthy annotation.
+    shell: |
+        kubectl annotate bmh "{{ item }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy=
+    loop: "{{ ready_bmhs.stdout }}"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Upgrade MachineDeployment k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_KUBERNETES_VERSION }}".
+    shell: |
+        kubectl get machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.template.spec.version="{{ UPGRADED_KUBERNETES_VERSION }}"' | kubectl apply -f-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  
+  - name: Wait until "{{ NUMBER_OF_BMH_MD }}" BMH is in deprovisioning state.
+    shell: |
+        kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[] | select (.status.provisioning.state == "deprovisioning") | .metadata.name ] | length'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmh_in_deprovisioning
+    retries: 150
+    delay: 10
+    until: bmh_in_deprovisioning.stdout == NUMBER_OF_BMH_MD
+
+  - name: Get the name of the deprovisioning BMH.
+    shell: |
+        kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[]
+        | select (.status.provisioning.state == "deprovisioning")
+        | .metadata.name ] | add'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: deprovisioning_bmh_name
+
+  - name: Wait until above deprovisioning BMH is in ready state again.
+    shell: |
+        kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | awk '{print $1}'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: ready_bmh
+    retries: 200
+    delay: 2
+    until: deprovisioning_bmh_name.stdout in ready_bmh.stdout_lines
+
+  - name: Unmark all ready BMHs' with unhealthy annotation.
+    shell: |
+        kubectl annotate bmh "{{ item }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    loop: "{{ ready_bmhs.stdout }}"
+
+  - name: Check if just deprovisioned and became ready BMH is re-used for next provisioning.
+    shell: |
+        kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioning | awk '{print $1}'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: provisioning_bmh
+    retries: 200
+    delay: 2
+    until: deprovisioning_bmh_name.stdout in provisioning_bmh.stdout_lines
+
+  - name: Wait until worker machine becomes running and updated with new "{{ UPGRADED_KUBERNETES_VERSION }}" k8s version.
+    shell: |
+        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | select(.spec.version == "{{ UPGRADED_KUBERNETES_VERSION }}") | .status.phase' | grep -c "Running"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: updated_machines
+    retries: 200
+    delay: 20
+    until: updated_machines.stdout|int == 2
+
+  - name: Get provisioned BMH name and UUID mapping after upgrade.
+    shell: |
+        kubectl get bmh -A -o json | jq '.items[]| select (.status.provisioning.state == "provisioned")
+        | "metal3/"+.metadata.name+"="+"metal3://"+.metadata.uid' | cut -f2 -d\" | sort > /tmp/after_upgrade_mapping_md.txt
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Check diff of before and after upgrade mapping to make sure same BMH reused in MachineDeployment test scenario.
+    shell: |
+        diff /tmp/before_upgrade_mapping_md.txt /tmp/after_upgrade_mapping_md.txt
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: diff_mapping
+    failed_when: diff_mapping.rc == 1
+
+  - name: Clean up any MachineDeployment test scenario related temp files.
+    shell: rm /tmp/before_upgrade_mapping_md.txt /tmp/after_upgrade_mapping_md.txt
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Scale controlplane up back to 3.
+    shell: |
+        kubectl scale kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=3
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Wait until all four BMHs' are provisioned.
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
+    register: provisioned_host
+    until: provisioned_host.stdout == "4"
+
+  - name: Wait until all four machines become running.
+    shell: |
+        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | .status.phase' | grep -c "Running"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: running_machines
+    retries: 200
+    delay: 20
+    until: running_machines.stdout|int == 4

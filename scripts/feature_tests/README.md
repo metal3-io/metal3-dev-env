@@ -17,8 +17,8 @@ Test-framework CI can be triggered from a pull request in CAPM3, BMO,
 metal3-dev-env, project-infra, ironic-image, ironic-inspector-image and
 ironic-ipa-downloader repositories.
 It is recommended to run test-framework CI especially when
-introducing a commit related to pivoting/remediation/upgrade, to ensure that new
-changes will not break the existing functionalities.
+introducing a commit related to pivoting/remediation/scale in/node reuse/upgrade,
+to ensure that new changes will not break the existing functionalities.
 
 Test-framework can be triggered by leaving
 
@@ -41,7 +41,8 @@ feature_tests/
 ├── feature_test_provisioning.sh
 ├── node_reuse
 │   ├── Makefile
-│   └── node_reuse.sh
+│   └── node_reuse_kcp.sh
+│   └── node_reuse_md.sh
 ├── OWNERS
 ├── pivoting
 │   ├── Makefile
@@ -77,17 +78,17 @@ When the test-framework is triggered with `/test-features` or
   - deprovision cluster and BMH
 - clean up the environment
   - run `cleanup_env.sh`
-- run scale in and node reuse tests
-  - provision cluster and BMH
-  - run scale in and node reuse tests
-  - deprovision cluster and BMH
-- clean up the environment
-  - run `cleanup_env.sh`
 - run pivoting tests
   - provision cluster and BMH
   - run pivoting tests
+- run scale in and node reuse tests
+  - run scale in and node reuse tests for KubeadmControlPlane scenario
+  - run node reuse tests for MachineDeployment scenario
+- run re-pivoting tests
+  - run re-pivoting tests
   - deprovision cluster and BMH
-  - destroy the environment (i.e. run `make clean`)
+- clean up the environment
+  - run `cleanup_env.sh`
 
 When the test-framework is triggered with `/test-upgrade-features`, it will:
 

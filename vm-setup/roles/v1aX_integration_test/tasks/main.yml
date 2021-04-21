@@ -92,6 +92,10 @@
   include: remediation.yml
   when: v1aX_integration_test_action == "remediation"
 
-- name: Node reuse
-  include: node_reuse.yml
-  when: v1aX_integration_test_action == "node_reuse"
+- name: Node reuse KCP test scenario
+  include: node_reuse_kcp.yml
+  when: v1aX_integration_test_action == "node_reuse_kcp"
+
+- name: Node reuse MD test scenario
+  include: node_reuse_md.yml
+  when: v1aX_integration_test_action == "node_reuse_md"

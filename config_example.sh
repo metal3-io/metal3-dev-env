@@ -34,10 +34,25 @@
 # Set the controlplane replica count
 #export NUM_OF_MASTER_REPLICAS=1
 
+#
 # This variable defines if controlplane should scale-in or scale-out during upgrade
 # The field values can be 0 or 1. Default is 1. When set to 1 controlplane scale-out
-# When set to 0 controlplane scale-in. In case of scale-in NUM_OF_MASTER_REPLICAS must be >=3. 
+# When set to 0 controlplane scale-in. In case of scale-in NUM_OF_MASTER_REPLICAS must be >=3.
+# 
+# In case of worker, this variable defines maximum number of machines that can be scheduled
+# above the desired number of machines. Value can be an absolute number (ex: 5) or a percentage
+# of desired machines (ex: 10%). This can not be 0 if MAX_UNAVAILABLE_VALUE is 0. Absolute number
+# is calculated from percentage by rounding up. Defaults to 1.
+#
 #export MAX_SURGE_VALUE=1
+
+#
+# This variable defines the maximum number of machines that can be unavailable during the worker
+# update only. Value can be an absolute number (ex: 5) or a percentage of desired machines (ex: 10%).
+# Absolute number is calculated from percentage by rounding down. This can not be 0 if MAX_SURGE_VALUE
+# is 0. Defaults to 0.
+#
+#export MAX_UNAVAILABLE_VALUE=0
 
 #
 # Select the Container Runtime, can be "podman" or "docker"
@@ -111,6 +126,7 @@
 #export CAPM3_VERSION=v1alpha4
 
 #export KUBERNETES_VERSION="v1.21.0"
+#export UPGRADED_KUBERNETES_VERSION="v1.21.1"
 
 # Version of kubelet, kubeadm and kubectl binaries
 #export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
