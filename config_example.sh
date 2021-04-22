@@ -12,7 +12,7 @@
 # v6   -- IPv6
 # v4v6 -- dual-stack IPv4+IPv6
 #
-#export IP_STACK=v6
+#export IP_STACK=v4
 
 #
 # This is the subnet used on the "baremetal" libvirt network, created as the
@@ -37,11 +37,11 @@
 # This variable defines if controlplane should scale-in or scale-out during upgrade
 # The field values can be 0 or 1. Default is 1. When set to 1 controlplane scale-out
 # When set to 0 controlplane scale-in. In case of scale-in NUM_OF_MASTER_REPLICAS must be >=3. 
-# export MAX_SURGE_VALUE=1
+#export MAX_SURGE_VALUE=1
 
 #
 # Select the Container Runtime, can be "podman" or "docker"
-# Defaults to "podman"
+# Defaults to "docker" on ubuntu and "podman" otherwise
 #
 #export CONTAINER_RUNTIME="podman"
 
@@ -117,19 +117,19 @@
 #export KUBERNETES_BINARIES_CONFIG_VERSION="v0.2.7"
 
 # Configure provisioning network for single-stack ipv6
-#PROVISIONING_IPV6=false
+#export PROVISIONING_IPV6=false
 
 # Image OS (can be "Cirros", "Ubuntu", "Centos", overriden by IMAGE_* if set)
-#
-#export IMAGE_OS="Cirros"
+# Default: Centos
+#export IMAGE_OS="Centos"
 
 # Image for target hosts deployment
 #
-#export IMAGE_NAME="cirros-0.5.1-x86_64-disk.img"
+#export IMAGE_NAME="CENTOS_8.2_NODE_IMAGE_K8S_v1.20.4.qcow2"
 
 # Location of the image to download
 #
-#export IMAGE_LOCATION="http://download.cirros-cloud.net/0.5.1"
+#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.20.4"
 
 # Image username for ssh
 #
@@ -137,7 +137,7 @@
 
 # Container image for ironic pod
 #
-# export IRONIC_IMAGE="quay.io/metal3-io/ironic"
+#export IRONIC_IMAGE="quay.io/metal3-io/ironic"
 
 # Container image for vbmc container
 #
@@ -154,22 +154,23 @@
 #export CLUSTER_PROVISIONING_INTERFACE="ironicendpoint"
 
 # POD CIDR
-# export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"
+#export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"}
 
 # Node hostname format. This is a format string that must contain exactly one
 # %d format field that will be replaced with an integer representing the number
 # of the node.
-# export NODE_HOSTNAME_FORMAT="node-%d"
+#export NODE_HOSTNAME_FORMAT="node-%d"
 
 # Ephemeral cluster used as management cluster for cluster API
 # (can be "kind", "minikube" or "tilt"). Only "minikube" is supported with
 # CentOS
 # Selecting "tilt" does not deploy a management cluster, it is left up to the
 # user
-# export EPHEMERAL_CLUSTER=minikube
+# Default is "kind" when CONTAINER_RUNTIME="docker", otherwise it is "minikube"
+#export EPHEMERAL_CLUSTER=minikube
 
 # Secure Ironic deployment with TLS ("true" or "false")
-# export IRONIC_TLS_SETUP="true"
+#export IRONIC_TLS_SETUP="true"
 
 # Set nodeDrainTimeout for controlplane and worker template, otherwise default value will be  '0s'. 
 #

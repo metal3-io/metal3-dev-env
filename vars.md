@@ -11,10 +11,13 @@ assured that they are persisted.
 | :------ | :------- | :--------------- | :-------- |
 | NUM_OF_MASTER_REPLICAS | Set the controlplane replica count. ||1| 
 | MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1| 
-| EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind, tilt | Ubuntu default is kind. Only minikube is supported on CentOS |
-| EXTERNAL_SUBNET | This is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | CIDR | 192.168.111.0/24 |
+| EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
+| IP_STACK | Choose whether the "baremetal" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. <br/> Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
+| EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
+| EXTERNAL_SUBNET_V6 | When using IPv6 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv6 CIDR | 192.168.111.0/24 |
+| PROVISIONING_IPV6 | Configure provisioning network for single-stack ipv6 | "true", "false" | false |
 | SSH_PUB_KEY | This SSH key will be automatically injected into the provisioned host by the clusterctl environment template files. | | ~/.ssh/id_rsa.pub |
-| CONTAINER_RUNTIME | Select the Container Runtime | "docker", "podman" | "podman" |
+| CONTAINER_RUNTIME | Select the Container Runtime | "docker", "podman" | "docker" on ubuntu, "podman" otherwise |
 | BMOREPO | Set the Baremetal Operator repository to clone | | https://github.com/metal3-io/baremetal-operator.git |
 | BMOBRANCH | Set the Baremetal Operator branch to checkout | | master |
 | CAPM3REPO | Set the Cluster Api Metal3 provider repository to clone | | https://github.com/metal3-io/cluster-api-provider-metal3.git |
@@ -38,6 +41,7 @@ assured that they are persisted.
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x/x" | "192.168.111.249" |
 | CLUSTER_PROVISIONING_INTERFACE | Cluster provisioning Interface | "ironicendpoint" | "ironicendpoint" |
 | POD_CIDR | Pod CIDR | "x.x.x.x/x" | "192.168.0.0/18" |
+| NODE_HOSTNAME_FORMAT | Node hostname format. This is a format string that must contain exactly one %d format field that will be replaced with an integer representing the number of the node. | "node-%d" |
 | KUBERNETES_VERSION | Kubernetes version | "x.x.x" | "1.20.4" |
 | KUBERNETES_BINARIES_VERSION | Version of kubelet, kubeadm and kubectl | "x.x.x-xx" or "x.x.x" | same as KUBERNETES_VERSION |
 | KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.2.7" |
