@@ -404,9 +404,6 @@ function init_minikube() {
           --model virtio --source baremetal \
           --type network --config
     fi
-
-    # Restart libvirtd
-    sudo systemctl restart libvirtd
 }
 
 #
