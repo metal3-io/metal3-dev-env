@@ -1,7 +1,7 @@
 FROM docker.io/centos:centos8
 
 RUN dnf install -y python3 python3-requests python3-pip && \
-     curl https://raw.githubusercontent.com/openstack/tripleo-repos/0543f7664a6d2b2a24b21164a9256e75b886becb/tripleo_repos/main.py | python3 - -b master current && \
+     curl https://raw.githubusercontent.com/openstack/tripleo-repos/master/tripleo_repos/main.py | python3 - -b master current-tripleo --no-stream && \
      dnf update -y && \
      dnf install -y python3-virtualbmc && \
      dnf clean all && \
