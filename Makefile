@@ -38,13 +38,17 @@ cleanup_env:
 pivoting_test:
 	make -C ./scripts/feature_tests/pivoting/
 
+repivoting_test:
+	make -C ./scripts/feature_tests/pivoting/ repivoting
+	make -C ./scripts/feature_tests/pivoting/ deprovision
+
 remediation_test:
 	make -C ./scripts/feature_tests/remediation/
 
 upgrade_test:
 	make -C ./scripts/feature_tests/upgrade/
 
-feature_tests: setup_env remediation_test cleanup_env pivoting_test
+feature_tests: setup_env remediation_test cleanup_env pivoting_test repivoting_test
 
 feature_tests_upgrade: setup_env_ug upgrade_test
 
