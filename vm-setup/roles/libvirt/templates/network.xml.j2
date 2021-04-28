@@ -41,7 +41,11 @@
         {% set ironic_name = ironic_prefix + flavor + "_" + num|string %}
         {% set hostname_format = lookup('vars', flavor + '_hostname_format', default=flavor + '-%d') %}
         {% set hostname = hostname_format % num %}
+  {% if item.domain is defined %}
+      <host mac='{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{hostname}}.{{item.domain}}' ip='{{item.dhcp_range_v4[0]|ipmath(ns.index|int)}}'/>
+  {% else %}
       <host mac='{{ node_mac_map.get(ironic_name).get(item.name)}}' name='{{hostname}}' ip='{{item.dhcp_range_v4[0]|ipmath(ns.index|int)}}'/>
+  {% endif %}
         {% set ns.index = ns.index + 1 %}
       {% endfor %}
     {% endfor %}
