@@ -198,9 +198,12 @@ fi
 # Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.8.5"}
 
-# Kind version
+# Kind version (if EPHEMERAL_CLUSTER=kind)
 export KIND_VERSION=${KIND_VERSION:-"v0.10.0"}
 export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.20.2"}
+
+# Minikube version (if EPHEMERAL_CLUSTER=minikube)
+export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.18.1"}
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
