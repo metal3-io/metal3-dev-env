@@ -18,3 +18,6 @@ else
     registry.hub.docker.com/koalaman/shellcheck-alpine:stable \
     /workdir/hack/shellcheck.sh "${@}"
 fi;
+
+echo $?
+echo "Hi there!"
