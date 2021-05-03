@@ -80,7 +80,6 @@ packages:
          - polkit-pkla-compat
          - python3-netaddr
          - virt-install
-         - network-scripts
          - firewalld
          - python3-six
          - httpd-tools
