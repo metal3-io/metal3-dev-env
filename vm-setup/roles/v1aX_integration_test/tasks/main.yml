@@ -8,12 +8,16 @@
   become_user: root
   when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '8'
 
-- name: "Generate templates for v1alpha3"
+- name: Generate templates for v1alpha3
   include: generate_templates.yml
 
-- name: download image for deployment
+- name: Download image for deployment
   include: download_image.yml
   when: v1aX_integration_test_action in image_download_actions
+
+- name: Test inspection API
+  include: inspection.yml
+  when: v1aX_integration_test_action in inspection_action
 
 - name: Provision cluster
   k8s:

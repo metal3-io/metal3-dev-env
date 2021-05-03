@@ -1,0 +1,48 @@
+---
+  - name: Ensure jmespath is intalled
+    pip:
+      executable: "pip3"
+      name: jmespath
+      state: present
+    become: yes
+    become_user: root
+
+  - name: Wait until "{{ NUM_NODES }}" bmhs become ready.
+    shell: |
+        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
+        | select (.status.provisioning.state == "ready")
+        | .metadata.name ] | length'
+    register: ready_bmhs
+    retries: 150
+    delay: 10
+    until: ready_bmhs.stdout == NUM_NODES
+
+  - name: Get a list of all BareMetalHosts
+    shell: | 
+        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
+        | .metadata.name ]'
+    register: bmh_list
+
+  - name: Request inspection for hosts via API
+    shell: kubectl annotate bmh "{{ item }}" -n {{ NAMESPACE }} inspect.metal3.io=
+    loop: "{{ bmh_list.stdout }}"
+
+  - name: Wait until "{{ NUM_NODES }}" bmhs are in inspecting or inspect wait state.
+    shell: |
+        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
+        | select (.status.provisioning.state == "inspecting" or .status.provisioning.state == "inspect wait")
+        | .metadata.name ] | length'
+    register: inspecting_bmhs
+    retries: 150
+    delay: 10
+    until: inspecting_bmhs.stdout == NUM_NODES
+
+  - name: Wait until "{{ NUM_NODES }}" bmhs become ready again.
+    shell: |
+        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
+        | select (.status.provisioning.state == "ready")
+        | .metadata.name ] | length'
+    register: ready_bmhs
+    retries: 150
+    delay: 10
+    until: ready_bmhs.stdout == NUM_NODES
