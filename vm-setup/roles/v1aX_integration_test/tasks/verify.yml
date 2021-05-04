@@ -62,7 +62,7 @@
                       - name: IP_AUTODETECTION_METHOD
                         value: "interface=enp2s0"
     when:
-      ansible_distribution == "Ubuntu"
+      IMAGE_OS == "Ubuntu"
 
   - name: Add IP_AUTODETECTION_METHOD in calico config Centos
     blockinfile:
@@ -72,10 +72,8 @@
           # for indentation
                       - name: IP_AUTODETECTION_METHOD
                         value: "interface=eth1"
-                      - name: FELIX_IPTABLESBACKEND
-                        value: "NFT"
     when:
-      ansible_distribution == "CentOS"
+      IMAGE_OS == "Centos"
 
   - name: Apply Calico manifest
     k8s:
