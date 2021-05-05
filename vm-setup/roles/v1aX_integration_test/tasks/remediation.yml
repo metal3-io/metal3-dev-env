@@ -220,6 +220,49 @@
     delay: 20
     register: ready_hosts
     until: ready_hosts.stdout == "1"
+    
+    ## Start Metal3DataTemplate reference test
+  - name: Get the Metal3DataTemplate, Edit name , Add templateReference and apply it 
+    shell: kubectl get m3dt -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}"-workers-template  -ojson | 
+              jq '.metadata.name="test-new-m3dt"' |  
+              jq '.|del(.metadata|.managedFields,.uid,.resourceVersion,.ownerReferences,.finalizers)' |
+              jq '.|del(.status)' | 
+              jq '.spec.templateReference="{{ CLUSTER_NAME }}-workers-template"' |
+              kubectl apply -f- 
+
+  - name: Get the Metal3MachineTemplate, Edit name, Refer to new Metal3DataTemplate and apply it 
+    shell: kubectl get m3mt -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}"-workers -ojson |
+              jq '.spec.template.spec.dataTemplate.name="test-new-m3dt"' | 
+              jq '.metadata.name="test-new-m3mt"' |  
+              jq '.|del(.metadata|.managedFields,.uid,.resourceVersion,.ownerReferences,.finalizers)' |
+              jq '.|del(.status)' | 
+              kubectl apply -f-
+
+  - name: Edit MachineDeployment to point to the new m3mt
+    shell: kubectl get md -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}" -ojson | 
+              jq '.spec.template.spec.infrastructureRef.name="test-new-m3mt"' | 
+              jq '.spec.strategy.rollingUpdate.maxUnavailable=1' |
+              kubectl apply -f-
+    
+  - pause:
+     minutes: 1
+
+  - name: Wait until one BMH is in ready state
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
+    retries: 200
+    delay: 20
+    register: ready_hosts
+    until: ready_hosts.stdout == "1"
+
+  - name: Check if one Metal3Data refers to the old template
+    shell: kubectl get m3d -n "{{ NAMESPACE }}" -ojson | 
+              jq -r '[ .items[] | select (.spec.templateReference=="{{ CLUSTER_NAME }}-workers-template")|
+              .metadata.name ] | length'
+    retries: 5
+    delay: 5
+    register: newM3Data
+    until: newM3Data.stdout == "1"
+
 
   - name: Scale KCP back to three replicas
     shell: |
