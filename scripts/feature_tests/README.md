@@ -52,21 +52,9 @@ feature_tests/
 │   └── remediation.sh
 ├── setup_env.sh
 └── upgrade
-    ├── 1cp_1w_bootDiskImage_cluster_upgrade.sh
-    ├── clean_setup_env.sh
-    ├── combined_tests
-    │   └── 1cp_1w_bootDiskImageANDK8sControllers_clusterLevel_upgrade.sh
-    ├── controlplane_components_upgrade
-    │   └── upgrade_CAPI_and_CAPM3_with_clusterctl.sh
-    ├── controlplane_upgrade
-    │   └── 3cp_1w_k8sVer_bootDiskImage_scaleInWorker_upgrade.sh
     ├── Makefile
-    ├── README.md
-    ├── upgrade_common.sh
     ├── upgrade.sh
     ├── upgrade_vars.sh
-    └── workers_upgrade
-        └── 1cp_3w_bootDiskImage_scaleInWorkers_upgrade_both.sh
 ```
 
 Each feature has its own Makefile that will call feature specific test steps.
