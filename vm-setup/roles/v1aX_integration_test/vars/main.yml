@@ -75,30 +75,52 @@ GOPATH: "{{ lookup('env', 'GOPATH')}}"
 IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true)}}"
 IRONIC_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true)}}"
 
+# Environment variables for upgrade workflow
+IRONIC_IMAGE_TAG: "master"
+NUM_IRONIC_IMAGES: 8
+CAPIRELEASE_HARDCODED: "{{ lookup('env', 'CAPIRELEASE_HARDCODED') }}"
+M3PATH: "{{ lookup('env', 'M3PATH') }}"
+CAPM3PATH: "{{M3PATH}}/cluster-api-provider-metal3"
+
+CAPM3_REL_TO_VERSION: "{{ lookup('env', 'CAPM3_REL_TO_VERSION') }}"
+CAPI_REL_TO_VERSION: "{{ lookup('env', 'CAPI_REL_TO_VERSION') }}"
+CAPM3_API_VERSION: "{{ lookup('env', 'CAPM3_API_VERSION') }}"
+CAPI_API_VERSION: "{{ lookup('env', 'CAPI_API_VERSION') }}"
+
+CAPM3RELEASE: "{{ lookup('env', 'CAPM3RELEASE') }}"
+CAPIRELEASE: "{{ lookup('env', 'CAPIRELEASE') }}"
+UPGRADED_K8S_VERSION: "{{ lookup('env', 'UPGRADED_K8S_VERSION') }}"
+
 provision_cluster_actions:
     - "ci_test_provision"
     - "provision_cluster"
     - "feature_test_provisioning"
+    - "upgrading"
 provision_controlplane_actions:
     - "ci_test_provision"
     - "provision_controlplane"
     - "feature_test_provisioning"
+    - "upgrading"
 provision_workers_actions:
     - "ci_test_provision"
     - "provision_worker"
     - "feature_test_provisioning"
+    - "upgrading"
 deprovision_cluster_actions:
     - "ci_test_deprovision"
     - "deprovision_cluster"
     - "feature_test_deprovisioning"
+    - "upgrading"
 deprovision_controlplane_actions:
     - "ci_test_deprovision"
     - "deprovision_controlplane"
     - "feature_test_deprovisioning"
+    - "upgrading"
 deprovision_workers_actions:
     - "ci_test_deprovision"
     - "deprovision_worker"
     - "feature_test_deprovisioning"
+    - "upgrading"
 verify_actions:
     - "ci_test_provision"
     - "feature_test_provisioning"
@@ -108,14 +130,16 @@ verify_actions:
 pivot_actions:
     - "ci_test_provision"
     - "pivoting"    
-    - "upgrading"
     - "post_pivot"
+    - "upgrading"
 repivot_actions:
     - "ci_test_provision"
     - "repivoting"
+    - "upgrading"
 cleanup_actions:
     - "ci_test_deprovision"
     - "feature_test_deprovisioning"
+    - "upgrading"
 image_download_actions:
     - "ci_test_provision"
     - "provision_controlplane"

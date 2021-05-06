@@ -1,0 +1,20 @@
+apiVersion: infrastructure.cluster.x-k8s.io/{{CAPM3_API_VERSION}}
+kind: Metal3MachineTemplate
+metadata:
+  name: {{M3MT_NAME}}
+  namespace: metal3
+  ownerReferences:
+  - apiVersion: cluster.x-k8s.io/{{CAPI_API_VERSION}}
+    kind: Cluster
+    name: {{CLUSTER_NAME}}
+    uid: {{CLUSTER_UID}}
+spec:
+  template:
+    spec:
+      dataTemplate:
+        name: {{DATA_TEMPLATE_NAME}}
+      image:
+        checksum: {{IMAGE_CHECKSUM}}
+        checksumType: md5
+        format: raw
+        url: {{IMAGE_URL}}

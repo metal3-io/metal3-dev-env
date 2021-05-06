@@ -1,55 +1,12 @@
 #!/bin/bash
 
-set -x
+METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../../.."
 
-METAL3_DEV_ENV_DIR="$(dirname "$(readlink -f "${0}")")/../../../"
-
-# Remove old test result
-rm -rf /tmp/"$(date +%Y.%m.%d_upgrade.result.txt)"
 
 # shellcheck disable=SC1091
 # shellcheck disable=SC1090
-source "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/upgrade_vars.sh"
+source "upgrade_vars.sh"
 
-# shellcheck disable=SC1091
-# shellcheck disable=SC1090
-source "${METAL3_DEV_ENV_DIR}/lib/common.sh"
+export ACTION="upgrading"
 
-# shellcheck disable=SC1091
-# shellcheck disable=SC1090
-source "${METAL3_DEV_ENV_DIR}/lib/releases.sh"
-
-# shellcheck disable=SC1091
-# shellcheck disable=SC1090
-source "${METAL3_DEV_ENV_DIR}/lib/network.sh"
-
-# shellcheck disable=SC1091
-# shellcheck disable=SC1090
-source "${METAL3_DEV_ENV_DIR}/lib/images.sh"
-
-# -----------------------------------------
-# Syntax:
-# source <script name>.sh <log file prefix>
-# -----------------------------------------
-
-if [[ "${IMAGE_OS}" == "Ubuntu" ]]; then
-    # Run controlplane and worker upgrade tests
-    pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/controlplane_upgrade" || exit
-    # shellcheck disable=SC1091
-    source 3cp_1w_k8sVer_bootDiskImage_scaleInWorker_upgrade.sh
-    popd || exit
-else
-    # shellcheck disable=SC1091
-    # shellcheck source="${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/upgrade_vars.sh"
-    source "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/upgrade_vars.sh"
-
-    # 1cp_1w_bootDiskImageANDK8sControllers_clusterLevel_upgrade requires
-    # ironic running as a pod and thus minikube.
-    # Run controlplane components upgrade tests
-    pushd "${METAL3_DEV_ENV_DIR}/scripts/feature_tests/upgrade/combined_tests" || exit
-    # shellcheck disable=SC1091
-    #source 1cp_1w_bootDiskImageANDK8sControllers_clusterLevel_upgrade.sh
-    popd || exit
-fi
-
-set +x
+"${METAL3_DIR}"/scripts/run.sh
