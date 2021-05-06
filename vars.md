@@ -9,10 +9,10 @@ assured that they are persisted.
 
 | Name | Option | Allowed values | Default |
 | :------ | :------- | :--------------- | :-------- |
-| NUM_OF_MASTER_REPLICAS | Set the controlplane replica count. ||1| 
 | MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1| 
 | EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
 | IP_STACK | Choose whether the "baremetal" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. <br/> Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
+| EXTERNAL_VLAN_ID | If the "baremetal" network is tagged, this is the VLAN id for the network, set on the network interface for the bare metal hosts. | "" or 1-4096 | "" |
 | EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
 | EXTERNAL_SUBNET_V6 | When using IPv6 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv6 CIDR | fd55::/64 |
 | PROVISIONING_IPV6 | Configure provisioning network for single-stack ipv6 | "true", "false" | false |
@@ -48,7 +48,9 @@ assured that they are persisted.
 | UPGRADED_K8S_VERSION | Upgraded Kubernetes version | "x.x.x" | "1.21.3" |
 | KUBERNETES_BINARIES_VERSION | Version of kubelet, kubeadm and kubectl | "x.x.x-xx" or "x.x.x" | same as KUBERNETES_VERSION |
 | KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.2.7" |
-| NUM_NODES | Set the number of virtual machines to be provisioned. This VMs will be further configured as control-plane or worker Nodes | | 2 |
+| NUM_NODES | Set the number of virtual machines to be provisioned. This VMs will be further configured as control-plane or worker Nodes. Note that NUM_OF_MASTER_REPLICAS and NUM_OF_WORKER_REPLICAS should sum to this value. | | 2 |
+| NUM_OF_MASTER_REPLICAS | Set the controlplane replica count in the target cluster. ||1| 
+| NUM_OF_WORKER_REPLICAS | Set the worker replica count in the target cluster. ||1| 
 | VM_EXTRADISKS | Add extra disks to the virtual machines provisioned. By default the size of the extra disk is set in the libvirt Ansible role to 8 GB | "true", "false" | "false" |
 | VM_EXTRADISKS_FILE_SYSTEM | Create file system to the extra disk. | "ext4", "xfs" | "ext4" |
 | VM_EXTRADISKS_MOUNT_DIR | Mount the extra disk to a directory on a host. | | "/mnt/disk2" |

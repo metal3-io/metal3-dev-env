@@ -66,7 +66,8 @@ files:
       }
       vrrp_instance VI_2 {
           state MASTER
-          interface enp2s0
+          interface {% if EXTERNAL_VLAN_ID == "" %}enp2s0{% else %}enp1s0.{{ EXTERNAL_VLAN_ID }}{% endif %}
+
           virtual_router_id 2
           priority 101
           advert_int 1
