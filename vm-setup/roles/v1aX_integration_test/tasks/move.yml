@@ -61,6 +61,20 @@
       cp {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig
       cp {{ IRONIC_DATA_DIR }}/ironic_bmo_configmap.env  {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env
 
+  - name: Initialize Provider component in target cluster
+    shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
+
+  # Check for cert-manager pods on the target cluster
+  - name: Check if cert-manager  pods in running state
+    shell: "kubectl get pods -n cert-manager -o json | jq -r '.items[].status.phase' | grep -cv Running"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 150 
+    delay: 20
+    register: target_running_pods
+    until: target_running_pods.stdout|int == 0
+    failed_when: target_running_pods.stdout|int > 0
+
   # Install Ironic
   - name: Install Ironic
     shell: "{{ BMOPATH }}/tools/deploy.sh false true {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
@@ -78,9 +92,6 @@
       - clusterctl.cluster.x-k8s.io=""
       - cluster.x-k8s.io/provider="metal3"
     when: CAPM3_VERSION == "v1alpha3"
-
-  - name: Initialize Provider component in target cluster
-    shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
 
   # Check for pods & nodes on the target cluster
   - name: Check if pods in running state
