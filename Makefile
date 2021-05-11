@@ -55,6 +55,4 @@ feature_tests: setup_env inspection_test remediation_test cleanup_env pivoting_t
 
 feature_tests_upgrade: setup_env_ug upgrade_test
 
-feature_tests_upgrade_centos: setup_env_ug upgrade_test
-
 .PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint
