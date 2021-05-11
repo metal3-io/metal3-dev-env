@@ -21,12 +21,12 @@
     become_user: root
     when: EPHEMERAL_CLUSTER == "kind"
 
-  - name: Remove Ironic from from source cluster (Ephemeral Cluster is minikube)
+  - name: Remove Ironic from source cluster (Ephemeral Cluster is minikube)
     k8s:
-      name: metal3-ironic
+      name: capm3-ironic
       kind: Deployment
       state: absent
-      namespace: "{{ NAMESPACE }}"
+      namespace: "{{ IRONIC_NAMESPACE }}"
     when: EPHEMERAL_CLUSTER == "minikube"
 
   - name: Label BMO CRDs.
@@ -69,7 +69,7 @@
     shell: "kubectl get pods -n cert-manager -o json | jq -r '.items[].status.phase' | grep -cv Running"
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    retries: 150 
+    retries: 20 
     delay: 20
     register: target_running_pods
     until: target_running_pods.stdout|int == 0

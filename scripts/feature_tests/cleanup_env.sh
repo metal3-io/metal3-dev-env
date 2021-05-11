@@ -22,7 +22,7 @@ if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
   "$BMOPATH"/tools/remove_local_ironic.sh
 else 
   # Scale down ironic
-  kubectl scale deploy -n "${NAMESPACE}" metal3-ironic --replicas=0
+  kubectl scale deploy -n "${IRONIC_NAMESPACE}" capm3-ironic --replicas=0
 fi
 
 clusterctl delete --all -v5
@@ -67,7 +67,7 @@ if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
   popd || exit
 else 
   # Scale up ironic
-  kubectl scale deploy -n "${NAMESPACE}" metal3-ironic --replicas=1
+  kubectl scale deploy -n "${IRONIC_NAMESPACE}" capm3-ironic --replicas=1
 fi
 
 
