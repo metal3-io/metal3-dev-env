@@ -204,7 +204,7 @@ export KIND_VERSION=${KIND_VERSION:-"v0.11.0"}
 export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.21.1"}
 
 # Minikube version (if EPHEMERAL_CLUSTER=minikube)
-export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.20.0"}
+export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.16.0"}
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
@@ -385,6 +385,19 @@ differs(){
 # Create Minikube VM and add correct interfaces
 #
 function init_minikube() {
+
+    # This a temporary workaround to fix minikube start failure in CentOS builds.
+    # For now, if we wait long enough, the lease expires and the VM re-registers, 
+    # then its IP address is visible in 'virsh net-dhcp-leases mk-minikube'.
+    # Proper fix would be either upgrade libvirtd or fix it upstream in minikube.
+    # shellcheck disable=SC2034
+    # for i in {1..5}; do
+    #   sudo su -l -c "minikube start" "$USER"
+    #   sudo su -l -c "minikube delete --all --purge" "${USER}"
+    #   sudo rm -rf ~/.minikube
+    #   sudo systemctl restart libvirtd.service
+    # done
+
     #If the vm exists, it has already been initialized
     if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
       sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "$USER"
