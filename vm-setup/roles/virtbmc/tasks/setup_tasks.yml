@@ -97,4 +97,5 @@
     content: |
       SUSHY_EMULATOR_LIBVIRT_URI = "{{ vbmc_libvirt_uri }}"
       SUSHY_EMULATOR_IGNORE_BOOT_DEVICE = {{ sushy_ignore_boot_device }}
+      SUSHY_EMULATOR_VMEDIA_VERIFY_SSL = {{ sushy_vmedia_verify_ssl }}
   become: true
