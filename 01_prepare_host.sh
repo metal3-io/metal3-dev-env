@@ -84,7 +84,7 @@ if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
   fi
 # Install Kind for both Kind and tilt
 else
-  if ! command -v kind 2>/dev/null ; then
+  if ! command -v kind 2>/dev/null || [[ "v$(kind version -q)" != "$KIND_VERSION" ]]; then
       curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
       chmod +x ./kind
       sudo mv kind /usr/local/bin/.
