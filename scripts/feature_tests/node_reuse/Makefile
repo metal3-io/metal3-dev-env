@@ -1,5 +1,3 @@
-#export MAX_SURGE_VALUE := 0
-#export MAX_UNAVAILABLE_VALUE := 1
 export NUM_OF_MASTER_REPLICAS := 3
 export NUM_OF_WORKER_REPLICAS := 1
 

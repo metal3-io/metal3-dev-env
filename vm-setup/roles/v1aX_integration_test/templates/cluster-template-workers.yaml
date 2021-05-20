@@ -13,11 +13,6 @@ spec:
     matchLabels:
       cluster.x-k8s.io/cluster-name: ${ CLUSTER_NAME }
       nodepool: nodepool-0
-  strategy:
-    rollingUpdate:
-      maxSurge: ${ MAX_SURGE_VALUE }
-      maxUnavailable: ${ MAX_UNAVAILABLE_VALUE }
-    type: RollingUpdate
   template:
     metadata:
       labels:

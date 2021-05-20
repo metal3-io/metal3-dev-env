@@ -47,14 +47,6 @@
 #export MAX_SURGE_VALUE=1
 
 #
-# This variable defines the maximum number of machines that can be unavailable during the worker
-# update only. Value can be an absolute number (ex: 5) or a percentage of desired machines (ex: 10%).
-# Absolute number is calculated from percentage by rounding down. This can not be 0 if MAX_SURGE_VALUE
-# is 0. Defaults to 0.
-#
-#export MAX_UNAVAILABLE_VALUE=0
-
-#
 # Select the Container Runtime, can be "podman" or "docker"
 # Defaults to "docker" on ubuntu and "podman" otherwise
 #
@@ -126,7 +118,7 @@
 #export CAPM3_VERSION=v1alpha4
 
 #export KUBERNETES_VERSION="v1.21.0"
-#export UPGRADED_KUBERNETES_VERSION="v1.21.1"
+#export UPGRADED_K8S_VERSION="v1.21.1"
 
 # Version of kubelet, kubeadm and kubectl binaries
 #export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"

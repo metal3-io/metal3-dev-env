@@ -26,7 +26,7 @@
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  - name: Update maxSurge field in KCP
+  - name: Update maxSurge field in KCP to 0.
     shell: |
         kubectl get kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.rolloutStrategy.rollingUpdate.maxSurge=0' | kubectl apply -f-
     environment:
@@ -38,9 +38,9 @@
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
  
-  - name: Upgrade KubeadmControlPlane k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_KUBERNETES_VERSION }}".
+  - name: Upgrade KubeadmControlPlane k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_K8S_VERSION }}".
     shell: |
-        kubectl get kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.version="{{ UPGRADED_KUBERNETES_VERSION }}"' | kubectl apply -f-
+        kubectl get kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.version="{{ UPGRADED_K8S_VERSION }}"' | kubectl apply -f-
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
@@ -88,9 +88,9 @@
     delay: 2
     until: deprovisioning_bmh_name.stdout in provisioning_bmh.stdout_lines
 
-  - name: Wait until two machines become running and updated with new "{{ UPGRADED_KUBERNETES_VERSION }}" k8s version.
+  - name: Wait until two machines become running and updated with new "{{ UPGRADED_K8S_VERSION }}" k8s version.
     shell: |
-        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | select(.spec.version == "{{ UPGRADED_KUBERNETES_VERSION }}") | .status.phase' | grep -c "Running"
+        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.phase' | grep -c "Running"
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: updated_machines_partly
@@ -110,9 +110,9 @@
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     ignore_errors: yes
 
-  - name: Wait until all "{{ NUMBER_OF_BMH_KCP }}" machines become running and updated with new "{{ UPGRADED_KUBERNETES_VERSION }}" k8s version.
+  - name: Wait until all "{{ NUMBER_OF_BMH_KCP }}" machines become running and updated with new "{{ UPGRADED_K8S_VERSION }}" k8s version.
     shell: |
-        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | select(.spec.version == "{{ UPGRADED_KUBERNETES_VERSION }}") | .status.phase' | grep -c "Running"
+        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.phase' | grep -c "Running"
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: updated_machines_all
@@ -143,7 +143,7 @@
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  - name: Put maxSurge field in KCP back to default
+  - name: Put maxSurge field in KCP back to default value(1).
     shell: |
         kubectl get kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.rolloutStrategy.rollingUpdate.maxSurge=1' | kubectl apply -f-
     environment:

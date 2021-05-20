@@ -28,13 +28,6 @@
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: ready_bmhs
 
-  - name: Remove node reuse labels from ready BMHs' if any
-    shell: |
-        kubectl label bmh "{{ item }}" -n "{{ NAMESPACE }}" infrastructure.cluster.x-k8s.io/node-reuse-
-    loop: "{{ ready_bmhs.stdout }}"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
   - name: Mark all ready BMHs' with unhealthy annotation.
     shell: |
         kubectl annotate bmh "{{ item }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy=
@@ -42,9 +35,9 @@
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  - name: Upgrade MachineDeployment k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_KUBERNETES_VERSION }}".
+  - name: Upgrade MachineDeployment k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_K8S_VERSION }}".
     shell: |
-        kubectl get machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.template.spec.version="{{ UPGRADED_KUBERNETES_VERSION }}"' | kubectl apply -f-
+        kubectl get machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.template.spec.version="{{ UPGRADED_K8S_VERSION }}"' | kubectl apply -f-
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
   
@@ -94,9 +87,9 @@
     delay: 2
     until: deprovisioning_bmh_name.stdout in provisioning_bmh.stdout_lines
 
-  - name: Wait until worker machine becomes running and updated with new "{{ UPGRADED_KUBERNETES_VERSION }}" k8s version.
+  - name: Wait until worker machine becomes running and updated with new "{{ UPGRADED_K8S_VERSION }}" k8s version.
     shell: |
-        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | select(.spec.version == "{{ UPGRADED_KUBERNETES_VERSION }}") | .status.phase' | grep -c "Running"
+        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.phase' | grep -c "Running"
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: updated_machines

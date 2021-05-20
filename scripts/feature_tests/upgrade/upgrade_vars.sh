@@ -4,8 +4,6 @@
 # ${CLUSTER_API_REPO}/cmd/clusterctl/hack/create-local-repository.py
 # For CAPI release v0.3.12, the folder v0.3.8 is created
 
-export UPGRADED_K8S_VERSION="v1.21.1"
-
 export CAPIRELEASE_HARDCODED="v0.3.8"
 
 export CAPM3RELEASE="v0.4.0"
