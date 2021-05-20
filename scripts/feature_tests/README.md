@@ -7,17 +7,17 @@
 [![Ubuntu V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/badge/icon?subject=Feature-tests-upgrade)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
 
 Feature tests framework is made to run a set of scripts for testing pivoting,
-remediation, scale in, node reuse and upgrade functionalities of Metal3 project.
+remediation, scale-in, node reuse and upgrade functionalities of Metal3 project.
 The framework relies on already existing test scripts of each
 feature in Metal3-dev-env. The motivation behind the framework is to be able to
-test pivoting/remediation/scale in/node reuse/upgrade features in Metal3-dev-env
+test pivoting/remediation/scale-in/node reuse/upgrade features in Metal3-dev-env
 environment and detect breaking changes in advance.
 
 Test-framework CI can be triggered from a pull request in CAPM3, BMO,
 metal3-dev-env, project-infra, ironic-image, ironic-inspector-image and
 ironic-ipa-downloader repositories.
 It is recommended to run test-framework CI especially when
-introducing a commit related to pivoting/remediation/scale in/node reuse/upgrade,
+introducing a commit related to pivoting/remediation/scale-in/node reuse/upgrade,
 to ensure that new changes will not break the existing functionalities.
 
 Test-framework can be triggered by leaving
@@ -25,7 +25,7 @@ Test-framework can be triggered by leaving
 - `/test-features` (Ubuntu based)
 - `/test-features-centos` (Centos based)
 
-comments for remediation/scale in/node reuse/pivoting and
+comments for remediation/scale-in/node reuse/pivoting and
 
 - `/test-upgrade-features`
 
@@ -41,8 +41,7 @@ feature_tests/
 ├── feature_test_provisioning.sh
 ├── node_reuse
 │   ├── Makefile
-│   └── node_reuse_kcp.sh
-│   └── node_reuse_md.sh
+│   └── node_reuse.sh
 ├── OWNERS
 ├── pivoting
 │   ├── Makefile
@@ -81,8 +80,8 @@ When the test-framework is triggered with `/test-features` or
 - run pivoting tests
   - provision cluster and BMH
   - run pivoting tests
-- run scale in and node reuse tests
-  - run scale in and node reuse tests for KubeadmControlPlane scenario
+- run scale-in and node reuse tests
+  - run scale-in and node reuse tests for KubeadmControlPlane scenario
   - run node reuse tests for MachineDeployment scenario
 - run re-pivoting tests
   - run re-pivoting tests
