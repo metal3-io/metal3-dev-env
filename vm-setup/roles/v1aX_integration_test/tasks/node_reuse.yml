@@ -4,7 +4,7 @@
       NUMBER_OF_BMH_MD: "{{ NUM_OF_WORKER_REPLICAS|int }}"
       NUMBER_OF_ALL_BMH: "{{ NUM_OF_WORKER_REPLICAS|int + NUM_OF_MASTER_REPLICAS|int }}"
 
-  - name: Scale worker down to 0.
+  - name: Scale worker down to 0 to start testing KubeadmControlPlane node reuse test scenario.
     shell: |
         kubectl scale machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=0
     environment:
@@ -26,7 +26,7 @@
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  - name: Update maxSurge field in KubeadmControlPlane to 0.
+  - name: Update maxSurge field in KubeadmControlPlane to 0 to start testing KCP scale-in feature. 
     shell: |
         kubectl get kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.rolloutStrategy.rollingUpdate.maxSurge=0' | kubectl apply -f-
     environment:
@@ -38,7 +38,7 @@
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  - name: Upgrade KubeadmControlPlane k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_K8S_VERSION }}".
+  - name: Upgrade KubeadmControlPlane k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_K8S_VERSION }}" to test KCP scale-in feature.
     shell: |
         kubectl get kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.version="{{ UPGRADED_K8S_VERSION }}"' | kubectl apply -f-
     environment:
@@ -46,6 +46,24 @@
 
   - pause:
       minutes: 1
+
+  - name: Check if any of the machines is in Provisioning state.
+    shell: |
+        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[] | select (.status.phase == "Provisioning") | .metadata.name ] | length'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: provisioning_machine
+
+  - name: Check if only single machine is in Deleting state and no other new machine is in Provisioning state while upgrade triggered to test the KCP scale-in feature.
+    shell: |
+        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[] | select (.status.phase == "Deleting" or .status.phase == "deleting") | .metadata.name ] | length'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: deleting_machines
+    retries: 200
+    delay: 2
+    until: deleting_machines.stdout == NUMBER_OF_BMH_MD
+    failed_when: provisioning_machine.stdout != "0"
 
   - name: Wait until "{{ NUMBER_OF_BMH_MD }}" BMH is in deprovisioning state.
     shell: |
@@ -133,8 +151,13 @@
     register: diff_mapping
     failed_when: diff_mapping.rc == 1
 
-  - name: Clean up any KubeadmControlPlane node reuse test scenario related temp files.
-    shell: rm /tmp/before_upgrade_mapping.txt /tmp/after_upgrade_mapping.txt
+  - name: Finish KubeadmControlPlane node reuse test scenario and remove all related temp files.
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - /tmp/before_upgrade_mapping.txt
+      - /tmp/after_upgrade_mapping.txt
 
   - name: Put maxSurge field in KubeadmControlPlane back to default value(1).
     shell: |
@@ -167,7 +190,7 @@
     register: all_ready_hosts
     until: all_ready_hosts.stdout == "3"
 
-  - name: Scale worker up to "{{ NUMBER_OF_BMH_MD }}".
+  - name: Scale worker up to "{{ NUMBER_OF_BMH_MD }}" to start testing MachineDeployment node reuse test scenario.
     shell: |
         kubectl scale machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=1
     environment:
@@ -299,8 +322,13 @@
     register: diff_mapping
     failed_when: diff_mapping.rc == 1
 
-  - name: Clean up any MachineDeployment node reuse test scenario related temp files.
-    shell: rm /tmp/before_upgrade_mapping_md.txt /tmp/after_upgrade_mapping_md.txt
+  - name: Finish MachineDeployment node reuse test scenario and remove all related temp files.
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - /tmp/before_upgrade_mapping_md.txt
+      - /tmp/after_upgrade_mapping_md.txt
 
   - name: Scale controlplane up back to 3.
     shell: |
