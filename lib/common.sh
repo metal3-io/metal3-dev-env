@@ -197,7 +197,7 @@ else
 fi
 
 # Kustomize version
-export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.8.5"}
+export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v4.1.3"}
 
 # Kind version (if EPHEMERAL_CLUSTER=kind)
 export KIND_VERSION=${KIND_VERSION:-"v0.11.0"}
