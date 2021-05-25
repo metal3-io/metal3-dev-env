@@ -311,4 +311,5 @@ done
 
 
 echo -e "\nNumber of failures : $FAILS"
+. "$(dirname "$(readlink -f "${0}")")"/scripts/fetch_manifests.sh
 exit "${FAILS}"
