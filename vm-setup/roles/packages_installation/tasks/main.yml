@@ -1,7 +1,7 @@
 - name: Install packages on Ubuntu
   block:
     - name: Install required packages for Ubuntu
-      include: ubuntu_required_packages.yml
+      include_tasks: ubuntu_required_packages.yml
     - name: Install common packages using standard package manager for Ubuntu
       package:
         name: "{{ packages.ubuntu.common.packages}}"
@@ -38,7 +38,7 @@
           name: "{{ packages.centos.rhel8.packages }}"
           state: present
     - name: Perform CentOS/RHEL8 required configurations
-      include: centos_required_packages.yml
+      include_tasks: centos_required_packages.yml
     - name: Install packages using pip3
       pip:
         executable: "pip3"

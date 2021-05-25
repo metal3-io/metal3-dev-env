@@ -1,10 +1,13 @@
 - name: "firewalld"
-  include: firewalld.yaml
-  become: true
+  include_tasks: firewalld.yaml
+  args:
+    apply:
+      become: true
   when: use_firewalld
 
 - name: "iptables"
-  include: iptables.yaml
-  become: true
+  include_tasks: iptables.yaml
+  args:
+    apply:
+      become: true
   when: not use_firewalld
-

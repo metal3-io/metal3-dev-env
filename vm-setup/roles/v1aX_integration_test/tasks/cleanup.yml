@@ -23,52 +23,74 @@
           (IMAGE_OS == "")
 
   - name: Check if cluster deprovisioning started.
-    shell: "kubectl get cluster -n {{ NAMESPACE }} -o json | jq -r '.items[] | .status.phase'"
+    k8s_info:
+      # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      namespace: "{{ NAMESPACE }}"
     register: deprovision_cluster
     retries: 2
     delay: 20
-    until: (deprovision_cluster.stdout == "deleting") or
-           (deprovision_cluster.stdout == "Deleting") or
-           (deprovision_cluster.stdout == "")
+    until: (deprovision_cluster is succeeded) and (
+             (deprovision_cluster.resources | length == 0) or
+             (deprovision_cluster.resources[0].status.phase | lower == "deleting"))
 
   - name: Wait until "{{ NUM_NODES }}" bmhs become ready again.
-    shell: |
-        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.provisioning.state == "ready")
-        | .metadata.name ] | length'
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
     register: deprovisioned_nodes
     retries: 150
     delay: 10
-    until: deprovisioned_nodes.stdout ==  NUM_NODES
+    vars:
+      query: "[? status.provisioning.state=='ready'].status.provisioning.state"
+    until: (deprovisioned_nodes is succeeded) and
+           (deprovisioned_nodes.resources | length > 0) and
+           (deprovisioned_nodes.resources | json_query(query) | length == (NUM_NODES | int))
 
   - name: Wait until no metal3machines are remaining
-    shell: |
-        kubectl get metal3machine -n {{ NAMESPACE }} -o json | jq -r '[ .items[] ] | length'
+    k8s_info:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3Machine
+      namespace: "{{ NAMESPACE }}"
     register: deprovisioned_m3m
     retries: 150
     delay: 3
-    until: deprovisioned_m3m.stdout ==  "0"
+    until: (deprovisioned_m3m is succeeded) and
+           (deprovisioned_m3m.resources | length == 0)
 
   - name: Wait until no machines are remaining
-    shell: |
-        kubectl get machine -n {{ NAMESPACE }} -o json | jq -r '[ .items[] ] | length'
+    k8s_info:
+      # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: Machine
+      namespace: "{{ NAMESPACE }}"
     register: deprovisioned_machines
     retries: 150
     delay: 3
-    until: deprovisioned_machines.stdout ==  "0"
+    until: (deprovisioned_machines is succeeded) and
+           (deprovisioned_machines.resources | length == 0)
 
   - name: Wait until no metal3cluster is remaining
-    shell: |
-        kubectl get metal3cluster -n {{ NAMESPACE }} -o json | jq -r '[ .items[] ] | length'
+    k8s_info:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3Cluster
+      namespace: "{{ NAMESPACE }}"
     register: deprovisioned_metal3cluster
     retries: 150
     delay: 3
-    until: deprovisioned_metal3cluster.stdout ==  "0"
+    until: (deprovisioned_metal3cluster is succeeded) and
+           (deprovisioned_metal3cluster.resources | length ==  0)
 
   - name: Wait until no cluster is remaining
-    shell: |
-        kubectl get cluster -n {{ NAMESPACE }} -o json | jq -r '[ .items[] ] | length'
+    k8s_info:
+      # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      namespace: "{{ NAMESPACE }}"
     register: deprovisioned_cluster
     retries: 150
     delay: 3
-    until: deprovisioned_cluster.stdout ==  "0"
+    until: (deprovisioned_cluster is succeeded) and
+           (deprovisioned_cluster.resources | length ==  0)

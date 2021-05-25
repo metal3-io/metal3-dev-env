@@ -9,3 +9,4 @@ _clouds_yaml
 
 *.swp
 ipv6-*/
+vm-setup/roles/v1aX_integration_test/files/manifests

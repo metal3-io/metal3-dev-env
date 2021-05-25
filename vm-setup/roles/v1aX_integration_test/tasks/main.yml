@@ -9,14 +9,14 @@
   when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '8'
 
 - name: Generate templates
-  include: generate_templates.yml
+  include_tasks: generate_templates.yml
 
 - name: Download image for deployment
-  include: download_image.yml
+  include_tasks: download_image.yml
   when: v1aX_integration_test_action in image_download_actions
 
 - name: Test inspection API
-  include: inspection.yml
+  include_tasks: inspection.yml
   when: v1aX_integration_test_action in inspection_action
 
 - name: Provision cluster
@@ -41,23 +41,23 @@
   when: v1aX_integration_test_action in provision_workers_actions
 
 - name: verify deployment
-  include: verify.yml
+  include_tasks: verify.yml
   when: v1aX_integration_test_action in verify_actions
 
 - name: pivot
-  include: move.yml
+  include_tasks: move.yml
   when: v1aX_integration_test_action in pivot_actions
 
 - name: Upgrade cluster
-  include: upgrade.yml
+  include_tasks: upgrade.yml
   when: v1aX_integration_test_action == "upgrading"
 
 - name: post pivot operations
-  include: post_pivot.yml
+  include_tasks: post_pivot.yml
   when: v1aX_integration_test_action == "post_pivot"
 
 - name: repivot
-  include: move_back.yml
+  include_tasks: move_back.yml
   when: v1aX_integration_test_action in repivot_actions
 
 - name: Deprovision worker nodes
@@ -85,13 +85,13 @@
   when: v1aX_integration_test_action in deprovision_cluster_actions
 
 - name: Cleanup deployment
-  include: cleanup.yml
+  include_tasks: cleanup.yml
   when: v1aX_integration_test_action in cleanup_actions
 
 - name: Node remediation
-  include: remediation.yml
+  include_tasks: remediation.yml
   when: v1aX_integration_test_action == "remediation"
 
 - name: Node reuse
-  include: node_reuse.yml
+  include_tasks: node_reuse.yml
   when: v1aX_integration_test_action == "node_reuse"

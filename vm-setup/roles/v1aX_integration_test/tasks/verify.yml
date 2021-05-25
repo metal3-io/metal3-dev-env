@@ -4,39 +4,60 @@
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
   - name: Wait until cluster becomes provisioned.
-    shell: "kubectl get cluster -n {{ NAMESPACE }} -o json | jq -r '.items[] | .status.phase'"
+    k8s_info:
+      # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      namespace: "{{ NAMESPACE }}"
     register: provisioned_cluster
     retries: 100
     delay: 20
-    until: (provisioned_cluster.stdout == "provisioned") or
-           (provisioned_cluster.stdout == "Provisioned")
+    until: (provisioned_cluster is succeeded) and
+           (provisioned_cluster.resources | length > 0) and
+           (provisioned_cluster.resources[0].status.phase | lower == "provisioned")
 
   - name: Wait until "{{ NUMBER_OF_BMH }}" BMHs become provisioned.
-    shell: |
-        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.provisioning.state == "provisioned")
-        | .metadata.name ] | length'
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
     register: provisioned_bmh
     retries: 200
     delay: 30
-    until: provisioned_bmh.stdout == NUMBER_OF_BMH
+    vars:
+      query: "[? status.provisioning.state=='provisioned']"
+    until: (provisioned_bmh is succeeded) and
+           (provisioned_bmh.resources | length > 0) and
+           (provisioned_bmh.resources | json_query(query) | length ==  (NUMBER_OF_BMH | int))
 
   - name: Wait until "{{ NUMBER_OF_BMH }}" machines become running.
-    shell: |
-        kubectl get machines -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.phase == "Running" or .status.phase == "running")
-        | .metadata.name ] | length'
+    k8s_info:
+      # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: Machine
+      namespace: "{{ NAMESPACE }}"
     register: provisioned_machines
     retries: 150
     delay: 20
-    until: provisioned_machines.stdout == NUMBER_OF_BMH
-
-  - name: Define username variable as "{{ IMAGE_USERNAME }}" for target node
-    set_fact:
-      username: "{{ IMAGE_USERNAME }}"
+    vars:
+      query: "[? status.phase=='running' || status.phase=='Running']"
+    until: (provisioned_machines is succeeded) and
+           (provisioned_machines.resources | length > 0) and
+           (provisioned_machines.resources | json_query(query) | length == (NUMBER_OF_BMH | int))
 
   - name: Fetch target cluster kubeconfig
-    shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s_info:
+      api_version: v1
+      kind: Secret
+      name: "{{ CLUSTER_NAME }}-kubeconfig"
+      namespace: "{{ NAMESPACE }}"
+    register: kubeconfig_secret
+
+  - name: Store target cluster kubeconfig
+    blockinfile:
+      path: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+      create: yes
+      block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
 
   # Install Calico
   - name: Download Calico manifest
@@ -83,24 +104,31 @@
     register: install_cni
 
   # Check for pods & nodes on the target cluster
-  - name: Check if pods in running state
-    shell: "kubectl get pods --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -A -o json | jq -r '.items[].status.phase' | grep -v Running"
+  - name: Wait for all pods to be in running state
+    k8s_info:
+      api_version: v1
+      kind: Pod
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+      field_selectors:
+        - status.phase!=Running
     retries: 150
     delay: 20
-    register: running_pods
-    failed_when: >
-      (running_pods.stderr != "") or
-      (running_pods.rc > 1) or
-      (running_pods.stdout != "")
-    until: running_pods.stdout == ""
+    register: not_running_pods
+    until: (not_running_pods is succeeded) and
+           (not_running_pods.resources | length == 0)
 
-  - name: Check if nodes in ready state
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | wc -l"
+  - name: Wait for nodes to be in ready state
+    k8s_info:
+      api_version: v1
+      kind: Node
+      kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
     retries: 150
     delay: 3
-    register: ready_nodes
-    failed_when: >
-      (ready_nodes.stderr != "") or
-      (ready_nodes.rc != 0) or
-      (ready_nodes.stdout != NUMBER_OF_BMH)
-    until: ready_nodes.stdout == NUMBER_OF_BMH
+    register: nodes
+    vars:
+      # For all Nodes, select those that have the Ready condition set to True
+      query: "[*].status.conditions[? type=='Ready' && status=='True']"
+    until: (nodes is succeeded) and
+           (nodes.resources | length > 0) and
+           (nodes.resources | json_query(query) | length == (NUMBER_OF_BMH | int))
