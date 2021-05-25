@@ -117,7 +117,7 @@
 #
 #export CAPM3_VERSION=v1alpha4
 
-#export KUBERNETES_VERSION="v1.21.0"
+#export KUBERNETES_VERSION="v1.21.1"
 #export UPGRADED_K8S_VERSION="v1.21.1"
 
 # Version of kubelet, kubeadm and kubectl binaries
@@ -133,11 +133,11 @@
 
 # Image for target hosts deployment
 #
-#export IMAGE_NAME="CENTOS_8.2_NODE_IMAGE_K8S_v1.21.0.qcow2"
+#export IMAGE_NAME="CENTOS_8.2_NODE_IMAGE_K8S_v1.21.1.qcow2"
 
 # Location of the image to download
 #
-#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.21.0"
+#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.21.1"
 
 # Image username for ssh
 #
