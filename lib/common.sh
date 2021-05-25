@@ -205,6 +205,9 @@ export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.21.1"}
 # Minikube version (if EPHEMERAL_CLUSTER=minikube)
 export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.20.0"}
 
+# Ansible version 
+export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.0.0"}
+
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
 TEST_TIME_INTERVAL="${TEST_TIME_INTERVAL:-10}"
