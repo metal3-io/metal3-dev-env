@@ -137,7 +137,7 @@
 
 # Location of the image to download
 #
-#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.21.0"
+#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/airship/images/k8s_${KUBERNETES_VERSION}"
 
 # Image username for ssh
 #

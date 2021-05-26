@@ -30,8 +30,8 @@ assured that they are persisted.
 | TEST_MAX_TIME | Number of maximum verification or test retries | | 120 |
 | BMC_DRIVER | Set the BMC driver | "ipmi", "redfish" | "mixed" |
 | IMAGE_OS | OS of the image to boot the nodes from, overriden by IMAGE\_\* if set | "Centos", "Cirros", "FCOS", "Ubuntu" | "Centos" |
-| IMAGE_NAME | Image for target hosts deployment | | "CENTOS_8.2_NODE_IMAGE_K8S_v1.21.0.qcow2" |
-| IMAGE_LOCATION | Location of the image to download | | https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.21.0 |
+| IMAGE_NAME | Image for target hosts deployment | | "CENTOS_8.2_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2" |
+| IMAGE_LOCATION | Location of the image to download | | https://artifactory.nordix.org/artifactory/airship/images/${KUBERNETES_VERSION} |
 | IMAGE_USERNAME | Image username for ssh | | "metal3" |
 | IRONIC_IMAGE | Container image for local ironic services | | "quay.io/metal3-io/ironic" |
 | VBMC_IMAGE | Container image for vbmc container | | "quay.io/metal3-io/vbmc" |
