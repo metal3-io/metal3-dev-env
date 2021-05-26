@@ -4,7 +4,7 @@
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
   - name: Wait until cluster becomes provisioned.
-    shell: "kubectl get cluster -n metal3 -o json | jq -r '.items[] | .status.phase'"
+    shell: "kubectl get cluster -n {{ NAMESPACE }} -o json | jq -r '.items[] | .status.phase'"
     register: provisioned_cluster
     retries: 100
     delay: 20
@@ -13,7 +13,7 @@
 
   - name: Wait until "{{ NUMBER_OF_BMH }}" BMHs become provisioned.
     shell: |
-        kubectl get bmh -n metal3 -o json | jq -r '[ .items[]
+        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
         | select (.status.provisioning.state == "provisioned")
         | .metadata.name ] | length'
     register: provisioned_bmh
@@ -23,7 +23,7 @@
 
   - name: Wait until "{{ NUMBER_OF_BMH }}" machines become running.
     shell: |
-        kubectl get machines -n metal3 -o json | jq -r '[ .items[]
+        kubectl get machines -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
         | select (.status.phase == "Running" or .status.phase == "running")
         | .metadata.name ] | length'
     register: provisioned_machines
