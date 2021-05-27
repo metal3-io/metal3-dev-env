@@ -50,7 +50,7 @@ export OS_VERSION_ID=$VERSION_ID
 export SUPPORTED_DISTROS=(centos8 rhel8 ubuntu18 ubuntu20)
 
 if [[ ! "${SUPPORTED_DISTROS[*]}" =~ $DISTRO ]]; then
-   echo "Supported OS distros for the host are: CentOS8 or RHEL8 or Ubuntu20.04"
+   echo "Supported OS distros for the host are: CentOS Stream 8 or RHEL8 or Ubuntu20.04"
    exit 1
 fi
 
