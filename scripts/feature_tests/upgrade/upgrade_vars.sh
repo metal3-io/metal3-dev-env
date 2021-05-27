@@ -14,3 +14,6 @@ export CAPI_REL_TO_VERSION="v0.3.14"
 
 export CAPI_API_VERSION="v1alpha3"
 export CAPM3_API_VERSION="v1alpha4"
+
+export KUBERNETES_VERSION="v1.21.0"
+export UPGRADED_K8S_VERSION="v1.21.1"
