@@ -3,10 +3,10 @@
   # Remove Ironic from target cluster
   - name: Remove Ironic from target cluster
     k8s:
-      name: metal3-ironic
+      name: capm3-ironic
       kind: Deployment
       state: absent
-      namespace: "{{ NAMESPACE }}"
+      namespace: "{{ IRONIC_NAMESPACE }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Install Ironic in Source cluster (Ephemeral Cluster is kind)

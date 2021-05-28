@@ -214,16 +214,16 @@
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade Ironic                                                  |
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  - name: Scale down metal3-ironic deployment
+  - name: Scale down capm3-ironic deployment
     shell: |
-            kubectl scale deploy metal3-ironic -n {{NAMESPACE}} --replicas 0
+            kubectl scale deploy capm3-ironic -n {{IRONIC_NAMESPACE}} --replicas 0
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     ignore_errors: yes
 
   - name: Count running ironic pods
     shell: |
-            kubectl get pods -n {{NAMESPACE}} | grep -c metal3-ironic 
+            kubectl get pods -n {{IRONIC_NAMESPACE}} | grep -c capm3-ironic
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     retries: 200
@@ -234,7 +234,7 @@
 
   - name: Upgrade ironic image based containers 
     shell: |
-            kubectl set image deployments metal3-ironic {{item}}=quay.io/metal3-io/ironic:{{IRONIC_IMAGE_TAG}} -n {{NAMESPACE}}
+            kubectl set image deployments capm3-ironic {{item}}=quay.io/metal3-io/ironic:{{IRONIC_IMAGE_TAG}} -n {{IRONIC_NAMESPACE}}
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     loop:
@@ -246,7 +246,7 @@
 
   - name: Upgrade ironic-inspector image based containers 
     shell: |
-            kubectl set image deployments metal3-ironic {{item}}=quay.io/metal3-io/ironic-inspector:{{IRONIC_IMAGE_TAG}} -n {{NAMESPACE}}
+            kubectl set image deployments capm3-ironic {{item}}=quay.io/metal3-io/ironic-inspector:{{IRONIC_IMAGE_TAG}} -n {{IRONIC_NAMESPACE}}
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     loop:
@@ -254,15 +254,15 @@
       - httpd-reverse-proxy
       - ironic-inspector-log-watch
         
-  - name: Scale up metal3-ironic deployment
+  - name: Scale up capm3-ironic deployment
     shell: |
-            kubectl scale deploy metal3-ironic -n {{NAMESPACE}} --replicas 1
+            kubectl scale deploy capm3-ironic -n {{IRONIC_NAMESPACE}} --replicas 1
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"        
 
   - name: Count running ironic pods, only upgraded pod should exist
     shell: |
-            kubectl get pods -n {{NAMESPACE}} | grep -c metal3-ironic
+            kubectl get pods -n {{IRONIC_NAMESPACE}} | grep -c capm3-ironic
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     retries: 100
@@ -273,7 +273,7 @@
 
   - name: Count number of upgraded ironic containers
     shell: |
-            kubectl get deployments metal3-ironic -n {{NAMESPACE}} -o json |
+            kubectl get deployments capm3-ironic -n {{IRONIC_NAMESPACE}} -o json |
             jq '.spec.template.spec.containers[].image' |
             grep -c "{{IRONIC_IMAGE_TAG}}"
     environment:
@@ -283,8 +283,8 @@
 
   - name: Count running upgraded ironic containers
     shell: |
-            ironic_pod_name=$(kubectl get pods -n {{NAMESPACE}} -o name| grep metal3-ironic | cut -f2 -d/)
-            kubectl get pods -n {{NAMESPACE}} ${ironic_pod_name}  -o json |
+            ironic_pod_name=$(kubectl get pods -n {{IRONIC_NAMESPACE}} -o name| grep capm3-ironic | cut -f2 -d/)
+            kubectl get pods -n {{IRONIC_NAMESPACE}} ${ironic_pod_name}  -o json |
             jq '.status.containerStatuses[]| select(.ready==true)|.name' | wc -l
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"

@@ -2,6 +2,7 @@
 # Ansible playbook related variables
 HOME: "{{ lookup('env', 'HOME') }}"
 NAMESPACE: "{{ lookup('env', 'NAMESPACE') | default('metal3', true) }}"
+IRONIC_NAMESPACE: "{{ lookup('env', 'IRONIC_NAMESPACE') | default('capm3-system', true) }}"
 CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/templates"
 TEMP_GEN_DIR: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/files/manifests"
 MANIFESTS_DIR: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/files"
