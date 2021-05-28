@@ -37,7 +37,16 @@
     when: CAPM3_VERSION == "v1alpha3"
 
   - name: Obtain target cluster kubeconfig
-    shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s_info:
+      kind: secrets
+      name: "{{ CLUSTER_NAME }}-kubeconfig"
+      namespace: "{{ NAMESPACE }}"
+    register: metal3_kubconfig 
+
+  - name: Filter, decode and save cluster kubeconfig 
+    copy:
+      content: "{{ metal3_kubconfig.resources[0].data.value | b64decode }}" 
+      dest: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml" 
 
   - name: Create namespace
     k8s:
