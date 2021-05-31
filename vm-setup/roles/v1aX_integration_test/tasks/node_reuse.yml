@@ -28,7 +28,7 @@
 
   - name: Update maxSurge field in KubeadmControlPlane to 0 to start testing KCP scale-in feature. 
     shell: |
-        kubectl get kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.rolloutStrategy.rollingUpdate.maxSurge=0' | kubectl apply -f-
+        kubectl patch -n "{{ NAMESPACE }}" kubeadmcontrolplane "{{ CLUSTER_NAME }}" --type=merge -p '{"spec": {"rolloutStrategy": {"rollingUpdate": {"maxSurge": 0}}}}'
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
@@ -161,7 +161,7 @@
 
   - name: Put maxSurge field in KubeadmControlPlane back to default value(1).
     shell: |
-        kubectl get kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.rolloutStrategy.rollingUpdate.maxSurge=1' | kubectl apply -f-
+        kubectl patch -n "{{ NAMESPACE }}" kubeadmcontrolplane "{{ CLUSTER_NAME }}" --type=merge -p '{"spec": {"rolloutStrategy": {"rollingUpdate": {"maxSurge": 1}}}}'
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
@@ -224,7 +224,7 @@
 
   - name: Update maxSurge and maxUnavailable fields in MachineDeployment.
     shell: |
-        kubectl get machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.strategy.rollingUpdate.maxSurge=0|.spec.strategy.rollingUpdate.maxUnavailable=1' | kubectl apply -f-
+        kubectl patch -n "{{ NAMESPACE }}" machinedeployment "{{ CLUSTER_NAME }}" --type=merge -p '{"spec": {"strategy": {"rollingUpdate": {"maxSurge": 0,"maxUnavailable": 1}}}}'
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
