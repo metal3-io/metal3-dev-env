@@ -189,7 +189,7 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ipa-downloader
 sudo "${CONTAINER_RUNTIME}" wait ipa-downloader
 
 function configure_minikube() {
-    minikube config set vm-driver kvm2
+    minikube config set driver kvm2
     minikube config set memory 4096
 }
 if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
