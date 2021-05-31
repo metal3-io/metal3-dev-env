@@ -433,8 +433,7 @@ function start_management_cluster () {
   if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
     launch_kind
   elif [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
-    init_minikube
-
+    sudo systemctl restart libvirtd.service
     sudo su -l -c 'minikube start' "${USER}"
     if [[ -n "${MINIKUBE_BMNET_V6_IP}" ]]; then
       sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"

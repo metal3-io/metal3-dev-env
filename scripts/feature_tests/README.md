@@ -14,7 +14,7 @@ test pivoting/remediation/scale-in/node reuse/upgrade features in Metal3-dev-env
 environment and detect breaking changes in advance.
 
 Test-framework CI can be triggered from a pull request in CAPM3, BMO,
-metal3-dev-env, project-infra, ironic-image, ironic-inspector-image and
+metal3-dev-env, project-infra, ironic-image, and
 ironic-ipa-downloader repositories.
 It is recommended to run test-framework CI especially when
 introducing a commit related to pivoting/remediation/scale-in/node reuse/upgrade,
