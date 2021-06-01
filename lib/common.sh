@@ -388,9 +388,14 @@ differs(){
 #
 function init_minikube() {
     #If the vm exists, it has already been initialized
-    if [[ "$(sudo virsh list --all)" != *"minikube"* ]]; then
-      sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "$USER"
-      sudo su -l -c "minikube stop" "$USER"
+    if [[ "$(sudo virsh list --name --all)" != *"minikube"* ]]; then 
+      # Restart libvirtd.service as suggested here 
+      # https://github.com/kubernetes/minikube/issues/3566
+      sudo systemctl restart libvirtd.service
+      # Even if it fails to start minikube here, lets ignore the error
+      # It will be retried again in 03 script
+      sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "$USER" || true
+      sudo su -l -c "minikube stop" "$USER" || true 
     fi
 
     MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"
