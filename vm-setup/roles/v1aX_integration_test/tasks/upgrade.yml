@@ -232,20 +232,23 @@
     until: count_ironic_pods.stdout|int == 0
     failed_when:  count_ironic_pods.stdout|int > 0
 
+  - name: Set expected ironic image based containers
+    set_fact:
+      ironic_image_containers:
+        - mariadb
+        - ironic-api
+        - ironic-dnsmasq
+        - ironic-conductor
+        - ironic-log-watch
+        - ironic-inspector
+        - ironic-inspector-log-watch
+
   - name: Upgrade ironic image based containers 
     shell: |
             kubectl set image deployments capm3-ironic {{item}}=quay.io/metal3-io/ironic:{{IRONIC_IMAGE_TAG}} -n {{IRONIC_NAMESPACE}}
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    loop:
-      - mariadb
-      - ironic-api
-      - ironic-dnsmasq
-      - ironic-conductor
-      - ironic-log-watch
-      - ironic-inspector
-      - httpd-reverse-proxy
-      - ironic-inspector-log-watch
+    loop: "{{ ironic_image_containers }}"
         
   - name: Scale up capm3-ironic deployment
     shell: |
@@ -272,7 +275,7 @@
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml" 
     register: upgraded_containers
-    failed_when:  upgraded_containers.stdout_lines[0]|int < 8
+    failed_when:  upgraded_containers.stdout_lines[0]|int < (ironic_image_containers | length)
 
   - name: Count running upgraded ironic containers
     shell: |
@@ -284,8 +287,8 @@
     retries: 100
     delay: 10
     register: running_upgraded_containers
-    until: running_upgraded_containers.stdout|int > 7
-    failed_when:  running_upgraded_containers.stdout|int < 8
+    until: running_upgraded_containers.stdout|int >= (ironic_image_containers | length)
+    failed_when:  running_upgraded_containers.stdout|int < (ironic_image_containers | length)
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade K8S version and boot-image                              |
