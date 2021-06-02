@@ -18,8 +18,8 @@ elif [[ "${IMAGE_OS}" == "Flatcar" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-flatcar_production_qemu_image.img.bz2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://stable.release.flatcar-linux.net/amd64-usr/current/}
 else
-  export IMAGE_NAME=${IMAGE_NAME:-cirros-0.5.1-x86_64-disk.img}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-http://download.cirros-cloud.net/0.5.1}
+  export IMAGE_NAME=${IMAGE_NAME:-cirros-0.5.2-x86_64-disk.img}
+  export IMAGE_LOCATION=${IMAGE_LOCATION:-http://download.cirros-cloud.net/0.5.2}
 fi
 
 # Image url and checksum
