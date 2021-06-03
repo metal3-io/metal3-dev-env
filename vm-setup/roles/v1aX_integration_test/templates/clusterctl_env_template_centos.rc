@@ -32,9 +32,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
     preKubeadmCommands:
       - systemctl restart NetworkManager.service
       - ifup eth0
-{% if CAPM3_VERSION == "v1alpha3" %}
-      - ifup eth1
-{% endif %}
       - systemctl enable --now crio keepalived kubelet
       - systemctl link /lib/systemd/system/monitor.keepalived.service
       - systemctl enable monitor.keepalived.service
@@ -116,17 +113,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
                   {{ CLUSTER_APIENDPOINT_HOST }}
               }
           }
-{% if CAPM3_VERSION == "v1alpha3" %}
-      - path: /etc/sysconfig/network-scripts/ifcfg-eth1
-        owner: root:root
-        permissions: '0644'
-        content: |
-          BOOTPROTO=dhcp
-          DEVICE=eth1
-          ONBOOT=yes
-          TYPE=Ethernet
-          USERCTL=no
-{% endif %}
       - path: /etc/sysconfig/network-scripts/ifcfg-eth0
         owner: root:root
         permissions: '0644'
@@ -145,9 +131,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
           DEVICE={{ IRONIC_ENDPOINT_BRIDGE }}
           ONBOOT=yes
           USERCTL=no
-{% if CAPM3_VERSION == "v1alpha3" %}
-          BOOTPROTO=dhcp
-{% else %}
+{% if CAPM3_VERSION == "v1alpha4" %}
           BOOTPROTO="static"
           IPADDR={{ "{{ ds.meta_data.provisioningIP }}" }}
           PREFIX={{ "{{ ds.meta_data.provisioningCIDR }}" }}
@@ -180,9 +164,6 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
       preKubeadmCommands:
         - systemctl restart NetworkManager.service
         - ifup eth0
-{% if CAPM3_VERSION == "v1alpha3" %}
-        - ifup eth1
-{% endif %}
         - systemctl enable --now crio kubelet
       files:
         - path: /usr/local/bin/retrieve.configuration.files.sh
@@ -203,17 +184,6 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
               else
                 cat \"\${tmpfile}\"| sed '\$d' > \"\${dst}\";
               fi
-{% if CAPM3_VERSION == "v1alpha3" %}
-        - path: /etc/sysconfig/network-scripts/ifcfg-eth1
-          owner: root:root
-          permissions: '0644'
-          content: |
-            BOOTPROTO=dhcp
-            DEVICE=eth1
-            ONBOOT=yes
-            TYPE=Ethernet
-            USERCTL=no
-{% endif %}
         - path: /etc/sysconfig/network-scripts/ifcfg-eth0
           owner: root:root
           permissions: '0644'
@@ -232,9 +202,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
             DEVICE={{ IRONIC_ENDPOINT_BRIDGE }}
             ONBOOT=yes
             USERCTL=no
-{% if CAPM3_VERSION == "v1alpha3" %}
-            BOOTPROTO=dhcp
-{% else %}
+{% if CAPM3_VERSION == "v1alpha4" %}
             BOOTPROTO="static"
             IPADDR={{ "{{ ds.meta_data.provisioningIP }}" }}
             PREFIX={{ "{{ ds.meta_data.provisioningCIDR }}" }}

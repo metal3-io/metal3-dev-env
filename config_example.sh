@@ -112,7 +112,7 @@
 #export BMC_DRIVER="mixed"
 
 # Select the Cluster API provider Metal3 version
-# Accepted values : v1alpha3 v1alpha4
+# Accepted values : v1alpha4
 # default: v1alpha4
 #
 #export CAPM3_VERSION=v1alpha4
