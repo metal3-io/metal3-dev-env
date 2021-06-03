@@ -95,7 +95,7 @@ FILESYSTEM=${FILESYSTEM:="/"}
 
 export CAPI_VERSION="${CAPI_VERSION:-"v1alpha3"}"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha4"}"
-CAPM3_VERSION_LIST="v1alpha4"
+CAPM3_VERSION_LIST="v1alpha4 v1alpha5"
 if ! echo "${CAPM3_VERSION_LIST}" | grep -wq "${CAPM3_VERSION}"; then
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
   exit 1

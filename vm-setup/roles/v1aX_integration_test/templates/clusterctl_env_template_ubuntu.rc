@@ -108,10 +108,8 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
             bridges:
               {{ IRONIC_ENDPOINT_BRIDGE }}:
                 interfaces: [enp1s0]
-{% if CAPM3_VERSION == "v1alpha4" %}
                 addresses:
                 - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
-{% endif %}
       - path : /etc/containers/registries.conf
         content: |
           [registries.search]
@@ -140,10 +138,8 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
               bridges:
                 {{ IRONIC_ENDPOINT_BRIDGE }}:
                   interfaces: [enp1s0]
-{% if CAPM3_VERSION == "v1alpha4" %}
                   addresses:
                   - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
-{% endif %}
         - path : /etc/containers/registries.conf
           content: |
              [registries.search]
