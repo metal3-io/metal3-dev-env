@@ -53,7 +53,7 @@
     autostart: "yes"
     uri: "{{ libvirt_uri }}"
 
-- when: vm_nodes
+- when: vm_nodes | length > 0
   environment:
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
   block:
