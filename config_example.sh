@@ -21,8 +21,12 @@
 # V4 default of 192.168.111.0/24 set in lib/network.sh
 # V6 default of fd55::/64 is set in lib/network.sh
 #
+# If the network is on a specific VLAN, specify EXTERNAL_VLAN_ID (default: no
+# special VLAN handling, variable is empty.)
+#
 #export EXTERNAL_SUBNET_V4="192.168.111.0/24"
 #export EXTERNAL_SUBNET_V6="fd55::/64"
+#export EXTERNAL_VLAN_ID=""
 
 #
 # This SSH key will be automatically injected into the provisioned host

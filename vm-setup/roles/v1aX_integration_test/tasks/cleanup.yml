@@ -46,7 +46,7 @@
         kubectl get metal3machine -n {{ NAMESPACE }} -o json | jq -r '[ .items[] ] | length'
     register: deprovisioned_m3m
     retries: 150
-    delay: 3
+    delay: 10
     until: deprovisioned_m3m.stdout ==  "0"
 
   - name: Wait until no machines are remaining
