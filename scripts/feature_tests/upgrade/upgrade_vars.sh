@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eux
 
 # Folder created for specific capi release when running
 # ${CLUSTER_API_REPO}/cmd/clusterctl/hack/create-local-repository.py
@@ -6,8 +7,13 @@
 
 export CAPIRELEASE_HARDCODED="v0.3.8"
 
+function get_capm3_latest() {
+    clusterctl upgrade plan | grep infrastructure-metal3 | awk 'NR == 1 {print $5}'
+}
+
 export CAPM3RELEASE="v0.4.0"
-export CAPM3_REL_TO_VERSION="v0.4.1"
+CAPM3_REL_TO_VERSION="$(get_capm3_latest)" || true
+export CAPM3_REL_TO_VERSION
 
 export CAPIRELEASE="v0.3.15"
 export CAPI_REL_TO_VERSION="v0.3.16"
