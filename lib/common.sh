@@ -92,6 +92,8 @@ FILESYSTEM=${FILESYSTEM:="/"}
 #
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
+
+export CAPI_VERSION="${CAPI_VERSION:-"v1alpha3"}"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha4"}"
 CAPM3_VERSION_LIST="v1alpha3 v1alpha4"
 if ! echo "${CAPM3_VERSION_LIST}" | grep -wq "${CAPM3_VERSION}"; then
@@ -111,12 +113,15 @@ export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
 export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
-export IPAMBRANCH="${IPAMBRANCH:-master}"
+
+if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+  IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
+else
+  IPAMBRANCH="${IPAMBRANCH:-master}"
+fi
 
 CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 
-# Required CAPI version
-export CAPI_VERSION="v1alpha3"
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-master}"
 else
