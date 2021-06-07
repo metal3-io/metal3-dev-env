@@ -184,27 +184,6 @@ EXPTD_V1ALPHAX_CRDS="clusters.cluster.x-k8s.io \
   machines.cluster.x-k8s.io \
   machinesets.cluster.x-k8s.io \
   baremetalhosts.metal3.io"
-EXPTD_V1ALPHA3_CRDS="metal3clusters.infrastructure.cluster.x-k8s.io \
-  metal3machines.infrastructure.cluster.x-k8s.io \
-  metal3machinetemplates.infrastructure.cluster.x-k8s.io"
-EXPTD_V1ALPHA3_DEPLOYMENTS="capm3-system:capm3-controller-manager \
-  capi-system:capi-controller-manager \
-  capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
-  capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
-  capi-webhook-system:capi-controller-manager \
-  capi-webhook-system:capi-kubeadm-bootstrap-controller-manager \
-  capi-webhook-system:capi-kubeadm-control-plane-controller-manager \
-  capi-webhook-system:capm3-controller-manager \
-  baremetal-operator-system:baremetal-operator-controller-manager"
-EXPTD_V1ALPHA3_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:1 \
-  cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
-  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
-  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1 \
-  cluster.x-k8s.io/provider:infrastructure-metal3:capi-webhook-system:1 \
-  cluster.x-k8s.io/provider:cluster-api:capi-webhook-system:1 \
-  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system:1 \
-  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system:1 \
-  control-plane:controller-manager:baremetal-operator-system:1"
 EXPTD_V1ALPHA4_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-system:capi-controller-manager \
   capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
@@ -249,7 +228,7 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}" "${EXPTD_V1ALPHA3_CRDS}")
+LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}")
 
 # shellcheck disable=SC2068
 for name in ${LIST_OF_CRDS[@]}; do
@@ -259,13 +238,11 @@ for name in ${LIST_OF_CRDS[@]}; do
 done
 echo ""
 
-# Verify v1alpha3+ Operators, Deployments, Replicasets
-if [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
+# Verify v1alpha4+ Operators, Deployments, Replicasets
+if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA4_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA4_RS}"
-else
-  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA3_DEPLOYMENTS}"
-  iterate check_k8s_rs "${EXPTD_V1ALPHA3_RS}"
+# TODO: add else condition when v1alpha5 is available.
 fi
 # Verify the baremetal hosts
 ## Fetch the BM CRs

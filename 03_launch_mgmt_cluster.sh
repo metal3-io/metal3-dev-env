@@ -329,7 +329,7 @@ function patch_clusterctl(){
     update_component_image CAPM3 "${CAPM3_IMAGE}"
   fi
 
-  if [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
+  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
       update_component_image BMO "${BAREMETAL_OPERATOR_LOCAL_IMAGE}"
     else
@@ -347,7 +347,7 @@ function patch_clusterctl(){
 
   make release-manifests
 
-  if [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
+  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     mv config/bmo/kustomization.yaml.orig config/bmo/kustomization.yaml
     mv config/ipam/kustomization.yaml.orig config/ipam/kustomization.yaml
     rm config/bmo/bmo-components.yaml
@@ -378,7 +378,7 @@ function launch_cluster_api_provider_metal3() {
     nohup make run >> capm3.out.log 2>> capm3.err.log &
   fi
 
-  if [ "${BMO_RUN_LOCAL}" == true ] && [ "${CAPM3_VERSION}" != "v1alpha3" ]; then
+  if [ "${BMO_RUN_LOCAL}" == true ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     touch bmo.out.log
     touch bmo.err.log
     kubectl scale deployment capm3-baremetal-operator-controller-manager -n capm3-system --replicas=0
@@ -463,9 +463,6 @@ create_clouds_yaml
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   start_management_cluster
   kubectl create namespace metal3
-  if [ "${CAPM3_VERSION}" == "v1alpha3" ]; then
-    launch_baremetal_operator
-  fi
 fi
 
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then

@@ -30,10 +30,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
       sshAuthorizedKeys:
       - {{ SSH_PUB_KEY_CONTENT }}
     preKubeadmCommands:
-{% if CAPM3_VERSION == "v1alpha3" %}
-      - ip link set dev enp2s0 up
-      - dhclient enp2s0
-{% endif %}
       - netplan apply
       - systemctl enable --now crio kubelet
       - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:6443/healthz); then echo \"keepalived already running\";else systemctl start keepalived; fi
@@ -102,19 +98,6 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
                   {{ CLUSTER_APIENDPOINT_HOST }}
               }
           }
-{% if CAPM3_VERSION == "v1alpha3" %}
-      - path: /etc/netplan/51-cloud-config.yaml
-        owner: root:root
-        permissions: '0644'
-        content: |
-          network:
-              ethernets:
-                  enp2s0:
-                      dhcp4: true
-                  enp1s0:
-                      dhcp4: false
-              version: 2
-{% endif %}
       - path : /etc/netplan/52-ironicendpoint.yaml
         owner: root:root
         permissions: '0644'
@@ -125,9 +108,7 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
             bridges:
               {{ IRONIC_ENDPOINT_BRIDGE }}:
                 interfaces: [enp1s0]
-{% if CAPM3_VERSION == "v1alpha3" %}
-                dhcp4: true
-{% else %}
+{% if CAPM3_VERSION == "v1alpha4" %}
                 addresses:
                 - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
 {% endif %}
@@ -146,26 +127,9 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
         sshAuthorizedKeys:
         - {{ SSH_PUB_KEY_CONTENT }}
       preKubeadmCommands:
-{% if CAPM3_VERSION == "v1alpha3" %}
-        - ip link set dev enp2s0 up
-        - dhclient enp2s0
-{% endif %}
         - netplan apply
         - systemctl enable --now crio kubelet
       files:
-{% if CAPM3_VERSION == "v1alpha3" %}
-        - path: /etc/netplan/51-cloud-config.yaml
-          owner: root:root
-          permissions: '0644'
-          content: |
-            network:
-                ethernets:
-                    enp2s0:
-                        dhcp4: true
-                    enp1s0:
-                        dhcp4: false
-                version: 2
-{% endif %}
         - path : /etc/netplan/52-ironicendpoint.yaml
           owner: root:root
           permissions: '0644'
@@ -176,9 +140,7 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
               bridges:
                 {{ IRONIC_ENDPOINT_BRIDGE }}:
                   interfaces: [enp1s0]
-{% if CAPM3_VERSION == "v1alpha3" %}
-                  dhcp4: true
-{% else %}
+{% if CAPM3_VERSION == "v1alpha4" %}
                   addresses:
                   - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
 {% endif %}

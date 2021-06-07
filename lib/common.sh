@@ -93,7 +93,7 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha4"}"
-CAPM3_VERSION_LIST="v1alpha3 v1alpha4"
+CAPM3_VERSION_LIST="v1alpha4"
 if ! echo "${CAPM3_VERSION_LIST}" | grep -wq "${CAPM3_VERSION}"; then
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
   exit 1
@@ -118,9 +118,9 @@ CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 # Required CAPI version
 export CAPI_VERSION="v1alpha3"
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  CAPM3BRANCH="${CAPM3BRANCH:-master}"
+  CAPM3BRANCH="${CAPM3BRANCH:-release-0.4}"
 else
-  CAPM3BRANCH="${CAPM3BRANCH:-release-0.3}"
+  CAPM3BRANCH="${CAPM3BRANCH:-master}"
 fi
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
@@ -170,8 +170,8 @@ export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"quay.io/metal3-io/b
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
 # CAPM3 controller image
-if [ "${CAPM3_VERSION}" == "v1alpha3" ]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:release-0.3"}
+if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:release-0.4"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
 fi

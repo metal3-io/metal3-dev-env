@@ -8,7 +8,7 @@
   become_user: root
   when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '8'
 
-- name: Generate templates for v1alpha3
+- name: Generate templates
   include: generate_templates.yml
 
 - name: Download image for deployment
