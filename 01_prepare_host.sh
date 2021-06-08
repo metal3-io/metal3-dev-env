@@ -27,7 +27,7 @@ else
   sudo alternatives --set python /usr/bin/python3
 fi
 
-sudo pip3 install ansible "jinja2>=2.10"
+sudo pip3 install ansible=="${ANSIBLE_VERSION}"
 
 # NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
 # because there are some vars exported in network.sh and used by
@@ -37,7 +37,6 @@ source lib/network.sh
 
 # Install requirements
 ansible-galaxy install -r vm-setup/requirements.yml
-ansible-galaxy collection install ansible.netcommon
 
 # Install required packages
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
