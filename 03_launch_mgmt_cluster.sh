@@ -478,8 +478,6 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
       echo "baremetal-operator-controller-manager deployment can not be rollout"
       exit 1
     fi
-    #Wait servers are ready and certificates are injected.
-    sleep 30
   else
     # There is no certificate to run validation webhook on local.
     # Thus we are deleting validatingwebhookconfiguration resource if exists to let BMO is working properly on local runs.
