@@ -479,7 +479,7 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
       exit 1
     fi
     #Wait servers are ready and certificates are injected.
-    sleep 10
+    sleep 30
   else
     # There is no certificate to run validation webhook on local.
     # Thus we are deleting validatingwebhookconfiguration resource if exists to let BMO is working properly on local runs.
