@@ -33,10 +33,7 @@ CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL
 export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.3.")}"
 
 # CAPM3 releases
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.4.")}"
-# TODO: add else condition when v1alpha5 is available.
-fi
+export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.4.")}"
 
 # On first iteration, jq might not be installed
 if [[ "$CAPIRELEASE" == "" ]]; then

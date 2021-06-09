@@ -15,7 +15,7 @@ spec:
 {% if CAPM3_VERSION == "v1alpha4" %}
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 {% else %}
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha5
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 {% endif %}
     name: ${ CLUSTER_NAME }-controlplane
   kubeadmConfigSpec:
@@ -48,7 +48,7 @@ ${ CTLPLANE_KUBEADM_EXTRA_CONFIG }
 {% if CAPM3_VERSION == "v1alpha4" %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 {% else %}
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha5
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 {% endif %}
 kind: Metal3MachineTemplate
 metadata:
@@ -62,11 +62,14 @@ spec:
         checksum: ${ IMAGE_CHECKSUM }
         checksumType: ${ IMAGE_CHECKSUM_TYPE }
         format: ${ IMAGE_FORMAT }
-{% if CAPM3_VERSION == "v1alpha4" %}
       dataTemplate:
         name: ${ CLUSTER_NAME }-controlplane-template
 ---
+{% if CAPM3_VERSION == "v1alpha4" %}
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+{% else %}
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+{% endif %}
 kind: Metal3DataTemplate
 metadata:
   name: ${ CLUSTER_NAME }-controlplane-template
@@ -127,5 +130,4 @@ spec:
 {% endif %}
 {% if IP_STACK == 'v6' or IP_STACK == 'v4v6' %}
         - 2001:4860:4860::8888
-{% endif %}
 {% endif %}

@@ -105,7 +105,7 @@ Currently the test-framework uses the following environment variables
 by default for remediation/pivoting, in case of **Ubuntu** setup:
 
 ```bash
-export CAPM3_VERSION=v1alpha4
+export CAPM3_VERSION=v1alpha5
 export IMAGE_OS=Ubuntu
 export EPHEMERAL_CLUSTER=kind
 export CONTAINER_RUNTIME=docker
@@ -115,7 +115,7 @@ export NUM_NODES=4
 while **Centos** uses:
 
 ```bash
-export CAPM3_VERSION=v1alpha4
+export CAPM3_VERSION=v1alpha5
 export IMAGE_OS=Centos
 export EPHEMERAL_CLUSTER=minikube
 export CONTAINER_RUNTIME=podman

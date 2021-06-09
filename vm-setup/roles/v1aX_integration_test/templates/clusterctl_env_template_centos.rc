@@ -131,11 +131,9 @@ export CTLPLANE_KUBEADM_EXTRA_CONFIG="
           DEVICE={{ IRONIC_ENDPOINT_BRIDGE }}
           ONBOOT=yes
           USERCTL=no
-{% if CAPM3_VERSION == "v1alpha4" %}
           BOOTPROTO="static"
           IPADDR={{ "{{ ds.meta_data.provisioningIP }}" }}
           PREFIX={{ "{{ ds.meta_data.provisioningCIDR }}" }}
-{% endif %}
       - path: /etc/yum.repos.d/kubernetes.repo
         owner: root:root
         permissions: '0644'
@@ -202,11 +200,9 @@ export WORKERS_KUBEADM_EXTRA_CONFIG="
             DEVICE={{ IRONIC_ENDPOINT_BRIDGE }}
             ONBOOT=yes
             USERCTL=no
-{% if CAPM3_VERSION == "v1alpha4" %}
             BOOTPROTO="static"
             IPADDR={{ "{{ ds.meta_data.provisioningIP }}" }}
             PREFIX={{ "{{ ds.meta_data.provisioningCIDR }}" }}
-{% endif %}
         - path: /etc/yum.repos.d/kubernetes.repo
           owner: root:root
           permissions: '0644'

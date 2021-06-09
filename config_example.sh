@@ -112,10 +112,10 @@
 #export BMC_DRIVER="mixed"
 
 # Select the Cluster API provider Metal3 version
-# Accepted values : v1alpha4
+# Accepted values : v1alpha4, v1alpha5
 # default: v1alpha4
 #
-#export CAPM3_VERSION=v1alpha4
+#export CAPM3_VERSION=v1alpha5
 
 #export KUBERNETES_VERSION="v1.21.1"
 #export UPGRADED_K8S_VERSION="v1.21.1"
