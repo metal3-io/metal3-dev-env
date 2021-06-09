@@ -371,7 +371,7 @@ function launch_cluster_api_provider_metal3() {
   if [ "${CAPM3_RUN_LOCAL}" == true ]; then
     touch capm3.out.log
     touch capm3.err.log
-    kubectl scale -n metal3 deployment.v1.apps capm3-controller-manager --replicas 0
+    kubectl scale -n capm3-system deployment.v1.apps capm3-controller-manager --replicas 0
     nohup make run >> capm3.out.log 2>> capm3.err.log &
   fi
 
