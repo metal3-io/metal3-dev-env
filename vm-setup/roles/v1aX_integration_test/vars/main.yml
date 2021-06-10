@@ -89,9 +89,6 @@ CAPI_REL_TO_VERSION: "{{ lookup('env', 'CAPI_REL_TO_VERSION') }}"
 CAPM3_API_VERSION: "{{ lookup('env', 'CAPM3_API_VERSION') }}"
 CAPI_API_VERSION: "{{ lookup('env', 'CAPI_API_VERSION') }}"
 
-CAPM3RELEASE: "{{ lookup('env', 'CAPM3RELEASE') }}"
-CAPIRELEASE: "{{ lookup('env', 'CAPIRELEASE') }}"
-
 provision_cluster_actions:
     - "ci_test_provision"
     - "provision_cluster"
@@ -130,7 +127,7 @@ verify_actions:
     - "post_pivot"
 pivot_actions:
     - "ci_test_provision"
-    - "pivoting"    
+    - "pivoting"
     - "post_pivot"
     - "upgrading"
 repivot_actions:
