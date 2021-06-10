@@ -74,7 +74,7 @@
 
   # Power cycle a single worker node
   - name: Power cycle a single worker node
-    include: power_cycle.yml
+    include_tasks: power_cycle.yml
     vars:
       BMH_NODE: "{{ WORKER_BMH }}"
       LIBVIRT_VM: "{{ WORKER_VM }}"
@@ -82,8 +82,8 @@
 
   # Power cycle a single master node
   - name: Power cycle a single master node
-    include: power_cycle.yml
-    vars: 
+    include_tasks: power_cycle.yml
+    vars:
       BMH_NODE: "{{ MASTER_BMH_0 }}"
       LIBVIRT_VM: "{{ MASTER_VM_0 }}"
       K8S_NODE: "{{ MASTER_NODE_0 }}"
@@ -127,7 +127,7 @@
     until:
       - MASTER_NODE_1 in ready_master.stdout_lines
       - MASTER_NODE_2 in ready_master.stdout_lines
-    
+
   - name: List only running VMs
     virt:
       command: list_vms
@@ -156,7 +156,7 @@
   - name: Mark "{{ WORKER_BMH }}" as unhealthy
     shell: |
       kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy=
- 
+
   - name: Delete worker Machine object "{{ WORKER_NODE }}"
     shell: |
       kubectl delete machine "{{ WORKER_NODE }}" -n "{{ NAMESPACE }}"
@@ -177,7 +177,7 @@
 
   - name: Scale up the machinedeployment
     shell: kubectl scale machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=2
-  
+
   - pause:
      minutes: 1
 
@@ -220,30 +220,30 @@
     delay: 20
     register: ready_hosts
     until: ready_hosts.stdout == "1"
-    
-    ## Start Metal3DataTemplate reference test
-  - name: Get the Metal3DataTemplate, Edit name , Add templateReference and apply it 
-    shell: kubectl get m3dt -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}"-workers-template  -ojson | 
-              jq '.metadata.name="test-new-m3dt"' |  
-              jq '.|del(.metadata|.managedFields,.uid,.resourceVersion,.ownerReferences,.finalizers)' |
-              jq '.|del(.status)' | 
-              jq '.spec.templateReference="{{ CLUSTER_NAME }}-workers-template"' |
-              kubectl apply -f- 
 
-  - name: Get the Metal3MachineTemplate, Edit name, Refer to new Metal3DataTemplate and apply it 
-    shell: kubectl get m3mt -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}"-workers -ojson |
-              jq '.spec.template.spec.dataTemplate.name="test-new-m3dt"' | 
-              jq '.metadata.name="test-new-m3mt"' |  
+    ## Start Metal3DataTemplate reference test
+  - name: Get the Metal3DataTemplate, Edit name , Add templateReference and apply it
+    shell: kubectl get m3dt -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}"-workers-template  -ojson |
+              jq '.metadata.name="test-new-m3dt"' |
               jq '.|del(.metadata|.managedFields,.uid,.resourceVersion,.ownerReferences,.finalizers)' |
-              jq '.|del(.status)' | 
+              jq '.|del(.status)' |
+              jq '.spec.templateReference="{{ CLUSTER_NAME }}-workers-template"' |
+              kubectl apply -f-
+
+  - name: Get the Metal3MachineTemplate, Edit name, Refer to new Metal3DataTemplate and apply it
+    shell: kubectl get m3mt -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}"-workers -ojson |
+              jq '.spec.template.spec.dataTemplate.name="test-new-m3dt"' |
+              jq '.metadata.name="test-new-m3mt"' |
+              jq '.|del(.metadata|.managedFields,.uid,.resourceVersion,.ownerReferences,.finalizers)' |
+              jq '.|del(.status)' |
               kubectl apply -f-
 
   - name: Edit MachineDeployment to point to the new m3mt
-    shell: kubectl get md -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}" -ojson | 
-              jq '.spec.template.spec.infrastructureRef.name="test-new-m3mt"' | 
+    shell: kubectl get md -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}" -ojson |
+              jq '.spec.template.spec.infrastructureRef.name="test-new-m3mt"' |
               jq '.spec.strategy.rollingUpdate.maxUnavailable=1' |
               kubectl apply -f-
-    
+
   - pause:
      minutes: 1
 
@@ -255,7 +255,7 @@
     until: ready_hosts.stdout == "1"
 
   - name: Check if one Metal3Data refers to the old template
-    shell: kubectl get m3d -n "{{ NAMESPACE }}" -ojson | 
+    shell: kubectl get m3d -n "{{ NAMESPACE }}" -ojson |
               jq -r '[ .items[] | select (.spec.templateReference=="{{ CLUSTER_NAME }}-workers-template")|
               .metadata.name ] | length'
     retries: 5
@@ -267,7 +267,7 @@
   - name: Scale KCP back to three replicas
     shell: |
       kubectl scale kcp "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=3
-  
+
   - name: Wait until "{{ NUMBER_OF_BMH }}"" BMH are provisioned
     shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
     retries: 200

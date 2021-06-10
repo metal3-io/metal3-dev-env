@@ -118,8 +118,6 @@ function install_clusterctl() {
   curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/"${CAPIRELEASE}"/clusterctl-linux-amd64 -o clusterctl
   chmod +x ./clusterctl
   sudo mv ./clusterctl /usr/local/bin/clusterctl
-  mkdir -p home/"${USER}"/.cluster-api
-  touch home/"${USER}"/.cluster-api/version.yaml
 }
 
 if ! [ -x "$(command -v clusterctl)" ]; then
