@@ -6,6 +6,8 @@ This repository includes scripts to set up a Metal³ development environment.
 
 [![Ubuntu V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_v1a4_integration_test_ubuntu/badge/icon?subject=Ubuntu%20E2E%20V1alpha4)](https://jenkins.nordix.org/view/Airship/job/airship_master_v1a4_integration_test_ubuntu)
 [![CentOS V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_v1a4_integration_test_centos/badge/icon?subject=CentOS%20E2E%20V1alpha4)](https://jenkins.nordix.org/view/Airship/job/airship_master_v1a4_integration_test_centos)
+[![Ubuntu V1alpha5 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_v1a5_integration_test_ubuntu/badge/icon?subject=Ubuntu%20E2E%20V1alpha5)](https://jenkins.nordix.org/view/Airship/job/airship_master_v1a5_integration_test_ubuntu)
+[![CentOS V1alpha5 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_v1a5_integration_test_centos/badge/icon?subject=CentOS%20E2E%20V1alpha5)](https://jenkins.nordix.org/view/Airship/job/airship_master_v1a5_integration_test_centos)
 
 ## Instructions
 
@@ -13,7 +15,7 @@ Instructions can be found here: <https://metal3.io/try-it.html>
 
 ## Quickstart
 
-Versions v1alpha3 or v1alpha4 are later referred as **v1alphaX**.
+Versions v1alpha4 or v1alpha5 are later referred as **v1alphaX**.
 
 The v1alphaX deployment can be done with Ubuntu 18.04, 20.04 or Centos Stream 8 target
 host images. By default, for Ubuntu based target hosts we are using Ubuntu 20.04

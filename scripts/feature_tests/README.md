@@ -39,24 +39,26 @@ feature_tests/
 ├── cleanup_env.sh
 ├── feature_test_deprovisioning.sh
 ├── feature_test_provisioning.sh
+├── feature_test_vars.sh
+├── inspection_test.sh
 ├── node_reuse
 │   ├── Makefile
 │   └── node_reuse.sh
 ├── OWNERS
 ├── pivoting
-│   ├── Makefile
-│   ├── pivot.sh
-│   ├── repivot.sh
-│   └── upgrade.sh
+│   ├── Makefile
+│   ├── pivot.sh
+│   ├── repivot.sh
+│   └── upgrade.sh
 ├── README.md
 ├── remediation
-│   ├── Makefile
-│   └── remediation.sh
+│   ├── Makefile
+│   └── remediation.sh
 ├── setup_env.sh
 └── upgrade
     ├── Makefile
     ├── upgrade.sh
-    ├── upgrade_vars.sh
+    └── upgrade_vars.sh
 ```
 
 Each feature has its own Makefile that will call feature specific test steps.
