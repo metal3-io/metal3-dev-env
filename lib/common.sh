@@ -93,8 +93,8 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
 
-export CAPI_VERSION="${CAPI_VERSION:-"v1alpha3"}"
-export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha4"}"
+export CAPI_VERSION="${CAPI_VERSION:-"v1alpha4"}"
+export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha5"}"
 CAPM3_VERSION_LIST="v1alpha4 v1alpha5"
 if ! echo "${CAPM3_VERSION_LIST}" | grep -wq "${CAPM3_VERSION}"; then
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
@@ -184,15 +184,14 @@ export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"quay.io/metal3-io/b
 # Config for OpenStack CLI
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
-# CAPM3 controller image
+# CAPM3 and IPAM controller images
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:release-0.4"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:release-0.0"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:master"}
 fi
-
-# IPAM controller image
-export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:master"}
 
 # Default hosts memory
 export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-4096}
