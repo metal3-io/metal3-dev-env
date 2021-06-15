@@ -48,6 +48,8 @@ assured that they are persisted.
 | KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.2.7" |
 | NUM_NODES | Set the number of virtual machines to be provisioned. This VMs will be further configured as control-plane or worker Nodes | | 2 |
 | VM_EXTRADISKS | Add extra disks to the virtual machines provisioned. By default the size of the extra disk is set in the libvirt Ansible role to 8 GB | "true", "false" | "false" |
+| VM_EXTRADISKS_FILE_SYSTEM | Create file system to the extra disk. | "ext4", "xfs" | "ext4" |
+| VM_EXTRADISKS_MOUNT_DIR | Mount the extra disk to a directory on a host. | | "/mnt/disk2" |
 | DEFAULT_HOSTS_MEMORY | Set the default memory size in MB for the virtual machines provisioned. | | 4096 |
 | CLUSTER_NAME | Set the name of the target cluster | | test1 |
 | IRONIC_TLS_SETUP | Enable TLS for Ironic and inspector | "true", "false" | "true" |
