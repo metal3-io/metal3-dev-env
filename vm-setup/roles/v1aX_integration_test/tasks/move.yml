@@ -30,7 +30,16 @@
     when: EPHEMERAL_CLUSTER == "minikube"
 
   - name: Obtain target cluster kubeconfig
-    shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s_info:
+      kind: secrets
+      name: "{{ CLUSTER_NAME }}-kubeconfig"
+      namespace: "{{ NAMESPACE }}"
+    register: metal3_kubeconfig
+
+  - name: Decode and save cluster kubeconfig
+    copy:
+      content: "{{ metal3_kubeconfig.resources[0].data.value | b64decode }}"
+      dest: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Create namespace
     k8s:
@@ -50,14 +59,16 @@
 
   # Check for cert-manager pods on the target cluster
   - name: Check if cert-manager  pods in running state
-    shell: "kubectl get pods -n cert-manager -o json | jq -r '.items[].status.phase' | grep -cv Running"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    retries: 20 
-    delay: 20
+    k8s_info:
+      kind: pods
+      namespace: cert-manager
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      field_selectors:
+        - status.phase!=Running
     register: target_running_pods
-    until: target_running_pods.stdout|int == 0
-    failed_when: target_running_pods.stdout|int > 0
+    retries: 20
+    delay: 20
+    until: target_running_pods.resources | length == 0
 
   # Install Ironic
   - name: Install Ironic
@@ -72,53 +83,47 @@
     
   # Check for pods & nodes on the target cluster
   - name: Check if pods in running state
-    shell: "kubectl get pods -A -o json | jq -r '.items[].status.phase' | grep -v Running"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s_info:
+      kind: pods
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      field_selectors:
+        - status.phase!=Running
+    register: target_running_pods
     retries: 150
     delay: 20
-    register: target_running_pods
-    failed_when: >
-      (target_running_pods.stderr != "") or
-      (target_running_pods.rc > 1) or
-      (target_running_pods.stdout != "")
-    until: target_running_pods.stdout == ""
+    until: target_running_pods.resources | length == 0
 
   - name: Pivot objects to target cluster
     shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
 
   - name: Check if machines become running.
-    shell: |
-        kubectl get machines -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.phase == "Running" or .status.phase == "running")
-        | .metadata.name ] | length'
+    k8s_info:
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: machines
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: provisioned_machines
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     retries: 50
     delay: 20
-    until: provisioned_machines.stdout == NUMBER_OF_BMH
+    until: provisioned_machines.resources | filter_phase("running") | length == (NUMBER_OF_BMH | int)
 
-  - name: Check if metal3machines become provisioned.
-    shell: |
-        kubectl get m3m -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.ready == true)
-        | .metadata.name ] | length'
-    register: provisioned_m3m_machines
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  - name: Check if metal3machines become ready.
+    k8s_info:
+      api_version: infrastructure.cluster.x-k8s.io/v1alpha4
+      kind: metal3machine
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: m3m_machines
     retries: 10
     delay: 20
-    until: provisioned_m3m_machines.stdout == NUMBER_OF_BMH
+    until: m3m_machines.resources | filter_ready | length == (NUMBER_OF_BMH | int)
 
   - name: Check if bmh is in provisioned state
-    shell: |
-        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.provisioning.state == "provisioned")
-        | .metadata.name ] | length'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: provisioned_bmh
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmh
     retries: 10
     delay: 20
-    until: provisioned_bmh.stdout ==  NUMBER_OF_BMH
+    until: bmh.resources | filter_provisioning("provisioned") | length == (NUMBER_OF_BMH | int)
