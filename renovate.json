@@ -1,5 +1,27 @@
 {
-  "extends": [
-    "config:base"
-  ]
+ "extends": ["config:base"],
+ "baseBranches": ["master"],
+ "bumpVersion": null,
+ "packageRules": [
+   {
+     "depTypeList": ["devDependencies"],
+     "updateTypes": ["minor"],
+     "automerge": false
+   }
+ ],
+ "prHourlyLimit": 5,
+ "prConcurrentLimit": 5,
+ "rangeStrategy": "bump",
+ "renovateFork": true,
+ "includeForks": true,
+ "regexManagers": [
+    {
+      "fileMatch": ["^lib/common.sh$"],
+      "matchStrings": ["MINIKUBE_VERSION:-\"(?<currentValue>.*?)\"}"],
+      "depNameTemplate": "kubernetes/minikube",
+      "datasourceTemplate": "github-releases"
+    }
+  ],
+  "assignees": ["kashifest", "fmuyassarov","furkatgofurov7", "Xenwar", "smoshiur1237", "jan-est"],
+  "assigneesSampleSize": 2
 }
