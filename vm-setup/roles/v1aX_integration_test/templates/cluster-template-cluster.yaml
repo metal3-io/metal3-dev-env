@@ -33,8 +33,8 @@ metadata:
   namespace: ${ NAMESPACE }
 spec:
   controlPlaneEndpoint:
-    host: ${ API_ENDPOINT_HOST }
-    port: ${ API_ENDPOINT_PORT }
+    host: ${ CLUSTER_APIENDPOINT_HOST }
+    port: ${ CLUSTER_APIENDPOINT_PORT }
   noCloudProvider: true
 ---
 apiVersion: ipam.metal3.io/v1alpha1

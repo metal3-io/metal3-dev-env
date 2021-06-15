@@ -67,9 +67,9 @@
     - "{{working_dir}}/control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}"
     - "{{working_dir}}/infrastructure-metal3/{{CAPM3_REL_TO_VERSION}}"
 
-  - name: Generate clusterctl configuration file 
+  - name: Generate clusterctl configuration file for upgrade testing
     template:
-      src: clusterctl.yaml 
+      src: clusterctl-upgrade-test.yaml 
       dest: "{{HOME}}/.cluster-api/clusterctl.yaml"
 
   - name: Get clusterctl repo

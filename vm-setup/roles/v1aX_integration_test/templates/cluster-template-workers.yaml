@@ -49,10 +49,10 @@ spec:
   template:
     spec:
       image:
-        url: ${ IMAGE_URL }
-        checksum: ${ IMAGE_CHECKSUM }
-        checksumType: ${ IMAGE_CHECKSUM_TYPE }
-        format: ${ IMAGE_FORMAT }
+        url: {{ IMAGE_URL }}
+        checksum: {{ IMAGE_CHECKSUM }}
+        checksumType: {{ IMAGE_CHECKSUM_TYPE }}
+        format: {{ IMAGE_FORMAT }}
       dataTemplate:
         name: ${ CLUSTER_NAME }-workers-template
 ---
@@ -142,4 +142,11 @@ spec:
             cgroup-driver: "systemd"
             container-runtime-endpoint: "unix:///var/run/crio/crio.sock"
             runtime-request-timeout: "5m"
-${ WORKERS_KUBEADM_EXTRA_CONFIG }
+      users:
+      - name: {{ IMAGE_USERNAME }}
+        sudo: "ALL=(ALL) NOPASSWD:ALL"
+        sshAuthorizedKeys:
+        - {{ SSH_PUB_KEY_CONTENT }}
+{% filter indent(width=6, first=True) %}
+{% include "cluster-template-workers-kubeadm-config-%s.yaml" % (IMAGE_OS | lower) %}
+{% endfilter %}

@@ -5,10 +5,10 @@
       state: directory
       mode: '0755'
 
-  - name: Generate clusterctl env file
+  - name: Deploy clusterctl variables to clusterctl config
     template:
-      src: "{{ CRS_PATH }}/clusterctl_env_template_{{ IMAGE_OS|lower }}.rc"
-      dest: "{{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc"
+      src: clusterctl-vars.yaml
+      dest: "{{ HOME }}/.cluster-api/clusterctl.yaml"
 
   - name: Generate clusterctl cluster template
     template:
@@ -21,7 +21,6 @@
 
   - name: Generate templates
     shell: >
-      . {{ TEMP_GEN_DIR }}/clusterctl_env_{{ IMAGE_OS|lower }}.rc &&
       clusterctl config cluster {{ CLUSTER_NAME }}
       --from {{ HOME }}/.cluster-api/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml
       --kubernetes-version {{ KUBERNETES_VERSION }}

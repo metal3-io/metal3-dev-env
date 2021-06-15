@@ -1,0 +1,95 @@
+# Ubuntu specific controlplane kubeadm config
+preKubeadmCommands:
+{% if VM_EXTRADISKS == "true" %}
+  - (echo n; echo p; echo 1; echo  ;echo  ;echo w) | fdisk /dev/vda
+  - mkfs.{{ VM_EXTRADISKS_FILE_SYSTEM }} /dev/vda1
+  - mkdir {{ VM_EXTRADISKS_MOUNT_DIR }}
+  - mount /dev/vda1 {{ VM_EXTRADISKS_MOUNT_DIR }}
+{% endif %}
+  - netplan apply
+  - systemctl enable --now crio kubelet
+  - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:{{ CLUSTER_APIENDPOINT_PORT }}/healthz); then echo "keepalived already running";else systemctl start keepalived; fi
+  - systemctl link /lib/systemd/system/monitor.keepalived.service
+  - systemctl enable monitor.keepalived.service
+  - systemctl start monitor.keepalived.service
+postKubeadmCommands:
+  - mkdir -p /home/{{ IMAGE_USERNAME }}/.kube
+  - cp /etc/kubernetes/admin.conf /home/{{ IMAGE_USERNAME }}/.kube/config
+  - systemctl enable --now keepalived
+  - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube/config
+files:
+  - path: /usr/local/bin/monitor.keepalived.sh
+    owner: root:root
+    permissions: '0755'
+    content: |
+        #!/bin/bash
+        while :; do
+          curl -sk https://127.0.0.1:{{ CLUSTER_APIENDPOINT_PORT }}/healthz 1>&2 > /dev/null
+          isOk=$?
+          isActive=$(systemctl show -p ActiveState keepalived.service | cut -d'=' -f2)
+          if [ $isOk == "0" ] &&  [ $isActive != "active" ]; then
+            logger 'API server is healthy, however keepalived is not running, starting keepalived'
+            echo 'API server is healthy, however keepalived is not running, starting keepalived'
+            sudo systemctl start keepalived.service
+          elif [ $isOk != "0" ] &&  [ $isActive == "active" ]; then
+            logger 'API server is not healthy, however keepalived running, stopping keepalived'
+            echo 'API server is not healthy, however keepalived running, stopping keepalived'
+            sudo systemctl stop keepalived.service
+          fi
+          sleep 5
+        done
+  - path: /lib/systemd/system/monitor.keepalived.service
+    owner: root:root
+    content: |
+        [Unit]
+        Description=Monitors keepalived adjusts status with that of API server
+        After=syslog.target network-online.target
+
+        [Service]
+        Type=simple
+        Restart=always
+        ExecStart=/usr/local/bin/monitor.keepalived.sh
+
+        [Install]
+        WantedBy=multi-user.target
+  - path: /etc/keepalived/keepalived.conf
+    content: |
+      ! Configuration File for keepalived
+      global_defs {
+          notification_email {
+          sysadmin@example.com
+          support@example.com
+          }
+          notification_email_from lb@example.com
+          smtp_server localhost
+          smtp_connect_timeout 30
+      }
+      vrrp_instance VI_2 {
+          state MASTER
+          interface enp2s0
+          virtual_router_id 2
+          priority 101
+          advert_int 1
+          virtual_ipaddress {
+              {{ CLUSTER_APIENDPOINT_HOST }}
+          }
+      }
+  - path : /etc/netplan/52-ironicendpoint.yaml
+    owner: root:root
+    permissions: '0644'
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        bridges:
+          {{ IRONIC_ENDPOINT_BRIDGE }}:
+            interfaces: [enp1s0]
+            addresses:
+            - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
+  - path : /etc/containers/registries.conf
+    content: |
+      [registries.search]
+      registries = ['docker.io']
+
+      [registries.insecure]
+      registries = ['{{ REGISTRY }}']
