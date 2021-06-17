@@ -22,6 +22,19 @@
       "datasourceTemplate": "github-releases"
     }
   ],
-  "assignees": ["kashifest", "fmuyassarov","furkatgofurov7", "Xenwar", "smoshiur1237", "jan-est"],
-  "assigneesSampleSize": 2
+  "assignees": ["fmuyassarov", "kashifest"],
+  "assigneesSampleSize": 1,
+  "reviewers": [
+      "furkatgofurov7",
+      "jan-est",
+      "lentzi90",
+      "macaptain",
+      "mboukhalfa",
+      "namnx228",
+      "smoshiur1237",
+      "Sunnatillo",
+      "wgslr",
+      "Xenwar"
+  ],
+  "reviewersSampleSize": 2
 }
