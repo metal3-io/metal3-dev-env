@@ -20,6 +20,12 @@
       "matchStrings": ["MINIKUBE_VERSION:-\"(?<currentValue>.*?)\"}"],
       "depNameTemplate": "kubernetes/minikube",
       "datasourceTemplate": "github-releases"
+    },
+    {
+      "fileMatch": ["^lib/common.sh$"],
+      "matchStrings": ["KIND_VERSION:-\"(?<currentValue>.*?)\"}"],
+      "depNameTemplate": "kubernetes-sigs/kind",
+      "datasourceTemplate": "github-releases"
     }
   ],
   "assignees": ["fmuyassarov", "kashifest"],
