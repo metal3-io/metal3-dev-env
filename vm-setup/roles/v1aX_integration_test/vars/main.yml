@@ -70,8 +70,8 @@ IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifacto
 IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
 IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.md5sum"
 
-IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_NAME') | default('CENTOS_8.2_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}.qcow2', true)}}"
-RAW_IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('CENTOS_8.2_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}-raw.img', true)}}"
+IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_NAME') | default('CENTOS_8.3_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}.qcow2', true)}}"
+RAW_IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('CENTOS_8.3_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}-raw.img', true)}}"
 IMAGE_LOCATION_CENTOS: 'https://artifactory.nordix.org/artifactory/airship/images/k8s_{{KUBERNETES_VERSION}}/'
 
 # Environment variables to install Ironic with TLS and Basic Auth
