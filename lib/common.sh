@@ -209,7 +209,7 @@ fi
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v3.8.5"}
 
 # Kind version (if EPHEMERAL_CLUSTER=kind)
-export KIND_VERSION=${KIND_VERSION:-"v0.11.0"}
+export KIND_VERSION=${KIND_VERSION:-"v0.11.1"}
 export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.21.1"}
 
 # Minikube version (if EPHEMERAL_CLUSTER=minikube)
