@@ -169,6 +169,10 @@ export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"quay.io/metal3-io/kee
 export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
+export INSPECTOR_REVERSE_PROXY_SETUP=${INSPECTOR_REVERSE_PROXY_SETUP:-"true"}
+if [[ "$IRONIC_TLS_SETUP" == "false" ]]; then
+  export INSPECTOR_REVERSE_PROXY_SETUP="false" # No Revese proxy for Ironic inspector if TLS is not used
+fi
 
 # Baremetal operator image
 export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"quay.io/metal3-io/baremetal-operator"}

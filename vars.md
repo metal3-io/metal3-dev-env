@@ -72,6 +72,7 @@ assured that they are persisted.
 | IRONIC_INSPECTOR_PORT | Ironic Inspector port | | 5050 |
 | IRONIC_API_PORT | Ironic Api port | | 6385 |
 | RESTART_CONTAINER_CERTIFICATE_UPDATED | Enable the ironic restart feature when TLS certificates are updated | "true", "false" | "true" |
+| INSPECTOR_REVERSE_PROXY_SETUP | Enable the reverse proxy to handle TLS for Ironic-inspector | "true", "false" | "true" |
 | NODE_DRAIN_TIMEOUT | Set the nodeDrainTimeout for controlplane and worker template | | '0s' |
 | MARIADB_KEY_FILE | Path to the key of MariaDB | | /opt/metal3-dev-env/certs/mariadb.key |
 | MARIADB_CERT_FILE | Path to the cert of MariaDB | | /opt/metal3-dev-env/certs/mariadb.crt |
