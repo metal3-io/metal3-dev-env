@@ -28,7 +28,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "nodes_file=$NODES_FILE" \
     -e "node_hostname_format=$NODE_HOSTNAME_FORMAT" \
     -i vm-setup/inventory.ini \
-    -b -vvv vm-setup/setup-playbook.yml
+    -b vm-setup/setup-playbook.yml
 
 # Usually virt-manager/virt-install creates this: https://www.redhat.com/archives/libvir-list/2008-August/msg00179.html
 if ! sudo virsh pool-uuid default > /dev/null 2>&1 ; then
@@ -108,7 +108,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "{use_firewalld: $USE_FIREWALLD}" \
     -e "external_subnet_v4: ${EXTERNAL_SUBNET_V4}" \
     -i vm-setup/inventory.ini \
-    -b -vvv vm-setup/firewall.yml
+    -b vm-setup/firewall.yml
 
 # FIXME(stbenjam): ansbile firewalld module doesn't seem to be doing the right thing
 if [ "$USE_FIREWALLD" == "True" ]; then
