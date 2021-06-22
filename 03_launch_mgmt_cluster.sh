@@ -254,7 +254,11 @@ function apply_bm_hosts() {
   pushd "${BMOPATH}"
   list_nodes | make_bm_hosts > "${WORKING_DIR}/bmhosts_crs.yaml"
   if [[ -n "$(list_nodes)" ]]; then
-    kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n metal3
+    echo "bmhosts_crs.yaml is applying"
+    while ! kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n metal3 &>/dev/null; do
+	    sleep 3
+    done
+    echo "bmhosts_crs.yaml is successfully applied"
   fi
   popd
 }
@@ -465,7 +469,20 @@ fi
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   patch_clusterctl
   launch_cluster_api_provider_metal3
-  apply_bm_hosts
 fi
 
 launch_ironic
+
+if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
+  if [[ "${BMO_RUN_LOCAL}" != true ]]; then
+    if ! kubectl rollout status deployment capm3-baremetal-operator-controller-manager -n capm3-system --timeout=5m; then
+      echo "baremetal-operator-controller-manager deployment can not be rollout"
+      exit 1
+    fi
+  else
+    # There is no certificate to run validation webhook on local.
+    # Thus we are deleting validatingwebhookconfiguration resource if exists to let BMO is working properly on local runs.
+    kubectl delete validatingwebhookconfiguration/capm3-baremetal-operator-validating-webhook-configuration -n capm3-system --ignore-not-found=true
+  fi
+  apply_bm_hosts
+fi
