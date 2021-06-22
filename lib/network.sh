@@ -74,6 +74,7 @@ if [[ "$CLUSTER_APIENDPOINT_IP" == *":"* ]]; then
 else
   export CLUSTER_APIENDPOINT_HOST="$CLUSTER_APIENDPOINT_IP"
 fi
+export CLUSTER_APIENDPOINT_PORT=${CLUSTER_APIENDPOINT_PORT:-"6443"}
 
 # Calculate DHCP range
 network_address dhcp_range_start "$PROVISIONING_NETWORK" 10
