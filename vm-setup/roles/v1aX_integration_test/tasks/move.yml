@@ -68,7 +68,8 @@
     register: target_running_pods
     retries: 20
     delay: 20
-    until: target_running_pods.resources | length == 0
+    until: (target_running_pods is succeeded) and
+           (target_running_pods.resources | length == 0)
 
   # Install Ironic
   - name: Install Ironic
@@ -80,7 +81,7 @@
 
   - name: Reinstate Ironic Configmap
     shell: "mv {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
-    
+
   # Check for pods & nodes on the target cluster
   - name: Check if pods in running state
     k8s_info:
@@ -91,7 +92,8 @@
     register: target_running_pods
     retries: 150
     delay: 20
-    until: target_running_pods.resources | length == 0
+    until: (target_running_pods is succeeded) and
+           (target_running_pods.resources | length == 0)
 
   - name: Pivot objects to target cluster
     shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
@@ -104,7 +106,8 @@
     register: provisioned_machines
     retries: 50
     delay: 20
-    until: provisioned_machines.resources | filter_phase("running") | length == (NUMBER_OF_BMH | int)
+    until: (provisioned_machines is succeeded) and
+           (provisioned_machines.resources | filter_phase("running") | length == (NUMBER_OF_BMH | int))
 
   - name: Check if metal3machines become ready.
     k8s_info:
@@ -115,7 +118,8 @@
     register: m3m_machines
     retries: 10
     delay: 20
-    until: m3m_machines.resources | filter_ready | length == (NUMBER_OF_BMH | int)
+    until: (m3m_machines is succeeded) and
+           (m3m_machines.resources | filter_ready | length == (NUMBER_OF_BMH | int))
 
   - name: Check if bmh is in provisioned state
     k8s_info:
@@ -126,4 +130,5 @@
     register: bmh
     retries: 10
     delay: 20
-    until: bmh.resources | filter_provisioning("provisioned") | length == (NUMBER_OF_BMH | int)
+    until: (bmh is succeeded) and
+           (bmh.resources | filter_provisioning("provisioned") | length == (NUMBER_OF_BMH | int))
