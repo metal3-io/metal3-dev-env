@@ -64,6 +64,8 @@ networks:
     dhcp_range_v6:
       - "{{ virsh_dhcp_v6_start }}"
       - "{{ virsh_dhcp_v6_end }}"
+    # libvirt defaults to minutes as the unit
+    lease_expiry: 60
     nat_port_range:
       - 1024
       - 65535
