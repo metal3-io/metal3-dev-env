@@ -14,7 +14,6 @@ manifests=(
   m3cluster
   m3machine
   metal3machinetemplate
-  kcp
   kubeadmconfig
   kubeadmconfigtemplates
   kubeadmcontrolplane
