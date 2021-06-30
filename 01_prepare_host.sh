@@ -44,7 +44,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -e "metal3_dir=$SCRIPTDIR" \
   -e "virthost=$HOSTNAME" \
   -i vm-setup/inventory.ini \
-  -b -vvv vm-setup/install-package-playbook.yml
+  -b vm-setup/install-package-playbook.yml
 
 # shellcheck disable=SC1091
 source lib/network.sh
