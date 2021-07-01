@@ -215,7 +215,7 @@ export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.21.1"}
 # Minikube version (if EPHEMERAL_CLUSTER=minikube)
 export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.21.0"}
 
-# Ansible version 
+# Ansible version
 export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.0.0"}
 
 # Test and verification related variables
@@ -227,6 +227,13 @@ RESULT_STR=""
 
 # Avoid printing skipped Ansible tasks
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS=no
+
+# Sanity check for number of nodes
+if [ "${NUM_NODES}" -ne "$((NUM_OF_MASTER_REPLICAS + NUM_OF_WORKER_REPLICAS))" ]; then
+    echo "Failed with incorrect number of nodes"
+    echo "NUM_NODES: ${NUM_NODES} != (${NUM_OF_MASTER_REPLICAS} + ${NUM_OF_WORKER_REPLICAS})"
+    exit 1
+fi
 
 # Verify requisites/permissions
 # Connect to system libvirt
@@ -398,14 +405,14 @@ differs(){
 #
 function init_minikube() {
     #If the vm exists, it has already been initialized
-    if [[ "$(sudo virsh list --name --all)" != *"minikube"* ]]; then 
-      # Restart libvirtd.service as suggested here 
+    if [[ "$(sudo virsh list --name --all)" != *"minikube"* ]]; then
+      # Restart libvirtd.service as suggested here
       # https://github.com/kubernetes/minikube/issues/3566
       sudo systemctl restart libvirtd.service
       # Even if it fails to start minikube here, lets ignore the error
       # It will be retried again in 03 script
       sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "$USER" || true
-      sudo su -l -c "minikube stop" "$USER" || true 
+      sudo su -l -c "minikube stop" "$USER" || true
     fi
 
     MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"
