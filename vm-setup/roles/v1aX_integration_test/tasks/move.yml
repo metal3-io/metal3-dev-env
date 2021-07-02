@@ -1,7 +1,16 @@
 ---
+  - name: Get the worker objects
+    shell: "kubectl get m3m -n {{ NAMESPACE }} -o json | jq -r '.items[] | \
+            select(.metadata.name | contains(\"workers\")) | \
+            (.metadata.annotations.\"metal3.io/BareMetalHost\"),([.metadata.ownerReferences |.[] | \
+            select(.kind==\"Machine\")][0] | .name)'"
+    register: workers
+
   - name: Define number of BMH's
     set_fact:
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
+      WORKER_BMH: "{{ workers.stdout_lines.0 | replace('metal3/','')}}"
+      WORKER_VM: "{{ workers.stdout_lines.0 | replace('-','_') | replace('metal3/','') }}"
 
   - name: Remove ironic container from source cluster (Ephemeral Cluster is kind)
     docker_container:
@@ -132,3 +141,35 @@
     delay: 20
     until: (bmh is succeeded) and
            (bmh.resources | filter_provisioning("provisioned") | length == (NUMBER_OF_BMH | int))
+
+  - name: Reboot "{{ WORKER_BMH }}"
+    shell: |
+       kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" reboot.metal3.io=
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 20
+    delay: 1
+    register: rebooted_worker
+
+  - name: Get power status
+    shell: |
+       kubectl get bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" -o json | jq '.status.poweredOn'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: power_status
+    retries: 50
+    delay: 10
+    until: power_status|bool == false
+
+  - name: List only powered off VMs
+    virt:
+      command: list_vms
+      state: shutdown
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: shutdown_vms
+    retries: 50
+    delay: 10
+    until: WORKER_VM in shutdown_vms.list_vms
+    become: yes
+    become_user: root
