@@ -159,7 +159,6 @@ Depending on where from the job is triggered, **\*** can be:
 - metal3io_bmo
 - metal3io_project_infra
 - metal3io_ironic_ipa_downloader
-- metal3io_ironic_inspector
 - metal3io_ironic_image
 - nordix_capi_m3
 - nordix_metal3_dev_env

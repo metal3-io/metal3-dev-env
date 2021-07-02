@@ -6,17 +6,17 @@ ROOTPATH="$(dirname "$(readlink -f "${0}")")/../.."
 # shellcheck disable=SC1091
 source "${ROOTPATH}/scripts/feature_tests/feature_test_vars.sh"
 # shellcheck disable=SC1091
-source lib/logging.sh
+source "${ROOTPATH}/lib/logging.sh"
 # shellcheck disable=SC1091
-source lib/common.sh
+source "${ROOTPATH}/lib/common.sh"
 # shellcheck disable=SC1091
-source lib/releases.sh
+source "${ROOTPATH}/lib/releases.sh"
 # shellcheck disable=SC1091
-source lib/network.sh
+source "${ROOTPATH}/lib/network.sh"
 # shellcheck disable=SC1091
-source lib/ironic_tls_setup.sh
+source "${ROOTPATH}/lib/ironic_tls_setup.sh"
 # shellcheck disable=SC1091
-source lib/ironic_basic_auth.sh
+source "${ROOTPATH}/lib/ironic_basic_auth.sh"
 
 # Remove old SSH keys
 ssh-keygen -f /home/"${USER}"/.ssh/known_hosts -R "${CLUSTER_APIENDPOINT_IP}"
@@ -73,8 +73,6 @@ else
   # Scale up ironic
   kubectl scale deploy -n "${IRONIC_NAMESPACE}" capm3-ironic --replicas=1
 fi
-
-
 
 # shellcheck disable=SC2153
 clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5
