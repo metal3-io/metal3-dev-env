@@ -23,18 +23,34 @@
 
   - name: Remove Ironic from source cluster (Ephemeral Cluster is minikube)
     kubernetes.core.k8s:
-      name: capm3-ironic
+      name: "{{ NAMEPREFIX }}-ironic"
       kind: Deployment
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
     when: EPHEMERAL_CLUSTER == "minikube"
 
+  - name: Label BMO CRDs.
+    shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
+    with_items:
+       - clusterctl.cluster.x-k8s.io=""
+       - cluster.x-k8s.io/provider="metal3"
+    when: CAPM3_VERSION == "v1alpha5"
+       
   - name: Obtain target cluster kubeconfig
     kubernetes.core.k8s_info:
       kind: secrets
       name: "{{ CLUSTER_NAME }}-kubeconfig"
       namespace: "{{ NAMESPACE }}"
     register: metal3_kubeconfig
+
+    # Install BMO
+  - name: Install Baremetal Operator
+    shell: "{{ BMOPATH }}/tools/deploy.sh true false {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
+    environment:
+      IRONIC_HOST: "{{ IRONIC_HOST }}"
+      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+    when: CAPM3_VERSION == "v1alpha5"
 
   - name: Decode and save cluster kubeconfig
     copy:
@@ -81,6 +97,13 @@
 
   - name: Reinstate Ironic Configmap
     shell: "mv {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+
+  - name: Label BMO CRDs in target cluster.
+    shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
+    with_items:
+      - clusterctl.cluster.x-k8s.io=""
+      - cluster.x-k8s.io/provider="metal3"
+    when: CAPM3_VERSION == "v1alpha5"
 
   # Check for pods & nodes on the target cluster
   - name: Check if pods in running state

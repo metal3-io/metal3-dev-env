@@ -38,7 +38,7 @@
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   - name: Gather variables that were missing on the source cluster
     shell: | 
-            kubectl get cm -n capm3-system capm3-baremetal-operator-ironic -o json | 
+            kubectl get cm -n {{ NAMEPREFIX }}-system {{ NAMEPREFIX }}-baremetal-operator-ironic -o json |
             jq -r '.data' | sed 's/: /=/'| cut -sf1- -d\" | sed 's/^/export/' | 
             tr -d ',' | tr -d '"' | grep -E "_URL|_ENDPOINT" > /tmp/configmap.env.values
             . /tmp/configmap.env.values
@@ -49,7 +49,7 @@
 
   - name: Backup secrets for re-use when pods are re-created during the upgrade process
     shell: |
-           kubectl get secrets -n capm3-system -o json |
+           kubectl get secrets -n {{ NAMEPREFIX }}-system -o json |
            jq '.items[]|del(.metadata|.managedFields,.uid,.resourceVersion)' > /tmp/secrets.with.values.yaml
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
@@ -232,7 +232,7 @@
     kubernetes.core.k8s:
       api_version: v1
       kind: Deployment
-      name: capm3-ironic
+      name: "{{ NAMEPREFIX }}-ironic"
       namespace: "{{ IRONIC_NAMESPACE }}"
       resource_definition:
         spec:
@@ -256,7 +256,7 @@
     kubernetes.core.k8s_info:
       api_version: v1
       kind: Deployment
-      name: capm3-ironic
+      name: "{{ NAMEPREFIX }}-ironic"
       namespace: "{{ IRONIC_NAMESPACE }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     retries: 100

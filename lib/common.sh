@@ -166,7 +166,15 @@ export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"quay.io/metal3-io/ironic-clie
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"quay.io/metal3-io/keepalived"}
-export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
+
+if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
+  export NAMEPREFIX=${NAMEPREFIX:-"capm3"}
+else
+  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
+  export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
+fi
+
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
 
@@ -215,7 +223,7 @@ export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.21.1"}
 # Minikube version (if EPHEMERAL_CLUSTER=minikube)
 export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.22.0"}
 
-# Ansible version
+# Ansible version 
 export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.0.0"}
 
 # Test and verification related variables
@@ -405,14 +413,14 @@ differs(){
 #
 function init_minikube() {
     #If the vm exists, it has already been initialized
-    if [[ "$(sudo virsh list --name --all)" != *"minikube"* ]]; then
-      # Restart libvirtd.service as suggested here
+    if [[ "$(sudo virsh list --name --all)" != *"minikube"* ]]; then 
+      # Restart libvirtd.service as suggested here 
       # https://github.com/kubernetes/minikube/issues/3566
       sudo systemctl restart libvirtd.service
       # Even if it fails to start minikube here, lets ignore the error
       # It will be retried again in 03 script
       sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "$USER" || true
-      sudo su -l -c "minikube stop" "$USER" || true
+      sudo su -l -c "minikube stop" "$USER" || true 
     fi
 
     MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"

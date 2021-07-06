@@ -209,8 +209,8 @@ EXPTD_V1ALPHA5_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-webhook-system:capi-kubeadm-bootstrap-controller-manager \
   capi-webhook-system:capi-kubeadm-control-plane-controller-manager \
   capi-webhook-system:capm3-controller-manager \
-  capm3-system:capm3-baremetal-operator-controller-manager"
-EXPTD_V1ALPHA5_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:3 \
+  baremetal-operator-system:baremetal-operator-controller-manager"
+EXPTD_V1ALPHA5_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:2 \
   cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
   cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1 \
