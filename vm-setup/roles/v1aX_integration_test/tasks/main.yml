@@ -1,13 +1,4 @@
 ---
-- name: Install openshift client in CentOS 8 using pip3
-  pip:
-    executable: "pip3"
-    name: openshift==0.11.2
-    state: present
-  become: yes
-  become_user: root
-  when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == '8'
-
 - name: Generate templates
   include_tasks: generate_templates.yml
 
