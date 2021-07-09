@@ -273,6 +273,10 @@ function apply_bm_hosts() {
 function update_capm3_imports(){
   pushd "${CAPM3PATH}"
 
+  # Assign empty secret to BMO when TLS is disabled
+  if [ "${IRONIC_TLS_SETUP}" == "false" ]; then
+    sed -i "s/ironic-cacert/empty-ironic-cacert/g" "config/bmo/secret_mount_patch.yaml"
+  fi
   # Modify the kustomization imports to use local BMO repo instead of Github Master
   cp config/bmo/kustomization.yaml config/bmo/kustomization.yaml.orig
   cp config/ipam/kustomization.yaml config/ipam/kustomization.yaml.orig
