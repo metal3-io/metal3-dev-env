@@ -128,8 +128,10 @@ else
   CAPM3BRANCH="${CAPM3BRANCH:-master}"
 fi
 
-BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-BMOBRANCH="${BMOBRANCH:-master}"
+#BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
+#BMOBRANCH="${BMOBRANCH:-master}"
+BMOREPO="${BMOREPO:-https://github.com/Nordix/baremetal-operator.git}"
+BMOBRANCH="${BMOBRANCH:-TLS-v1a4-v1a5-moshiur}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
 
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
@@ -166,7 +168,13 @@ export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"quay.io/metal3-io/ironic-clie
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"quay.io/metal3-io/keepalived"}
-export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
+if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
+  export NAMEPREFIX=${NAMEPREFIX:-"capm3"}
+else
+  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
+  export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
+fi
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
 

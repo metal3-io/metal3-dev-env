@@ -3,7 +3,7 @@
   # Remove Ironic from target cluster
   - name: Remove Ironic from target cluster
     k8s:
-      name: capm3-ironic
+      name: "{{ NAMEPREFIX }}-ironic"
       kind: Deployment
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"

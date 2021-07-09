@@ -23,7 +23,7 @@
 
   - name: Remove Ironic from source cluster (Ephemeral Cluster is minikube)
     k8s:
-      name: capm3-ironic
+      name: "{{ NAMEPREFIX }}-ironic"
       kind: Deployment
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
