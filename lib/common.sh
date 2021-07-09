@@ -229,9 +229,9 @@ RESULT_STR=""
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS=no
 
 # Sanity check for number of nodes
-if [ "${NUM_NODES}" -ne "$((NUM_OF_MASTER_REPLICAS + NUM_OF_WORKER_REPLICAS))" ]; then
+if [ "${NUM_NODES}" -lt "$((NUM_OF_MASTER_REPLICAS + NUM_OF_WORKER_REPLICAS))" ]; then
     echo "Failed with incorrect number of nodes"
-    echo "NUM_NODES: ${NUM_NODES} != (${NUM_OF_MASTER_REPLICAS} + ${NUM_OF_WORKER_REPLICAS})"
+    echo "NUM_NODES: ${NUM_NODES} < (${NUM_OF_MASTER_REPLICAS} + ${NUM_OF_WORKER_REPLICAS})"
     exit 1
 fi
 

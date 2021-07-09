@@ -1,6 +1,10 @@
 #!/bin/bash
 set -x
 
+ROOTPATH="$(dirname "$(readlink -f "${0}")")/../.."
+
+# shellcheck disable=SC1091
+source "${ROOTPATH}/scripts/feature_tests/feature_test_vars.sh"
 # shellcheck disable=SC1091
 source lib/logging.sh
 # shellcheck disable=SC1091
