@@ -214,24 +214,6 @@
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade Ironic                                                  |
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  - name: Scale down capm3-ironic deployment
-    shell: |
-            kubectl scale deploy capm3-ironic -n {{IRONIC_NAMESPACE}} --replicas 0
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    ignore_errors: yes
-
-  - name: Count running ironic pods
-    shell: |
-            kubectl get pods -n {{IRONIC_NAMESPACE}} | grep -c capm3-ironic
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    retries: 200
-    delay: 20
-    register: count_ironic_pods
-    until: count_ironic_pods.stdout|int == 0
-    failed_when:  count_ironic_pods.stdout|int > 0
-
   - name: Set expected ironic image based containers
     set_fact:
       ironic_image_containers:
@@ -242,53 +224,53 @@
         - ironic-log-watch
         - ironic-inspector
         - ironic-inspector-log-watch
+        # There is also a keepalived container in the pods, but it is using a
+        # different image than the rest and therefore not included in the list.
+        # - ironic-endpoint-keepalived
 
-  - name: Upgrade ironic image based containers 
-    shell: |
-            kubectl set image deployments capm3-ironic {{item}}=quay.io/metal3-io/ironic:{{IRONIC_IMAGE_TAG}} -n {{IRONIC_NAMESPACE}}
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    loop: "{{ ironic_image_containers }}"
-        
-  - name: Scale up capm3-ironic deployment
-    shell: |
-            kubectl scale deploy capm3-ironic -n {{IRONIC_NAMESPACE}} --replicas 1
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"        
+  - name: Upgrade ironic image based containers
+    community.kubernetes.k8s:
+      api_version: v1
+      kind: Deployment
+      name: capm3-ironic
+      namespace: "{{ IRONIC_NAMESPACE }}"
+      resource_definition:
+        spec:
+          template:
+            spec:
+              containers: "{{ containers }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    vars:
+      # Generate a list of name/image pairs from the ironic_image_containers.
+      # This is to avoid looping which would create one new revision for each container.
+      # 1. Zip to get a list of lists: [[container_name, image_name], [...]]
+      #    (all have the same image)
+      # 2. Turn it into a dict so we have {container_name: image_name, ...}
+      # 3. Convert it to a list of {name: container_name, image: image_name}
+      containers:
+        "{{ dict(ironic_image_containers |
+              zip_longest([], fillvalue='quay.io/metal3-io/ironic:'+IRONIC_IMAGE_TAG)) |
+            dict2items(key_name='name', value_name='image') }}"
 
-  - name: Count running ironic pods, only upgraded pod should exist
-    shell: |
-            kubectl get pods -n {{IRONIC_NAMESPACE}} | grep -c capm3-ironic
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  - name: Wait for ironic update to rollout
+    community.kubernetes.k8s_info:
+      api_version: v1
+      kind: Deployment
+      name: capm3-ironic
+      namespace: "{{ IRONIC_NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     retries: 100
     delay: 10
-    register: count_ironic_pods
-    until: count_ironic_pods.stdout|int == 1
-    failed_when:  count_ironic_pods.stdout|int > 1
-
-  - name: Count number of upgraded ironic containers
-    shell: |
-            kubectl get deployments capm3-ironic -n {{IRONIC_NAMESPACE}} -o json |
-            jq '.spec.template.spec.containers[].image' |
-            grep -c "{{IRONIC_IMAGE_TAG}}"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml" 
-    register: upgraded_containers
-    failed_when:  upgraded_containers.stdout_lines[0]|int < (ironic_image_containers | length)
-
-  - name: Count running upgraded ironic containers
-    shell: |
-            ironic_pod_name=$(kubectl get pods -n {{IRONIC_NAMESPACE}} -o name| grep capm3-ironic | cut -f2 -d/)
-            kubectl get pods -n {{IRONIC_NAMESPACE}} ${ironic_pod_name}  -o json |
-            jq '.status.containerStatuses[]| select(.ready==true)|.name' | wc -l
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    retries: 100
-    delay: 10
-    register: running_upgraded_containers
-    until: running_upgraded_containers.stdout|int >= (ironic_image_containers | length)
-    failed_when:  running_upgraded_containers.stdout|int < (ironic_image_containers | length)
+    register: ironic_deployment
+    # We are checking that there is 1 updated replica, that it is available, and
+    # that it is the only one (so no old replica left).
+    # Note that the these fields can be missing if the controller didn't have
+    # time to update them yet, so we need to set a default value.
+    until: (ironic_deployment is succeeded) and
+           (ironic_deployment.resources | length > 0) and
+           (ironic_deployment.resources[0].status.updatedReplicas | default(0) == 1) and
+           (ironic_deployment.resources[0].status.availableReplicas | default(0) == 1) and
+           (ironic_deployment.resources[0].status.replicas | default(0) == 1)
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade K8S version and boot-image                              |
