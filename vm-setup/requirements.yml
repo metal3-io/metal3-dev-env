@@ -1,3 +1,8 @@
-- src: https://github.com/fubarhouse/ansible-role-golang.git
-  version: master
-  name: fubarhouse.golang
+roles:
+  - src: https://github.com/fubarhouse/ansible-role-golang.git
+    version: master
+    name: fubarhouse.golang
+  
+collections:
+  - name: kubernetes.core
+    version: 2.1.1

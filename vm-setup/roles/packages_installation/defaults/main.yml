@@ -43,7 +43,7 @@ packages:
         - libssl-dev
     pip3:
      - python-apt
-     - openshift==0.11.2
+     - kubernetes==17.17.0
      - pyYAML
      - virtualbmc
      - lxml
@@ -86,6 +86,7 @@ packages:
          - httpd-tools
         pip3:
           - jmespath
+          - kubernetes==17.17.0
 DAEMON_JSON_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/files"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') }}"
 OS_VERSION_ID: "{{ lookup('env', 'OS_VERSION_ID') }}"
