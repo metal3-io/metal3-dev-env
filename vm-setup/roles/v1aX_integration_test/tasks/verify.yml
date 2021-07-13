@@ -4,7 +4,7 @@
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
   - name: Wait until cluster becomes provisioned.
-    k8s_info:
+    kubernetes.core.k8s_info:
       # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
       api_version: cluster.x-k8s.io/v1alpha3
       kind: Cluster
@@ -14,10 +14,10 @@
     delay: 20
     until: (provisioned_cluster is succeeded) and
            (provisioned_cluster.resources | length > 0) and
-           (provisioned_cluster.resources[0].status.phase | lower == "provisioned")
+           (provisioned_cluster.resources[0].status.phase | default("none") | lower == "provisioned")
 
   - name: Wait until "{{ NUMBER_OF_BMH }}" BMHs become provisioned.
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: metal3.io/v1alpha1
       kind: BareMetalHost
       namespace: "{{ NAMESPACE }}"
@@ -31,7 +31,7 @@
            (provisioned_bmh.resources | json_query(query) | length ==  (NUMBER_OF_BMH | int))
 
   - name: Wait until "{{ NUMBER_OF_BMH }}" machines become running.
-    k8s_info:
+    kubernetes.core.k8s_info:
       # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
       api_version: cluster.x-k8s.io/v1alpha3
       kind: Machine
@@ -46,7 +46,7 @@
            (provisioned_machines.resources | json_query(query) | length == (NUMBER_OF_BMH | int))
 
   - name: Fetch target cluster kubeconfig
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: Secret
       name: "{{ CLUSTER_NAME }}-kubeconfig"
@@ -97,7 +97,7 @@
       IMAGE_OS == "Centos"
 
   - name: Apply Calico manifest
-    k8s:
+    kubernetes.core.k8s:
       state: present
       src: "/tmp/calico.yaml"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
@@ -105,7 +105,7 @@
 
   # Check for pods & nodes on the target cluster
   - name: Wait for all pods to be in running state
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: Pod
       namespace: "{{ NAMESPACE }}"
@@ -119,7 +119,7 @@
            (not_running_pods.resources | length == 0)
 
   - name: Wait for nodes to be in ready state
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: Node
       kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml

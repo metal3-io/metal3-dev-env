@@ -11,21 +11,21 @@
   when: v1aX_integration_test_action in inspection_action
 
 - name: Provision cluster
-  k8s:
+  kubernetes.core.k8s:
     state: present
     src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_cluster_{{ IMAGE_OS|lower }}.yaml"
     namespace: "{{ NAMESPACE }}"
   when: v1aX_integration_test_action in provision_cluster_actions
 
 - name: Create control plane
-  k8s:
+  kubernetes.core.k8s:
     state: present
     src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_controlplane_{{ IMAGE_OS|lower }}.yaml"
     namespace: "{{ NAMESPACE }}"
   when: v1aX_integration_test_action in provision_controlplane_actions
 
 - name: Create worker nodes
-  k8s:
+  kubernetes.core.k8s:
     state: present
     src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_workers_{{ IMAGE_OS|lower }}.yaml"
     namespace: "{{ NAMESPACE }}"
@@ -52,7 +52,7 @@
   when: v1aX_integration_test_action in repivot_actions
 
 - name: Deprovision worker nodes
-  k8s:
+  kubernetes.core.k8s:
     state: absent
     src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_workers_{{ IMAGE_OS|lower }}.yaml"
     namespace: "{{ NAMESPACE }}"
@@ -60,7 +60,7 @@
   when: v1aX_integration_test_action in deprovision_workers_actions
 
 - name: Deprovision control plane
-  k8s:
+  kubernetes.core.k8s:
     state: absent
     src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_controlplane_{{ IMAGE_OS|lower }}.yaml"
     namespace: "{{ NAMESPACE }}"
@@ -68,7 +68,7 @@
   when: v1aX_integration_test_action in deprovision_controlplane_actions
 
 - name: Deprovision cluster
-  k8s:
+  kubernetes.core.k8s:
     state: absent
     src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_cluster_{{ IMAGE_OS|lower }}.yaml"
     namespace: "{{ NAMESPACE }}"

@@ -2,7 +2,7 @@
 
   # Remove Ironic from target cluster
   - name: Remove Ironic from target cluster
-    k8s:
+    kubernetes.core.k8s:
       name: capm3-ironic
       kind: Deployment
       state: absent
