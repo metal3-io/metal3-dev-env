@@ -23,7 +23,7 @@
           (IMAGE_OS == "")
 
   - name: Check if cluster deprovisioning started.
-    k8s_info:
+    kubernetes.core.k8s_info:
       # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
       api_version: cluster.x-k8s.io/v1alpha3
       kind: Cluster
@@ -36,7 +36,7 @@
              (deprovision_cluster.resources[0].status.phase | lower == "deleting"))
 
   - name: Wait until "{{ NUM_NODES }}" bmhs become ready again.
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: metal3.io/v1alpha1
       kind: BareMetalHost
       namespace: "{{ NAMESPACE }}"
@@ -50,7 +50,7 @@
            (deprovisioned_nodes.resources | json_query(query) | length == (NUM_NODES | int))
 
   - name: Wait until no metal3machines are remaining
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
       kind: Metal3Machine
       namespace: "{{ NAMESPACE }}"
@@ -61,7 +61,7 @@
            (deprovisioned_m3m.resources | length == 0)
 
   - name: Wait until no machines are remaining
-    k8s_info:
+    kubernetes.core.k8s_info:
       # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
       api_version: cluster.x-k8s.io/v1alpha3
       kind: Machine
@@ -73,7 +73,7 @@
            (deprovisioned_machines.resources | length == 0)
 
   - name: Wait until no metal3cluster is remaining
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
       kind: Metal3Cluster
       namespace: "{{ NAMESPACE }}"
@@ -84,7 +84,7 @@
            (deprovisioned_metal3cluster.resources | length ==  0)
 
   - name: Wait until no cluster is remaining
-    k8s_info:
+    kubernetes.core.k8s_info:
       # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
       api_version: cluster.x-k8s.io/v1alpha3
       kind: Cluster

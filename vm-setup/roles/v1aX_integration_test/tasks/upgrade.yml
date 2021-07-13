@@ -229,7 +229,7 @@
         # - ironic-endpoint-keepalived
 
   - name: Upgrade ironic image based containers
-    community.kubernetes.k8s:
+    kubernetes.core.k8s:
       api_version: v1
       kind: Deployment
       name: capm3-ironic
@@ -253,7 +253,7 @@
             dict2items(key_name='name', value_name='image') }}"
 
   - name: Wait for ironic update to rollout
-    community.kubernetes.k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: Deployment
       name: capm3-ironic
@@ -301,13 +301,13 @@
       dest: /tmp/wr_new_image.yaml
 
   - name: Create controlplane and worker Metal3MachineTemplates
-    community.kubernetes.k8s:
+    kubernetes.core.k8s:
       state: present
       src: /tmp/cp_new_image.yaml
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Create controlplane and worker Metal3MachineTemplates
-    community.kubernetes.k8s:
+    kubernetes.core.k8s:
       state: present
       src:  /tmp/wr_new_image.yaml
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
@@ -387,8 +387,8 @@
       src: workload.yaml
       dest: /tmp/workload.yaml
 
-  - name: Deploy workload with nodeAffinity 
-    community.kubernetes.k8s:
+  - name: Deploy workload with nodeAffinity
+    kubernetes.core.k8s:
       state: present
       src: /tmp/workload.yaml
       namespace: default

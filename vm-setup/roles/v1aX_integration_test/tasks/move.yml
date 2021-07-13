@@ -22,7 +22,7 @@
     when: EPHEMERAL_CLUSTER == "kind"
 
   - name: Remove Ironic from source cluster (Ephemeral Cluster is minikube)
-    k8s:
+    kubernetes.core.k8s:
       name: capm3-ironic
       kind: Deployment
       state: absent
@@ -30,7 +30,7 @@
     when: EPHEMERAL_CLUSTER == "minikube"
 
   - name: Obtain target cluster kubeconfig
-    k8s_info:
+    kubernetes.core.k8s_info:
       kind: secrets
       name: "{{ CLUSTER_NAME }}-kubeconfig"
       namespace: "{{ NAMESPACE }}"
@@ -42,7 +42,7 @@
       dest: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Create namespace
-    k8s:
+    kubernetes.core.k8s:
       name: "{{ NAMESPACE }}"
       kind: Namespace
       state: present
@@ -59,7 +59,7 @@
 
   # Check for cert-manager pods on the target cluster
   - name: Check if cert-manager  pods in running state
-    k8s_info:
+    kubernetes.core.k8s_info:
       kind: pods
       namespace: cert-manager
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
@@ -84,7 +84,7 @@
 
   # Check for pods & nodes on the target cluster
   - name: Check if pods in running state
-    k8s_info:
+    kubernetes.core.k8s_info:
       kind: pods
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
       field_selectors:
@@ -99,7 +99,7 @@
     shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
 
   - name: Check if machines become running.
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: cluster.x-k8s.io/v1alpha3
       kind: machines
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
@@ -110,7 +110,7 @@
            (provisioned_machines.resources | filter_phase("running") | length == (NUMBER_OF_BMH | int))
 
   - name: Check if metal3machines become ready.
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: infrastructure.cluster.x-k8s.io/v1alpha4
       kind: metal3machine
       namespace: "{{ NAMESPACE }}"
@@ -122,7 +122,7 @@
            (m3m_machines.resources | filter_ready | length == (NUMBER_OF_BMH | int))
 
   - name: Check if bmh is in provisioned state
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: metal3.io/v1alpha1
       kind: BareMetalHost
       namespace: "{{ NAMESPACE }}"
