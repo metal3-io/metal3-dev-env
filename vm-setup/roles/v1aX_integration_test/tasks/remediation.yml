@@ -1,65 +1,97 @@
 ---
-  - name: Get the master objects
-    shell: "kubectl get m3m -n {{ NAMESPACE }} -o json |  jq -r '.items[] | \
-            select(.metadata.name | contains(\"controlplane\")) | \
-            (.metadata.annotations.\"metal3.io/BareMetalHost\"),([.metadata.ownerReferences |.[] | \
-            select(.kind==\"Machine\")][0] | .name)'"
-    register: masters
+  - name: Get m3m object
+    k8s_info:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3Machine
+      namespace: "{{ NAMESPACE }}"
+    register: m3m
 
-  - name: Get the worker objects
-    shell: "kubectl get m3m -n {{ NAMESPACE }} -o json | jq -r '.items[] | \
-            select(.metadata.name | contains(\"workers\")) | \
-            (.metadata.annotations.\"metal3.io/BareMetalHost\"),([.metadata.ownerReferences |.[] | \
-            select(.kind==\"Machine\")][0] | .name)'"
-    register: workers
+  - name: Get master and worker objects
+    set_fact:
+      masters: "{{ m3m.resources | json_query(q_masters) }}"
+      workers: "{{ m3m.resources | json_query(q_workers) }}"
+    vars:
+      q_masters: "[? contains(metadata.name,'controlplane')].[metadata.annotations.\"metal3.io/BareMetalHost\", metadata.ownerReferences[? kind=='Machine']|[0].name]"
+      q_workers: "[? contains(metadata.name,'workers')].[metadata.annotations.\"metal3.io/BareMetalHost\", metadata.ownerReferences[? kind=='Machine']|[0].name][0]"
 
   - set_fact:
-      WORKER_BMH: "{{ workers.stdout_lines.0 | replace('metal3/','')}}"
-      WORKER_NODE: "{{ workers.stdout_lines.1 }}"
-      MASTER_BMH_0: "{{ masters.stdout_lines.0 | replace('metal3/','')}}"
-      MASTER_NODE_0: "{{ masters.stdout_lines.1 }}"
-      MASTER_BMH_1: "{{ masters.stdout_lines.2 | replace('metal3/','')}}"
-      MASTER_NODE_1: "{{ masters.stdout_lines.3 }}"
-      MASTER_BMH_2: "{{ masters.stdout_lines.4 | replace('metal3/','')}}"
-      MASTER_NODE_2: "{{ masters.stdout_lines.5 }}"
-      MASTER_VM_0: "{{ masters.stdout_lines.0 | replace('-','_') | replace('metal3/','') }}"
-      MASTER_VM_1: "{{ masters.stdout_lines.2 | replace('-','_') | replace('metal3/','') }}"
-      MASTER_VM_2: "{{ masters.stdout_lines.4 | replace('-','_') | replace('metal3/','') }}"
-      WORKER_VM: "{{ workers.stdout_lines.0 | replace('-','_') | replace('metal3/','') }}"
+      WORKER_BMH: "{{ workers[0] | replace('metal3/','')}}"
+      WORKER_NODE: "{{ workers[1] }}"
+      MASTER_BMH_0: "{{ masters[0][0] | replace('metal3/','')}}"
+      MASTER_NODE_0: "{{ masters[0][1] }}"
+      MASTER_BMH_1: "{{ masters[1][0] | replace('metal3/','')}}"
+      MASTER_NODE_1: "{{ masters[1][1] }}"
+      MASTER_BMH_2: "{{ masters[2][0] | replace('metal3/','')}}"
+      MASTER_NODE_2: "{{ masters[2][1] }}"
+      MASTER_VM_0: "{{ masters[0][0] | replace('-','_') | replace('metal3/','') }}"
+      MASTER_VM_1: "{{ masters[1][0] | replace('-','_') | replace('metal3/','') }}"
+      MASTER_VM_2: "{{ masters[2][0] | replace('-','_') | replace('metal3/','') }}"
+      WORKER_VM: "{{ workers[0] | replace('-','_') | replace('metal3/','') }}"
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
   - name: Fetch the target cluster kubeconfig
-    shell: "kubectl get secrets {{ CLUSTER_NAME }}-kubeconfig -n {{ NAMESPACE }} -o json | jq -r '.data.value'| base64 -d > /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s_info:
+      kind: secrets
+      name: "{{ CLUSTER_NAME }}-kubeconfig"
+      namespace: "{{ NAMESPACE }}"
+    register: metal3_kubeconfig
+
+  - name: Decode and save cluster kubeconfig
+    copy:
+      content: "{{ metal3_kubeconfig.resources[0].data.value | b64decode }}"
+      dest: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   # Reboot a single worker node
   - name: Reboot "{{ WORKER_BMH }}"
-    shell: |
-       kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" reboot.metal3.io=
+    k8s:
+      state: present
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ WORKER_BMH }}"
+          annotations:
+            reboot.metal3.io: ""
 
   - name: List only powered off VMs
     virt:
       command: list_vms
       state: shutdown
     register: shutdown_vms
-    retries: 50
-    delay: 10
+    retries: 170
+    delay: 3
     until: WORKER_VM in shutdown_vms.list_vms
     become: yes
     become_user: root
 
   - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes NotReady
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}' | sort"
+    k8s_info:
+      api_version: v1
+      kind: nodes
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: nodes
     retries: 150
     delay: 3
-    register: not_ready_nodes
-    until: WORKER_NODE in not_ready_nodes.stdout_lines
+    vars:
+      q: "[? metadata.name == '{{WORKER_NODE}}' && status.conditions[? type=='Ready' && status=='False']]"
+    until:
+      - nodes is succeeded
+      - nodes.resources | json_query(q) | length > 0
 
   - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes Ready
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
+    k8s_info:
+      api_version: v1
+      kind: nodes
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: nodes
     retries: 150
     delay: 3
-    register: ready_nodes
-    until: WORKER_NODE in ready_nodes.stdout_lines
+    vars:
+      q: "[? metadata.name == '{{WORKER_NODE}}' && status.conditions[? type=='Ready' && status=='True']]"
+    until:
+      - nodes is succeeded
+      - nodes.resources | json_query(q) | length > 0
 
   - name: List only running VMs
     virt:
@@ -90,14 +122,22 @@
 
   # Power cycle two master nodes
   - name: Power off "{{ MASTER_BMH_1 }}" and "{{ MASTER_BMH_2 }}"
-    shell: |
-       kubectl annotate bmh "{{ item }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
+    k8s:
+      state: present
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ item }}"
+          annotations:
+            reboot.metal3.io/poweroff: ""
     with_items:
       - "{{ MASTER_BMH_1 }}"
       - "{{ MASTER_BMH_2 }}"
 
   - pause:
-     minutes: 1
+      minutes: 1
 
   - name: List only powered off VMs
     virt:
@@ -113,20 +153,35 @@
     become_user: root
 
   - name: Power on masters
-    shell: |
-       kubectl annotate bmh "{{ item }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff-
+    k8s:
+      state: present
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ item }}"
+          annotations:
+            reboot.metal3.io/poweroff: null
     with_items:
       - "{{ MASTER_BMH_1 }}"
       - "{{ MASTER_BMH_2 }}"
 
   - name: Wait until powered on master nodes become Ready
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
-    register: ready_master
+    k8s_info:
+      api_version: v1
+      kind: nodes
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: nodes
     retries: 150
     delay: 3
+    vars:
+      q1: "[? metadata.name == '{{MASTER_NODE_1}}' && status.conditions[? type=='Ready' && status=='True']]"
+      q2: "[? metadata.name == '{{MASTER_NODE_2}}' && status.conditions[? type=='Ready' && status=='True']]"
     until:
-      - MASTER_NODE_1 in ready_master.stdout_lines
-      - MASTER_NODE_2 in ready_master.stdout_lines
+      - nodes is succeeded
+      - nodes.resources | json_query(q1) | length > 0
+      - nodes.resources | json_query(q2) | length > 0
 
   - name: List only running VMs
     virt:
@@ -142,145 +197,279 @@
     become_user: root
 
   # Start Unhealthy node testing
-  - name: Scale KCP down to two replicas
-    shell: |
-      kubectl scale kcp "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=2
+  - name: Scale KCP down to one replica
+    k8s:
+      api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: KubeadmControlPlane
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        spec:
+          replicas: 1
 
-  - name: Wait until KCP is scaled down and one node is Ready
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
+  - name: Wait until KCP is scaled down and two nodes are Ready
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 200
     delay: 20
-    register: ready_hosts
-    until: ready_hosts.stdout == "1"
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("ready") | length == 2
 
   - name: Mark "{{ WORKER_BMH }}" as unhealthy
-    shell: |
-      kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy=
+    k8s:
+      state: present
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ WORKER_BMH }}"
+          annotations:
+            capi.metal3.io/unhealthy: ""
 
   - name: Delete worker Machine object "{{ WORKER_NODE }}"
-    shell: |
-      kubectl delete machine "{{ WORKER_NODE }}" -n "{{ NAMESPACE }}"
+    k8s:
+      state: absent
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: machines
+      name: "{{ WORKER_NODE }}"
+      namespace: "{{ NAMESPACE }}"
 
   - name: Wait until worker BMH is in ready state
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | awk '{print $1}'
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 200
     delay: 20
-    register: ready_bmh
-    until: WORKER_BMH in ready_bmh.stdout_lines
+    until:
+      - bmhs is succeeded
+      - WORKER_BMH in (bmhs.resources | filter_provisioning("ready") | map(attribute='metadata.name'))
 
-  - name: Wait until three BMH are provisioned
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
+  - name: Wait until two BMH are provisioned
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 200
     delay: 20
-    register: provisioned_hosts
-    until: provisioned_hosts.stdout == "3"
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("provisioned") | length == 2
 
-  - name: Scale up the machinedeployment
-    shell: kubectl scale machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=2
+  - name: Scale up the machinedeployment to 3 replicas
+    k8s:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        spec:
+          replicas: 3
 
   - pause:
-     minutes: 1
+      minutes: 1
 
-  - name: Wait and verify that none of the nodes start provisioning
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioning | wc -l
+  - name: Wait and verify that only one node starts provisioning
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 10
     delay: 20
-    register: provisioning_hosts
     until:
-      - provisioning_hosts.stdout == "0"
-      - provisioned_hosts.stdout == "3"
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("provisioning") | length == 1
+
+  - name: Wait and verify that only 3 nodes are provisioned no other node are provisioning
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
+    retries: 200
+    delay: 20
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("provisioned") | length == 3
+      - bmhs.resources | filter_provisioning("provisioning") | length == 0
 
   - name: Remove unhealthy annotation from "{{ WORKER_BMH }}"
-    shell: |
-      kubectl annotate bmh "{{ WORKER_BMH }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy-
+    k8s:
+      state: present
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ WORKER_BMH }}"
+          annotations:
+            capi.metal3.io/unhealthy: null
 
   - name: Wait until all "{{ NUMBER_OF_BMH }}" BMH are provisioned
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 200
     delay: 20
-    register: provisioned_hosts
-    until: provisioned_hosts.stdout == NUMBER_OF_BMH
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("provisioned") | length == (NUMBER_OF_BMH | int)
 
-  - name: Wait until "{{ NUMBER_OF_BMH }}" machines become running.
-    shell: |
-        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[]
-        | select (.status.phase == "Running" or .status.phase == "running")
-        | .metadata.name ] | length'
-    register: provisioned_machines
+  - name: Wait until "{{ NUMBER_OF_BMH }}"  machines become running.
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: machines
+      namespace: "{{ NAMESPACE }}"
+    register: machines
     retries: 200
     delay: 20
-    until: provisioned_machines.stdout == NUMBER_OF_BMH
+    until:
+      - machines is succeeded
+      - machines.resources | filter_phase("running") | length == (NUMBER_OF_BMH | int)
 
   - name: Scale down the machinedeployment
-    shell: kubectl scale machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=1
+    k8s:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        spec:
+          replicas: 1
 
-  - name: Wait until one BMH is in ready state
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
+  - name: Wait until two BMHs are in ready state
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 200
     delay: 20
-    register: ready_hosts
-    until: ready_hosts.stdout == "1"
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("ready") | length == 2
 
     ## Start Metal3DataTemplate reference test
-  - name: Get the Metal3DataTemplate, Edit name , Add templateReference and apply it
-    shell: kubectl get m3dt -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}"-workers-template  -ojson |
-              jq '.metadata.name="test-new-m3dt"' |
-              jq '.|del(.metadata|.managedFields,.uid,.resourceVersion,.ownerReferences,.finalizers)' |
-              jq '.|del(.status)' |
-              jq '.spec.templateReference="{{ CLUSTER_NAME }}-workers-template"' |
-              kubectl apply -f-
+  - name: Get the metal3datatemplate
+    k8s_info:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3DataTemplate
+      name: "{{ CLUSTER_NAME }}-workers-template"
+      namespace: "{{ NAMESPACE }}"
+    register: m3dt
 
-  - name: Get the Metal3MachineTemplate, Edit name, Refer to new Metal3DataTemplate and apply it
-    shell: kubectl get m3mt -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}"-workers -ojson |
-              jq '.spec.template.spec.dataTemplate.name="test-new-m3dt"' |
-              jq '.metadata.name="test-new-m3mt"' |
-              jq '.|del(.metadata|.managedFields,.uid,.resourceVersion,.ownerReferences,.finalizers)' |
-              jq '.|del(.status)' |
-              kubectl apply -f-
+  - name: Edit Metal3DataTemplate name and Add templateReference
+    k8s:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3DataTemplate
+      namespace: "{{ NAMESPACE }}"
+      name: "{{ CLUSTER_NAME }}-workers-template"
+      state: present
+      definition: "{{ m3dt.resources[0] | edit_m3dt('test-new-m3dt', reference) }}"
+    vars:
+      - reference: "{{ CLUSTER_NAME }}-workers-template"
+
+  - name: Get the Metal3MachineTemplate
+    k8s_info:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3MachineTemplate
+      name: "{{ CLUSTER_NAME }}-workers"
+      namespace: "{{ NAMESPACE }}"
+    register: m3mt
+
+  - name: Edit Metal3MachineTemplate name and Refer to new Metal3DataTemplate
+    k8s:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3MachineTemplate
+      name: "{{ CLUSTER_NAME }}-workers"
+      namespace: "{{ NAMESPACE }}"
+      definition: "{{ m3mt.resources[0] | edit_m3mt('test-new-m3mt', 'test-new-m3dt') }}"
 
   - name: Edit MachineDeployment to point to the new m3mt
-    shell: kubectl get md -n "{{ NAMESPACE }}" "{{ CLUSTER_NAME }}" -ojson |
-              jq '.spec.template.spec.infrastructureRef.name="test-new-m3mt"' |
-              jq '.spec.strategy.rollingUpdate.maxUnavailable=1' |
-              kubectl apply -f-
+    k8s:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        spec:
+          template:
+            spec:
+              infrastructureRef:
+                name: "test-new-m3mt"
+          strategy:
+            rollingUpdate:
+              maxUnavailable: 1
 
   - pause:
-     minutes: 1
+      minutes: 1
 
-  - name: Wait until one BMH is in ready state
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
+  - name: Wait until two BMHs are in ready state
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 200
     delay: 20
-    register: ready_hosts
-    until: ready_hosts.stdout == "1"
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("ready") | length == 2
 
   - name: Check if one Metal3Data refers to the old template
-    shell: kubectl get m3d -n "{{ NAMESPACE }}" -ojson |
-              jq -r '[ .items[] | select (.spec.templateReference=="{{ CLUSTER_NAME }}-workers-template")|
-              .metadata.name ] | length'
+    k8s_info:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3Data
+      namespace: "{{ NAMESPACE }}"
+    register: m3data
     retries: 5
     delay: 5
-    register: newM3Data
-    until: newM3Data.stdout == "1"
-
+    vars:
+      query: "[? spec.templateReference=='{{ CLUSTER_NAME }}-workers-template'].metadata.name"
+    until:
+      - m3data is succeeded
+      - m3data.resources | json_query(query) | length == 1
 
   - name: Scale KCP back to three replicas
-    shell: |
-      kubectl scale kcp "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=3
+    k8s:
+      api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: KubeadmControlPlane
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        spec:
+          replicas: 3
 
-  - name: Wait until "{{ NUMBER_OF_BMH }}"" BMH are provisioned
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
+  - name: Wait until "{{ NUMBER_OF_BMH }}" BMH are provisioned
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 200
     delay: 20
-    register: provisioned_hosts
-    until: provisioned_hosts.stdout == NUMBER_OF_BMH
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("provisioned") | length == (NUMBER_OF_BMH | int)
 
   - name: Wait until all "{{ NUMBER_OF_BMH }}" machines become running.
-    shell: |
-        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[]
-        | select (.status.phase == "Running" or .status.phase == "running")
-        | .metadata.name ] | length'
-    register: provisioned_machines
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: machines
+      namespace: "{{ NAMESPACE }}"
+    register: machines
     retries: 200
     delay: 20
-    until: provisioned_machines.stdout == NUMBER_OF_BMH
+    until:
+      - machines is succeeded
+      - machines.resources | filter_phase("running") | length == (NUMBER_OF_BMH | int)
