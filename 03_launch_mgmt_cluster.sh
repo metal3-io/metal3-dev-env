@@ -87,7 +87,7 @@ function update_kustomization_images(){
 }
 
 #
-# Create the BMO deployment (used for v1a3 only)
+# Create the BMO deployment (used for v1a4 only)
 #
 function launch_baremetal_operator() {
   pushd "${BMOPATH}"
@@ -274,16 +274,21 @@ function update_capm3_imports(){
   pushd "${CAPM3PATH}"
 
   # Assign empty secret to BMO when TLS is disabled
-  if [ "${IRONIC_TLS_SETUP}" == "false" ]; then
+  if [ "${IRONIC_TLS_SETUP}" == "false" ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     sed -i "s/ironic-cacert/empty-ironic-cacert/g" "config/bmo/secret_mount_patch.yaml"
   fi
   # Modify the kustomization imports to use local BMO repo instead of Github Master
-  cp config/bmo/kustomization.yaml config/bmo/kustomization.yaml.orig
-  cp config/ipam/kustomization.yaml config/ipam/kustomization.yaml.orig
+  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then 
+    cp config/bmo/kustomization.yaml config/bmo/kustomization.yaml.orig
+  fi
 
+  cp config/ipam/kustomization.yaml config/ipam/kustomization.yaml.orig
   make hack/tools/bin/kustomize
-  ./hack/tools/bin/kustomize build "${BMOPATH}/config/default" > config/bmo/bmo-components.yaml
-  sed -i -e "s#https://raw.githubusercontent.com/metal3-io/baremetal-operator/master/config/render/capm3.yaml#bmo-components.yaml#" "config/bmo/kustomization.yaml"
+
+  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+    ./hack/tools/bin/kustomize build "${BMOPATH}/config/default" > config/bmo/bmo-components.yaml
+    sed -i -e "s#https://raw.githubusercontent.com/metal3-io/baremetal-operator/master/config/render/capm3.yaml#bmo-components.yaml#" "config/bmo/kustomization.yaml"
+  fi
 
   # Render the IPAM components from local repo instead of using the released version
   ./hack/tools/bin/kustomize build "${IPAMPATH}/config/" > config/ipam/metal3-ipam-components.yaml
@@ -306,14 +311,16 @@ function update_component_image(){
     TMP_IMAGE_TAG="latest"
   fi
 
+  if [ "${IMPORT}" == "BMO" ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+    export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
+    export MANIFEST_TAG_BMO="$TMP_IMAGE_TAG"
+    make set-manifest-image-bmo
+  fi
+
   if [ "${IMPORT}" == "CAPM3" ]; then
     export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
     export MANIFEST_TAG="${TMP_IMAGE_TAG}"
     make set-manifest-image
-  elif [ "${IMPORT}" == "BMO" ]; then
-    export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
-    export MANIFEST_TAG_BMO="$TMP_IMAGE_TAG"
-    make set-manifest-image-bmo
   elif [ "${IMPORT}" == "IPAM" ]; then
     export MANIFEST_IMG_IPAM="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
     export MANIFEST_TAG_IPAM="$TMP_IMAGE_TAG"
@@ -337,11 +344,12 @@ function patch_clusterctl(){
     update_component_image CAPM3 "${CAPM3_IMAGE}"
   fi
 
-
-  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
-    update_component_image BMO "${BAREMETAL_OPERATOR_LOCAL_IMAGE}"
-  else
-    update_component_image BMO "${BAREMETAL_OPERATOR_IMAGE}"
+  if  [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+    if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
+      update_component_image BMO "${BAREMETAL_OPERATOR_LOCAL_IMAGE}"
+    else
+      update_component_image BMO "${BAREMETAL_OPERATOR_IMAGE}"
+    fi
   fi
 
   if [ -n "${IPAM_LOCAL_IMAGE}" ]; then
@@ -353,10 +361,12 @@ function patch_clusterctl(){
   update_capm3_imports
   make release-manifests
 
+  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+    mv config/bmo/kustomization.yaml.orig config/bmo/kustomization.yaml
+    rm config/bmo/bmo-components.yaml
+  fi
 
-  mv config/bmo/kustomization.yaml.orig config/bmo/kustomization.yaml
   mv config/ipam/kustomization.yaml.orig config/ipam/kustomization.yaml
-  rm config/bmo/bmo-components.yaml
   rm config/ipam/metal3-ipam-components.yaml
 
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
@@ -383,7 +393,7 @@ function launch_cluster_api_provider_metal3() {
     nohup make run >> capm3.out.log 2>> capm3.err.log &
   fi
 
-  if [ "${BMO_RUN_LOCAL}" == true ]; then
+  if [ "${BMO_RUN_LOCAL}" == true ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     touch bmo.out.log
     touch bmo.err.log
     kubectl scale deployment capm3-baremetal-operator-controller-manager -n capm3-system --replicas=0
@@ -470,6 +480,10 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   kubectl create namespace metal3
 fi
 
+if [ "${CAPM3_VERSION}" != "v1alpha4" ]; then 
+  launch_baremetal_operator
+fi
+
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   patch_clusterctl
   launch_cluster_api_provider_metal3
@@ -477,7 +491,11 @@ fi
 
 launch_ironic
 
-if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
+if [ "${CAPM3_VERSION}" != "v1alpha4" ]; then 
+  apply_bm_hosts
+fi
+
+if [ "${EPHEMERAL_CLUSTER}" != "tilt" ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   if [[ "${BMO_RUN_LOCAL}" != true ]]; then
     if ! kubectl rollout status deployment capm3-baremetal-operator-controller-manager -n capm3-system --timeout=5m; then
       echo "baremetal-operator-controller-manager deployment can not be rollout"
