@@ -291,7 +291,11 @@ function update_capm3_imports(){
   fi
 
   # Render the IPAM components from local repo instead of using the released version
-  ./hack/tools/bin/kustomize build "${IPAMPATH}/config/" > config/ipam/metal3-ipam-components.yaml
+  if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+    ./hack/tools/bin/kustomize build "${IPAMPATH}/config/" > config/ipam/metal3-ipam-components.yaml
+  else
+    ./hack/tools/bin/kustomize build "${IPAMPATH}/config/default" > config/ipam/metal3-ipam-components.yaml
+  fi
   sed -i -e "s#https://github.com/metal3-io/ip-address-manager/releases/download/v.*/ipam-components.yaml#metal3-ipam-components.yaml#" "config/ipam/kustomization.yaml"
   popd
 }

@@ -93,8 +93,8 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
 
-export CAPI_VERSION="${CAPI_VERSION:-"v1alpha3"}"
-export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha4"}"
+export CAPI_VERSION="${CAPI_VERSION:-"v1alpha4"}"
+export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha5"}"
 CAPM3_VERSION_LIST="v1alpha4 v1alpha5"
 if ! echo "${CAPM3_VERSION_LIST}" | grep -wq "${CAPM3_VERSION}"; then
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
@@ -106,26 +106,34 @@ export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 # shellcheck disable=SC2034
 export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 
-export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
-export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
-export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
-
-export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
-export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
-export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
+  export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
+  export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
+  export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
+  export IPAM_LOCAL_IMAGE="${IPAM_LOCAL_IMAGE:-${M3PATH}/ip-address-manager}"
+  export IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
 else
-  IPAMBRANCH="${IPAMBRANCH:-master}"
+  export IPAMPATH="${IPAMPATH:-${M3PATH}/metal3-ipam}"
+  export IPAM_BASE_URL="${IPAM_BASE_URL:-Nordix/metal3-ipam}"
+  export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
+  export IPAM_LOCAL_IMAGE="${IPAM_LOCAL_IMAGE:-${M3PATH}/metal3-ipam}"
+  export IPAMBRANCH="${IPAMBRANCH:-add/capi-v1a4-changes}"
 fi
 
 CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
+export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
+export CAPM3_LOCAL_IMAGE="${CAPM3_LOCAL_IMAGE:-${M3PATH}/cluster-api-provider-metal3}"
+
 
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  CAPM3BRANCH="${CAPM3BRANCH:-release-0.4}"
+  export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
+  export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
+  export CAPM3BRANCH="${CAPM3BRANCH:-release-0.4}"
 else
-  CAPM3BRANCH="${CAPM3BRANCH:-master}"
+  export CAPM3_BASE_URL="${CAPM3_BASE_URL:-Nordix/cluster-api-provider-metal3}"
+  export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
+  export CAPM3BRANCH="${CAPM3BRANCH:-feature/watch-filter-flag-furkat}"
 fi
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"

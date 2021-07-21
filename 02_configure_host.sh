@@ -8,6 +8,18 @@ source lib/common.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
+mkdir -p "${M3PATH}"
+pushd "${M3PATH}" || exit
+git clone "${CAPM3REPO}"
+git clone "${IPAMREPO}"
+popd || exit
+pushd "${CAPM3PATH}" || exit
+git checkout "${CAPM3BRANCH}"
+popd || exit
+pushd "${IPAMPATH}" || exit
+git checkout "${IPAMBRANCH}"
+popd || exit
+
 # Root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
 if sudo [ ! -f /root/.ssh/id_rsa_virt_power ]; then

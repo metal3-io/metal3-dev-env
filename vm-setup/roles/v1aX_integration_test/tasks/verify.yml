@@ -4,9 +4,8 @@
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
   - name: Wait until cluster becomes provisioned.
-    kubernetes.core.k8s_info:
-      # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
-      api_version: cluster.x-k8s.io/v1alpha3
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: Cluster
       namespace: "{{ NAMESPACE }}"
     register: provisioned_cluster
@@ -31,9 +30,8 @@
            (provisioned_bmh.resources | json_query(query) | length ==  (NUMBER_OF_BMH | int))
 
   - name: Wait until "{{ NUMBER_OF_BMH }}" machines become running.
-    kubernetes.core.k8s_info:
-      # TODO: This should be set based on CAPI_VERSION when v1alpha4 is working.
-      api_version: cluster.x-k8s.io/v1alpha3
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: Machine
       namespace: "{{ NAMESPACE }}"
     register: provisioned_machines

@@ -1,5 +1,5 @@
 kind: KubeadmControlPlane
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+apiVersion: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
 metadata:
   name: ${ CLUSTER_NAME }
   namespace: ${ NAMESPACE }
@@ -7,17 +7,22 @@ spec:
   rolloutStrategy:
     rollingUpdate:
       maxSurge: ${ MAX_SURGE_VALUE }
-  nodeDrainTimeout: ${ NODE_DRAIN_TIMEOUT }
   replicas: ${ NUM_OF_MASTER_REPLICAS }
   version: ${ KUBERNETES_VERSION }
+{% if CAPI_VERSION == "v1alpha3" %}
+  nodeDrainTimeout: ${ NODE_DRAIN_TIMEOUT }
   infrastructureTemplate:
     kind: Metal3MachineTemplate
-{% if CAPM3_VERSION == "v1alpha4" %}
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-{% else %}
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-{% endif %}
+    apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
     name: ${ CLUSTER_NAME }-controlplane
+{% else %}
+  machineTemplate:
+    nodeDrainTimeout: ${ NODE_DRAIN_TIMEOUT }
+    infrastructureRef:
+      kind: Metal3MachineTemplate
+      apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      name: ${ CLUSTER_NAME }-controlplane
+{% endif %}
   kubeadmConfigSpec:
     clusterConfiguration: {}
     joinConfiguration:
@@ -53,11 +58,7 @@ spec:
 {% endfilter %}
 
 ---
-{% if CAPM3_VERSION == "v1alpha4" %}
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-{% else %}
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-{% endif %}
+apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
 kind: Metal3MachineTemplate
 metadata:
   name: ${ CLUSTER_NAME }-controlplane
@@ -73,11 +74,7 @@ spec:
       dataTemplate:
         name: ${ CLUSTER_NAME }-controlplane-template
 ---
-{% if CAPM3_VERSION == "v1alpha4" %}
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-{% else %}
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-{% endif %}
+apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
 kind: Metal3DataTemplate
 metadata:
   name: ${ CLUSTER_NAME }-controlplane-template
