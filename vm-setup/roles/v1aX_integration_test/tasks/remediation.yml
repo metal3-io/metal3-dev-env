@@ -168,20 +168,13 @@
       - "{{ MASTER_BMH_2 }}"
 
   - name: Wait until powered on master nodes become Ready
-    k8s_info:
-      api_version: v1
-      kind: nodes
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: nodes
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
+    register: ready_master
     retries: 150
     delay: 3
-    vars:
-      q1: "[? metadata.name == '{{MASTER_NODE_1}}' && status.conditions[? type=='Ready' && status=='True']]"
-      q2: "[? metadata.name == '{{MASTER_NODE_2}}' && status.conditions[? type=='Ready' && status=='True']]"
     until:
-      - nodes is succeeded
-      - nodes.resources | json_query(q1) | length > 0
-      - nodes.resources | json_query(q2) | length > 0
+      - MASTER_NODE_1 in ready_master.stdout_lines
+      - MASTER_NODE_2 in ready_master.stdout_lines
 
   - name: List only running VMs
     virt:
