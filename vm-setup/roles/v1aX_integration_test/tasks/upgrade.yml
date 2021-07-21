@@ -278,8 +278,6 @@
   #   # failed_when: api_status.apis not contains the upgraded m3c resource(s)?
 
   - name: Verify upgraded API resource for Metal3Clusters
-    # spec.names.shortNames[]
-    # status.acceptedNames.shortNames[]
     kubernetes.core.k8s_info:
       api_version: apiextensions.k8s.io/v1
       kind: CustomResourceDefinition
@@ -352,51 +350,47 @@
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade K8S version and boot-image                              |
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  - name: get cluster uid
-    shell: |
-            kubectl get clusters {{ CLUSTER_NAME }}  -n {{NAMESPACE}} -o json | jq '.metadata.uid' |   cut -f2 -d\"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: CLSTR_UID
+  - name: Get cluster uid
+    kubernetes.core.k8s_info:
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: clusters
 
-  - name: Genenrate controlplane Metal3MachineTemplate
+  - name: Create controlplane Metal3MachineTemplates
+    kubernetes.core.k8s:
+      state: present
+      template: Metal3MachineTemplate.yml
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     vars:
-       CLUSTER_UID: "{{ CLSTR_UID.stdout }}"
-       M3MT_NAME: "{{CLUSTER_NAME}}-new-controlplane-image"
-       DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-controlplane-template"
-    template:
-      src: Metal3MachineTemplate.yml
-      dest: /tmp/cp_new_image.yaml
+      CLUSTER_UID: "{{ clusters.resources[0].metadata.uid }}"
+      M3MT_NAME: "{{CLUSTER_NAME}}-new-controlplane-image"
+      DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-controlplane-template"
 
-  - name: Genenrate worker Metal3MachineTemplate
+  - name: Create worker Metal3MachineTemplates
+    kubernetes.core.k8s:
+      state: present
+      template: Metal3MachineTemplate.yml
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     vars:
-      CLUSTER_UID: "{{ CLSTR_UID.stdout_lines[0] }}"
+      CLUSTER_UID: "{{ clusters.resources[0].metadata.uid }}"
       M3MT_NAME: "{{CLUSTER_NAME}}-new-workers-image"
       DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-workers-template"
-    template:
-      src: Metal3MachineTemplate.yml
-      dest: /tmp/wr_new_image.yaml
-
-  - name: Create controlplane and worker Metal3MachineTemplates
-    kubernetes.core.k8s:
-      state: present
-      src: /tmp/cp_new_image.yaml
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
-  - name: Create controlplane and worker Metal3MachineTemplates
-    kubernetes.core.k8s:
-      state: present
-      src:  /tmp/wr_new_image.yaml
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Update boot-disk and kubernetes versions of controlplane nodes
-    shell: |
-            kubectl get kubeadmcontrolplane -n {{NAMESPACE}} {{ CLUSTER_NAME }} -o json |
-            jq '.spec.infrastructureTemplate.name="{{CLUSTER_NAME}}-new-controlplane-image" |
-               .spec.version="{{UPGRADED_K8S_VERSION}}"'|
-                kubectl apply -f-
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    kubernetes.core.k8s:
+      api_version: controlplane.cluster.x-k8s.io/v1alpha3
+      kind: KubeadmControlPlane
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      resource_definition:
+        spec:
+          version: "{{UPGRADED_K8S_VERSION}}"
+          infrastructureTemplate:
+            name: "{{CLUSTER_NAME}}-new-controlplane-image"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Verify that controlplane nodes using the new node image
     shell: |
@@ -416,10 +410,6 @@
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     ignore_errors: yes
 
-  - name: Wait for old etcd instance to leave the new etcd-cluster
-    pause:
-      minutes: 10
-
   - name: Verify that the old controlplane node has left the cluster
     shell: |
             kubectl get bmh -n {{NAMESPACE}} | grep -i provisioned | grep -c "{{ CLUSTER_NAME }}-controlplane-"
@@ -431,101 +421,148 @@
     until: upgraded_cp_nodes_count.stdout|int == 0
     failed_when: upgraded_cp_nodes_count.stdout|int != 0
 
-  - name: Wait for old etcd instance to leave the new etcd-cluster
-    pause:
-      minutes: 10
+  - name: Get control plane machines
+    shell: kubectl get machines -n "{{ NAMESPACE }}" -l  cluster.x-k8s.io/control-plane -o json
+           | jq -r '[ .items[] | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.nodeRef.name ]'
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: new_control_plane_nodes
+
+  - name: Extract the list of new node names
+    set_fact:
+      new_control_plane_nodes: "{{ new_control_plane_nodes.stdout | from_json }}"
+
+  - name: Wait for old etcd instance to leave the etcd-cluster
+    kubernetes.core.k8s_exec:
+      namespace: kube-system
+      pod: etcd-{{ new_control_plane_nodes | first }}
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      command: >
+        etcdctl member list --write-out json
+          --cacert /etc/kubernetes/pki/etcd/ca.crt
+          --key /etc/kubernetes/pki/etcd/server.key
+          --cert /etc/kubernetes/pki/etcd/server.crt
+    register: etcdctl
+    retries: 200
+    delay: 10
+    # The list of new control plane nodes and etcd members will match when all
+    # old etcd members are gone and the new members have joined.
+    until: (etcdctl is succeeded) and
+           ((etcdctl.stdout | from_json).members | map(attribute='name') | sort ==
+              (new_control_plane_nodes | sort))
 
   - name: Scale worker up to 1
-    shell: |
-        kubectl scale machinedeployment "{{ CLUSTER_NAME }}"  -n "{{ NAMESPACE }}" --replicas=1
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    kubernetes.core.k8s:
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      resource_definition:
+        spec:
+          replicas: 1
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  - name: Wait until worker is scaled up and no bmh is in Ready state
-    shell: kubectl get node | awk 'NR>1'| grep -cv master
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  - name: Wait until worker has joined the cluster
+    kubernetes.core.k8s_info:
+      api_version: v1
+      kind: Node
+      label_selectors:
+        - "!node-role.kubernetes.io/control-plane"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     retries: 200
     delay: 20
     register: worker_nodes
-    until: worker_nodes.stdout|int == 1
-    failed_when: worker_nodes.stdout|int == 0
+    until: (worker_nodes is succeeded) and
+           (worker_nodes.resources | length == 1)
 
   - name: Label worker for scheduling purpose
-    shell: |
-      WORKER_NAME=$(kubectl get nodes -n {{NAMESPACE}} | awk 'NR>1'| grep -v master | awk '{print $1}')
-      kubectl label node "${WORKER_NAME}" type=worker
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
-  - name: Copy workload manifest to /tmp
-    copy:
-      src: workload.yaml
-      dest: /tmp/workload.yaml
+    kubernetes.core.k8s:
+      api_version: v1
+      kind: Node
+      name: "{{ worker_nodes.resources[0].metadata.name }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      resource_definition:
+        metadata:
+          labels:
+            type: worker
 
   - name: Deploy workload with nodeAffinity
     kubernetes.core.k8s:
       state: present
-      src: /tmp/workload.yaml
+      resource_definition: "{{ lookup('file', 'workload.yaml') | from_yaml }}"
       namespace: default
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      wait: yes
+    register: workload
 
-  - pause:
-      minutes: 5
-
-  - name: Show workload deployment status on worker node
-    shell: |
-            kubectl get pods | grep 'workload-1-deployment'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  - name: Show workload deployment status
+    debug:
+      msg: "{{ workload }}"
 
   - name: Verify workload deployment
-    shell: |
-            kubectl get deployments workload-1-deployment -o json | jq '.status.readyReplicas'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    retries: 200
+    kubernetes.core.k8s_info:
+      api_version: apps/v1
+      kind: Deployment
+      name: workload-1-deployment
+      namespace: default
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 3
     delay: 20
-    register: running_workload_pods
-    until: running_workload_pods.stdout|int == 10
-    failed_when: running_workload_pods.stdout|int != 10
+    register: workload_pods
+    until: (workload_pods is succeeded) and
+           (workload_pods.resources | length > 0) and
+           (workload_pods.resources[0].status.readyReplicas == workload_pods.resources[0].spec.replicas)
 
   - name: Update boot-disk and kubernetes versions of worker node
-    shell: |
-            kubectl get machinedeployment -n {{NAMESPACE}} {{ CLUSTER_NAME }} -o json |
-            jq '.spec.template.spec.infrastructureRef.name="{{ CLUSTER_NAME }}-new-workers-image" |
-            .spec.template.spec.version="{{UPGRADED_K8S_VERSION}}"'| kubectl apply -f-
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    kubernetes.core.k8s:
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      resource_definition:
+        spec:
+          template:
+            spec:
+              version: "{{ UPGRADED_K8S_VERSION }}"
+              infrastructureRef:
+                name: "{{ CLUSTER_NAME }}-new-workers-image"
 
   - name: Verify that worker node is using the new boot-image
-    shell: |
-            kubectl get bmh -n {{NAMESPACE}} |
-            grep -i provisioned | grep -c 'new-workers-image'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    kubernetes.core.k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    vars:
+      query: "[? (status.provisioning.state=='provisioned') &&
+                 (starts_with(spec.consumerRef.name, '{{CLUSTER_NAME}}-new-workers-image'))]"
+    register: bmh
     retries: 200
     delay: 20
-    register: new_image_wr_nodes
-    until: new_image_wr_nodes.stdout|int == 1
-    failed_when: new_image_wr_nodes.stdout|int != 1
+    until: (bmh is succeeded) and
+           (bmh.resources | length > 0) and
+           (bmh.resources | json_query(query) | length == 1)
 
   - name: Verify that the upgraded worker node has joined the cluster
-    shell: |
-            kubectl get nodes | awk 'NR>1'| grep -vc master
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    kubernetes.core.k8s_info:
+      api_version: v1
+      kind: Node
+      label_selectors:
+        - "!node-role.kubernetes.io/control-plane"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     retries: 200
     delay: 20
-    register: joined_wr_node
-    until: joined_wr_node.stdout|int == 1
-    failed_when: joined_wr_node.stdout|int != 1
+    register: worker_nodes
+    until: (worker_nodes is succeeded) and
+           (worker_nodes.resources | length == 1)
 
   - name: Verify that kubernetes version is upgraded for CP and worker nodes
-    shell: |
-            kubectl get machines -n {{NAMESPACE}} -o json |
-            jq '.items[].spec.version' | cut -f2 -d\" | sort -u
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: upgrade_k8s_version
-    failed_when: upgrade_k8s_version.stdout != "{{ UPGRADED_K8S_VERSION }}"
+    kubernetes.core.k8s_info:
+      api_version: cluster.x-k8s.io/v1alpha3
+      kind: Machine
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: machines
+    failed_when: (machines.resources | map(attribute='spec.version') | unique | length != 1) or
+                 (machines.resources | map(attribute='spec.version') | first != "{{ UPGRADED_K8S_VERSION }}")
