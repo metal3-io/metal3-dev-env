@@ -14,7 +14,8 @@
     {
       "datasources": ["docker"],
       "packageNames": ["kindest/node"],
-      "automerge": false 
+      "automerge": false,
+      "commitMessageTopic": "kindest/node"
     },    
     {
       "datasources": ["pypi"],
@@ -69,10 +70,12 @@
        "macaptain",
        "mboukhalfa",
        "namnx228",
+       "Rozzii",
        "smoshiur1237",
        "Sunnatillo",
        "wgslr",
        "Xenwar"
+       
    ],
    "reviewersSampleSize": 2
  }
