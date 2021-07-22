@@ -1,14 +1,30 @@
 ---
   - name: Power off "{{ BMH_NODE }}"
-    shell: |
-       kubectl annotate bmh "{{ BMH_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff=
+    k8s:
+      state: present
+      api_version: metal3.io/v1alpha1
+      namespace: "{{ NAMESPACE }}"
+      kind: BareMetalHost
+      name: "{{ BMH_NODE }}"
+      definition:
+        metadata:
+          annotations:
+            reboot.metal3.io/poweroff: ""
 
   - name: Wait until powered off "{{ K8S_NODE }}" becomes NotReady
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w NotReady | awk '{print $1}' | sort"
+    k8s_info:
+      api_version: v1
+      kind: nodes
+      name: "{{K8S_NODE}}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: nodes
     retries: 150
     delay: 3
-    register: not_ready_nodes
-    until: K8S_NODE in not_ready_nodes.stdout_lines
+    vars:
+      q: "[? metadata.name == '{{K8S_NODE}}' && status.conditions[? type=='Ready' && status!='True']]"
+    until:
+      - nodes is succeeded
+      - nodes.resources | json_query(q) | length > 0
 
   - pause:
       minutes: 1
@@ -25,8 +41,16 @@
     become_user: root
 
   - name: Power on "{{ BMH_NODE }}"
-    shell: |
-       kubectl annotate bmh "{{ BMH_NODE }}" -n "{{ NAMESPACE }}" reboot.metal3.io/poweroff-
+    k8s:
+      state: present
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      name: "{{ BMH_NODE }}"
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        metadata:
+          annotations:
+            reboot.metal3.io/poweroff: null
 
   - name: List only running VMs
     virt:
@@ -40,8 +64,14 @@
     become_user: root
 
   - name: Wait until powered on "{{ K8S_NODE }}" becomes Ready
-    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
-    retries: 150
-    delay: 3
-    register: ready_nodes
-    until: K8S_NODE in ready_nodes.stdout_lines
+    k8s_info:
+      api_version: v1
+      kind: nodes
+      name: "{{K8S_NODE}}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      wait: True
+      wait_condition:
+        type: Ready
+        status: True
+      wait_sleep: 3
+      wait_timeout: 450
