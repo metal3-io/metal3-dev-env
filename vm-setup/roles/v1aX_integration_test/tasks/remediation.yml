@@ -71,8 +71,8 @@
       kind: nodes
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: nodes
-    retries: 150
-    delay: 3
+    retries: 200
+    delay: 2
     vars:
       q: "[? metadata.name == '{{WORKER_NODE}}' && status.conditions[? type=='Ready' && status=='False']]"
     until:
