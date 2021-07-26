@@ -484,31 +484,33 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   kubectl create namespace metal3
 fi
 
-if [ "${CAPM3_VERSION}" != "v1alpha4" ]; then 
-  launch_baremetal_operator
-fi
-
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   patch_clusterctl
   launch_cluster_api_provider_metal3
 fi
 
-launch_ironic
-
 if [ "${CAPM3_VERSION}" != "v1alpha4" ]; then 
-  apply_bm_hosts
+  launch_baremetal_operator
 fi
 
-if [ "${EPHEMERAL_CLUSTER}" != "tilt" ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+launch_ironic
+
+if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
+  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+    BMO_NAME_PREFIX="${NAMEPREFIX}-baremetal-operator"
+  else
+    BMO_NAME_PREFIX="${NAMEPREFIX}"
+  fi
+
   if [[ "${BMO_RUN_LOCAL}" != true ]]; then
-    if ! kubectl rollout status deployment capm3-baremetal-operator-controller-manager -n capm3-system --timeout=5m; then
+    if ! kubectl rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout=5m; then
       echo "baremetal-operator-controller-manager deployment can not be rollout"
       exit 1
     fi
   else
     # There is no certificate to run validation webhook on local.
     # Thus we are deleting validatingwebhookconfiguration resource if exists to let BMO is working properly on local runs.
-    kubectl delete validatingwebhookconfiguration/capm3-baremetal-operator-validating-webhook-configuration -n capm3-system --ignore-not-found=true
+    kubectl delete validatingwebhookconfiguration/"${BMO_NAME_PREFIX}"-validating-webhook-configuration --ignore-not-found=true
   fi
   apply_bm_hosts
 fi
