@@ -1,46 +1,81 @@
+
 {
- "extends": ["config:base"],
- "baseBranches": ["master"],
- "bumpVersion": null,
- "packageRules": [
-   {
-     "depTypeList": ["devDependencies"],
-     "updateTypes": ["minor"],
-     "automerge": false
-   }
- ],
- "prHourlyLimit": 5,
- "prConcurrentLimit": 5,
- "rangeStrategy": "bump",
- "renovateFork": true,
- "includeForks": true,
- "regexManagers": [
+  "extends":[
+    "config:base"
+  ],
+  "enabled": "true",
+  "baseBranches": ["master"],
+  "packageRules": [
     {
-      "fileMatch": ["^lib/common.sh$"],
-      "matchStrings": ["MINIKUBE_VERSION:-\"(?<currentValue>.*?)\"}"],
-      "depNameTemplate": "kubernetes/minikube",
-      "datasourceTemplate": "github-releases"
+      "depTypeList": ["devDependencies"],
+      "matchUpdateTypes": ["minor"],
+      "automerge": false
     },
     {
-      "fileMatch": ["^lib/common.sh$"],
-      "matchStrings": ["KIND_VERSION:-\"(?<currentValue>.*?)\"}"],
-      "depNameTemplate": "kubernetes-sigs/kind",
-      "datasourceTemplate": "github-releases"
+      "datasources": ["docker"],
+      "packageNames": ["kindest/node"],
+      "automerge": false,
+      "commitMessageTopic": "kindest/node"
+    },    
+    {
+      "datasources": ["pypi"],
+      "packageNames": ["ansible"],
+      "automerge": false 
     }
+
   ],
-  "assignees": ["fmuyassarov", "kashifest"],
-  "assigneesSampleSize": 1,
-  "reviewers": [
-      "furkatgofurov7",
-      "jan-est",
-      "lentzi90",
-      "macaptain",
-      "mboukhalfa",
-      "namnx228",
-      "smoshiur1237",
-      "Sunnatillo",
-      "wgslr",
-      "Xenwar"
-  ],
-  "reviewersSampleSize": 2
-}
+  "prHourlyLimit": 5,
+  "prConcurrentLimit": 5,
+  "rangeStrategy": "bump",
+  "renovateFork": true,
+  "includeForks": false,
+  "stabilityDays":"5",
+  "regexManagers": [
+     {
+       "fileMatch": ["^lib/common.sh$"],
+       "matchStrings": ["KUBERNETES_VERSION:-\"(?<currentValue>.*?)\"}"],
+       "depNameTemplate": "kubernetes/kubernetes",
+       "datasourceTemplate": "github-releases"
+     },
+     {
+       "fileMatch": ["^lib/common.sh$"],
+       "matchStrings": ["MINIKUBE_VERSION:-\"(?<currentValue>.*?)\"}"],
+       "depNameTemplate": "kubernetes/minikube",
+       "datasourceTemplate": "github-releases"
+     },
+     {
+       "fileMatch": ["^lib/common.sh$"],
+       "matchStrings": ["KIND_VERSION:-\"(?<currentValue>.*?)\"}"],
+       "depNameTemplate": "kubernetes-sigs/kind",
+       "datasourceTemplate": "github-releases"
+     },
+     {
+       "fileMatch": ["^lib/common.sh$"],
+       "matchStrings": ["ANSIBLE_VERSION:-\"(?<currentValue>.*?)\"}"],
+       "depNameTemplate": "ansible",
+       "datasourceTemplate": "pypi"
+     },
+     {
+      "fileMatch": ["^lib/common.sh$"],
+      "matchStrings": ["KIND_NODE_IMAGE_VERSION:-\"(?<currentValue>.*?)\"}"],
+      "depNameTemplate": "kindest/node",
+      "datasourceTemplate": "docker"
+     }      
+   ],
+   "assignees": ["fmuyassarov","furkatgofurov7","kashifest"],
+   "assigneesSampleSize": 1,
+   "reviewers": [      
+       "jan-est",
+       "lentzi90",
+       "macaptain",
+       "mboukhalfa",
+       "namnx228",
+       "Rozzii",
+       "smoshiur1237",
+       "Sunnatillo",
+       "wgslr",
+       "Xenwar"
+       
+   ],
+   "reviewersSampleSize": 2
+ }
