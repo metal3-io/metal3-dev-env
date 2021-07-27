@@ -68,4 +68,7 @@ fi
 # Clean up any serial logs
 sudo rm -rf /var/log/libvirt/qemu/*serial0.log*
 
+# Clean up Metal3 GO packages
+rm -rf "${HOME}/go/src/github.com/metal3-io"
+
 rm -rf  "${HOME}"/.cluster-api
