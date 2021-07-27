@@ -130,7 +130,7 @@ fi
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
-FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
+FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
 CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
