@@ -37,7 +37,7 @@ assured that they are persisted.
 | VBMC_IMAGE | Container image for vbmc container | | "quay.io/metal3-io/vbmc" |
 | SUSHY_TOOLS_IMAGE | Container image for sushy-tools container | | "quay.io/metal3-io/sushy-tools" |
 | CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1alpha4", "v1alpha5" | "v1alpha5" |
-| CAPI_VERSION | Version of Cluster API | "v1alpha3" | "v1alpha3" |
+| CAPI_VERSION | Version of Cluster API | "v1alpha3", "v1alpha4" | "v1alpha4" |
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "192.168.111.249" |
 | CLUSTER_APIENDPOINT_HOST | API endpoint host for target cluster | | $CLUSTER_APIENDPOINT_IP |
 | CLUSTER_APIENDPOINT_PORT | API endpoint port for target cluster | | "6443" |
