@@ -3,6 +3,38 @@
     set_fact:
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
+  - name: Create directories for storing container logs
+    file:
+      path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
+      state: directory
+    loop:
+        - ironic-api
+        - ironic-conductor
+        - ironic-inspector
+        - dnsmasq
+        - httpd-infra
+        - mariadb
+        - ironic-endpoint-keepalived
+        - ironic-log-watch
+        - ironic-inspector-log-watch
+    when: EPHEMERAL_CLUSTER == "kind"
+
+  - name: Fetch container logs before pivoting
+    shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
+    with_items:
+        - ironic-api
+        - ironic-conductor
+        - ironic-inspector
+        - dnsmasq
+        - httpd-infra
+        - mariadb
+        - ironic-endpoint-keepalived
+        - ironic-log-watch
+        - ironic-inspector-log-watch
+    become: yes
+    become_user: root
+    when: EPHEMERAL_CLUSTER == "kind"
+
   - name: Remove ironic container from source cluster (Ephemeral Cluster is kind)
     docker_container:
       name: "{{ item }}"
