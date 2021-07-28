@@ -286,16 +286,15 @@ function update_capm3_imports(){
   make hack/tools/bin/kustomize
 
   if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+    # Render the BMO components from local repo
     ./hack/tools/bin/kustomize build "${BMOPATH}/config/default" > config/bmo/bmo-components.yaml
     sed -i -e "s#https://raw.githubusercontent.com/metal3-io/baremetal-operator/master/config/render/capm3.yaml#bmo-components.yaml#" "config/bmo/kustomization.yaml"
-  fi
-
-  # Render the IPAM components from local repo instead of using the released version
-  if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
+    # Render the IPAM components from local repo instead of using the released version
     ./hack/tools/bin/kustomize build "${IPAMPATH}/config/" > config/ipam/metal3-ipam-components.yaml
   else
     ./hack/tools/bin/kustomize build "${IPAMPATH}/config/default" > config/ipam/metal3-ipam-components.yaml
   fi
+
   sed -i -e "s#https://github.com/metal3-io/ip-address-manager/releases/download/v.*/ipam-components.yaml#metal3-ipam-components.yaml#" "config/ipam/kustomization.yaml"
   popd
 }
