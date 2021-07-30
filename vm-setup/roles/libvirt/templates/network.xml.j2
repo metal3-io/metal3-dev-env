@@ -17,7 +17,11 @@
 {% if item.forward_mode is defined %}
   <forward mode='{{ item.forward_mode }}'>
   {% if item.forward_mode == 'nat' %}
+    {% if item.enable_natv6 is defined and (item.enable_natv6 | bool) %}
+    <nat ipv6='yes'>
+    {% else %}
     <nat>
+    {% endif %}
       <port start='{{ nat_port_range[0] }}' end='{{ nat_port_range[1] }}' />
     </nat>
   {% endif %}
