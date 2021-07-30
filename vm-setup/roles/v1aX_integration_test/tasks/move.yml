@@ -75,15 +75,6 @@
       namespace: "{{ NAMESPACE }}"
     register: metal3_kubeconfig
 
-    # Install BMO
-  - name: Install Baremetal Operator
-    shell: "{{ BMOPATH }}/tools/deploy.sh true false {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
-    environment:
-      IRONIC_HOST: "{{ IRONIC_HOST }}"
-      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
-    when: CAPM3_VERSION == "v1alpha5"
-
   - name: Decode and save cluster kubeconfig
     copy:
       content: "{{ metal3_kubeconfig.resources[0].data.value | b64decode }}"
@@ -118,6 +109,15 @@
     delay: 20
     until: (target_running_pods is succeeded) and
            (target_running_pods.resources | length == 0)
+
+  # Install BMO
+  - name: Install Baremetal Operator
+    shell: "{{ BMOPATH }}/tools/deploy.sh true false {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
+    environment:
+      IRONIC_HOST: "{{ IRONIC_HOST }}"
+      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+    when: CAPM3_VERSION == "v1alpha5"
 
   # Install Ironic
   - name: Install Ironic
