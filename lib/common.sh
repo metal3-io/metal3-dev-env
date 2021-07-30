@@ -423,7 +423,7 @@ function init_minikube() {
         if [[ $minikube_error -eq 0 ]]; then
           break
         fi
-        sudo su -l -c 'minikube delete' "${USER}"
+        sudo su -l -c 'minikube delete --all --purge' "${USER}"
       done
       sudo su -l -c "minikube stop" "$USER"
     fi
