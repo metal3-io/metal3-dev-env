@@ -36,7 +36,6 @@ kubectl delete -f "${WORKING_DIR}/bmhosts_crs.yaml" -n "${NAMESPACE}" --timeout 
 popd || exit
 
 declare -a OBJECTS=("cluster" \
-"baremetalhost" \
 "kubeadmconfig" \
 "kubeadmcontrolplane" \
 "machines" \
