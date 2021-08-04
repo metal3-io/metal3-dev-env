@@ -1,7 +1,4 @@
 #!/bin/bash
 
-export KUBERNETES_VERSION="v1.21.1"
-export UPGRADED_K8S_VERSION="v1.21.2"
-
 export NUM_OF_MASTER_REPLICAS="3"
 export NUM_OF_WORKER_REPLICAS="1"
