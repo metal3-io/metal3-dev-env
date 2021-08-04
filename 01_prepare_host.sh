@@ -176,6 +176,7 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
   sudo "${CONTAINER_RUNTIME}" pull "${IMAGE}"
  done
 
+export IPA_BASEURI="https://images.rdoproject.org/centos8/master/rdo_trunk/a0c4145047abba3d94f4975991d3a2e2"
 # Start image downloader container
 #shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --name ipa-downloader ${POD_NAME} \

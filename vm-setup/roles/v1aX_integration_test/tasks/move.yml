@@ -110,6 +110,12 @@
     until: (target_running_pods is succeeded) and
            (target_running_pods.resources | length == 0)
 
+  - name: read the dynamic file
+    shell: "cat {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+
+  - name: read the static file
+    shell: "cat {{ IRONIC_DATA_DIR }}/ironic_bmo_configmap.env"
+
   # Install BMO
   - name: Install Baremetal Operator
     shell: "{{ BMOPATH }}/tools/deploy.sh true false {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
@@ -127,8 +133,13 @@
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
 
-  - name: Reinstate Ironic Configmap
-    shell: "mv {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+  - name: read the dynamic file
+    shell: "cat {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+
+  - name: read the static file
+    shell: "cat {{ IRONIC_DATA_DIR }}/ironic_bmo_configmap.env"
+  # - name: Reinstate Ironic Configmap
+  #   shell: "mv {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
 
   - name: Label BMO CRDs in target cluster.
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "

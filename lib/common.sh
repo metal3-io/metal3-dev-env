@@ -92,7 +92,6 @@ FILESYSTEM=${FILESYSTEM:="/"}
 #
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
-
 export CAPI_VERSION="${CAPI_VERSION:-"v1alpha4"}"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha5"}"
 CAPM3_VERSION_LIST="v1alpha4 v1alpha5"
@@ -160,7 +159,7 @@ export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"quay.io/metal3-io/sushy-tools"}
 # Ironic vars
 export IRONIC_TLS_SETUP=${IRONIC_TLS_SETUP:-"true"}
 export IRONIC_BASIC_AUTH=${IRONIC_BASIC_AUTH:-"true"}
-export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"quay.io/metal3-io/ironic-ipa-downloader"}
+export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"fmuyassarov/ipa-downloader:v4"}
 export IRONIC_IMAGE=${IRONIC_IMAGE:-"quay.io/metal3-io/ironic"}
 export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"quay.io/metal3-io/ironic-client"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
