@@ -8,41 +8,52 @@
     become_user: root
 
   - name: Wait until "{{ NUM_NODES }}" bmhs become ready.
-    shell: |
-        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.provisioning.state == "ready")
-        | .metadata.name ] | length'
-    register: ready_bmhs
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 150
     delay: 10
-    until: ready_bmhs.stdout == NUM_NODES
-
-  - name: Get a list of all BareMetalHosts
-    shell: | 
-        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | .metadata.name ]'
-    register: bmh_list
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("ready") | length == (NUM_NODES | int)
 
   - name: Request inspection for hosts via API
-    shell: kubectl annotate bmh "{{ item }}" -n {{ NAMESPACE }} inspect.metal3.io=
-    loop: "{{ bmh_list.stdout }}"
+    k8s:
+      state: present
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ item }}"
+          annotations:
+            inspect.metal3.io: ""
+    loop: "{{ bmhs.resources | filter_provisioning('ready') | map(attribute='metadata.name') }}"
 
   - name: Wait until "{{ NUM_NODES }}" bmhs are in inspecting or inspect wait state.
-    shell: |
-        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.provisioning.state == "inspecting" or .status.provisioning.state == "inspect wait")
-        | .metadata.name ] | length'
-    register: inspecting_bmhs
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 150
     delay: 10
-    until: inspecting_bmhs.stdout == NUM_NODES
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("inspecting") |
+        union(bmhs.resources | filter_provisioning("inspect wait")) |
+        length == (NUM_NODES | int)
 
   - name: Wait until "{{ NUM_NODES }}" bmhs become ready again.
-    shell: |
-        kubectl get bmh -n {{ NAMESPACE }} -o json | jq -r '[ .items[]
-        | select (.status.provisioning.state == "ready")
-        | .metadata.name ] | length'
-    register: ready_bmhs
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: bmhs
     retries: 150
     delay: 10
-    until: ready_bmhs.stdout == NUM_NODES
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("ready") | length == (NUM_NODES | int)

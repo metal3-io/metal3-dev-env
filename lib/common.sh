@@ -93,8 +93,8 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
 
-export CAPI_VERSION="${CAPI_VERSION:-"v1alpha3"}"
-export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha4"}"
+export CAPI_VERSION="${CAPI_VERSION:-"v1alpha4"}"
+export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha5"}"
 CAPM3_VERSION_LIST="v1alpha4 v1alpha5"
 if ! echo "${CAPM3_VERSION_LIST}" | grep -wq "${CAPM3_VERSION}"; then
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
@@ -130,7 +130,7 @@ fi
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-master}"
-FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
+FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
 CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
@@ -166,7 +166,15 @@ export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"quay.io/metal3-io/ironic-clie
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"quay.io/metal3-io/keepalived"}
-export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
+
+if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
+  export NAMEPREFIX=${NAMEPREFIX:-"capm3"}
+else
+  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
+  export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
+fi
+
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
 
@@ -176,15 +184,14 @@ export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"quay.io/metal3-io/b
 # Config for OpenStack CLI
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
-# CAPM3 controller image
+# CAPM3 and IPAM controller images
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:release-0.4"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:release-0.0"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:master"}
 fi
-
-# IPAM controller image
-export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:master"}
 
 # Default hosts memory
 export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-4096}
@@ -210,13 +217,13 @@ export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v4.1.3"}
 
 # Kind version (if EPHEMERAL_CLUSTER=kind)
 export KIND_VERSION=${KIND_VERSION:-"v0.11.1"}
-export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.21.1"}
+export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.21.2"}
 
 # Minikube version (if EPHEMERAL_CLUSTER=minikube)
 export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.22.0"}
 
 # Ansible version
-export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.0.0"}
+export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.3.0"}
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
@@ -406,13 +413,19 @@ differs(){
 function init_minikube() {
     #If the vm exists, it has already been initialized
     if [[ "$(sudo virsh list --name --all)" != *"minikube"* ]]; then
-      # Restart libvirtd.service as suggested here
-      # https://github.com/kubernetes/minikube/issues/3566
-      sudo systemctl restart libvirtd.service
-      # Even if it fails to start minikube here, lets ignore the error
-      # It will be retried again in 03 script
-      sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "$USER" || true
-      sudo su -l -c "minikube stop" "$USER" || true
+      # Loop to ignore minikube issues
+      while /bin/true; do
+        minikube_error=0
+        # Restart libvirtd.service as suggested here 
+        # https://github.com/kubernetes/minikube/issues/3566
+        sudo systemctl restart libvirtd.service
+        sudo su -l -c "minikube start --insecure-registry ${REGISTRY}"  "${USER}" || minikube_error=1
+        if [[ $minikube_error -eq 0 ]]; then
+          break
+        fi
+        sudo su -l -c 'minikube delete' "${USER}"
+      done
+      sudo su -l -c "minikube stop" "$USER"
     fi
 
     MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"

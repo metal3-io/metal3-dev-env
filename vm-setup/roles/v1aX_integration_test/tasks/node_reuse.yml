@@ -5,44 +5,58 @@
       NUMBER_OF_ALL_BMH: "{{ NUM_OF_WORKER_REPLICAS|int + NUM_OF_MASTER_REPLICAS|int }}"
 
   - name: Scale worker down to 0 to start testing KubeadmControlPlane node reuse test scenario.
-    shell: |
-        kubectl scale machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=0
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          replicas: 0
 
   - name: Wait until worker is scaled down and "{{ NUMBER_OF_BMH_MD }}" BMH is Ready.
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: saved_bmhs
     retries: 200
     delay: 20
-    register: ready_hosts
-    until: ready_hosts.stdout == NUMBER_OF_BMH_MD
+    until:
+      - saved_bmhs is succeeded
+      - saved_bmhs.resources | filter_provisioning("ready") | length == (NUMBER_OF_BMH_MD | int)
 
   - name: Get provisioned BMH names and UUIDs mapping before upgrade in KubeadmControlPlane node reuse test scenario.
-    shell: |
-        kubectl get bmh -A -o json | jq '.items[]| select (.status.provisioning.state == "provisioned")
-        | "metal3/"+.metadata.name+"="+"metal3://"+.metadata.uid' | cut -f2 -d\" | sort > /tmp/before_upgrade_mapping.txt
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
-  - name: Update maxSurge field in KubeadmControlPlane to 0 to start testing KCP scale-in feature. 
-    shell: |
-        kubectl patch -n "{{ NAMESPACE }}" kubeadmcontrolplane "{{ CLUSTER_NAME }}" --type=merge -p '{"spec": {"rolloutStrategy": {"rollingUpdate": {"maxSurge": 0}}}}'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    set_fact:
+      bmh_before_upgrade_kcp: "{{ bmh_before_upgrade_kcp | default([]) + ['metal3/' + item.metadata.name + '=metal3://' + item.metadata.uid] }}"
+    with_items: "{{ saved_bmhs.resources | filter_provisioning('provisioned') }}"
 
   - name: Update Metal3MachineTemplate nodeReuse field to 'True'.
-    shell: |
-        kubectl get m3mt "{{ CLUSTER_NAME }}"-controlplane -n "{{ NAMESPACE }}" -ojson | jq '.spec.nodeReuse=true' | kubectl apply -f-
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3MachineTemplate
+      name: "{{ CLUSTER_NAME }}-controlplane"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          nodeReuse: true
 
   - name: Upgrade KubeadmControlPlane k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_K8S_VERSION }}" to test KCP scale-in feature.
-    shell: |
-        kubectl get kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.version="{{ UPGRADED_K8S_VERSION }}"' | kubectl apply -f-
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: KubeadmControlPlane
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          version: "{{ UPGRADED_K8S_VERSION }}"
+          rolloutStrategy:
+            rollingUpdate:
+              maxSurge: 0
 
   - pause:
       minutes: 1
@@ -66,45 +80,47 @@
     failed_when: provisioning_machine.stdout != "0"
 
   - name: Wait until "{{ NUMBER_OF_BMH_MD }}" BMH is in deprovisioning state.
-    shell: |
-        kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[]
-        | select (.status.provisioning.state == "deprovisioning")
-        | .metadata.name ] | length'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: bmh_in_deprovisioning
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: saved_bmhs
     retries: 150
     delay: 10
-    until: bmh_in_deprovisioning.stdout == NUMBER_OF_BMH_MD
+    until:
+      - saved_bmhs is succeeded
+      - saved_bmhs.resources | filter_provisioning("deprovisioning") | length == (NUMBER_OF_BMH_MD | int)
 
-  - name: Get the name of the deprovisioning BMH.
-    shell: |
-        kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[]
-        | select (.status.provisioning.state == "deprovisioning")
-        | .metadata.name ] | add'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: deprovisioning_bmh_name
-
-  - name: Wait until above deprovisioning BMH is in Ready state again.
-    shell: |
-        kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | awk '{print $1}'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: ready_bmh
+  - name: Wait until above deprovisioning BMHs are in Ready state again.
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmhs
     retries: 200
     delay: 2
-    until: deprovisioning_bmh_name.stdout in ready_bmh.stdout_lines
+    until:
+      - bmhs is succeeded
+      - (saved_bmhs.resources | filter_provisioning("deprovisioning") | map(attribute='metadata.name')) |
+        intersect(bmhs.resources | filter_provisioning("ready") | map(attribute='metadata.name')) |
+        length ==  (NUMBER_OF_BMH_MD | int)
 
   - name: Check if just deprovisioned and became ready BMH is re-used for next provisioning.
-    shell: |
-        kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioning | awk '{print $1}'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: provisioning_bmh
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmhs
     retries: 150
     delay: 2
-    until: deprovisioning_bmh_name.stdout in provisioning_bmh.stdout_lines
+    until:
+      - bmhs is succeeded
+      - (saved_bmhs.resources | filter_provisioning("deprovisioning") | map(attribute='metadata.name')) |
+        intersect(bmhs.resources | filter_provisioning("provisioning") | map(attribute='metadata.name')) |
+        length == (NUMBER_OF_BMH_MD | int)
 
   - name: Wait until two machines become running and updated with new "{{ UPGRADED_K8S_VERSION }}" k8s version.
     shell: |
@@ -128,48 +144,61 @@
     ignore_errors: yes
 
   - name: Wait until all "{{ NUMBER_OF_BMH_KCP }}" machines become running and updated with new "{{ UPGRADED_K8S_VERSION }}" k8s version.
-    shell: |
-        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.phase' | grep -c "Running"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: updated_machines_all
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: machines
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: machines
     retries: 200
     delay: 20
     ignore_errors: yes
-    until: updated_machines_all.stdout|int == 3
+    until:
+      - machines is succeeded
+      - machines.resources | filter_phase("running") | selectattr('spec.version', 'match', UPGRADED_K8S_VERSION) | length == (NUMBER_OF_BMH_KCP | int)
+
+  - name: Get BMHs after upgrade in KubeadmControlPlane node reuse test scenario.
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: saved_bmhs
 
   - name: Get provisioned BMH names and UUIDs mapping after upgrade in KubeadmControlPlane node reuse test scenario.
-    shell: |
-        kubectl get bmh -A -o json | jq '.items[]| select (.status.provisioning.state == "provisioned")
-        | "metal3/"+.metadata.name+"="+"metal3://"+.metadata.uid' | cut -f2 -d\" | sort > /tmp/after_upgrade_mapping.txt
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    set_fact:
+      bmh_after_upgrade_kcp: "{{ bmh_after_upgrade_kcp | default([]) + ['metal3/' + item.metadata.name + '=metal3://' + item.metadata.uid] }}"
+    with_items: "{{ saved_bmhs.resources | filter_provisioning('provisioned') }}"
 
   - name: Check diff of before and after upgrade mappings to make sure same BMHs' were reused in KubeadmControlPlane node reuse test scenario.
-    shell: |
-        diff /tmp/before_upgrade_mapping.txt /tmp/after_upgrade_mapping.txt
-    register: diff_mapping
-    failed_when: diff_mapping.rc == 1
-
-  - name: Finish KubeadmControlPlane node reuse test scenario and remove all related temp files.
-    ansible.builtin.file:
-      path: "{{ item }}"
-      state: absent
-    with_items:
-      - /tmp/before_upgrade_mapping.txt
-      - /tmp/after_upgrade_mapping.txt
+    ansible.utils.fact_diff:
+      before: "{{ bmh_before_upgrade_kcp }}"
+      after: "{{ bmh_after_upgrade_kcp }}"
+    register: diff_result
+    failed_when: diff_result.changed
 
   - name: Put maxSurge field in KubeadmControlPlane back to default value(1).
-    shell: |
-        kubectl patch -n "{{ NAMESPACE }}" kubeadmcontrolplane "{{ CLUSTER_NAME }}" --type=merge -p '{"spec": {"rolloutStrategy": {"rollingUpdate": {"maxSurge": 1}}}}'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: KubeadmControlPlane
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          rolloutStrategy:
+            rollingUpdate:
+              maxSurge: 1
 
   - name: Scale controlplane down to 1.
-    shell: |
-        kubectl scale kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=1
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: KubeadmControlPlane
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          replicas: 1
 
   - pause:
       minutes: 5
@@ -182,175 +211,247 @@
     ignore_errors: yes
 
   - name: Wait until controlplane is scaled down and "{{ NUMBER_OF_BMH_KCP }}" BMHs' are Ready.
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmhs
     retries: 200
     delay: 20
-    register: all_ready_hosts
-    until: all_ready_hosts.stdout == "3"
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("ready") | length == (NUMBER_OF_BMH_KCP | int)
 
   - name: Scale worker up to "{{ NUMBER_OF_BMH_MD }}" to start testing MachineDeployment node reuse test scenario.
-    shell: |
-        kubectl scale machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=1
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          replicas: 1
 
   - name: Wait until "{{ NUMBER_OF_BMH_MD }}" more BMH is provisioned.
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmhs
     retries: 200
     delay: 20
-    register: provisioned_host
-    until: provisioned_host.stdout == "2"
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("provisioned") | length == 2
 
   - name: Wait until "{{ NUMBER_OF_BMH_MD }}" more machine becomes running.
-    shell: |
-        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | .status.phase' | grep -c "Running"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: provisioned_machine
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: machines
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: machines
     retries: 200
     delay: 20
-    until: provisioned_machine.stdout|int == 2
+    until:
+      - machines is succeeded
+      - machines.resources | filter_phase("running") | length == 2
+
+  - name: Get BMHs before upgrade in MachineDeployment node reuse test scenario.
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: saved_bmhs
 
   - name: Get provisioned BMH names and UUIDs mapping before upgrade in MachineDeployment node reuse test scenario.
-    shell: |
-        kubectl get bmh -A -o json | jq '.items[]| select (.status.provisioning.state == "provisioned")
-        | "metal3/"+.metadata.name+"="+"metal3://"+.metadata.uid' | cut -f2 -d\" | sort > /tmp/before_upgrade_mapping_md.txt
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    set_fact:
+      bmh_before_upgrade_md: "{{ bmh_before_upgrade_md | default([]) + ['metal3/' + item.metadata.name + '=metal3://' + item.metadata.uid] }}"
+    with_items: "{{ saved_bmhs.resources | filter_provisioning('provisioned') }}"
 
-  - name: Update maxSurge and maxUnavailable fields in MachineDeployment.
-    shell: |
-        kubectl patch -n "{{ NAMESPACE }}" machinedeployment "{{ CLUSTER_NAME }}" --type=merge -p '{"spec": {"strategy": {"rollingUpdate": {"maxSurge": 0,"maxUnavailable": 1}}}}'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  - name: Update fields maxSurge to 0 and maxUnavailable to 1 in MachineDeployment.
+    k8s:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          strategy:
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
 
   - name: Update Metal3MachineTemplate nodeReuse field to 'True'.
-    shell: |
-        kubectl get m3mt "{{ CLUSTER_NAME }}"-workers -n "{{ NAMESPACE }}" -ojson | jq '.spec.nodeReuse=true' | kubectl apply -f-
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3MachineTemplate
+      name: "{{ CLUSTER_NAME }}-workers"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          nodeReuse: True
 
-  - name: List only ready BMHs'.
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[] | select (.status.provisioning.state == "ready") | .metadata.name ]'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: ready_bmhs
+  - name: List BMHs'.
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmhs
 
   - name: Mark all ready BMHs' with unhealthy annotation.
-    shell: |
-        kubectl annotate bmh "{{ item }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy=
-    loop: "{{ ready_bmhs.stdout }}"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      state: present
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ item }}"
+          annotations:
+            capi.metal3.io/unhealthy: ""
+    loop: "{{ bmhs.resources | filter_provisioning('ready') | map(attribute='metadata.name') }}"
 
   - name: Upgrade MachineDeployment k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_K8S_VERSION }}".
-    shell: |
-        kubectl get machinedeployment "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" -o json | jq '.spec.template.spec.version="{{ UPGRADED_K8S_VERSION }}"' | kubectl apply -f-
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          template:
+            spec:
+              version: "{{ UPGRADED_K8S_VERSION }}"
 
   - name: Wait until "{{ NUMBER_OF_BMH_MD }}" BMH is in deprovisioning state.
-    shell: |
-        kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[] | select (.status.provisioning.state == "deprovisioning") | .metadata.name ] | length'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: bmh_in_deprovisioning
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: saved_bmhs
     retries: 150
     delay: 10
-    until: bmh_in_deprovisioning.stdout == NUMBER_OF_BMH_MD
-
-  - name: Get the name of the deprovisioning BMH.
-    shell: |
-        kubectl get bmh -n "{{ NAMESPACE }}" -o json | jq -r '[ .items[]
-        | select (.status.provisioning.state == "deprovisioning")
-        | .metadata.name ] | add'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: deprovisioning_bmh_name
+    until: saved_bmhs.resources | filter_provisioning("deprovisioning") | length == (NUMBER_OF_BMH_MD | int)
 
   - name: Wait until above deprovisioning BMH is in Ready state again.
-    shell: |
-        kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | awk '{print $1}'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: ready_bmh
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmhs
     retries: 200
     delay: 2
-    until: deprovisioning_bmh_name.stdout in ready_bmh.stdout_lines
+    until:
+      - bmhs is succeeded
+      - (saved_bmhs.resources | filter_provisioning("deprovisioning") | map(attribute='metadata.name')) |
+        intersect(bmhs.resources | filter_provisioning("ready") | map(attribute='metadata.name')) |
+        length == (NUMBER_OF_BMH_MD | int)
 
   - name: Unmark all ready BMHs' with unhealthy annotation.
-    shell: |
-        kubectl annotate bmh "{{ item }}" -n "{{ NAMESPACE }}" capi.metal3.io/unhealthy-
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    loop: "{{ ready_bmhs.stdout }}"
+    k8s:
+      state: present
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      namespace: "{{ NAMESPACE }}"
+      definition:
+        apiVersion: metal3.io/v1alpha1
+        kind: BareMetalHost
+        metadata:
+          name: "{{ item }}"
+          annotations:
+            capi.metal3.io/unhealthy: null
+    loop: "{{ saved_bmhs.resources | map(attribute='metadata.name') }}"
 
   - name: Check if just deprovisioned and became ready BMH is re-used for next provisioning.
-    shell: |
-        kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioning | awk '{print $1}'
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: provisioning_bmh
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmhs
     retries: 200
     delay: 2
-    until: deprovisioning_bmh_name.stdout in provisioning_bmh.stdout_lines
+    until:
+      - bmhs is succeeded
+      - (saved_bmhs.resources | filter_provisioning("deprovisioning") | map(attribute='metadata.name')) |
+        intersect(bmhs.resources | filter_provisioning("provisioning") | map(attribute='metadata.name')) |
+        length == (NUMBER_OF_BMH_MD | int)
 
   - name: Wait until worker machine becomes running and updated with new "{{ UPGRADED_K8S_VERSION }}" k8s version.
-    shell: |
-        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.phase' | grep -c "Running"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: updated_machines
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: machines
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: machines
     retries: 200
     delay: 20
-    until: updated_machines.stdout|int == 2
+    until:
+      - machines is succeeded
+      - machines.resources | filter_phase("running") | selectattr('spec.version', 'match', UPGRADED_K8S_VERSION) | length == 2
+
+  - name: Get BMHs after upgrade in MachineDeployment node reuse test scenario.
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: saved_bmhs
 
   - name: Get provisioned BMH names and UUIDs mapping after upgrade in MachineDeployment node reuse test scenario.
-    shell: |
-        kubectl get bmh -A -o json | jq '.items[]| select (.status.provisioning.state == "provisioned")
-        | "metal3/"+.metadata.name+"="+"metal3://"+.metadata.uid' | cut -f2 -d\" | sort > /tmp/after_upgrade_mapping_md.txt
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    set_fact:
+      bmh_after_upgrade_md: "{{ bmh_after_upgrade_md | default([]) + ['metal3/' + item.metadata.name + '=metal3://' + item.metadata.uid] }}"
+    with_items: "{{ saved_bmhs.resources | filter_provisioning('provisioned') }}"
 
   - name: Check diff of before and after upgrade mapping to make sure same BMH reused in MachineDeployment node reuse test scenario.
-    shell: |
-        diff /tmp/before_upgrade_mapping_md.txt /tmp/after_upgrade_mapping_md.txt
-    register: diff_mapping
-    failed_when: diff_mapping.rc == 1
-
-  - name: Finish MachineDeployment node reuse test scenario and remove all related temp files.
-    ansible.builtin.file:
-      path: "{{ item }}"
-      state: absent
-    with_items:
-      - /tmp/before_upgrade_mapping_md.txt
-      - /tmp/after_upgrade_mapping_md.txt
+    ansible.utils.fact_diff:
+      before: "{{ bmh_before_upgrade_md }}"
+      after: "{{ bmh_after_upgrade_md }}"
+    register: diff_result
+    failed_when: diff_result.changed
 
   - name: Scale controlplane up back to 3.
-    shell: |
-        kubectl scale kubeadmcontrolplane "{{ CLUSTER_NAME }}" -n "{{ NAMESPACE }}" --replicas=3
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s:
+      api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: KubeadmControlPlane
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          replicas: 3
 
   - name: Wait until all "{{ NUMBER_OF_ALL_BMH }}" BMHs' are provisioned.
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w provisioned | wc -l
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: bmhs
     retries: 200
     delay: 20
-    register: provisioned_host
-    until: provisioned_host.stdout == "4"
+    until:
+      - bmhs is succeeded
+      - bmhs.resources | filter_provisioning("provisioned") | length == (NUMBER_OF_ALL_BMH | int)
 
   - name: Wait until all "{{ NUMBER_OF_ALL_BMH }}" machines become running.
-    shell: |
-        kubectl get machines -n "{{ NAMESPACE }}" -o json | jq -r '.items[] | select (.status.phase == "Running") | .status.phase' | grep -c "Running"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: running_machines
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: machines
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: machines
     retries: 200
     delay: 20
-    until: running_machines.stdout|int == 4
+    until:
+      - machines is succeeded
+      - machines.resources | filter_phase("running") | length == (NUMBER_OF_ALL_BMH | int)

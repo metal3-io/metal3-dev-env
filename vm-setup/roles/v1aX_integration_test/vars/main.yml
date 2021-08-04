@@ -2,7 +2,8 @@
 # Ansible playbook related variables
 HOME: "{{ lookup('env', 'HOME') }}"
 NAMESPACE: "{{ lookup('env', 'NAMESPACE') | default('metal3', true) }}"
-IRONIC_NAMESPACE: "{{ lookup('env', 'IRONIC_NAMESPACE') | default('capm3-system', true) }}"
+IRONIC_NAMESPACE: "{{ lookup('env', 'IRONIC_NAMESPACE') | default('baremetal-operator-system', true) }}"
+NAMEPREFIX: "{{ lookup('env', 'NAMEPREFIX') | default('baremetal-operator', true) }}"
 CRS_PATH: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/templates"
 TEMP_GEN_DIR: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/files/manifests"
 MANIFESTS_DIR: "{{ metal3_dir }}/vm-setup/roles/v1aX_integration_test/files"
@@ -48,7 +49,7 @@ IRONIC_INSPECTOR_URL: "{{ lookup('env', 'IRONIC_INSPECTOR_URL') }}"
 POD_CIDR: "{{ lookup('env', 'POD_CIDR') }}"
 SERVICE_CIDR: "10.96.0.0/12"
 CAPM3RELEASE: "{{ lookup('env', 'CAPM3RELEASE') | default('v0.3.1', true) }}"
-CAPIRELEASE: "{{ lookup('env', 'CAPIRELEASE') | default('v0.3.0', true) }}"
+CAPIRELEASE: "{{ lookup('env', 'CAPIRELEASE') | default('v0.4.0', true) }}"
 SSH_PRIVATE_KEY: "{{ lookup('env', 'SSH_KEY') }}"
 SSH_PUB_KEY_CONTENT: "{{ lookup('file', '{{ HOME }}/.ssh/id_rsa.pub') }}"
 IMAGE_USERNAME: "{{ lookup('env', 'IMAGE_USERNAME') | default('metal3', true)}}"
@@ -58,7 +59,7 @@ REGISTRY: "{{ lookup('env', 'REGISTRY') | default('192.168.111.1:5000', true)}}"
 IMAGE_OS: "{{ lookup('env', 'IMAGE_OS') | default('Centos', true)}}"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') | default('podman', true)}}"
 DEFAULT_HOSTS_MEMORY: "{{ lookup('env', 'DEFAULT_HOSTS_MEMORY') | default('4096', true)}}"
-CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha3', true)}}"
+CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha4', true)}}"
 CAPM3_VERSION: "{{ lookup('env', 'CAPM3_VERSION') | default('v1alpha5', true)}}"
 IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images')}}"
 IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning', true)}}"
@@ -90,11 +91,6 @@ CAPM3PATH: "{{M3PATH}}/cluster-api-provider-metal3"
 
 CAPM3_REL_TO_VERSION: "{{ lookup('env', 'CAPM3_REL_TO_VERSION') }}"
 CAPI_REL_TO_VERSION: "{{ lookup('env', 'CAPI_REL_TO_VERSION') }}"
-CAPM3_API_VERSION: "{{ lookup('env', 'CAPM3_API_VERSION') }}"
-CAPI_API_VERSION: "{{ lookup('env', 'CAPI_API_VERSION') }}"
-
-CAPM3RELEASE: "{{ lookup('env', 'CAPM3RELEASE') }}"
-CAPIRELEASE: "{{ lookup('env', 'CAPIRELEASE') }}"
 
 provision_cluster_actions:
     - "ci_test_provision"
@@ -134,7 +130,7 @@ verify_actions:
     - "post_pivot"
 pivot_actions:
     - "ci_test_provision"
-    - "pivoting"    
+    - "pivoting"
     - "post_pivot"
     - "upgrading"
 repivot_actions:

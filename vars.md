@@ -22,7 +22,7 @@ assured that they are persisted.
 | BMOBRANCH | Set the Baremetal Operator branch to checkout | | master |
 | CAPM3REPO | Set the Cluster Api Metal3 provider repository to clone | | https://github.com/metal3-io/cluster-api-provider-metal3.git |
 | CAPM3BRANCH | Set the Cluster Api Metal3 provider branch to checkout | | master |
-| FORCE_REPO_UPDATE | Force deletion of the BMO and CAPM3 repositories before cloning them again | "true", "false" | "false" |
+| FORCE_REPO_UPDATE | Force deletion of the BMO, CAPM3 and IPAM repositories before cloning them again | "true", "false" | "true" |
 | BMO_RUN_LOCAL | Run a local baremetal operator instead of deploying in Kubernetes | "true", "false" | "false" |
 | CAPM3_RUN_LOCAL | Run a local CAPM3 operator instead of deploying in Kubernetes | "true", "false" | "false" |
 | SKIP_RETRIES | Do not retry on failure during verifications or tests of the environment. This should be false. It could only be set to false for verifications of a dev env deployment that fully completed. Otherwise failures will appear as resources are not ready. | "true", "false" | "false" |
@@ -37,7 +37,7 @@ assured that they are persisted.
 | VBMC_IMAGE | Container image for vbmc container | | "quay.io/metal3-io/vbmc" |
 | SUSHY_TOOLS_IMAGE | Container image for sushy-tools container | | "quay.io/metal3-io/sushy-tools" |
 | CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1alpha4", "v1alpha5" | "v1alpha5" |
-| CAPI_VERSION | Version of Cluster API | "v1alpha3" | "v1alpha3" |
+| CAPI_VERSION | Version of Cluster API | "v1alpha3", "v1alpha4" | "v1alpha4" |
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "192.168.111.249" |
 | CLUSTER_APIENDPOINT_HOST | API endpoint host for target cluster | | $CLUSTER_APIENDPOINT_IP |
 | CLUSTER_APIENDPOINT_PORT | API endpoint port for target cluster | | "6443" |

@@ -3,6 +3,38 @@
     set_fact:
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
+  - name: Create directories for storing container logs
+    file:
+      path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
+      state: directory
+    loop:
+        - ironic-api
+        - ironic-conductor
+        - ironic-inspector
+        - dnsmasq
+        - httpd-infra
+        - mariadb
+        - ironic-endpoint-keepalived
+        - ironic-log-watch
+        - ironic-inspector-log-watch
+    when: EPHEMERAL_CLUSTER == "kind"
+
+  - name: Fetch container logs before pivoting
+    shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
+    with_items:
+        - ironic-api
+        - ironic-conductor
+        - ironic-inspector
+        - dnsmasq
+        - httpd-infra
+        - mariadb
+        - ironic-endpoint-keepalived
+        - ironic-log-watch
+        - ironic-inspector-log-watch
+    become: yes
+    become_user: root
+    when: EPHEMERAL_CLUSTER == "kind"
+
   - name: Remove ironic container from source cluster (Ephemeral Cluster is kind)
     docker_container:
       name: "{{ item }}"
@@ -23,12 +55,19 @@
 
   - name: Remove Ironic from source cluster (Ephemeral Cluster is minikube)
     kubernetes.core.k8s:
-      name: capm3-ironic
+      name: "{{ NAMEPREFIX }}-ironic"
       kind: Deployment
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
     when: EPHEMERAL_CLUSTER == "minikube"
 
+  - name: Label BMO CRDs.
+    shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
+    with_items:
+       - clusterctl.cluster.x-k8s.io=""
+       - cluster.x-k8s.io/provider="metal3"
+    when: CAPM3_VERSION == "v1alpha5"
+       
   - name: Obtain target cluster kubeconfig
     kubernetes.core.k8s_info:
       kind: secrets
@@ -71,6 +110,15 @@
     until: (target_running_pods is succeeded) and
            (target_running_pods.resources | length == 0)
 
+  # Install BMO
+  - name: Install Baremetal Operator
+    shell: "{{ BMOPATH }}/tools/deploy.sh true false {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
+    environment:
+      IRONIC_HOST: "{{ IRONIC_HOST }}"
+      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+    when: CAPM3_VERSION == "v1alpha5"
+
   # Install Ironic
   - name: Install Ironic
     shell: "{{ BMOPATH }}/tools/deploy.sh false true {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
@@ -81,6 +129,13 @@
 
   - name: Reinstate Ironic Configmap
     shell: "mv {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+
+  - name: Label BMO CRDs in target cluster.
+    shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
+    with_items:
+      - clusterctl.cluster.x-k8s.io=""
+      - cluster.x-k8s.io/provider="metal3"
+    when: CAPM3_VERSION == "v1alpha5"
 
   # Check for pods & nodes on the target cluster
   - name: Check if pods in running state
@@ -100,7 +155,7 @@
 
   - name: Check if machines become running.
     kubernetes.core.k8s_info:
-      api_version: cluster.x-k8s.io/v1alpha3
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: machines
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: provisioned_machines
