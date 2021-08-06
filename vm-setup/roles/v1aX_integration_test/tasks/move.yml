@@ -44,7 +44,6 @@
        - ironic-conductor
        - ironic-inspector
        - dnsmasq
-       - httpd
        - mariadb
        - ironic-endpoint-keepalived
        - ironic-log-watch
