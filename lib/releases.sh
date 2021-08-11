@@ -41,7 +41,7 @@ fi
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.4.")}"
 else
-  export CAPM3RELEASE="v0.5.0"
+  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.5.")}"
 fi
 
 # On first iteration, jq might not be installed
