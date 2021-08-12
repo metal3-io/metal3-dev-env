@@ -95,6 +95,7 @@ function launch_baremetal_operator() {
   # Deploy BMO using deploy.sh script
 
   # Update container images to use local ones
+  cp "${BMOPATH}/config/manager/manager.yaml" "${BMOPATH}/config/manager/manager.yaml.orig"
   update_kustomization_images "${BMOPATH}/config/manager/manager.yaml"
 
   # Update Configmap parameters with correct urls
