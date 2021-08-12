@@ -5,7 +5,7 @@
 
   - name: Update maxSurge and maxUnavailable fields
     kubernetes.core.k8s:
-      api_version: cluster.x-k8s.io/v1alpha3
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: MachineDeployment
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -25,7 +25,7 @@
 
   - name: Scale worker down to 0
     kubernetes.core.k8s:
-      api_version: cluster.x-k8s.io/v1alpha3
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: MachineDeployment
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -352,7 +352,7 @@
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
   - name: Get cluster uid
     kubernetes.core.k8s_info:
-      api_version: cluster.x-k8s.io/v1alpha3
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: Cluster
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -381,7 +381,7 @@
 
   - name: Update boot-disk and kubernetes versions of controlplane nodes
     kubernetes.core.k8s:
-      api_version: controlplane.cluster.x-k8s.io/v1alpha3
+      api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: KubeadmControlPlane
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -453,7 +453,7 @@
 
   - name: Scale worker up to 1
     kubernetes.core.k8s:
-      api_version: cluster.x-k8s.io/v1alpha3
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: MachineDeployment
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -515,7 +515,7 @@
 
   - name: Update boot-disk and kubernetes versions of worker node
     kubernetes.core.k8s:
-      api_version: cluster.x-k8s.io/v1alpha3
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: MachineDeployment
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -559,7 +559,7 @@
 
   - name: Verify that kubernetes version is upgraded for CP and worker nodes
     kubernetes.core.k8s_info:
-      api_version: cluster.x-k8s.io/v1alpha3
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: Machine
       namespace: "{{ NAMESPACE }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
