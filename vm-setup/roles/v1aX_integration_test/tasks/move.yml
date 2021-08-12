@@ -169,7 +169,7 @@
 
   - name: Check if metal3machines become ready.
     kubernetes.core.k8s_info:
-      api_version: infrastructure.cluster.x-k8s.io/v1alpha4
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
       kind: metal3machine
       namespace: "{{ NAMESPACE }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
