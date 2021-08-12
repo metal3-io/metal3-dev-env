@@ -118,6 +118,10 @@
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
     when: CAPM3_VERSION == "v1alpha5"
 
+  - name: Reinstate Baremetal Operator Manager
+    shell: "mv {{ BMOPATH }}/config/manager/manager.yaml.orig {{ BMOPATH }}/config/manager/manager.yaml"
+    when: CAPM3_VERSION == "v1alpha5"
+
   # Install Ironic
   - name: Install Ironic
     shell: "{{ BMOPATH }}/tools/deploy.sh false true {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"

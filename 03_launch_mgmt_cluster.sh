@@ -112,7 +112,6 @@ EOF
 
   # Restore original files
   mv "${BMOPATH}/config/default/ironic.env.orig" "${BMOPATH}/config/default/ironic.env"
-  mv "${BMOPATH}/config/manager/manager.yaml.orig" "${BMOPATH}/config/manager/manager.yaml"
 
   # If BMO should run locally, scale down the deployment and run BMO
   if [ "${BMO_RUN_LOCAL}" == "true" ]; then
