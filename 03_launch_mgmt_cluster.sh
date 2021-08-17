@@ -110,9 +110,6 @@ EOF
   # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
   "${BMOPATH}/tools/deploy.sh" true false "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
 
-  # Restore original files
-  mv "${BMOPATH}/config/default/ironic.env.orig" "${BMOPATH}/config/default/ironic.env"
-
   # If BMO should run locally, scale down the deployment and run BMO
   if [ "${BMO_RUN_LOCAL}" == "true" ]; then
     if [ "${IRONIC_TLS_SETUP}" == "true" ]; then

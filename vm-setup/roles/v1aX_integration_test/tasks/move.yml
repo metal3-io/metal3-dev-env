@@ -130,7 +130,11 @@
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
 
-  - name: Reinstate Ironic Configmap
+  - name: Restore original BMO Configmap
+    shell: "mv {{ BMOPATH }}/config/default/ironic.env.orig {{ BMOPATH }}/config/default/ironic.env"
+    when: CAPM3_VERSION != "v1alpha4"
+
+  - name: Restore original Ironic Configmap
     shell: "mv {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
 
   - name: Label BMO CRDs in target cluster.
