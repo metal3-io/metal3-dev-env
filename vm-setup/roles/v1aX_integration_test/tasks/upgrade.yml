@@ -422,8 +422,8 @@
     failed_when: upgraded_cp_nodes_count.stdout|int != 0
 
   - name: Get control plane machines
-    shell: kubectl get machines -n "{{ NAMESPACE }}" -l  cluster.x-k8s.io/control-plane -o json
-           | jq -r '[ .items[] | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.nodeRef.name ]'
+    shell: kubectl get machines -n "{{ NAMESPACE }}" -l  cluster.x-k8s.io/control-plane -o json |
+           jq -r '[ .items[] | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.nodeRef.name ]'
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: new_control_plane_nodes
