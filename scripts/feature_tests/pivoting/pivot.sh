@@ -2,6 +2,6 @@
 
 METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../../.."
 
-export ACTION="post_pivot"
+export ACTION="pivoting"
 
 "${METAL3_DIR}"/scripts/run.sh

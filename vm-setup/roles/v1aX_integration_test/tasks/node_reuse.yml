@@ -4,6 +4,13 @@
       NUMBER_OF_BMH_MD: "{{ NUM_OF_WORKER_REPLICAS|int }}"
       NUMBER_OF_ALL_BMH: "{{ NUM_OF_WORKER_REPLICAS|int + NUM_OF_MASTER_REPLICAS|int }}"
 
+  - name: Untaint all nodes.
+    shell: |
+        kubectl taint nodes --all node-role.kubernetes.io/master-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    ignore_errors: yes
+
   - name: Scale worker down to 0 to start testing KubeadmControlPlane node reuse test scenario.
     k8s:
       api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
