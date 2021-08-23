@@ -3,50 +3,25 @@
     set_fact:
       NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
-  - name: Update maxSurge and maxUnavailable fields
+  - name: Update MachineDeployment maxSurge and maxUnavailable fields
     kubernetes.core.k8s:
       api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: MachineDeployment
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
       resource_definition:
         spec:
           strategy:
             rollingUpdate:
               maxSurge: 1
               maxUnavailable: 1
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Untaint all nodes
     ansible.builtin.command: kubectl taint nodes --all node-role.kubernetes.io/master-
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     ignore_errors: yes
-
-  - name: Scale worker down to 0
-    kubernetes.core.k8s:
-      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
-      kind: MachineDeployment
-      name: "{{ CLUSTER_NAME }}"
-      namespace: "{{ NAMESPACE }}"
-      resource_definition:
-        spec:
-          replicas: 0
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
-  - name: Wait until worker is scaled down and one bmh is Ready
-    kubernetes.core.k8s_info:
-      api_version: metal3.io/v1alpha1
-      kind: BareMetalHost
-      namespace: "{{ NAMESPACE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    retries: 200
-    delay: 20
-    register: bare_metal_hosts
-    vars:
-      query: "[? status.provisioning.state=='ready']"
-    until: (bare_metal_hosts is succeeded) and
-           (bare_metal_hosts.resources | json_query(query) | length == 1)
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade controlplane components                                 |
@@ -496,40 +471,29 @@
     failed_when: upgraded_cp_nodes_count.stdout|int != 0
 
   - name: Get control plane machines
-    shell: | 
-            kubectl get machines -n "{{ NAMESPACE }}" -l  cluster.x-k8s.io/control-plane -o json |
+    shell: |
+            kubectl get machines -n "{{ NAMESPACE }}" -l cluster.x-k8s.io/control-plane -o json |
             jq -r '[ .items[] | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.nodeRef.name ]'
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: new_control_plane_nodes
+    failed_when: >
+      (new_control_plane_nodes.stdout == "[]") or
+      (new_control_plane_nodes.stderr != "") or
+      (new_control_plane_nodes.rc < 3)
 
-  - name: Extract the list of new node names
+  - name: Extract the new node name
     set_fact:
-      new_control_plane_nodes: "{{ new_control_plane_nodes.stdout | from_json }}"
+      new_cp_node_name: "{{ new_control_plane_nodes.stdout | from_json | first }}"
 
-  - name: Scale worker up to 1
-    kubernetes.core.k8s:
-      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
-      kind: MachineDeployment
-      name: "{{ CLUSTER_NAME }}"
-      namespace: "{{ NAMESPACE }}"
-      resource_definition:
-        spec:
-          replicas: 1
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
-  - name: Wait until worker has joined the cluster
+  - name: Register worker nodes
     kubernetes.core.k8s_info:
       api_version: v1
       kind: Node
       label_selectors:
         - "!node-role.kubernetes.io/control-plane"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    retries: 200
-    delay: 20
     register: worker_nodes
-    until: (worker_nodes is succeeded) and
-           (worker_nodes.resources | length == 1)
 
   - name: Label worker for scheduling purpose
     kubernetes.core.k8s:
