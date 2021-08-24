@@ -104,10 +104,9 @@ When the test-framework is triggered with `/test-upgrade-features`, it will:
 ## Environment variables
 
 Currently the test-framework uses the following environment variables
-by default for remediation/pivoting, in case of **Ubuntu** setup:
+by default for feature/upgrade tests, in case of **Ubuntu** setup:
 
 ```bash
-export CAPM3_VERSION=v1alpha5
 export IMAGE_OS=Ubuntu
 export EPHEMERAL_CLUSTER=kind
 export CONTAINER_RUNTIME=docker
@@ -117,11 +116,24 @@ export NUM_NODES=4
 while **Centos** uses:
 
 ```bash
-export CAPM3_VERSION=v1alpha5
 export IMAGE_OS=Centos
 export EPHEMERAL_CLUSTER=minikube
 export CONTAINER_RUNTIME=podman
 export NUM_NODES=4
+```
+
+Both  **Ubuntu** and **Centos** setup for feature tests use:
+
+```bash
+export CAPM3_VERSION=v1alpha5
+export CAPI_VERSION=v1alpha4
+```
+
+while upgrade tests use:
+
+```bash
+export CAPM3_VERSION=v1alpha4
+export CAPI_VERSION=v1alpha3
 ```
 
 Recommended resource requirements for the host machine are: 8C CPUs, 32 GB RAM,
