@@ -56,7 +56,7 @@
       api_version: v1
       kind: ConfigMap
       namespace: "{{ NAMEPREFIX }}-system"
-      name: "{{ NAMEPREFIX }}-baremetal-operator-ironic"
+      name: "{{ NAMEPREFIX }}-ironic"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: configmap
 
@@ -73,16 +73,13 @@
       keys: "{{ configmap.resources[0].data.keys() | map('regex_replace', 'ENDPOINT', 'URL') | list }}"
       values: "{{ configmap.resources[0].data.values() | list }}"
 
-
-  - name: Backup ironic credentials for re-use when pods are re-created during the upgrade process
-    kubernetes.core.k8s_info:
-      api_version: v1
-      kind: Secret
-      namespace: "{{ NAMEPREFIX }}-system"
-      label_selectors:
-        - cluster.x-k8s.io/provider = infrastructure-metal3
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: ironic_credentials
+  - name: Backup secrets for re-use when pods are re-created during the upgrade process
+    shell: |
+           kubectl get secrets -n {{ NAMEPREFIX }}-system -o json |
+           jq '.items[]|del(.metadata|.managedFields,.uid,.resourceVersion)' > /tmp/secrets.with.values.yaml
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    ignore_errors: yes
 
   - name: Cleanup - remove existing next versions of controlplane components CRDs
     vars:
@@ -132,6 +129,16 @@
     become: yes
     become_user: root
 
+  - name: Copy metadata.yml to {{ M3PATH }}
+    ansible.builtin.copy:
+      src: "{{ M3PATH }}/cluster-api-provider-metal3/metadata.yaml"
+      dest: "{{ M3PATH }}"
+      remote_src: yes
+      owner: root
+      mode: u=rwx,g=rx,o=rx
+    become: yes
+    become_user: root
+
   - name: Create local repository
     ansible.builtin.command: cmd/clusterctl/hack/create-local-repository.py
     args:
@@ -147,31 +154,100 @@
       state: directory
       recurse: yes
     with_items:
+    - dev-repository/cluster-api/{{ CAPIRELEASE }}
+    - dev-repository/bootstrap-kubeadm/{{ CAPIRELEASE }}
+    - dev-repository/control-plane-kubeadm/{{ CAPIRELEASE }}
+    - overrides/infrastructure-metal3/{{ CAPM3RELEASE }}
     - dev-repository/cluster-api/{{ CAPI_REL_TO_VERSION }}
     - dev-repository/bootstrap-kubeadm/{{ CAPI_REL_TO_VERSION }}
     - dev-repository/control-plane-kubeadm/{{ CAPI_REL_TO_VERSION }}
     - overrides/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}
 
-  - name: Create next version controller CRDs
+  - name: Copy controlplane components files
     vars:
-      working_dir: "{{HOME}}/.cluster-api/"
+      working_dir: "{{HOME}}/.cluster-api"
     copy: src="{{working_dir}}/{{item.src}}" dest="{{working_dir}}/{{item.dest}}"
     with_items:
     - {
         src: "dev-repository/cluster-api/{{CAPIRELEASE_HARDCODED}}/core-components.yaml",
-        dest: "dev-repository/cluster-api/{{CAPI_REL_TO_VERSION}}/core-components.yaml"
+        dest: "dev-repository/cluster-api/{{CAPIRELEASE}}/core-components.yaml"
+      }
+    - {
+        src: "dev-repository/cluster-api/{{CAPIRELEASE_HARDCODED}}/metadata.yaml",
+        dest: "dev-repository/cluster-api/{{CAPIRELEASE}}/metadata.yaml"
       }
     - {
         src: "dev-repository/bootstrap-kubeadm/{{CAPIRELEASE_HARDCODED}}/bootstrap-components.yaml",
-        dest: "dev-repository/bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/bootstrap-components.yaml"
+        dest: "dev-repository/bootstrap-kubeadm/{{CAPIRELEASE}}/bootstrap-components.yaml"
+      }
+    - {
+        src: "dev-repository/bootstrap-kubeadm/{{CAPIRELEASE_HARDCODED}}/metadata.yaml",
+        dest: "dev-repository/bootstrap-kubeadm/{{CAPIRELEASE}}/metadata.yaml"
       }
     - {
         src: "dev-repository/control-plane-kubeadm/{{CAPIRELEASE_HARDCODED}}/control-plane-components.yaml",
+        dest: "dev-repository/control-plane-kubeadm/{{CAPIRELEASE}}/control-plane-components.yaml"
+      }
+    - {
+        src: "dev-repository/control-plane-kubeadm/{{CAPIRELEASE_HARDCODED}}/metadata.yaml",
+        dest: "dev-repository/control-plane-kubeadm/{{CAPIRELEASE}}/metadata.yaml"
+      }
+
+  - name: Remove clusterctl generated next version of controlplane components folders
+    vars:
+      working_dir: "{{HOME}}/.cluster-api/dev-repository"
+    file:
+      state: absent
+      path: "{{item}}"
+    with_items:
+    - "{{working_dir}}/cluster-api/{{CAPIRELEASE_HARDCODED}}"
+    - "{{working_dir}}/bootstrap-kubeadm/{{CAPIRELEASE_HARDCODED}}"
+    - "{{working_dir}}/control-plane-kubeadm/{{CAPIRELEASE_HARDCODED}}"
+
+  - name: Create next version controller CRDs
+    vars:
+      working_dir: "{{HOME}}/.cluster-api"
+    copy: src="{{working_dir}}/{{item.src}}" dest="{{working_dir}}/{{item.dest}}"
+    with_items:
+    - {
+        src: "dev-repository/cluster-api/{{CAPIRELEASE}}/core-components.yaml",
+        dest: "dev-repository/cluster-api/{{CAPI_REL_TO_VERSION}}/core-components.yaml"
+      }
+    - {
+        src: "dev-repository/cluster-api/{{CAPIRELEASE}}/metadata.yaml",
+        dest: "dev-repository/cluster-api/{{CAPI_REL_TO_VERSION}}/metadata.yaml"
+      }
+    - {
+        src: "dev-repository/bootstrap-kubeadm/{{CAPIRELEASE}}/bootstrap-components.yaml",
+        dest: "dev-repository/bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/bootstrap-components.yaml"
+      }
+    - {
+        src: "dev-repository/bootstrap-kubeadm/{{CAPIRELEASE}}/metadata.yaml",
+        dest: "dev-repository/bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/metadata.yaml"
+      }
+    - {
+        src: "dev-repository/control-plane-kubeadm/{{CAPIRELEASE}}/control-plane-components.yaml",
         dest: "dev-repository/control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/control-plane-components.yaml"
+      }
+    - {
+        src: "dev-repository/control-plane-kubeadm/{{CAPIRELEASE}}/metadata.yaml",
+        dest: "dev-repository/control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/metadata.yaml"
       }
     - {
         src: "overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/infrastructure-components.yaml",
         dest: "overrides/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/infrastructure-components.yaml"
+      }
+    - {
+        src: "overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/metadata.yaml",
+        dest: "overrides/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/metadata.yaml"
+      }
+    - {
+        src: "dev-repository/infrastructure-metal3/{{ CAPM3RELEASE }}/infrastructure-components.yaml",
+        dest: "dev-repository/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/infrastructure-components.yaml"
+      }
+    - {
+        src: "dev-repository/infrastructure-metal3/{{ CAPM3RELEASE }}/metadata.yaml",
+        dest: "dev-repository/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/metadata.yaml"
       }
 
   - name: Make changes on CRDs
@@ -200,7 +276,7 @@
         replace: "m3c2020"
 
   - name: Perform upgrade on the target cluster
-    ansible.builtin.command: clusterctl upgrade apply --management-group capi-system/cluster-api --contract v1alpha3
+    ansible.builtin.command: clusterctl upgrade apply --contract v1alpha4
     environment: "{{ ironic_env | combine(kubeconfig_env) }}"
     vars:
       kubeconfig_env:
@@ -212,15 +288,14 @@
     ansible.builtin.pause:
       seconds: 30
 
-  - name: Restore secrets after upgrade of the target cluster
-    kubernetes.core.k8s:
-      state: present
-      force: yes
-      resource_definition: "{{ ironic_credentials.resources | k8s_backup }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  - name: Restore secrets to fill missing secret fields after performing target cluster upgrade
+    shell: |
+           kubectl replace -f /tmp/secrets.with.values.yaml
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Perform upgrade on the source cluster
-    ansible.builtin.command: clusterctl upgrade apply --management-group capi-system/cluster-api --contract v1alpha3
+    ansible.builtin.command: clusterctl upgrade apply --contract v1alpha4
     environment: "{{ ironic_env }}"
 
   # TODO: Can we check this somehow instead of just waiting?
@@ -228,12 +303,6 @@
   - name: Wait for upgrade on the source cluster
     ansible.builtin.pause:
       seconds: 30
-
-  - name: Restore secrets after upgrade of the target cluster
-    kubernetes.core.k8s:
-      state: present
-      force: yes
-      resource_definition: "{{ ironic_credentials.resources | k8s_backup }}"
 
   - name: Verify that CP components are updated and available
     k8s_info:
@@ -277,14 +346,18 @@
   #   register: api_status
   #   # failed_when: api_status.apis not contains the upgraded m3c resource(s)?
 
-  - name: Verify upgraded API resource for Metal3Clusters
-    kubernetes.core.k8s_info:
-      api_version: apiextensions.k8s.io/v1
-      kind: CustomResourceDefinition
-      name: metal3clusters.infrastructure.cluster.x-k8s.io
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: crd
-    failed_when: '"m3c2020" not in crd.resources[0].spec.names.shortNames'
+  # Due to the unavailability of newer release of capm3 (after v0.5.0) at the moment,
+  # it is not possible to fabricate the folder structure for capm3 while performing 
+  # an upgrade on metal3 crd as clusterctl checks its existance on github on the fly.
+  # This check will be reverted back once we have a next capm3 release (i.e v0.5.1) out.
+  # - name: Verify upgraded API resource for Metal3Clusters
+  #   kubernetes.core.k8s_info:
+  #     api_version: apiextensions.k8s.io/v1
+  #     kind: CustomResourceDefinition
+  #     name: metal3clusters.infrastructure.cluster.x-k8s.io
+  #     kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  #   register: crd
+  #   failed_when: '"m3c2020" not in crd.resources[0].spec.names.shortNames'
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade Ironic                                                  |
@@ -388,8 +461,9 @@
       resource_definition:
         spec:
           version: "{{UPGRADED_K8S_VERSION}}"
-          infrastructureTemplate:
-            name: "{{CLUSTER_NAME}}-new-controlplane-image"
+          machineTemplate:
+            infrastructureRef:
+              name: "{{CLUSTER_NAME}}-new-controlplane-image"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Verify that controlplane nodes using the new node image
@@ -422,8 +496,9 @@
     failed_when: upgraded_cp_nodes_count.stdout|int != 0
 
   - name: Get control plane machines
-    shell: kubectl get machines -n "{{ NAMESPACE }}" -l  cluster.x-k8s.io/control-plane -o json
-           | jq -r '[ .items[] | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.nodeRef.name ]'
+    shell: | 
+            kubectl get machines -n "{{ NAMESPACE }}" -l  cluster.x-k8s.io/control-plane -o json |
+            jq -r '[ .items[] | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.nodeRef.name ]'
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: new_control_plane_nodes
@@ -431,25 +506,6 @@
   - name: Extract the list of new node names
     set_fact:
       new_control_plane_nodes: "{{ new_control_plane_nodes.stdout | from_json }}"
-
-  - name: Wait for old etcd instance to leave the etcd-cluster
-    kubernetes.core.k8s_exec:
-      namespace: kube-system
-      pod: etcd-{{ new_control_plane_nodes | first }}
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-      command: >
-        etcdctl member list --write-out json
-          --cacert /etc/kubernetes/pki/etcd/ca.crt
-          --key /etc/kubernetes/pki/etcd/server.key
-          --cert /etc/kubernetes/pki/etcd/server.crt
-    register: etcdctl
-    retries: 200
-    delay: 10
-    # The list of new control plane nodes and etcd members will match when all
-    # old etcd members are gone and the new members have joined.
-    until: (etcdctl is succeeded) and
-           ((etcdctl.stdout | from_json).members | map(attribute='name') | sort ==
-              (new_control_plane_nodes | sort))
 
   - name: Scale worker up to 1
     kubernetes.core.k8s:
