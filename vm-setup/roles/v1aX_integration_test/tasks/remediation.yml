@@ -41,70 +41,13 @@
       content: "{{ metal3_kubeconfig.resources[0].data.value | b64decode }}"
       dest: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  # Reboot a single worker node
-  - name: Reboot "{{ WORKER_BMH }}"
-    k8s:
-      state: present
-      namespace: "{{ NAMESPACE }}"
-      definition:
-        apiVersion: metal3.io/v1alpha1
-        kind: BareMetalHost
-        metadata:
-          name: "{{ WORKER_BMH }}"
-          annotations:
-            reboot.metal3.io: ""
-
-  - name: List only powered off VMs
-    virt:
-      command: list_vms
-      state: shutdown
-    register: shutdown_vms
-    retries: 170
-    delay: 3
-    until: WORKER_VM in shutdown_vms.list_vms
-    become: yes
-    become_user: root
-
-  - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes NotReady
-    k8s_info:
-      api_version: v1
-      kind: nodes
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: nodes
-    retries: 200
-    delay: 2
+  - name: Reboot a single worker node
+    include_tasks: reboot.yml
     vars:
-      q: "[? metadata.name == '{{WORKER_NODE}}' && status.conditions[? type=='Ready' && status=='False']]"
-    until:
-      - nodes is succeeded
-      - nodes.resources | json_query(q) | length > 0
+      BMH_NODE: "{{ WORKER_BMH }}"
+      LIBVIRT_VM: "{{ WORKER_VM }}"
+      K8S_NODE: "{{ WORKER_NODE }}"
 
-  - name: Wait until rebooted worker "{{ WORKER_NODE }}" becomes Ready
-    k8s_info:
-      api_version: v1
-      kind: nodes
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: nodes
-    retries: 150
-    delay: 3
-    vars:
-      q: "[? metadata.name == '{{WORKER_NODE}}' && status.conditions[? type=='Ready' && status=='True']]"
-    until:
-      - nodes is succeeded
-      - nodes.resources | json_query(q) | length > 0
-
-  - name: List only running VMs
-    virt:
-      command: list_vms
-      state: running
-    register: running_vms
-    retries: 50
-    delay: 10
-    until: WORKER_VM in running_vms.list_vms
-    become: yes
-    become_user: root
-
-  # Power cycle a single worker node
   - name: Power cycle a single worker node
     include_tasks: power_cycle.yml
     vars:
@@ -112,7 +55,6 @@
       LIBVIRT_VM: "{{ WORKER_VM }}"
       K8S_NODE: "{{ WORKER_NODE }}"
 
-  # Power cycle a single master node
   - name: Power cycle a single master node
     include_tasks: power_cycle.yml
     vars:

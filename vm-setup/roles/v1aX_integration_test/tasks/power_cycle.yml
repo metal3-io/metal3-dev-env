@@ -15,13 +15,13 @@
     k8s_info:
       api_version: v1
       kind: nodes
-      name: "{{K8S_NODE}}"
+      name: "{{ K8S_NODE }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: nodes
     retries: 150
     delay: 3
     vars:
-      q: "[? metadata.name == '{{K8S_NODE}}' && status.conditions[? type=='Ready' && status!='True']]"
+      q: "[? metadata.name == '{{ K8S_NODE }}' && status.conditions[? type=='Ready' && status!='True']]"
     until:
       - nodes is succeeded
       - nodes.resources | json_query(q) | length > 0
@@ -67,7 +67,7 @@
     k8s_info:
       api_version: v1
       kind: nodes
-      name: "{{K8S_NODE}}"
+      name: "{{ K8S_NODE }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
       wait: True
       wait_condition:
