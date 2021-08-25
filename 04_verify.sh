@@ -85,7 +85,17 @@ check_bm_hosts() {
 
     echo ""
 
-    return "$((FAILS-FAILS_CHECK))"
+    local RET="$((FAILS-FAILS_CHECK))"
+
+    # Print state for debugging on failure
+    if [[ $RET -ne 0 ]]; then
+      echo "BM host check FAILED"
+      echo "BM host state:"
+      echo "$BM_HOST"
+      echo ""
+    fi
+
+    return "$RET"
 }
 
 
