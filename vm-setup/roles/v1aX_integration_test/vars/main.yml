@@ -127,11 +127,9 @@ verify_actions:
     - "feature_test_provisioning"
     - "pivoting"
     - "upgrading"
-    - "post_pivot"
 pivot_actions:
     - "ci_test_provision"
     - "pivoting"
-    - "post_pivot"
     - "upgrading"
 repivot_actions:
     - "ci_test_provision"
