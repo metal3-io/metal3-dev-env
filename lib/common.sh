@@ -407,46 +407,6 @@ differs(){
 }
 
 #
-# Create Minikube VM and add correct interfaces
-#
-function init_minikube() {
-    #If the vm exists, it has already been initialized
-    if [[ "$(sudo virsh list --name --all)" != *"minikube"* ]]; then
-      # Loop to ignore minikube issues
-      while /bin/true; do
-        minikube_error=0
-        # Restart libvirtd.service as suggested here 
-        # https://github.com/kubernetes/minikube/issues/3566
-        sudo systemctl restart libvirtd.service
-        sudo su -l -c "minikube start --insecure-registry ${REGISTRY}"  "${USER}" || minikube_error=1
-        if [[ $minikube_error -eq 0 ]]; then
-          break
-        fi
-        sudo su -l -c 'minikube delete --all --purge' "${USER}"
-      done
-      sudo su -l -c "minikube stop" "$USER"
-    fi
-
-    MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"
-
-    # The interface doesn't appear in the minikube VM with --live,
-    # so just attach it before next boot. As long as the
-    # 02_configure_host.sh script does not run, the provisioning network does
-    # not exist. Attempting to start Minikube will fail until it is created.
-    if ! echo "$MINIKUBE_IFACES" | grep -w provisioning  > /dev/null ; then
-      sudo virsh attach-interface --domain minikube \
-          --model virtio --source provisioning \
-          --type network --config
-    fi
-
-    if ! echo "$MINIKUBE_IFACES" | grep -w baremetal  > /dev/null ; then
-      sudo virsh attach-interface --domain minikube \
-          --model virtio --source baremetal \
-          --type network --config
-    fi
-}
-
-#
 # Kill and remove the infra containers
 #
 function remove_ironic_containers() {
