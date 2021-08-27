@@ -21,7 +21,13 @@
     ansible.builtin.command: kubectl taint nodes --all node-role.kubernetes.io/master-
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    ignore_errors: yes
+    register: kubectl_taint
+    failed_when: >
+      kubectl_taint.rc != 0 and
+      not (
+        kubectl_taint.stderr_lines | unique | length == 1 and 
+        kubectl_taint.stderr.endswith("taint \"node-role.kubernetes.io/master\" not found")
+      )
 
   - name: Scale worker down to 0
     kubernetes.core.k8s:
@@ -408,7 +414,13 @@
     command: kubectl taint nodes --all node-role.kubernetes.io/master-
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    ignore_errors: yes
+    register: kubectl_taint
+    failed_when: >
+      kubectl_taint.rc != 0 and
+      not (
+        kubectl_taint.stderr_lines | unique | length == 1 and 
+        kubectl_taint.stderr.endswith("taint \"node-role.kubernetes.io/master\" not found")
+      )
 
   - name: Verify that the old controlplane node has left the cluster
     shell: |
