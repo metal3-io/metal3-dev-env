@@ -494,6 +494,17 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
     launch_ironic
 fi
 
+if [[ "${PROMETHEUS_MONITORING}" == true ]]; then
+  kubectl create namespace monitoring 
+  kubectl apply -f "${MONITORING_DIR}/prometheus"
+  kubectl apply -f "${MONITORING_DIR}/kube-state-metrics"
+  kubectl apply -f "${MONITORING_DIR}/node-exporter"
+
+  ## Install promdump
+  kubectl krew update
+  kubectl krew install promdump
+fi
+
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     BMO_NAME_PREFIX="${NAMEPREFIX}-baremetal-operator"
@@ -513,3 +524,5 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   fi
   apply_bm_hosts
 fi
+
+

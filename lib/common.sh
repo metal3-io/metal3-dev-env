@@ -154,6 +154,10 @@ WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
 NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/ironic_nodes.json"}
 NODES_PLATFORM=${NODES_PLATFORM:-"libvirt"}
 
+# Monitoring
+PROMETHEUS_MONITORING="${PROMETHEUS_MONITORING:-false}"
+MONITORING_DIR="${MONITORING_DIR:-"vm-setup/monitoring"}"
+
 # Metal3
 export NAMESPACE=${NAMESPACE:-"metal3"}
 export NUM_NODES=${NUM_NODES:-"2"}
