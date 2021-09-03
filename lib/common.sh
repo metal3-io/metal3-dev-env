@@ -93,10 +93,14 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
 
-export CAPI_VERSION="${CAPI_VERSION:-"v1alpha4"}"
-export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha5"}"
 CAPM3_VERSION_LIST="v1alpha4 v1alpha5"
-if ! echo "${CAPM3_VERSION_LIST}" | grep -wq "${CAPM3_VERSION}"; then
+export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha5"}"
+
+if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+  export CAPI_VERSION="v1alpha4"
+elif [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+  export CAPI_VERSION="v1alpha3"
+else
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
   exit 1
 fi

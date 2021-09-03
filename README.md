@@ -44,23 +44,13 @@ Select:
 
 ```sh
 export CAPM3_VERSION=v1alpha4
-```
-
-or
-
-```sh
-export CAPM3_VERSION=v1alpha5
-```
-
-Select:
-
-```sh
 export CAPI_VERSION=v1alpha3
 ```
 
 or
 
 ```sh
+export CAPM3_VERSION=v1alpha5
 export CAPI_VERSION=v1alpha4
 ```
 
