@@ -335,15 +335,6 @@ function patch_clusterctl(){
   mkdir -p "${HOME}"/.cluster-api
   touch "${HOME}"/.cluster-api/clusterctl.yaml
   
-  ## Remove these lines
-  ## This is hard-coded until we fix the issue with v1.5.0
-  cat << EOF | sudo tee "${HOME}/.cluster-api/clusterctl.yaml"
-cert-manager:
-  version: "v1.4.0" 
-EOF
-  
-  
-
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
@@ -380,7 +371,13 @@ EOF
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   cp out/*.yaml "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
- 
+  # The following sed makes sure the cert-manager ca inject annotation also contains
+  # capm3 namePrefix for ipam-serving cert. This is a bug which has been there since
+  # we use two levels of kustomization one on IPAM and then again on IPAM components
+  # in CAPM3. The following is a quick fix, later once we solve it in IPAM kustomization
+  # the following line would be removed
+  sed -i 's/capm3-system\/ipam-serving-cert/capm3-system\/capm3-ipam-serving-cert/g' "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"/infrastructure-components.yaml
+
   popd
 }
 
