@@ -298,5 +298,20 @@ for container in ${EXPTD_CONTAINERS}; do
 done
 
 
+IRONIC_NODES_ENDPOINT="${IRONIC_URL}nodes"
+status="$(curl -sk -o /dev/null -I -w "%{http_code}" "${IRONIC_NODES_ENDPOINT}")"
+if [[ $status == 200 ]]; then
+    echo "⚠️  ⚠️  ⚠️   WARNING: Ironic endpoint is exposed for unauthenticated users"
+    exit 1
+elif [[ $status == 401 ]]; then
+    echo "OK - Ironic endpoint is secured"
+else
+    echo "FAIL- got $status from ${IRONIC_NODES_ENDPOINT}, expected 401"
+    echo ""
+    exit "$status"
+fi
+echo ""
+
 echo -e "\nNumber of failures : $FAILS"
 exit "${FAILS}"
+
