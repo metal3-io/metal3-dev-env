@@ -35,6 +35,7 @@ BAREMETALV4_POOL_RANGE_START: "{{ lookup('env', 'BAREMETALV4_POOL_RANGE_START') 
 BAREMETALV4_POOL_RANGE_END: "{{ lookup('env', 'BAREMETALV4_POOL_RANGE_END') | default('192.168.111.200', true) }}"
 EXTERNAL_SUBNET_V4_PREFIX: "{{ lookup('env', 'EXTERNAL_SUBNET_V4_PREFIX') | default('24', true) }}"
 EXTERNAL_SUBNET_V4_HOST: "{{ lookup('env', 'EXTERNAL_SUBNET_V4_HOST') | default('192.168.111.1', true) }}"
+EXTERNAL_VLAN_ID: "{{ lookup('env', 'EXTERNAL_VLAN_ID') }}"
 BAREMETALV6_POOL_RANGE_START: "{{ lookup('env', 'BAREMETALV6_POOL_RANGE_START') | default('fd55::100', true) }}"
 BAREMETALV6_POOL_RANGE_END: "{{ lookup('env', 'BAREMETALV6_POOL_RANGE_END') | default('fd55::200', true) }}"
 EXTERNAL_SUBNET_V6_PREFIX: "{{ lookup('env', 'EXTERNAL_SUBNET_V6_PREFIX') | default('64', true) }}"

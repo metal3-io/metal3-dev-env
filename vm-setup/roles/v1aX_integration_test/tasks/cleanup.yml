@@ -55,7 +55,7 @@
       namespace: "{{ NAMESPACE }}"
     register: deprovisioned_m3m
     retries: 150
-    delay: 3
+    delay: 10
     until: (deprovisioned_m3m is succeeded) and
            (deprovisioned_m3m.resources | length == 0)
 
