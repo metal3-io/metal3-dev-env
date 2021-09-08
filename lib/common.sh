@@ -228,7 +228,7 @@ export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.21.2"}
 export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.22.0"}
 
 # Ansible version
-export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.3.0"}
+export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.5.0"}
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
