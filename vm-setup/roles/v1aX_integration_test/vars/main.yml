@@ -108,6 +108,12 @@ provision_workers_actions:
     - "provision_worker"
     - "feature_test_provisioning"
     - "upgrading"
+provision_actions:
+    - "ci_test_provision"
+    - "provision_cluster"
+    - "provision_controlplane"
+    - "feature_test_provisioning"
+    - "upgrading"
 deprovision_cluster_actions:
     - "ci_test_deprovision"
     - "deprovision_cluster"
