@@ -28,14 +28,14 @@ function get_latest_capi_release() {
 }
 
 # CAPI release version which we upgrade from.
-export CAPIRELEASE="v0.4.0"
+export CAPIRELEASE="v0.4.1"
 CAPI_REL_TO_VERSION="$(get_latest_capi_release)" || true
 # CAPI release version which we upgrade to.
 export CAPI_REL_TO_VERSION
 
-export FROM_K8S_VERSION="v1.21.1"
+export FROM_K8S_VERSION="v1.21.2"
 export KUBERNETES_VERSION=${FROM_K8S_VERSION}
-export UPGRADED_K8S_VERSION="v1.21.2"
+export UPGRADED_K8S_VERSION="v1.22.0"
 
 export NUM_OF_MASTER_REPLICAS="3"
 export NUM_OF_WORKER_REPLICAS="1"
