@@ -21,6 +21,8 @@
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
     when: EPHEMERAL_CLUSTER == "minikube"
+    args:
+      chdir: "{{ BMOPATH }}"
 
   - name: Re-pivot everything back to source cluster
     shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"
