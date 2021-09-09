@@ -488,18 +488,14 @@
   - name: Get control plane machines
     shell: |
             kubectl get machines -n "{{ NAMESPACE }}" -l cluster.x-k8s.io/control-plane -o json |
-            jq -r '[ .items[] | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.nodeRef.name ]'
+            jq -r '[ .items[] | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.nodeRef.name ] | length'
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    retries: 200
+    delay: 20
     register: new_control_plane_nodes
-    failed_when: >
-      (new_control_plane_nodes.stdout == "[]") or
-      (new_control_plane_nodes.stderr != "") or
-      (new_control_plane_nodes.rc < 3)
-
-  - name: Extract the new node name
-    set_fact:
-      new_cp_node_name: "{{ new_control_plane_nodes.stdout | from_json | first }}"
+    until: new_control_plane_nodes.stdout|int == 3
+    failed_when: new_control_plane_nodes.stdout|int != 3
 
   - name: Register worker nodes
     kubernetes.core.k8s_info:

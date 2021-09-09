@@ -18,7 +18,7 @@
 
           - name: Verify specific centos image containing newer version of cloud-init is downloaded
             get_url:
-              url: "{{ IMAGE_LOCATION_CENTOS }}"
+              url: "{{ IMAGE_LOCATION_CENTOS }}/{{ IMAGE_NAME_CENTOS }}"
               dest: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME_CENTOS }}"
               mode: 0664
 
@@ -63,7 +63,7 @@
 
           - name: Verify specific Ubuntu image containing newer version of cloud-init is downloaded
             get_url:
-              url: "{{ IMAGE_LOCATION }}"
+              url: "{{ IMAGE_LOCATION }}/{{ IMAGE_NAME }}"
               dest: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}"
               mode: 0664
 
