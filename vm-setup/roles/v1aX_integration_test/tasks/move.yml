@@ -117,6 +117,8 @@
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
     when: CAPM3_VERSION == "v1alpha5"
+    args:
+      chdir: "{{ BMOPATH }}"
 
   - name: Reinstate Baremetal Operator Manager
     shell: "mv {{ BMOPATH }}/config/manager/manager.yaml.orig {{ BMOPATH }}/config/manager/manager.yaml"
@@ -129,6 +131,8 @@
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+    args:
+      chdir: "{{ BMOPATH }}"
 
   - name: Restore original BMO Configmap
     shell: "mv {{ BMOPATH }}/config/default/ironic.env.orig {{ BMOPATH }}/config/default/ironic.env"
