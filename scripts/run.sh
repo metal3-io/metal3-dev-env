@@ -38,4 +38,4 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
    -e "metal3_dir=$SCRIPTDIR" \
    -e "v1aX_integration_test_action=${ACTION}" \
    -i "${METAL3_DIR}/vm-setup/inventory.ini" \
-   -b "${METAL3_DIR}/vm-setup/v1aX_integration_test.yml"
+   -b -v "${METAL3_DIR}/vm-setup/v1aX_integration_test.yml"
