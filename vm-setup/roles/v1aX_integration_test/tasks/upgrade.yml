@@ -474,18 +474,7 @@
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     ignore_errors: yes
 
-  - name: Verify that the old controlplane node has left the cluster
-    shell: |
-            kubectl get bmh -n {{NAMESPACE}} | grep -i provisioned | grep -c "{{ CLUSTER_NAME }}-controlplane-"
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    retries: 200
-    delay: 20
-    register: upgraded_cp_nodes_count
-    until: upgraded_cp_nodes_count.stdout|int == 0
-    failed_when: upgraded_cp_nodes_count.stdout|int != 0
-
-  - name: Get control plane machines
+  - name: Verify number of new control plane machines
     shell: |
             kubectl get machines -n "{{ NAMESPACE }}" -l cluster.x-k8s.io/control-plane -o json |
             jq -r '[ .items[] | select(.spec.version == "{{ UPGRADED_K8S_VERSION }}") | .status.nodeRef.name ] | length'
@@ -493,9 +482,9 @@
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     retries: 200
     delay: 20
-    register: new_control_plane_nodes
-    until: new_control_plane_nodes.stdout|int == 3
-    failed_when: new_control_plane_nodes.stdout|int != 3
+    register: new_control_plane_machines
+    until: new_control_plane_machines.stdout|int == 3
+    failed_when: new_control_plane_machines.stdout|int != 3
 
   - name: Register worker nodes
     kubernetes.core.k8s_info:
