@@ -114,14 +114,21 @@ export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
-export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
-export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
+if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+  export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
+  export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
+else
+  export IPAMPATH="${IPAMPATH:-${M3PATH}/metal3-ipam}"
+  export IPAM_LOCAL_IMAGE="${IPAM_LOCAL_IMAGE:-${M3PATH}/metal3-ipam}"
+  export IPAM_BASE_URL="${IPAM_BASE_URL:-Nordix/metal3-ipam}"
+fi
+
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
 else
-  IPAMBRANCH="${IPAMBRANCH:-master}"
+  IPAMBRANCH="${IPAMBRANCH:-fix-nameprefix-kustomization/furkat}"
 fi
 
 IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
@@ -426,4 +433,23 @@ function remove_ironic_containers() {
     sudo "${CONTAINER_RUNTIME}" ps | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" kill $name || true
     sudo "${CONTAINER_RUNTIME}" ps --all | grep -w "$name$" && sudo "${CONTAINER_RUNTIME}" rm $name -f || true
   done
+}
+
+
+function clone_repo() {
+  local REPO_URL="$1"
+  local REPO_BRANCH="$2"
+  local REPO_PATH="$3"
+  if [[ -d "${REPO_PATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+    rm -rf "${REPO_PATH}"
+  fi
+  if [ ! -d "${REPO_PATH}" ] ; then
+    pushd "${M3PATH}" || exit
+    git clone "${REPO_URL}" "${REPO_PATH}"
+    popd || exit
+    pushd "${REPO_PATH}" || exit
+    git checkout "${REPO_BRANCH}"
+    git pull -r || true
+    popd || exit
+  fi
 }
