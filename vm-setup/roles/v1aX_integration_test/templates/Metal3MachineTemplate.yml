@@ -9,6 +9,7 @@ metadata:
     name: {{ CLUSTER_NAME }}
     uid: {{ CLUSTER_UID }}
 spec:
+  nodeReuse: {{ NODE_REUSE_STATUS }}
   template:
     spec:
       dataTemplate:
