@@ -74,10 +74,6 @@ IMAGE_FORMAT: "{{ lookup('env', 'IMAGE_FORMAT') | default('raw', true) }}"
 IMAGE_CHECKSUM_TYPE: "{{ lookup('env', 'IMAGE_CHECKSUM_TYPE') | default('md5', true) }}"
 IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
 
-IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_NAME') | default('CENTOS_8_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}.qcow2', true)}}"
-RAW_IMAGE_NAME_CENTOS: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('CENTOS_8_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}-raw.img', true)}}"
-IMAGE_LOCATION_CENTOS: 'https://artifactory.nordix.org/artifactory/airship/images/k8s_{{KUBERNETES_VERSION}}/'
-
 # Environment variables to install Ironic with TLS and Basic Auth
 GOPATH: "{{ lookup('env', 'GOPATH')}}"
 IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true)}}"
