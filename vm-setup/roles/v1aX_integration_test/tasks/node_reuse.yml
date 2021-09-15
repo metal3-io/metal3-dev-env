@@ -198,6 +198,13 @@
             rollingUpdate:
               maxSurge: 1
 
+  - name: Untaint all CP nodes.
+    shell: |
+        kubectl taint nodes --all node-role.kubernetes.io/master-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    ignore_errors: yes
+
   - name: Scale controlplane down to 1.
     k8s:
       api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
@@ -211,13 +218,6 @@
 
   - pause:
       minutes: 5
-
-  - name: Untaint all CP nodes.
-    shell: |
-        kubectl taint nodes --all node-role.kubernetes.io/master-
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    ignore_errors: yes
 
   - name: Wait until controlplane is scaled down and "{{ NUMBER_OF_BMH_KCP }}" BMHs' are Ready.
     k8s_info:

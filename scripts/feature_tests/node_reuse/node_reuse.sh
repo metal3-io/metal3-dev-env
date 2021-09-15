@@ -8,8 +8,8 @@ METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../../.."
 source "${METAL3_DIR}/scripts/feature_tests/feature_test_vars.sh"
 
 export ACTION="node_reuse"
-export FROM_K8S_VERSION="v1.21.2"
+export FROM_K8S_VERSION="v1.22.0"
 export KUBERNETES_VERSION=${FROM_K8S_VERSION}
-export UPGRADED_K8S_VERSION="v1.22.0"
+export UPGRADED_K8S_VERSION="v1.22.1"
 
 "${METAL3_DIR}"/scripts/run.sh
