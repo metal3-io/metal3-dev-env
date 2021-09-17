@@ -114,19 +114,19 @@ export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
-  export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
-else
-  export IPAMPATH="${IPAMPATH:-${M3PATH}/metal3-ipam}"
-  export IPAM_LOCAL_IMAGE="${IPAM_LOCAL_IMAGE:-${M3PATH}/metal3-ipam}"
-  export IPAM_BASE_URL="${IPAM_BASE_URL:-Nordix/metal3-ipam}"
-fi
+# if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+#   export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
+#   export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
+# else
+export IPAMPATH="${IPAMPATH:-${M3PATH}/metal3-ipam}"
+export IPAM_LOCAL_IMAGE="${IPAM_LOCAL_IMAGE:-${M3PATH}/metal3-ipam}"
+export IPAM_BASE_URL="${IPAM_BASE_URL:-Nordix/metal3-ipam}"
+# fi
 
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
+  IPAMBRANCH="${IPAMBRANCH:-fix-nameprefix-kustomization-release-0.0/furkat}"
 else
   IPAMBRANCH="${IPAMBRANCH:-fix-nameprefix-kustomization/furkat}"
 fi

@@ -9,10 +9,8 @@ source lib/common.sh
 source lib/network.sh
 
 
-if [ "${CAPM3_VERSION}" != "v1alpha4" ]; then
-  mkdir -p "${M3PATH}"
-  clone_repo "${IPAMREPO}" "${IPAMBRANCH}" "${IPAMPATH}"
-fi
+mkdir -p "${M3PATH}"
+clone_repo "${IPAMREPO}" "${IPAMBRANCH}" "${IPAMPATH}"
 
 # Root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
