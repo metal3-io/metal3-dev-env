@@ -40,7 +40,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
     -e "nodes_file=$NODES_FILE" \
     -i vm-setup/inventory.ini \
-    -b vm-setup/teardown-playbook.yml
+    -b -v vm-setup/teardown-playbook.yml
 
 if [ "$USE_FIREWALLD" == "False" ]; then
  ANSIBLE_FORCE_COLOR=true ansible-playbook \
@@ -48,7 +48,7 @@ if [ "$USE_FIREWALLD" == "False" ]; then
     -e "external_subnet_v4: ${EXTERNAL_SUBNET_V4}" \
     -e "firewall_rule_state=absent" \
     -i vm-setup/inventory.ini \
-    -b vm-setup/firewall.yml
+    -b -v vm-setup/firewall.yml
 fi
 
 # There was a bug in this file, it may need to be recreated.
