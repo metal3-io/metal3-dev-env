@@ -54,7 +54,10 @@ upgrade_test:
 inspection_test:
 	./scripts/feature_tests/inspection_test.sh
 
-feature_tests: setup_env inspection_test remediation_test cleanup_env pivoting_test node_reuse_test repivoting_test
+healthcheck_test:
+	make -C ./scripts/feature_tests/healthcheck/
+
+feature_tests: setup_env inspection_test remediation_test healthcheck_test cleanup_env pivoting_test node_reuse_test repivoting_test
 
 feature_tests_upgrade: setup_env_ug upgrade_test
 

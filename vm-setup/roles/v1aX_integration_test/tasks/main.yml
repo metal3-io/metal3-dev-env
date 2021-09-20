@@ -80,3 +80,7 @@
 - name: Node reuse
   include_tasks: node_reuse.yml
   when: v1aX_integration_test_action == "node_reuse"
+
+- name: Healthcheck
+  include_tasks: healthcheck.yml
+  when: v1aX_integration_test_action == "healthcheck"

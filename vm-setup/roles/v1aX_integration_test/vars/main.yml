@@ -175,3 +175,5 @@ image_download_actions:
     - "provision_worker"
 inspection_action:
     - "inspection"
+healthcheck_action:
+    - "healthcheck"
