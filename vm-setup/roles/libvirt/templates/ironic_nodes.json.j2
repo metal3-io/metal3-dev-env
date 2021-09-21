@@ -32,8 +32,8 @@
       "driver": "{{ vm_driver_tmp }}",
       "resource_class": "baremetal",
       "driver_info": {
-        "username": "admin",
-        "password": "password",
+        "username": "{{ vbmc_username }}",
+        "password": "{{ vbmc_password }}",
         {% if vm_driver_tmp =='redfish' -%}
         "port": "8000",
         "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",

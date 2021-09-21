@@ -52,6 +52,7 @@ packages:
      - six
      - docker-py
      - jmespath
+     - passlib
   centos:
     rhel8:
         packages:
@@ -84,6 +85,8 @@ packages:
          - firewalld
          - python3-six
          - httpd-tools
+         - python3-passlib
+         - python3-bcrypt
         pip3:
           - jmespath
           - kubernetes==17.17.0
