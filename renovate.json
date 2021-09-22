@@ -16,7 +16,13 @@
       "packageNames": ["kindest/node"],
       "automerge": false,
       "commitMessageTopic": "kindest/node"
-    },    
+    },
+    {
+      "datasources": ["docker"],
+      "packageNames": ["registry"],
+      "automerge": false,
+      "commitMessageTopic": "Docker registry"
+    },
     {
       "datasources": ["pypi"],
       "packageNames": ["ansible"],
@@ -60,7 +66,13 @@
       "matchStrings": ["KIND_NODE_IMAGE_VERSION:-\"(?<currentValue>.*?)\"}"],
       "depNameTemplate": "kindest/node",
       "datasourceTemplate": "docker"
-     }      
+     },
+     {
+      "fileMatch": ["^lib/common.sh$"],
+      "matchStrings": ["DOCKER_REGISTRY_IMAGE:-\"registry:(?<currentValue>.*?)\"}"],
+      "depNameTemplate": "registry",
+      "datasourceTemplate": "docker"
+     }  
    ],
    "assignees": ["fmuyassarov","furkatgofurov7","kashifest"],
    "assigneesSampleSize": 1,
