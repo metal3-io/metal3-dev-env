@@ -19,12 +19,6 @@ spec:
         cluster.x-k8s.io/cluster-name: ${ CLUSTER_NAME }
         nodepool: nodepool-0
     spec:
-{% if CAPI_VERSION == "v1alpha3" %}
-      nodeDrainTimeout: ${ NODE_DRAIN_TIMEOUT }
-{% else %}
-      machineTemplate:
-        nodeDrainTimeout: ${ NODE_DRAIN_TIMEOUT }
-{% endif %}
       clusterName: ${ CLUSTER_NAME }
       version: ${ KUBERNETES_VERSION }
       bootstrap:
@@ -36,6 +30,7 @@ spec:
         name: ${ CLUSTER_NAME }-workers
         apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
         kind: Metal3MachineTemplate
+      nodeDrainTimeout: ${ NODE_DRAIN_TIMEOUT }
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
 kind: Metal3MachineTemplate
