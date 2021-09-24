@@ -64,6 +64,8 @@ CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha4', true)}}"
 CAPM3_VERSION: "{{ lookup('env', 'CAPM3_VERSION') | default('v1alpha5', true)}}"
 IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images')}}"
 IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning', true)}}"
+UPGRADED_IMAGE_NAME: "{{ lookup('env', 'UPGRADED_IMAGE_NAME') }}"
+UPGRADED_RAW_IMAGE_NAME: "{{ lookup('env', 'UPGRADED_RAW_IMAGE_NAME') }}"
 
 # Distibution specific environment variables
 IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}.qcow2', true)}}"

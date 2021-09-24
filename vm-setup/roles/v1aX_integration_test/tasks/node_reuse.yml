@@ -40,6 +40,66 @@
       bmh_before_upgrade_kcp: "{{ bmh_before_upgrade_kcp | default([]) + ['metal3/' + item.metadata.name + '=metal3://' + item.metadata.uid] }}"
     with_items: "{{ saved_bmhs.resources | filter_provisioning('provisioned') }}"
 
+  - name: Download upgraded boot-disk image for deployment
+    include_tasks: download_image.yml
+    vars:
+      IMAGE_NAME: "{{ UPGRADED_IMAGE_NAME }}"
+      RAW_IMAGE_NAME: "{{ UPGRADED_RAW_IMAGE_NAME }}"
+      IMAGE_LOCATION: "https://artifactory.nordix.org/artifactory/airship/images/k8s_{{UPGRADED_K8S_VERSION}}/"
+      IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
+      IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
+
+  - name: Get cluster uid
+    kubernetes.core.k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: Cluster
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: clusters
+
+  - name: Create controlplane Metal3MachineTemplates
+    kubernetes.core.k8s:
+      state: present
+      template: Metal3MachineTemplate.yml
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    vars:
+      CLUSTER_UID: "{{ clusters.resources[0].metadata.uid }}"
+      M3MT_NAME: "{{CLUSTER_NAME}}-new-controlplane-image"
+      DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-controlplane-template"
+      RAW_IMAGE_NAME: "{{ UPGRADED_RAW_IMAGE_NAME }}"
+      IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
+      IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
+      NODE_REUSE_STATUS: "true"
+
+  - name: Create worker Metal3MachineTemplates
+    kubernetes.core.k8s:
+      state: present
+      template: Metal3MachineTemplate.yml
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    vars:
+      CLUSTER_UID: "{{ clusters.resources[0].metadata.uid }}"
+      M3MT_NAME: "{{CLUSTER_NAME}}-new-workers"
+      DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-workers-template"
+      RAW_IMAGE_NAME: "{{ UPGRADED_RAW_IMAGE_NAME }}"
+      IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
+      IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
+      NODE_REUSE_STATUS: "true"
+  
+  - name: Create worker Metal3MachineTemplates for node re-use test
+    kubernetes.core.k8s:
+      state: present
+      template: Metal3MachineTemplate.yml
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    vars:
+      CLUSTER_UID: "{{ clusters.resources[0].metadata.uid }}"
+      M3MT_NAME: "{{CLUSTER_NAME}}-new-workers-image"
+      DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-workers-template"
+      RAW_IMAGE_NAME: "{{ UPGRADED_RAW_IMAGE_NAME }}"
+      IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
+      IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
+      NODE_REUSE_STATUS: "true"
+
   - name: Update Metal3MachineTemplate nodeReuse field to 'True'.
     k8s:
       api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
@@ -61,6 +121,9 @@
       definition:
         spec:
           version: "{{ UPGRADED_K8S_VERSION }}"
+          machineTemplate:
+            infrastructureRef:
+              name: "{{CLUSTER_NAME}}-new-controlplane-image"
           rolloutStrategy:
             rollingUpdate:
               maxSurge: 0
@@ -198,6 +261,13 @@
             rollingUpdate:
               maxSurge: 1
 
+  - name: Untaint all CP nodes.
+    shell: |
+        kubectl taint nodes --all node-role.kubernetes.io/master-
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    ignore_errors: yes
+
   - name: Scale controlplane down to 1.
     k8s:
       api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
@@ -209,28 +279,16 @@
         spec:
           replicas: 1
 
-  - pause:
-      minutes: 5
-
-  - name: Untaint all CP nodes.
-    shell: |
-        kubectl taint nodes --all node-role.kubernetes.io/master-
+  - name: Wait until controlplane is scaled down and "{{ NUMBER_OF_BMH_KCP }}" BMHs' are Ready.
+    # we use shell instead of k8s_info module here because the CP may not respond to requests 
+    # while it is scaling down - k8s_info has no request timeout, which can hang the build
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    ignore_errors: yes
-
-  - name: Wait until controlplane is scaled down and "{{ NUMBER_OF_BMH_KCP }}" BMHs' are Ready.
-    k8s_info:
-      api_version: metal3.io/v1alpha1
-      kind: BareMetalHost
-      namespace: "{{ NAMESPACE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: bmhs
+    register: num_ready_bmhs
     retries: 200
-    delay: 20
-    until:
-      - bmhs is succeeded
-      - bmhs.resources | filter_provisioning("ready") | length == (NUMBER_OF_BMH_KCP | int)
+    delay: 30
+    until: num_ready_bmhs.stdout == "3"
 
   - name: Scale worker up to "{{ NUMBER_OF_BMH_MD }}" to start testing MachineDeployment node reuse test scenario.
     k8s:
@@ -242,6 +300,11 @@
       definition:
         spec:
           replicas: 1
+          template:
+            spec:
+              version: "{{ UPGRADED_K8S_VERSION }}"
+              infrastructureRef:
+                name: "{{ CLUSTER_NAME }}-new-workers"
 
   - name: Wait until "{{ NUMBER_OF_BMH_MD }}" more BMH is provisioned.
     k8s_info:
@@ -295,17 +358,6 @@
               maxSurge: 0
               maxUnavailable: 1
 
-  - name: Update Metal3MachineTemplate nodeReuse field to 'True'.
-    k8s:
-      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
-      kind: Metal3MachineTemplate
-      name: "{{ CLUSTER_NAME }}-workers"
-      namespace: "{{ NAMESPACE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-      definition:
-        spec:
-          nodeReuse: True
-
   - name: List BMHs'.
     k8s_info:
       api_version: metal3.io/v1alpha1
@@ -328,7 +380,7 @@
             capi.metal3.io/unhealthy: ""
     loop: "{{ bmhs.resources | filter_provisioning('ready') | map(attribute='metadata.name') }}"
 
-  - name: Upgrade MachineDeployment k8s version from "{{ KUBERNETES_VERSION }}" to "{{ UPGRADED_K8S_VERSION }}".
+  - name: Upgrade MachineDeployment with new Metal3MachineTemplate".
     k8s:
       api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: MachineDeployment
@@ -339,7 +391,8 @@
         spec:
           template:
             spec:
-              version: "{{ UPGRADED_K8S_VERSION }}"
+              infrastructureRef:
+                name: "{{ CLUSTER_NAME }}-new-workers-image"
 
   - name: Wait until "{{ NUMBER_OF_BMH_MD }}" BMH is in deprovisioning state.
     k8s_info:
@@ -464,3 +517,25 @@
     until:
       - machines is succeeded
       - machines.resources | filter_phase("running") | length == (NUMBER_OF_ALL_BMH | int)
+  
+  - name: Update control plane Metal3MachineTemplate nodeReuse field to 'false'.
+    k8s:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3MachineTemplate
+      name: "{{ CLUSTER_NAME }}-new-controlplane-image"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          nodeReuse: false
+    
+  - name: Update worker Metal3MachineTemplate nodeReuse field to 'false'.
+    k8s:
+      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+      kind: Metal3MachineTemplate
+      name: "{{ CLUSTER_NAME }}-new-workers-image"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          nodeReuse: false
