@@ -346,7 +346,6 @@
         - ironic-conductor
         - ironic-log-watch
         - ironic-inspector
-        - ironic-inspector-log-watch
         # There is also a keepalived container in the pods, but it is using a
         # different image than the rest and therefore not included in the list.
         # - ironic-endpoint-keepalived

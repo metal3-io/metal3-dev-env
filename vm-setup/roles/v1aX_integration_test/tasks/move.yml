@@ -16,7 +16,6 @@
         - mariadb
         - ironic-endpoint-keepalived
         - ironic-log-watch
-        - ironic-inspector-log-watch
     when: EPHEMERAL_CLUSTER == "kind"
 
   - name: Fetch container logs before pivoting
@@ -30,7 +29,6 @@
         - mariadb
         - ironic-endpoint-keepalived
         - ironic-log-watch
-        - ironic-inspector-log-watch
     become: yes
     become_user: root
     when: EPHEMERAL_CLUSTER == "kind"
@@ -47,7 +45,6 @@
        - mariadb
        - ironic-endpoint-keepalived
        - ironic-log-watch
-       - ironic-inspector-log-watch
     become: yes
     become_user: root
     when: EPHEMERAL_CLUSTER == "kind"
