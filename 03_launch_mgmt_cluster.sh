@@ -32,6 +32,7 @@ function clone_repo() {
   local REPO_URL="$1"
   local REPO_BRANCH="$2"
   local REPO_PATH="$3"
+  local REPO_COMMIT="${4:-HEAD}"
   if [[ -d "${REPO_PATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
     rm -rf "${REPO_PATH}"
   fi
@@ -41,6 +42,7 @@ function clone_repo() {
     popd
     pushd "${REPO_PATH}"
     git checkout "${REPO_BRANCH}"
+    git checkout "${REPO_COMMIT}"
     git pull -r || true
     popd
   fi
@@ -51,7 +53,7 @@ function clone_repo() {
 #
 function clone_repos() {
   mkdir -p "${M3PATH}"
-  clone_repo "${BMOREPO}" "${BMOBRANCH}" "${BMOPATH}"
+  clone_repo "${BMOREPO}" "${BMOBRANCH}" "${BMOPATH}" "${BMOCOMMIT}"
   clone_repo "${CAPM3REPO}" "${CAPM3BRANCH}" "${CAPM3PATH}"
   clone_repo "${IPAMREPO}" "${IPAMBRANCH}" "${IPAMPATH}"
 }
