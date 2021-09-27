@@ -2,3 +2,7 @@
 virtbmc_action: setup
 sushy_ignore_boot_device: False
 sushy_vmedia_verify_ssl: True
+
+# BMC credentials
+vbmc_username: "admin"
+vbmc_password: "password"

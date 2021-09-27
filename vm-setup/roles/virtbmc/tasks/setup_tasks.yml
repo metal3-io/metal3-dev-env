@@ -80,8 +80,8 @@
     dest: "{{ working_dir }}/virtualbmc/vbmc/conf/{{ item.name }}/config"
     content: |
       [VirtualBMC]
-      username = admin
-      password = password
+      username = {{ vbmc_username }}
+      password = {{ vbmc_password }}
       domain_name = {{ item.name }}
       libvirt_uri = {{ vbmc_libvirt_uri }}
       address = {{ vbmc_address }}
@@ -89,6 +89,13 @@
       port = {{ item.virtualbmc_port }}
   with_items: "{{ vm_nodes }}"
   become: true
+
+- name: Create a password file for Redfish Virtual BMCs
+  htpasswd:
+    path: "{{ working_dir }}/virtualbmc/sushy-tools/htpasswd"
+    crypt_scheme: bcrypt
+    name: "{{ vbmc_username }}"
+    password: "{{ vbmc_password }}"
 
 - name: Create the Redfish Virtual BMCs
   copy:
@@ -98,4 +105,5 @@
       SUSHY_EMULATOR_LIBVIRT_URI = "{{ vbmc_libvirt_uri }}"
       SUSHY_EMULATOR_IGNORE_BOOT_DEVICE = {{ sushy_ignore_boot_device }}
       SUSHY_EMULATOR_VMEDIA_VERIFY_SSL = {{ sushy_vmedia_verify_ssl }}
+      SUSHY_EMULATOR_AUTH_FILE = "/root/sushy/htpasswd"
   become: true

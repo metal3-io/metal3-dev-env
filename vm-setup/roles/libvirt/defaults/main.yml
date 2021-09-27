@@ -34,3 +34,7 @@ libvirtd_service: libvirtd
 # format of a URL host, e.g. with IPv6, it should be surrounded
 # by brackets
 provisioning_url_host: 172.22.0.1
+
+# BMC credentials
+vbmc_username: "admin"
+vbmc_password: "password"
