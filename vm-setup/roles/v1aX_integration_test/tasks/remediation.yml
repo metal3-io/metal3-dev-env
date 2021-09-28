@@ -110,20 +110,13 @@
       - "{{ MASTER_BMH_2 }}"
 
   - name: Wait until powered on master nodes become Ready
-    k8s_info:
-      api_version: v1
-      kind: nodes
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: nodes
+    shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
+    register: ready_master
     retries: 150
     delay: 3
-    vars:
-      q1: "[? metadata.name == '{{MASTER_NODE_1}}' && status.conditions[? type=='Ready' && status=='True']]"
-      q2: "[? metadata.name == '{{MASTER_NODE_2}}' && status.conditions[? type=='Ready' && status=='True']]"
     until:
-      - nodes is succeeded
-      - nodes.resources | json_query(q1) | length > 0
-      - nodes.resources | json_query(q2) | length > 0
+      - MASTER_NODE_1 in ready_master.stdout_lines
+      - MASTER_NODE_2 in ready_master.stdout_lines
 
   - name: List only running VMs
     virt:
@@ -149,17 +142,14 @@
         spec:
           replicas: 1
 
+    # we use shell instead of k8s_info module here because the CP may not respond to requests 
+    # while it is scaling down - k8s_info has no request timeout, which can hang the build
   - name: Wait until KCP is scaled down and two nodes are Ready
-    k8s_info:
-      api_version: metal3.io/v1alpha1
-      kind: BareMetalHost
-      namespace: "{{ NAMESPACE }}"
-    register: bmhs
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
     retries: 200
     delay: 20
-    until:
-      - bmhs is succeeded
-      - bmhs.resources | filter_provisioning("ready") | length == 2
+    register: ready_bmhs
+    until: ready_bmhs.stdout == "2"
 
   - name: Mark "{{ WORKER_BMH }}" as unhealthy
     k8s:
