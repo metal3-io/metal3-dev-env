@@ -484,11 +484,12 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   launch_cluster_api_provider_metal3
 fi
 
-if [ "${CAPM3_VERSION}" != "v1alpha4" ]; then 
-  launch_baremetal_operator
+if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
+    if [ "${CAPM3_VERSION}" != "v1alpha4" ]; then
+        launch_baremetal_operator
+    fi
+    launch_ironic
 fi
-
-launch_ironic
 
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
