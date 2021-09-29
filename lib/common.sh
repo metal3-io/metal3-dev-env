@@ -223,14 +223,16 @@ export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v4.1.3"}
 # Kind version (if EPHEMERAL_CLUSTER=kind)
 export KIND_VERSION=${KIND_VERSION:-"v0.11.1"}
 
+# Remove this KUBERNETES_VERSION Check once we stop supporting capm3 v1a4
 if [ "${KUBERNETES_VERSION}" == "v1.21.2" ]; then
   export KIND_NODE_IMAGE_VERSION="v1.21.2"
+  # Minikube version (if EPHEMERAL_CLUSTER=minikube)
+  export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.22.0"}
 else 
   export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.22.0"}
+  # Minikube version (if EPHEMERAL_CLUSTER=minikube)
+  export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.23.2"}
 fi
-
-# Minikube version (if EPHEMERAL_CLUSTER=minikube)
-export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.22.0"}
 
 # Ansible version
 export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.5.0"}
