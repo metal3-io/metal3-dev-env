@@ -1,7 +1,8 @@
 # Can be set to "teardown" to destroy a previous configuration
 virtbmc_action: setup
 sushy_ignore_boot_device: False
-sushy_vmedia_verify_ssl: True
+# This matches how real hardware behaves
+sushy_vmedia_verify_ssl: False
 
 # BMC credentials
 vbmc_username: "admin"
