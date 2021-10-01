@@ -87,7 +87,7 @@ else
       curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
       chmod +x ./kind
       sudo mv kind /usr/local/bin/.
-      container_image_pull_if_missing kindest/node:"${KIND_NODE_IMAGE_VERSION}"
+      pull_container_image_if_missing kindest/node:"${KIND_NODE_IMAGE_VERSION}"
   fi
   if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
     curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
@@ -173,7 +173,7 @@ popd
 # Pulling all the images except any local image.
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
   IMAGE="${!IMAGE_VAR}"
-  container_image_pull_if_missing "$IMAGE"
+  pull_container_image_if_missing "$IMAGE"
  done
 
 if ${IPA_DOWNLOAD_ENABLED}; then

@@ -426,9 +426,9 @@ differs(){
 # Inputs:
 # - Full name of a Docker/podman/crictl image including tag
 #
-function container_image_pull_if_missing() {
+function pull_container_image_if_missing() {
   local IMAGE="$1"
-  if ! sudo "${CONTAINER_RUNTIME}" | grep -q "$IMAGE"; then
+  if [[ -z $(sudo "${CONTAINER_RUNTIME}" image ls "$IMAGE" | tail -n +2) ]]; then
     sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
   fi
 }
