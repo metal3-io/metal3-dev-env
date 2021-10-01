@@ -31,6 +31,19 @@
       "name": "{{ node.name|replace('_', '-') }}",
       "driver": "{{ vm_driver_tmp }}",
       "resource_class": "baremetal",
+      {% if static_ips is defined -%}
+        {% set node_loop_index = loop.index -%}
+        {% for network in networks %}
+          {% if 'dhcp_range_v4' in network and network.dhcp_range_v4[1] %}
+      "static_ipv4": "{{ network.dhcp_range_v4[1] | ansible.netcommon.ipmath(10) | ansible.netcommon.ipmath(node_loop_index) }}",
+      "static_ipv4_prefix": "{{ network.prefix_v4 }}",
+          {% endif %}
+          {% if 'dhcp_range_v6' in network and network.dhcp_range_v6[1] %}
+      "static_ipv6": "{{ network.dhcp_range_v6[1] | ansible.netcommon.ipmath(10) | ansible.netcommon.ipmath(node_loop_index) }}",
+      "static_ipv6_prefix": "{{ network.prefix_v6 }}",
+          {% endif %}
+        {% endfor %}
+      {% endif %}
       "driver_info": {
         "username": "{{ vbmc_username }}",
         "password": "{{ vbmc_password }}",

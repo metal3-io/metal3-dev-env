@@ -55,6 +55,7 @@ networks:
     bridge: baremetal
     forward_mode: "{% if manage_baremetal == 'y' %}nat{% else %}bridge{% endif %}"
     address_v4: "{{ baremetal_network_cidr_v4|nthhost(1)|default('', true) }}"
+    prefix_v4: "{{ baremetal_network_cidr_v4|ipaddr('prefix') }}"
     netmask_v4: "{{ baremetal_network_cidr_v4|ipaddr('netmask') }}"
     dhcp_range_v4:
       - "{{ virsh_dhcp_v4_start }}"
