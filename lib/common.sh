@@ -157,7 +157,7 @@ export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}
 export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-"1"}"
 
 # Docker registry for local images
-export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"docker.io/registry:latest"}
+export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"registry:2.7.1"}
 
 # VBMC and Redfish images
 export VBMC_IMAGE=${VBMC_IMAGE:-"quay.io/metal3-io/vbmc"}
