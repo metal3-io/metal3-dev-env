@@ -428,8 +428,14 @@ differs(){
 #
 function pull_container_image_if_missing() {
   local IMAGE="$1"
-  if [[ -z $(sudo "${CONTAINER_RUNTIME}" image ls "$IMAGE" | tail -n +2) ]]; then
-    sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
+  if [ "${CONTAINER_RUNTIME}" == "docker" ]; then
+    if [[ -z $(sudo "${CONTAINER_RUNTIME}" image ls "$IMAGE" | tail -n +2) ]]; then
+      sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
+    fi
+  else
+    if ! sudo "${CONTAINER_RUNTIME}" image exists "$IMAGE"; then  
+      sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
+    fi
   fi
 }
 
