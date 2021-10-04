@@ -7,7 +7,7 @@
     become: yes
     become_user: root
 
-  - name: Wait until "{{ NUM_NODES }}" bmhs become ready.
+  - name: Wait until "{{ NUM_NODES }}" bmhs become available.
     k8s_info:
       api_version: metal3.io/v1alpha1
       kind: BareMetalHost
@@ -17,7 +17,7 @@
     delay: 10
     until:
       - bmhs is succeeded
-      - bmhs.resources | filter_provisioning("ready") | length == (NUM_NODES | int)
+      - bmhs.resources | filter_provisioning("available,ready") | length == (NUM_NODES | int)
 
   - name: Request inspection for hosts via API
     k8s:
@@ -30,7 +30,7 @@
           name: "{{ item }}"
           annotations:
             inspect.metal3.io: ""
-    loop: "{{ bmhs.resources | filter_provisioning('ready') | map(attribute='metadata.name') }}"
+    loop: "{{ bmhs.resources | filter_provisioning('available,ready') | map(attribute='metadata.name') }}"
 
   - name: Wait until "{{ NUM_NODES }}" bmhs are in inspecting or inspect wait state.
     k8s_info:
@@ -46,7 +46,7 @@
         union(bmhs.resources | filter_provisioning("inspect wait")) |
         length == (NUM_NODES | int)
 
-  - name: Wait until "{{ NUM_NODES }}" bmhs become ready again.
+  - name: Wait until "{{ NUM_NODES }}" bmhs become available again.
     k8s_info:
       api_version: metal3.io/v1alpha1
       kind: BareMetalHost
@@ -56,4 +56,4 @@
     delay: 10
     until:
       - bmhs is succeeded
-      - bmhs.resources | filter_provisioning("ready") | length == (NUM_NODES | int)
+      - bmhs.resources | filter_provisioning("available,ready") | length == (NUM_NODES | int)

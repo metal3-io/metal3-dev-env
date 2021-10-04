@@ -50,16 +50,18 @@ def filter_provisioning(resources, state):
 
     Args:
         resources : Json object contains a list of k8s resources.
-        state (str): The provisioning state of the filtered resources
-                    e.g. 'provisioned', 'ready', 'deprovisioning'.
+        state (str): Comma-delimited list of provisioning states of the
+                    filtered resources e.g. 'provisioned',
+                    'available,ready', 'deprovisioning'
 
     Returns:
         list: A list of resources in the defined provisioning state.
     """
+    states = set(state.split(','))
     filtered = []
     for r in resources:
         try:
-            if r["status"]["provisioning"]["state"].lower() == state:
+            if r["status"]["provisioning"]["state"].lower() in states:
                 filtered.append(r)
         except KeyError:
             display.warning(msg("['status']['provisioning']['state']", resources))

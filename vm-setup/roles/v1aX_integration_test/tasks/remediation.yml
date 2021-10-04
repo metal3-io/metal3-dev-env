@@ -144,12 +144,12 @@
 
     # we use shell instead of k8s_info module here because the CP may not respond to requests 
     # while it is scaling down - k8s_info has no request timeout, which can hang the build
-  - name: Wait until KCP is scaled down and two nodes are Ready
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -w ready | wc -l
+  - name: Wait until KCP is scaled down and two hosts are available
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | egrep -c '\b(available)|(ready)\b'
     retries: 200
     delay: 20
-    register: ready_bmhs
-    until: ready_bmhs.stdout == "2"
+    register: available_bmhs
+    until: available_bmhs.stdout == "2"
 
   - name: Mark "{{ WORKER_BMH }}" as unhealthy
     k8s:
@@ -171,7 +171,7 @@
       name: "{{ WORKER_NODE }}"
       namespace: "{{ NAMESPACE }}"
 
-  - name: Wait until worker BMH is in ready state
+  - name: Wait until worker BMH is in available state
     k8s_info:
       api_version: metal3.io/v1alpha1
       kind: BareMetalHost
@@ -181,7 +181,7 @@
     delay: 20
     until:
       - bmhs is succeeded
-      - WORKER_BMH in (bmhs.resources | filter_provisioning("ready") | map(attribute='metadata.name'))
+      - WORKER_BMH in (bmhs.resources | filter_provisioning("available,ready") | map(attribute='metadata.name'))
 
   - name: Wait until two BMH are provisioned
     k8s_info:
@@ -279,7 +279,7 @@
         spec:
           replicas: 1
 
-  - name: Wait until two BMHs are in ready state
+  - name: Wait until two BMHs are in available state
     k8s_info:
       api_version: metal3.io/v1alpha1
       kind: BareMetalHost
@@ -289,7 +289,7 @@
     delay: 20
     until:
       - bmhs is succeeded
-      - bmhs.resources | filter_provisioning("ready") | length == 2
+      - bmhs.resources | filter_provisioning("available,ready") | length == 2
 
     ## Start Metal3DataTemplate reference test
   - name: Get the metal3datatemplate
@@ -346,7 +346,7 @@
   - pause:
       minutes: 1
 
-  - name: Wait until two BMHs are in ready state
+  - name: Wait until two BMHs are in available state
     k8s_info:
       api_version: metal3.io/v1alpha1
       kind: BareMetalHost
@@ -356,7 +356,7 @@
     delay: 20
     until:
       - bmhs is succeeded
-      - bmhs.resources | filter_provisioning("ready") | length == 2
+      - bmhs.resources | filter_provisioning("available,ready") | length == 2
 
   - name: Check if one Metal3Data refers to the old template
     k8s_info:
