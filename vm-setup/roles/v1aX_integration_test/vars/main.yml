@@ -113,6 +113,7 @@ provision_actions:
     - "provision_worker"
     - "feature_test_provisioning"
     - "upgrading"
+    - "generate_template"
 deprovision_cluster_actions:
     - "ci_test_deprovision"
     - "deprovision_cluster"
