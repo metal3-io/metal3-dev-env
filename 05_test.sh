@@ -24,4 +24,3 @@ fi
 
 export ACTION="ci_test_deprovision"
 
-"${METAL3_DIR}"/scripts/run.sh
