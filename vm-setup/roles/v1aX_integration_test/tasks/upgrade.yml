@@ -132,10 +132,10 @@
     - dev-repository/cluster-api/{{ CAPIRELEASE }}
     - dev-repository/bootstrap-kubeadm/{{ CAPIRELEASE }}
     - dev-repository/control-plane-kubeadm/{{ CAPIRELEASE }}
-    - overrides/infrastructure-metal3/{{ CAPM3RELEASE }}
     - dev-repository/cluster-api/{{ CAPI_REL_TO_VERSION }}
     - dev-repository/bootstrap-kubeadm/{{ CAPI_REL_TO_VERSION }}
     - dev-repository/control-plane-kubeadm/{{ CAPI_REL_TO_VERSION }}
+    - overrides/infrastructure-metal3/{{ CAPM3RELEASE }}
     - overrides/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}
 
   - name: Copy controlplane components files
@@ -216,14 +216,6 @@
         src: "overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/metadata.yaml",
         dest: "overrides/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/metadata.yaml"
       }
-    - {
-        src: "dev-repository/infrastructure-metal3/{{ CAPM3RELEASE }}/infrastructure-components.yaml",
-        dest: "dev-repository/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/infrastructure-components.yaml"
-      }
-    - {
-        src: "dev-repository/infrastructure-metal3/{{ CAPM3RELEASE }}/metadata.yaml",
-        dest: "dev-repository/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/metadata.yaml"
-      }
 
   - name: Make changes on CRDs
     vars:
@@ -243,9 +235,6 @@
         regexp: 'description: KubeadmControlPlane'
         replace: "description: upgradedKubeadmControlPlane"
       # TODO: Should we use something more generic than "m3c2020"? Say "m3cnext" or "upgm3c"?
-      - path: "{{working_dir}}/dev-repository/infrastructure-metal3/{{CAPM3_REL_TO_VERSION}}/infrastructure-components.yaml"
-        regexp: '\bm3c\b'
-        replace: "m3c2020"
       - path: "{{working_dir}}/overrides/infrastructure-metal3/{{CAPM3_REL_TO_VERSION}}/infrastructure-components.yaml"
         regexp: '\bm3c\b'
         replace: "m3c2020"
