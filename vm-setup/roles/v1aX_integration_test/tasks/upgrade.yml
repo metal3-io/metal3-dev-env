@@ -79,7 +79,7 @@
       dest: /tmp/cluster-api-clone
       version: "{{ CAPI_REL_TO_VERSION }}"
 
-  - name: Create clusterctl-settings.json for cluster-api and capm3 repo
+  - name: Create clusterctl-settings.json for cluster-api and capm3 repos
     ansible.builtin.template:
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
@@ -87,7 +87,7 @@
       - src: cluster-api-clusterctl-settings.json
         dest: /tmp/cluster-api-clone/clusterctl-settings.json
       - src: capm3-clusterctl-settings.json
-        dest: "{{ M3PATH }}/clusterctl-settings.json"
+        dest: "{{ CAPM3PATH }}/clusterctl-settings.json"
 
   - name: Build clusterctl binary
     ansible.builtin.command: make clusterctl
@@ -98,16 +98,6 @@
     ansible.builtin.copy:
       src: /tmp/cluster-api-clone/bin/clusterctl
       dest: /usr/local/bin/clusterctl
-      remote_src: yes
-      owner: root
-      mode: u=rwx,g=rx,o=rx
-    become: yes
-    become_user: root
-
-  - name: Copy metadata.yml to {{ M3PATH }}
-    ansible.builtin.copy:
-      src: "{{ M3PATH }}/cluster-api-provider-metal3/metadata.yaml"
-      dest: "{{ M3PATH }}"
       remote_src: yes
       owner: root
       mode: u=rwx,g=rx,o=rx
