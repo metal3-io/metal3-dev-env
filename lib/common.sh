@@ -229,7 +229,7 @@ if [ "${KUBERNETES_VERSION}" == "v1.21.2" ]; then
   # Minikube version (if EPHEMERAL_CLUSTER=minikube)
   export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.22.0"}
 else 
-  export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.22.0"}
+  export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.22.2"}
   # Minikube version (if EPHEMERAL_CLUSTER=minikube)
   export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.23.2"}
 fi
