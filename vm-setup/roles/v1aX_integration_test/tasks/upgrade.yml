@@ -1,52 +1,8 @@
 ---
-  - name: Define number of BMH's
-    set_fact:
-      NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
-
-  - name: Update MachineDeployment maxSurge and maxUnavailable fields
-    kubernetes.core.k8s:
-      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
-      kind: MachineDeployment
-      name: "{{ CLUSTER_NAME }}"
-      namespace: "{{ NAMESPACE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-      resource_definition:
-        spec:
-          strategy:
-            rollingUpdate:
-              maxSurge: 1
-              maxUnavailable: 1
-
-  - name: Untaint all nodes
-    ansible.builtin.command: kubectl taint nodes --all node-role.kubernetes.io/master-
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    ignore_errors: yes
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade controlplane components                                 |
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  - name: Gather variables that were missing on the source cluster
-    kubernetes.core.k8s_info:
-      api_version: v1
-      kind: ConfigMap
-      namespace: "{{ NAMEPREFIX }}-system"
-      name: "{{ NAMEPREFIX }}-ironic"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: configmap
-
-  - name: Store ironic env for later use
-    # We need to replace "ENDPOINT" with "URL" for some of the keys in the dict.
-    # This is done by splitting the dict up into separate keys and values lists
-    # that can then be manipulated with "map".
-    set_fact:
-      ironic_env:
-        # Reconstruct the dict with the modified keys
-        "{{ dict(keys | zip(values)) }}"
-    vars:
-      # Replace "ENDPOINT" with "URL" for the keys.
-      keys: "{{ configmap.resources[0].data.keys() | map('regex_replace', 'ENDPOINT', 'URL') | list }}"
-      values: "{{ configmap.resources[0].data.values() | list }}"
 
   - name: Backup secrets for re-use when pods are re-created during the upgrade process
     shell: |
@@ -224,17 +180,14 @@
       - path: "{{working_dir}}/dev-repository//control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/control-plane-components.yaml"
         regexp: 'description: KubeadmControlPlane'
         replace: "description: upgradedKubeadmControlPlane"
-      # TODO: Should we use something more generic than "m3c2020"? Say "m3cnext" or "upgm3c"?
       - path: "{{working_dir}}/overrides/infrastructure-metal3/{{CAPM3_REL_TO_VERSION}}/infrastructure-components.yaml"
         regexp: '\bm3c\b'
-        replace: "m3c2020"
+        replace: "upgm3c"
 
   - name: Perform upgrade on the target cluster
     ansible.builtin.command: clusterctl upgrade apply --contract v1alpha4
-    environment: "{{ ironic_env | combine(kubeconfig_env) }}"
-    vars:
-      kubeconfig_env:
-        KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   # TODO: Can we check this somehow instead of just waiting?
   # Relevant issue: https://github.com/kubernetes-sigs/cluster-api/issues/4474
@@ -250,7 +203,6 @@
 
   - name: Perform upgrade on the source cluster
     ansible.builtin.command: clusterctl upgrade apply --contract v1alpha4
-    environment: "{{ ironic_env }}"
 
   # TODO: Can we check this somehow instead of just waiting?
   # Relevant issue: https://github.com/kubernetes-sigs/cluster-api/issues/4474
@@ -307,7 +259,7 @@
       name: metal3clusters.infrastructure.cluster.x-k8s.io
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: crd
-    failed_when: '"m3c2020" not in crd.resources[0].spec.names.shortNames'
+    failed_when: '"upgm3c" not in crd.resources[0].spec.names.shortNames'
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade Ironic                                                  |
@@ -508,6 +460,20 @@
     until: (workload_pods is succeeded) and
            (workload_pods.resources | length > 0) and
            (workload_pods.resources[0].status.readyReplicas == workload_pods.resources[0].spec.replicas)
+  
+  - name: Update MachineDeployment maxSurge and maxUnavailable fields
+    kubernetes.core.k8s:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: MachineDeployment
+      name: "{{ CLUSTER_NAME }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      resource_definition:
+        spec:
+          strategy:
+            rollingUpdate:
+              maxSurge: 1
+              maxUnavailable: 1
 
   - name: Update boot-disk and kubernetes versions of worker node
     kubernetes.core.k8s:
