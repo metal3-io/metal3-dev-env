@@ -23,6 +23,7 @@ if [[ $OS == ubuntu ]]; then
   fi
 
 else
+  sudo dnf update -y && sudo dnf install -y epel-release 
   sudo dnf -y install python3-pip
   sudo alternatives --set python /usr/bin/python3
 fi
