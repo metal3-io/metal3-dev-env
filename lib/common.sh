@@ -121,7 +121,7 @@ export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
 else
-  IPAMBRANCH="${IPAMBRANCH:-master}"
+  IPAMBRANCH="${IPAMBRANCH:-main}"
 fi
 
 IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
@@ -196,7 +196,7 @@ if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:release-0.0"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:master"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:master"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:main"}
 fi
 
 # Default hosts memory
