@@ -300,18 +300,14 @@
   #   register: api_status
   #   # failed_when: api_status.apis not contains the upgraded m3c resource(s)?
 
-  # Due to the unavailability of newer release of capm3 (after v0.5.0) at the moment,
-  # it is not possible to fabricate the folder structure for capm3 while performing 
-  # an upgrade on metal3 crd as clusterctl checks its existance on github on the fly.
-  # This check will be reverted back once we have a next capm3 release (i.e v0.5.1) out.
-  # - name: Verify upgraded API resource for Metal3Clusters
-  #   kubernetes.core.k8s_info:
-  #     api_version: apiextensions.k8s.io/v1
-  #     kind: CustomResourceDefinition
-  #     name: metal3clusters.infrastructure.cluster.x-k8s.io
-  #     kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-  #   register: crd
-  #   failed_when: '"m3c2020" not in crd.resources[0].spec.names.shortNames'
+  - name: Verify upgraded API resource for Metal3Clusters
+    kubernetes.core.k8s_info:
+      api_version: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: metal3clusters.infrastructure.cluster.x-k8s.io
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: crd
+    failed_when: '"m3c2020" not in crd.resources[0].spec.names.shortNames'
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade Ironic                                                  |
