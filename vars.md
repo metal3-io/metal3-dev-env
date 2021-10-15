@@ -21,7 +21,7 @@ assured that they are persisted.
 | BMOREPO | Set the Baremetal Operator repository to clone | | https://github.com/metal3-io/baremetal-operator.git |
 | BMOBRANCH | Set the Baremetal Operator branch to checkout | | master |
 | CAPM3REPO | Set the Cluster Api Metal3 provider repository to clone | | https://github.com/metal3-io/cluster-api-provider-metal3.git |
-| CAPM3BRANCH | Set the Cluster Api Metal3 provider branch to checkout | | master |
+| CAPM3BRANCH | Set the Cluster Api Metal3 provider branch to checkout | | main |
 | FORCE_REPO_UPDATE | Force deletion of the BMO, CAPM3 and IPAM repositories before cloning them again | "true", "false" | "true" |
 | IPA_DOWNLOAD_ENABLED | Enables the use of the Ironic Python Agent Downloader container to download IPA archive| "true", "false | "true" |
 | USE_LOCAL_IPA | Enables the use of locally supplied IPA archive. This condition is handled by BMO and this has effect only when IPA_DOWNLOAD_ENABLED is "false", otherwise IPA_DOWNLOAD_ENABLED takes precedence. | "true", "false" | "false" |

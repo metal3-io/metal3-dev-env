@@ -74,7 +74,7 @@
 #
 # Set the Cluster Api Metal3 provider branch to checkout
 #
-#export CAPM3BRANCH="${CAPM3BRANCH:-master}"
+#export CAPM3BRANCH="${CAPM3BRANCH:-main}"
 
 #
 # Force deletion of the BMO and CAPM3 repositories before cloning them again

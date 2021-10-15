@@ -118,7 +118,7 @@ make
 ```
 
 Then clone the Cluster API Provider Metal3 repository, and follow the
-[instructions](https://github.com/metal3-io/cluster-api-provider-metal3/blob/master/docs/dev-setup.md#tilt-development-environment).
+[instructions](https://github.com/metal3-io/cluster-api-provider-metal3/blob/main/docs/dev-setup.md#tilt-development-environment).
 That will mostly be the three following blocks of commands.
 
 ```sh
@@ -175,5 +175,5 @@ cd ${BMOPATH}
 Here `${BMOPATH}` points to the baremetal operator directory. For more
 information, regarding the TLS setup and running ironic locally please refer to
 these documents:
-[TLS](https://github.com/metal3-io/cluster-api-provider-metal3/blob/master/docs/getting-started.md)
+[TLS](https://github.com/metal3-io/cluster-api-provider-metal3/blob/main/docs/getting-started.md)
 , [Run local ironic](https://github.com/metal3-io/baremetal-operator/blob/master/docs/dev-setup.md).
