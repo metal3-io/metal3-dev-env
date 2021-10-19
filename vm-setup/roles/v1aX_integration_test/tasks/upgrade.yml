@@ -298,7 +298,7 @@
       # 3. Convert it to a list of {name: container_name, image: image_name}
       containers:
         "{{ dict(ironic_image_containers |
-              zip_longest([], fillvalue='quay.io/metal3-io/ironic:'+IRONIC_IMAGE_TAG)) |
+              zip_longest([], fillvalue=CONTAINER_REGISTRY+'/metal3-io/ironic:'+IRONIC_IMAGE_TAG)) |
             dict2items(key_name='name', value_name='image') }}"
 
   - name: Wait for ironic update to rollout

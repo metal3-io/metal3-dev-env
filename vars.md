@@ -36,9 +36,10 @@ assured that they are persisted.
 | IMAGE_NAME | Image for target hosts deployment | | "CENTOS_8_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2" |
 | IMAGE_LOCATION | Location of the image to download | | https://artifactory.nordix.org/artifactory/airship/images/${KUBERNETES_VERSION} |
 | IMAGE_USERNAME | Image username for ssh | | "metal3" |
-| IRONIC_IMAGE | Container image for local ironic services | | "quay.io/metal3-io/ironic" |
-| VBMC_IMAGE | Container image for vbmc container | | "quay.io/metal3-io/vbmc" |
-| SUSHY_TOOLS_IMAGE | Container image for sushy-tools container | | "quay.io/metal3-io/sushy-tools" |
+| CONTAINER_REGISTRY | Registry to pull metal3 container images from | | "quay.io" |
+| IRONIC_IMAGE | Container image for local ironic services | | "$CONTAINER_REGISTRY/metal3-io/ironic" |
+| VBMC_IMAGE | Container image for vbmc container | | "$CONTAINER_REGISTRY/metal3-io/vbmc" |
+| SUSHY_TOOLS_IMAGE | Container image for sushy-tools container | | "$CONTAINER_REGISTRY/metal3-io/sushy-tools" |
 | CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1alpha4", "v1alpha5" | "v1alpha5" |
 | CAPI_VERSION | Version of Cluster API | "v1alpha3", "v1alpha4" | "v1alpha4" |
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "192.168.111.249" |

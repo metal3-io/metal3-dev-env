@@ -159,19 +159,22 @@ export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-"1"}"
 # Docker registry for local images
 export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"registry:2.7.1"}
 
+# Registry to pull metal3 container images from
+export CONTAINER_REGISTRY=${CONTAINER_REGISTRY:-"quay.io"}
+
 # VBMC and Redfish images
-export VBMC_IMAGE=${VBMC_IMAGE:-"quay.io/metal3-io/vbmc"}
-export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"quay.io/metal3-io/sushy-tools"}
+export VBMC_IMAGE=${VBMC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/vbmc"}
+export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/sushy-tools"}
 
 # Ironic vars
 export IRONIC_TLS_SETUP=${IRONIC_TLS_SETUP:-"true"}
 export IRONIC_BASIC_AUTH=${IRONIC_BASIC_AUTH:-"true"}
-export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"quay.io/metal3-io/ironic-ipa-downloader"}
-export IRONIC_IMAGE=${IRONIC_IMAGE:-"quay.io/metal3-io/ironic"}
-export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"quay.io/metal3-io/ironic-client"}
+export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-ipa-downloader"}
+export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic"}
+export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-client"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
-export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"quay.io/metal3-io/keepalived"}
+export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived"}
 
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
@@ -185,18 +188,18 @@ fi
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
 
 # Baremetal operator image
-export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"quay.io/metal3-io/baremetal-operator"}
+export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator"}
 
 # Config for OpenStack CLI
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
 # CAPM3 and IPAM controller images
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:release-0.4"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:release-0.0"}
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-0.4"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-0.0"}
 else
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"quay.io/metal3-io/cluster-api-provider-metal3:main"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"quay.io/metal3-io/ip-address-manager:main"}
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main"}
 fi
 
 # Default hosts memory
