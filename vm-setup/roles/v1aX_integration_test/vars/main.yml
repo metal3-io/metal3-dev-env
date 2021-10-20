@@ -53,24 +53,24 @@ CAPM3RELEASE: "{{ lookup('env', 'CAPM3RELEASE') | default('v0.5.0', true) }}"
 CAPIRELEASE: "{{ lookup('env', 'CAPIRELEASE') | default('v0.4.0', true) }}"
 SSH_PRIVATE_KEY: "{{ lookup('env', 'SSH_KEY') }}"
 SSH_PUB_KEY_CONTENT: "{{ lookup('file', '{{ HOME }}/.ssh/id_rsa.pub') }}"
-IMAGE_USERNAME: "{{ lookup('env', 'IMAGE_USERNAME') | default('metal3', true)}}"
-REGISTRY: "{{ lookup('env', 'REGISTRY') | default('192.168.111.1:5000', true)}}"
+IMAGE_USERNAME: "{{ lookup('env', 'IMAGE_USERNAME') | default('metal3', true) }}"
+REGISTRY: "{{ lookup('env', 'REGISTRY') | default('192.168.111.1:5000', true) }}"
 
 # Environment variables for deployment. IMAGE_OS can be Centos or Ubuntu, change accordingly to your needs.
-IMAGE_OS: "{{ lookup('env', 'IMAGE_OS') | default('Centos', true)}}"
-CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') | default('podman', true)}}"
-DEFAULT_HOSTS_MEMORY: "{{ lookup('env', 'DEFAULT_HOSTS_MEMORY') | default('4096', true)}}"
-CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha4', true)}}"
-CAPM3_VERSION: "{{ lookup('env', 'CAPM3_VERSION') | default('v1alpha5', true)}}"
-IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images')}}"
-IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning', true)}}"
+IMAGE_OS: "{{ lookup('env', 'IMAGE_OS') | default('Centos', true) }}"
+CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') | default('podman', true) }}"
+DEFAULT_HOSTS_MEMORY: "{{ lookup('env', 'DEFAULT_HOSTS_MEMORY') | default('4096', true) }}"
+CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1alpha4', true) }}"
+CAPM3_VERSION: "{{ lookup('env', 'CAPM3_VERSION') | default('v1alpha5', true) }}"
+IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images') }}"
+IRONIC_ENDPOINT_BRIDGE: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('provisioning', true) }}"
 UPGRADED_IMAGE_NAME: "{{ lookup('env', 'UPGRADED_IMAGE_NAME') }}"
 UPGRADED_RAW_IMAGE_NAME: "{{ lookup('env', 'UPGRADED_RAW_IMAGE_NAME') }}"
 
 # Distibution specific environment variables
-IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}.qcow2', true)}}"
-RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}-raw.img', true)}}"
-IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifactory.nordix.org/artifactory/airship/images/k8s_{{KUBERNETES_VERSION}}/', true)}}"
+IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}.qcow2', true) }}"
+RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}-raw.img', true) }}"
+IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifactory.nordix.org/artifactory/airship/images/k8s_{{KUBERNETES_VERSION}}/', true) }}"
 IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
 IMAGE_FORMAT: "{{ lookup('env', 'IMAGE_FORMAT') | default('raw', true) }}"
 IMAGE_CHECKSUM_TYPE: "{{ lookup('env', 'IMAGE_CHECKSUM_TYPE') | default('md5', true) }}"
@@ -78,11 +78,12 @@ IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM
 
 # Environment variables to install Ironic with TLS and Basic Auth
 GOPATH: "{{ lookup('env', 'GOPATH')}}"
-IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true)}}"
-IRONIC_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true)}}"
+IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true) }}"
+IRONIC_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true) }}"
 
 # Environment variables for upgrade workflow
 IRONIC_IMAGE_TAG: "master"
+CONTAINER_REGISTRY: "{{ lookup('env', 'CONTAINER_REGISTRY') }}"
 NUM_IRONIC_IMAGES: 8
 CAPIRELEASE_HARDCODED: "{{ lookup('env', 'CAPIRELEASE_HARDCODED') }}"
 M3PATH: "{{ lookup('env', 'M3PATH') }}"

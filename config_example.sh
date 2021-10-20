@@ -147,17 +147,21 @@
 #
 #export IMAGE_USERNAME="metal3"
 
+# Registry to pull metal3 container images from
+#
+#export CONTAINER_REGISTRY=${CONTAINER_REGISTRY:-"quay.io"}
+
 # Container image for ironic pod
 #
-#export IRONIC_IMAGE="quay.io/metal3-io/ironic"
+#export IRONIC_IMAGE="${CONTAINER_REGISTRY}/metal3-io/ironic"
 
 # Container image for vbmc container
 #
-#export VBMC_IMAGE="quay.io/metal3-io/vbmc"
+#export VBMC_IMAGE="${CONTAINER_REGISTRY}/metal3-io/vbmc"
 
 # Container image for sushy-tools container
 #
-#export SUSHY_TOOLS_IMAGE="quay.io/metal3-io/sushy-tools"
+#export SUSHY_TOOLS_IMAGE="${CONTAINER_REGISTRY}/metal3-io/sushy-tools"
 
 # APIEndpoint IP for target cluster
 #export CLUSTER_APIENDPOINT_IP="192.168.111.249"
