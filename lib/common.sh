@@ -96,14 +96,12 @@ FILESYSTEM=${FILESYSTEM:="/"}
 CAPM3_VERSION_LIST="v1alpha4 v1alpha5 v1beta1"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
-if  [ "${CAPM3_VERSION}" == "v1beta1"  ]; then
-# Todo: change CAPI_VERSION to v1beta1 when API versions are in place upstream
-  export CAPI_VERSION="v1alpha4"
-  export CAPM3_VERSION="v1alpha5"
-elif [ "${CAPM3_VERSION}" == "v1alpha5"  ]; then
-  export CAPI_VERSION="v1alpha4"
-elif [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export CAPI_VERSION="v1alpha3"
+elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+  export CAPI_VERSION="v1alpha4"
+elif [ "${CAPM3_VERSION}" == "v1beta1" ]; then
+  export CAPI_VERSION="v1beta1"
 else
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
   exit 1

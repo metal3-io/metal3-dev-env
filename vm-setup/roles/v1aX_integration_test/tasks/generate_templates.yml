@@ -32,8 +32,10 @@
       - workers
 
   - name: Generate templates
+    vars:
+      clusterctl_var: "{{ 'generate' if CAPI_VERSION == 'v1beta1' else 'config' }}"
     shell: >
-      clusterctl config cluster {{ CLUSTER_NAME }}
+      clusterctl {{ clusterctl_var }} cluster {{ CLUSTER_NAME }}
       --from {{ HOME }}/.cluster-api/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml
       --kubernetes-version {{ KUBERNETES_VERSION }}
       --control-plane-machine-count={{ NUM_OF_MASTER_REPLICAS }}
