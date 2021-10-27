@@ -111,7 +111,7 @@
 
 #
 # Set the driver. The default value is 'mixed' (alternate nodes between ipmi
-# and redfish).
+# and redfish). Can also be set explicitly to ipmi/redfish/redfish-virtualmedia.
 #
 #export BMC_DRIVER="mixed"
 
