@@ -115,6 +115,12 @@
 #
 #export BMC_DRIVER="mixed"
 
+#
+# Set libvirt firmware and BMC bootMode
+# Choose "legacy" (bios), "UEFI", or "UEFISecureBoot"
+# Defaults to legacy for ipv4, UEFI for ipv6
+# export BOOT_MODE="UEFI"
+
 # Select the Cluster API provider Metal3 version
 # Accepted values : v1alpha4, v1alpha5, v1beta1
 # default: v1alpha4
