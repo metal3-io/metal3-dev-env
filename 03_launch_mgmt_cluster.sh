@@ -33,6 +33,7 @@ function clone_repo() {
   local REPO_BRANCH="$2"
   local REPO_PATH="$3"
   local REPO_COMMIT="${4:-HEAD}"
+
   if [[ -d "${REPO_PATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
     rm -rf "${REPO_PATH}"
   fi
