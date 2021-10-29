@@ -126,8 +126,10 @@ if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
 elif [ "${CAPI_VERSION}" == "v1alpha4" ]; then
   IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
-else
+elif [ "${CAPI_VERSION}" == "v1beta1" ]; then
   IPAMBRANCH="${IPAMBRANCH:-main}"
+else
+  IPAMBRANCH="${IPAMBRANCH:-master}"
 fi
 
 IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
