@@ -93,10 +93,14 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
 
-CAPM3_VERSION_LIST="v1alpha4 v1alpha5"
-export CAPM3_VERSION="${CAPM3_VERSION:-"v1alpha5"}"
+CAPM3_VERSION_LIST="v1alpha4 v1alpha5 v1beta1"
+export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
-if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if  [ "${CAPM3_VERSION}" == "v1beta1"  ]; then
+# Todo: change CAPI_VERSION to v1beta1 when API versions are in place upstream
+  export CAPI_VERSION="v1alpha4"
+  export CAPM3_VERSION="v1alpha5"
+elif [ "${CAPM3_VERSION}" == "v1alpha5"  ]; then
   export CAPI_VERSION="v1alpha4"
 elif [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export CAPI_VERSION="v1alpha3"
@@ -120,6 +124,8 @@ export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
+elif [ "${CAPI_VERSION}" == "v1alpha4" ]; then
+  IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
 else
   IPAMBRANCH="${IPAMBRANCH:-main}"
 fi
@@ -130,6 +136,8 @@ CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.4}"
+elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+  CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
 else
   CAPM3BRANCH="${CAPM3BRANCH:-main}"
 fi
@@ -198,6 +206,9 @@ export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-0.4"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-0.0"}
+elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-0.5"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-0.1"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main"}

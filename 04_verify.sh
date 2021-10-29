@@ -201,12 +201,12 @@ EXPTD_V1ALPHA4_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:
   cluster.x-k8s.io/provider:cluster-api:capi-webhook-system:1 \
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-webhook-system:1 \
   cluster.x-k8s.io/provider:control-plane-kubeadm:capi-webhook-system:1"
-EXPTD_V1ALPHA5_DEPLOYMENTS="capm3-system:capm3-controller-manager \
+EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-system:capi-controller-manager \
   capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
   capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
   baremetal-operator-system:baremetal-operator-controller-manager"
-EXPTD_V1ALPHA5_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:2 \
+EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:2 \
   cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
   cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1"
@@ -252,8 +252,8 @@ if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA4_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA4_RS}"
 else
-  iterate check_k8s_entity deployments "${EXPTD_V1ALPHA5_DEPLOYMENTS}"
-  iterate check_k8s_rs "${EXPTD_V1ALPHA5_RS}"
+  iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
+  iterate check_k8s_rs "${EXPTD_RS}"
 fi
 # Verify the baremetal hosts
 ## Fetch the BM CRs
