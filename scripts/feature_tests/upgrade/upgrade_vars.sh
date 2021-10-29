@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eux
+set -ex
 
 # Folder created for specific capi release when running
 # ${CLUSTER_API_REPO}/cmd/clusterctl/hack/create-local-repository.py
