@@ -13,6 +13,7 @@ default_memory: 8192
 default_vcpu: 2
 num_nodes: 2
 extradisks: false
+tpm_emulator: "{{ lookup('env', 'VM_TPM_EMULATOR')|default(false, true) }}"
 virtualbmc_base_port: 6230
 flavors:
   node:
