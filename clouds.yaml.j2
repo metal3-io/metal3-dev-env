@@ -12,6 +12,7 @@ clouds:
     cacert: /etc/openstack/ironic-ca.crt
     baremetal_endpoint_override: https://{{ env.CLUSTER_URL_HOST }}:{{ env.IRONIC_API_PORT }}
     baremetal_introspection_endpoint_override: https://{{ env.CLUSTER_URL_HOST }}:{{ env.IRONIC_INSPECTOR_PORT }}
+    verify: false
 {% else %}
     baremetal_endpoint_override: http://{{ env.CLUSTER_URL_HOST }}:{{ env.IRONIC_API_PORT }}
     baremetal_introspection_endpoint_override: http://{{ env.CLUSTER_URL_HOST }}:{{ env.IRONIC_INSPECTOR_PORT }}
