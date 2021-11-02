@@ -110,6 +110,10 @@ IRONIC_ENDPOINT=${IRONIC_URL}
 IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
 EOF
 
+  if [ -n "${DEPLOY_ISO_URL}" ]; then
+    echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${BMOPATH}/config/default/ironic.env"
+  fi
+
   # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
   "${BMOPATH}/tools/deploy.sh" true false "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
 
@@ -194,6 +198,10 @@ CACHEURL=http://${PROVISIONING_URL_HOST}/images
 IRONIC_FAST_TRACK=true
 RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED}"
 EOF
+
+  if [ -n "${DEPLOY_ISO_URL}" ]; then
+    echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
+  fi
 
   if [ "$NODES_PLATFORM" == "libvirt" ] ; then
     echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
