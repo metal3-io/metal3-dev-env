@@ -1,0 +1,55 @@
+---
+
+- name: "Processing extra network {{network_name}}"
+  debug:
+    var: network_name
+
+# Get the CIDR for ipv4 and/or ipv6
+- name: "Set {{network_name}}_cidr_v4 from {{network_name.upper()}}_NETWORK_SUBNET_V4"
+  set_fact:
+    "{{network_name}}_cidr_v4": "{{lookup('env', network_name.upper()+'_NETWORK_SUBNET_V4')}}"
+
+- name: "Set {{network_name}}_cidr_v6 from {{network_name.upper()}}_NETWORK_SUBNET_V6"
+  set_fact:
+    "{{network_name}}_cidr_v6": "{{lookup('env', network_name.upper()+'_NETWORK_SUBNET_V6')}}"
+
+# Validate that we have at least one CIDR, and that the format is correct
+- fail:
+    msg: "Must specify at least one of {{network_name.upper()}}_NETWORK_SUBNET_V4 or {{network_name.upper()}}_NETWORK_SUBNET_V6"
+  when: "{{ lookup('vars', network_name + '_cidr_v4') == '' and lookup('vars', network_name + '_cidr_v6') == '' }}"
+
+- name: Calculate v4 extra_network data
+  block:
+    - set_fact:
+        extra_network_v4: "{{ [{
+        'address_v4': cidr|nthhost(1),
+        'netmask_v4': cidr|ipaddr('netmask'),
+        'dhcp_range_v4': [ cidr|nthhost(20), cidr|nthhost(60)],
+        }]}}"
+  when: "{{ lookup('vars', network_name + '_cidr_v4') != '' }}"
+  vars:
+    cidr: "{{lookup('vars', network_name + '_cidr_v4')}}"
+
+- name: Calculate v6 extra_network data
+  block:
+    - set_fact:
+        extra_network_v6: "{{ [{
+        'address_v6': cidr|nthhost(1),
+        'prefix_v6': cidr|ipaddr('prefix'),
+        'dhcp_range_v6': [ cidr|nthhost(20), cidr|nthhost(60)],
+        }]}}"
+  when: "{{ lookup('vars', network_name + '_cidr_v6') != '' }}"
+  vars:
+    cidr: "{{lookup('vars', network_name + '_cidr_v6')}}"
+
+- name: "Add extra network {{network_name}} to extra_networks"
+  set_fact:
+    extra_networks: "{{ extra_networks|default([]) + [
+      {
+        'name': network_name,
+        'bridge': network_name,
+        'forward_mode': 'nat',
+        'nat_port_range': ['1024', '65535'],
+        'lease_expiry': '60',
+      } | combine(extra_network_v4|default({}), extra_network_v6|default({}))
+      ]}}"
