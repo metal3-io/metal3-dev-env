@@ -241,7 +241,7 @@ function make_bm_hosts() {
       -password "$password" \
       -user "$user" \
       -boot-mac "$mac" \
-      -boot-mode "legacy" \
+      -boot-mode "${BOOT_MODE}" \
       "$name"
   done
 }

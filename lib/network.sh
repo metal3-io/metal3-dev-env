@@ -39,13 +39,23 @@ export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"}
 PROVISIONING_IPV6=${PROVISIONING_IPV6:-false}
 IPV6_ADDR_PREFIX=${IPV6_ADDR_PREFIX:-"fd2e:6f44:5dd8:b856"}
 
-if [[ "${PROVISIONING_IPV6}" == "true" ]];
-then
-  export LIBVIRT_FIRMWARE=uefi
+if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
+  export BOOT_MODE=${BOOT_MODE:-UEFI}
   export PROVISIONING_NETWORK=${PROVISIONING_NETWORK:-fd2e:6f44:5dd8:b856::/64}
 else
-  export LIBVIRT_FIRMWARE=bios
+  export BOOT_MODE=${BOOT_MODE:-legacy}
   export PROVISIONING_NETWORK=${PROVISIONING_NETWORK:-172.22.0.0/24}
+fi
+
+if [[ "${BOOT_MODE}" == "legacy" ]]; then
+  export LIBVIRT_FIRMWARE="bios"
+  export LIBVIRT_SECURE_BOOT="false"
+elif [[ "${BOOT_MODE}" == "UEFI" ]]; then
+  export LIBVIRT_FIRMWARE="uefi"
+  export LIBVIRT_SECURE_BOOT="false"
+elif [[ "${BOOT_MODE}" == "UEFISecureBoot" ]]; then
+  export LIBVIRT_FIRMWARE="uefi"
+  export LIBVIRT_SECURE_BOOT="true"
 fi
 
 # shellcheck disable=SC2155

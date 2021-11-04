@@ -22,6 +22,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "virthost=$HOSTNAME" \
     -e "platform=$NODES_PLATFORM" \
     -e "libvirt_firmware=$LIBVIRT_FIRMWARE" \
+    -e "libvirt_secure_boot=$LIBVIRT_SECURE_BOOT" \
     -e "default_memory=$DEFAULT_HOSTS_MEMORY" \
     -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
     -e "provisioning_url_host=$PROVISIONING_URL_HOST" \

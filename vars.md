@@ -32,6 +32,7 @@ assured that they are persisted.
 | TEST_TIME_INTERVAL | Interval between retries after verification or test failure (seconds) | | 10 |
 | TEST_MAX_TIME | Number of maximum verification or test retries | | 120 |
 | BMC_DRIVER | Set the BMC driver | "ipmi", "redfish", "redfish-virtualmedia" | "mixed" |
+| BOOT_MODE  | Set libvirt firmware and BMH bootMode | "legacy", "UEFI", "UEFISecureBoot" | "legacy" |
 | IMAGE_OS | OS of the image to boot the nodes from, overriden by IMAGE\_\* if set | "Centos", "Cirros", "FCOS", "Ubuntu" | "Centos" |
 | IMAGE_NAME | Image for target hosts deployment | | "CENTOS_8_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2" |
 | IMAGE_LOCATION | Location of the image to download | | https://artifactory.nordix.org/artifactory/airship/images/${KUBERNETES_VERSION} |
