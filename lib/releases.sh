@@ -33,15 +33,22 @@ CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL
 # CAPI releases
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.3.")}"
-else
+elif [ "${CAPI_VERSION}" == "v1alpha4" ]; then
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.4.")}"
+else
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.0.")}"
 fi
 
 # CAPM3 releases
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.4.")}"
-else
+elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.5.")}"
+else
+  # workaround until we have a proper CAPM3 v1beta1 release.
+  export CAPM3RELEASE="v1.0.0"
+  # TODO(furkat) Uncomment below once we start releasing CAPM3 with v1beta1 API.
+  # export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.0.")}"
 fi
 
 # On first iteration, jq might not be installed

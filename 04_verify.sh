@@ -177,7 +177,7 @@ check_container(){
 }
 
 KUBECONFIG="${KUBECONFIG:-${HOME}/.kube/config}"
-EXPTD_V1ALPHAX_CRDS="clusters.cluster.x-k8s.io \
+EXPTD_V1ALPHAX_V1BETAX_CRDS="clusters.cluster.x-k8s.io \
   kubeadmconfigs.bootstrap.cluster.x-k8s.io \
   kubeadmconfigtemplates.bootstrap.cluster.x-k8s.io \
   machinedeployments.cluster.x-k8s.io \
@@ -237,7 +237,7 @@ RESULT_STR="Fetch CRDs"
 CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
-LIST_OF_CRDS=("${EXPTD_V1ALPHAX_CRDS}")
+LIST_OF_CRDS=("${EXPTD_V1ALPHAX_V1BETAX_CRDS}")
 
 # shellcheck disable=SC2068
 for name in ${LIST_OF_CRDS[@]}; do
@@ -247,7 +247,7 @@ for name in ${LIST_OF_CRDS[@]}; do
 done
 echo ""
 
-# Verify v1alpha4+ Operators, Deployments, Replicasets
+# Verify v1alpha4, v1alpha5 and v1beta1 Operators, Deployments, Replicasets
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   iterate check_k8s_entity deployments "${EXPTD_V1ALPHA4_DEPLOYMENTS}"
   iterate check_k8s_rs "${EXPTD_V1ALPHA4_RS}"

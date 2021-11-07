@@ -17,10 +17,11 @@ Instructions can be found here: <https://metal3.io/try-it.html>
 
 ## Quickstart
 
-Versions v1alpha4 or v1alpha5 are later referred as **v1alphaX**.
+Versions v1alpha4, v1alpha5 or v1beta1 are later referred as **v1alphaX**/**v1betaX**.
 
-The v1alphaX deployment can be done with Ubuntu 18.04, 20.04 or Centos 8 Stream target
-host images. By default, for Ubuntu based target hosts we are using Ubuntu 20.04
+The v1alphaX or v1betaX deployment can be done with Ubuntu 18.04, 20.04 or
+Centos 8 Stream target host images. By default, for Ubuntu based target hosts
+we are using Ubuntu 20.04
 
 ### Requirements
 
