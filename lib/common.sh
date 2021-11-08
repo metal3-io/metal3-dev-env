@@ -167,10 +167,7 @@ export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-"1"}"
 export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"registry:2.7.1"}
 
 # Registry to pull metal3 container images from
-# Overriding project-infra export because of a bug. 
-# Please uncomment the next line once a proper fix has landed 
-#export CONTAINER_REGISTRY=${CONTAINER_REGISTRY:-"quay.io"}
-export CONTAINER_REGISTRY="quay.io"
+export CONTAINER_REGISTRY=${CONTAINER_REGISTRY:-"quay.io"}
 
 # VBMC and Redfish images
 export VBMC_IMAGE=${VBMC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/vbmc"}
