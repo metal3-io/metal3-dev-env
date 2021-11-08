@@ -63,6 +63,19 @@ fi
 # shellcheck disable=SC1091
 source lib/releases.sh
 
+## Install krew
+if ! kubectl krew > /dev/null 2>&1; then
+  cd "$(mktemp -d)" &&
+  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+  KREW="krew-${OS}_${ARCH}" &&
+  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+  tar zxvf "${KREW}.tar.gz" &&
+  rm -f "${KREW}.tar.gz" &&
+  ./"${KREW}" install krew
+  echo export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH" >> ~/.bashrc
+fi
+
 # Allow local non-root-user access to libvirt
 # Restart libvirtd service to get the new group membership loaded
 if ! id "$USER" | grep -q libvirt; then
