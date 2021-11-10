@@ -120,7 +120,7 @@ kubectl delete cluster "${CLUSTER_NAME:-"test1"}" -n metal3
 
 ### Deploying with Tilt
 
-It is possible to use Tilt to run the CAPI and CAPM3 components. For this, run:
+It is possible to use Tilt to run the CAPI, BMO and CAPM3 components. For this, run:
 
 ```sh
 export EPHEMERAL_CLUSTER="tilt"
@@ -153,6 +153,7 @@ Once the cluster is running, you can create the BareMetalHosts :
 
 ```sh
 kubectl create namespace metal3
+kubectl apply -f examples/metal3crds/metal3.io_baremetalhosts.yaml
 kubectl apply -n metal3 -f /opt/metal3-dev-env/bmhosts_crs.yaml
 ```
 

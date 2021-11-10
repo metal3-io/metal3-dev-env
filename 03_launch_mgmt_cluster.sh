@@ -512,4 +512,32 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
     kubectl delete validatingwebhookconfiguration/"${BMO_NAME_PREFIX}"-validating-webhook-configuration --ignore-not-found=true
   fi
   apply_bm_hosts
+elif [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
+
+pushd "${BMOPATH}"
+# Required to deploy BMO as part of the tilt environment
+sed -i 's/"kustomize_config":.*/"kustomize_config": true,/' tilt-provider.json
+popd
+
+pushd "${CAPM3PATH}"
+cat <<EOF > tilt-settings.json
+{
+  "provider_repos": [ "../baremetal-operator", "../ip-address-manager"],
+  "enable_providers": [ "metal3-bmo", "metal3-ipam"],
+  "kustomize_substitutions": {
+      "DEPLOY_KERNEL_URL": "${DEPLOY_KERNEL_URL}",
+      "DEPLOY_RAMDISK_URL": "${DEPLOY_RAMDISK_URL}",
+      "IRONIC_INSPECTOR_URL": "${IRONIC_INSPECTOR_URL}",
+      "IRONIC_URL": "${IRONIC_URL}"
+  }
+}
+EOF
+make kind-reset
+kind create cluster --name capm3 --image="kindest/node:${KUBERNETES_VERSION}"
+kubectl create namespace "${NAMESPACE}"
+mkdir -p "${HOME}/.cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}"
+sleep 120 && launch_ironic &
+sleep 120 && apply_bm_hosts &
+make tilt-up
+popd
 fi
