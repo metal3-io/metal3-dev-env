@@ -60,8 +60,7 @@
   - name: Label BMO CRDs.
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
     with_items:
-       - clusterctl.cluster.x-k8s.io=""
-       - cluster.x-k8s.io/provider="metal3"
+       - clusterctl.cluster.x-k8s.io/move-hierarchy=""
     when: CAPM3_VERSION != "v1alpha4"
        
   - name: Obtain target cluster kubeconfig
@@ -141,8 +140,7 @@
   - name: Label BMO CRDs in target cluster.
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
     with_items:
-      - clusterctl.cluster.x-k8s.io=""
-      - cluster.x-k8s.io/provider="metal3"
+      - clusterctl.cluster.x-k8s.io/move-hierarchy=""
     when: CAPM3_VERSION != "v1alpha4"
 
   # Check for pods & nodes on the target cluster
