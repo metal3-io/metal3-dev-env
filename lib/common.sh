@@ -107,6 +107,9 @@ else
   exit 1
 fi
 
+export CAPM3_VERSION="v1beta1"
+export CAPI_VERSION="v1beta1"
+
 export M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
 export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 # shellcheck disable=SC2034
