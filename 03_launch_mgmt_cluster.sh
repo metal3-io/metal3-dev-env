@@ -135,11 +135,11 @@ EOF
     fi
     if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
       sudo mkdir -p /opt/metal3/auth/ironic
-      sudo chown "$USER":"$USER" /opt/metal3/auth/ironic
+      sudo chown --recursive "$USER":"$USER" /opt/metal3/auth/ironic
       cp "${IRONIC_AUTH_DIR}ironic-username" /opt/metal3/auth/ironic/username
       cp "${IRONIC_AUTH_DIR}ironic-password" /opt/metal3/auth/ironic/password
       sudo mkdir -p /opt/metal3/auth/ironic-inspector
-      sudo chown "$USER":"$USER" /opt/metal3/auth/ironic-inspector
+      sudo chown --recursive "$USER":"$USER" /opt/metal3/auth/ironic-inspector
       cp "${IRONIC_AUTH_DIR}${IRONIC_INSPECTOR_USERNAME}" /opt/metal3/auth/ironic-inspector/username
       cp "${IRONIC_AUTH_DIR}${IRONIC_INSPECTOR_PASSWORD}" /opt/metal3/auth/ironic-inspector/password
     fi
