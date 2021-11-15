@@ -9,7 +9,7 @@ assured that they are persisted.
 
 | Name | Option | Allowed values | Default |
 | :------ | :------- | :--------------- | :-------- |
-| MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1| 
+| MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1|
 | EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
 | IP_STACK | Choose whether the "baremetal" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. <br/> Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
 | EXTERNAL_VLAN_ID | If the "baremetal" network is tagged, this is the VLAN id for the network, set on the network interface for the bare metal hosts. | "" or 1-4096 | "" |
@@ -54,11 +54,12 @@ assured that they are persisted.
 | KUBERNETES_BINARIES_VERSION | Version of kubelet, kubeadm and kubectl | "x.x.x-xx" or "x.x.x" | same as KUBERNETES_VERSION |
 | KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.2.7" |
 | NUM_NODES | Set the number of virtual machines to be provisioned. This VMs will be further configured as control-plane or worker Nodes. Note that NUM_OF_MASTER_REPLICAS and NUM_OF_WORKER_REPLICAS should sum to this value. | | 2 |
-| NUM_OF_MASTER_REPLICAS | Set the controlplane replica count in the target cluster. ||1| 
-| NUM_OF_WORKER_REPLICAS | Set the worker replica count in the target cluster. ||1| 
+| NUM_OF_MASTER_REPLICAS | Set the controlplane replica count in the target cluster. ||1|
+| NUM_OF_WORKER_REPLICAS | Set the worker replica count in the target cluster. ||1|
 | VM_EXTRADISKS | Add extra disks to the virtual machines provisioned. By default the size of the extra disk is set in the libvirt Ansible role to 8 GB | "true", "false" | "false" |
 | VM_EXTRADISKS_FILE_SYSTEM | Create file system to the extra disk. | "ext4", "xfs" | "ext4" |
 | VM_EXTRADISKS_MOUNT_DIR | Mount the extra disk to a directory on a host. | | "/mnt/disk2" |
+| VM_TPM_EMULATOR | Add TPM2.0 emulator to VMs. | "true", "false" | "false" |
 | DEFAULT_HOSTS_MEMORY | Set the default memory size in MB for the virtual machines provisioned. | | 4096 |
 | CLUSTER_NAME | Set the name of the target cluster | | test1 |
 | IRONIC_TLS_SETUP | Enable TLS for Ironic and inspector | "true", "false" | "true" |
@@ -85,4 +86,4 @@ assured that they are persisted.
 | MARIADB_KEY_FILE | Path to the key of MariaDB | | /opt/metal3-dev-env/certs/mariadb.key |
 | MARIADB_CERT_FILE | Path to the cert of MariaDB | | /opt/metal3-dev-env/certs/mariadb.crt |
 | MARIADB_CAKEY_FILE | Path to the CA key of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.key |
-| MARIADB_CACERT_FILE | Path to the CA certificate of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.pem | 
+| MARIADB_CACERT_FILE | Path to the CA certificate of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.pem |

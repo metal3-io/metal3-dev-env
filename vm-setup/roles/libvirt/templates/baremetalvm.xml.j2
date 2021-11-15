@@ -37,6 +37,11 @@
 {% if libvirt_diskbus == 'scsi' %}
   <controller type='scsi' model='virtio-scsi' />
 {% endif %}
+{% if tpm_emulator|bool %}
+    <tpm model='tpm-tis'>
+      <backend type='emulator' version='2.0'/>
+    </tpm>
+{% endif %}
 {% for network in networks %}
     <interface type='bridge'>
       <mac address='{{ node_mac_map.get(item.name).get(network.name) }}'/>

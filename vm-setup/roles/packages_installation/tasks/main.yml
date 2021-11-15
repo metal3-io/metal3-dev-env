@@ -28,6 +28,21 @@
         executable: "pip3"
         name: "{{ packages.ubuntu.pip3 }}"
         state: present
+    - name: Add TPM emulator
+      block:
+        - name: Add TPM emulator PPA
+          apt_repository:
+            repo: 'ppa:smoser/swtpm'
+            state: present
+          become: yes
+        - name: Install TPM emulator packages
+          package:
+            name:
+              - swtpm
+              - libtpms
+            state: present
+          become: yes
+      when: tpm_emulator|default(false)|bool
   become: yes
   when: ansible_facts['distribution'] == "Ubuntu"
 
@@ -44,5 +59,13 @@
         executable: "pip3"
         name: "{{ packages.centos.rhel8.pip3 }}"
         state: present
+    - name: Install TPM emulator packages
+      when: tpm_emulator|default(false)|bool
+      package:
+        name:
+          - swtpm
+          - swtpm-tools
+        state: present
+      become: yes
   become: yes
   when: ansible_os_family == "RedHat"
