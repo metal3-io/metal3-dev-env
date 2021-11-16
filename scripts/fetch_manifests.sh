@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 mkdir -p /tmp/manifests
 
 manifests=(
@@ -30,6 +31,6 @@ for kind in "${manifests[@]}"; do
   mkdir -p /tmp/manifests/"$kind"
   for name in $(kubectl get -n metal3 -o name "$kind" || true)
   do
-    kubectl get -n metal3 -o yaml "$name" > /tmp/manifests/"$kind"/"$(basename "$name")".yaml || true
+    kubectl get -n metal3 -o yaml "$name" | tee /tmp/manifests/"$kind"/"$(basename "$name")".yaml || true
   done
 done
