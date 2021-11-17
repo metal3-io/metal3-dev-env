@@ -49,7 +49,7 @@ assured that they are persisted.
 | CLUSTER_PROVISIONING_INTERFACE | Cluster provisioning Interface | "ironicendpoint" | "ironicendpoint" |
 | POD_CIDR | Pod CIDR | "x.x.x.x/x" | "192.168.0.0/18" |
 | NODE_HOSTNAME_FORMAT | Node hostname format. This is a format string that must contain exactly one %d format field that will be replaced with an integer representing the number of the node. | "node-%d" |
-| KUBERNETES_VERSION | Kubernetes version | "x.x.x" | "1.21.0" |
+| KUBERNETES_VERSION | Kubernetes version | "x.x.x" | "1.22.3" |
 | UPGRADED_K8S_VERSION | Upgraded Kubernetes version | "x.x.x" | "1.22.3" |
 | KUBERNETES_BINARIES_VERSION | Version of kubelet, kubeadm and kubectl | "x.x.x-xx" or "x.x.x" | same as KUBERNETES_VERSION |
 | KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.2.7" |
