@@ -11,6 +11,13 @@ export ACTION="ci_test_provision"
 
 "${METAL3_DIR}"/scripts/run.sh
 
+# wait until status of Metal3Machine is rebuilt
+while [ -z "${status}" ]
+do
+    status=$(kubectl get m3m -n "${NAMESPACE}" -o=jsonpath="{.items[*]['status.ready']}")
+    sleep 1s
+done
+
 "${METAL3_DIR}"/scripts/fetch_manifests.sh
 
 kubectl get secrets "${CLUSTER_NAME}-kubeconfig" -n "${NAMESPACE}" -o json | jq -r '.data.value'| base64 -d > "/tmp/kubeconfig-${CLUSTER_NAME}.yaml"
