@@ -118,6 +118,8 @@ else
     exit 1
 fi
 
+export DHCP_ENABLED=${DHCP_ENABLED:-"true"}
+
 if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]] && [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
     network_address MINIKUBE_BMNET_V6_IP "${EXTERNAL_SUBNET_V6}" 9
 fi

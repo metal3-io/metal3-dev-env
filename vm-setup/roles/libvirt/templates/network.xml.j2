@@ -31,7 +31,7 @@
 {# IPv4 Configuration #}
 {% if item.address_v4 is defined and item.address_v4 != '' and item.forward_mode != 'bridge' %}
   <ip address='{{ item.address_v4 }}' netmask='{{ netmask_v4 }}'>
-  {% if item.dhcp_range_v4 is defined %}
+  {% if item.dhcp_range_v4 is defined and item.dhcp_enabled %}
     <dhcp>
       <range start='{{ item.dhcp_range_v4[0] }}' end='{{ item.dhcp_range_v4[1] }}'/>
     {% set ns = namespace(index=0) %}
@@ -80,7 +80,7 @@
 {# IPv6 Configuration #}
 {% if item.address_v6 is defined and item.address_v6 != '' and item.forward_mode != 'bridge' %}
   <ip family="ipv6" address='{{ item.address_v6 }}' prefix='{{ prefix_v6 }}'>
-  {% if item.dhcp_range_v6 is defined %}
+  {% if item.dhcp_range_v6 is defined and item.dhcp_enabled %}
     <dhcp>
       <range start='{{ item.dhcp_range_v6[0] }}' end='{{ item.dhcp_range_v6[1] }}'/>
     {% set ns = namespace(index=0) %}
