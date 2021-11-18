@@ -13,6 +13,7 @@ if [ "${EPHEMERAL_CLUSTER}" == "kind" ] ||  [ "${EPHEMERAL_CLUSTER}" == "tilt" ]
   fi
   if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
     pushd "${CAPM3PATH}"
+    pgrep tilt | xargs kill  || true
     make kind-reset
     popd
   fi
