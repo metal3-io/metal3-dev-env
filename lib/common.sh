@@ -130,7 +130,7 @@ fi
 
 IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
 
-CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
+CAPI_BASE_URL="${CAPI_BASE_URL:-Sunnatillo/cluster-api}"
 
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.4}"

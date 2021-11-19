@@ -28,7 +28,7 @@ function get_latest_release() {
 
 # CAPM3 and CAPI release path
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}/releases}"
-CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
+CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL:-Sunnatillo/cluster-api}/releases}"
 
 # CAPI releases
 if [ "${CAPI_VERSION}" == "v1alpha3" ]; then

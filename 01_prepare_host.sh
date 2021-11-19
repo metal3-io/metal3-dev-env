@@ -129,7 +129,7 @@ fi
 
 # Install clusterctl client
 function install_clusterctl() {
-  curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/"${CAPIRELEASE}"/clusterctl-linux-amd64 -o clusterctl
+  curl -L https://github.com/Sunnatillo/cluster-api/releases/download/"${CAPIRELEASE}"/clusterctl-linux-amd64 -o clusterctl
   chmod +x ./clusterctl
   sudo mv ./clusterctl /usr/local/bin/clusterctl
 }
