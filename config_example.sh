@@ -64,7 +64,7 @@
 #
 # Set the Baremetal Operator branch to checkout
 #
-#export BMOBRANCH="${BMOBRANCH:-master}"
+#export BMOBRANCH="${BMOBRANCH:-main}"
 
 #
 # Set the Cluster Api Metal3 provider repository to clone

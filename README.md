@@ -187,4 +187,4 @@ Here `${BMOPATH}` points to the baremetal operator directory. For more
 information, regarding the TLS setup and running ironic locally please refer to
 these documents:
 [TLS](https://github.com/metal3-io/cluster-api-provider-metal3/blob/main/docs/getting-started.md)
-, [Run local ironic](https://github.com/metal3-io/baremetal-operator/blob/master/docs/dev-setup.md).
+, [Run local ironic](https://github.com/metal3-io/baremetal-operator/blob/main/docs/dev-setup.md).
