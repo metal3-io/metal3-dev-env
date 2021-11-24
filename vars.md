@@ -87,3 +87,23 @@ assured that they are persisted.
 | MARIADB_CERT_FILE | Path to the cert of MariaDB | | /opt/metal3-dev-env/certs/mariadb.crt |
 | MARIADB_CAKEY_FILE | Path to the CA key of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.key |
 | MARIADB_CACERT_FILE | Path to the CA certificate of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.pem |
+
+## Additional networks
+
+By default two libvirt networks are created `baremetal` and `provisioning`
+but in some circumstances it can be useful to define additional secondary
+networks.
+
+This can also be enabled via environment variables, the
+`EXTRA_NETWORK_NAMES` variable defines a list of network names,
+and then ipv4, ipv6 or dual stack subnets can be defined as in the
+following example (note that the name prefix in the subnet variables
+is always uppercase, even if the `EXTRA_NETWORK_NAMES` are lowercase):
+
+```
+export EXTRA_NETWORK_NAMES="nmstate1 nmstate2"
+export NMSTATE1_NETWORK_SUBNET_V4='192.168.221.0/24'
+export NMSTATE1_NETWORK_SUBNET_V6='fd2e:6f44:5dd8:ca56::/120'
+export NMSTATE2_NETWORK_SUBNET_V4='192.168.222.0/24'
+export NMSTATE2_NETWORK_SUBNET_V6='fd2e:6f44:5dd8:cc56::/120'
+```
