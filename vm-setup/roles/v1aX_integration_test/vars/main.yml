@@ -55,6 +55,8 @@ SSH_PRIVATE_KEY: "{{ lookup('env', 'SSH_KEY') }}"
 SSH_PUB_KEY_CONTENT: "{{ lookup('file', '{{ HOME }}/.ssh/id_rsa.pub') }}"
 IMAGE_USERNAME: "{{ lookup('env', 'IMAGE_USERNAME') | default('metal3', true) }}"
 REGISTRY: "{{ lookup('env', 'REGISTRY') | default('192.168.111.1:5000', true) }}"
+CALICO_MINOR_RELEASE: "{{ lookup('env', 'CALICO_MINOR_RELEASE') | default('v3.21', true) }}"
+CALICO_PATCH_RELEASE: "{{ lookup('env', 'CALICO_PATCH_RELEASE') | default('v3.21.0', true) }}"
 
 # Environment variables for deployment. IMAGE_OS can be Centos or Ubuntu, change accordingly to your needs.
 IMAGE_OS: "{{ lookup('env', 'IMAGE_OS') | default('Centos', true) }}"
