@@ -94,6 +94,20 @@
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: install_cni
 
+  - name: Wait (maximum 3 mins) until Calico pods start running
+    kubernetes.core.k8s_info:
+      api_version: v1
+      kind: Pod
+      namespace: kube-system
+      kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+      field_selectors:
+        - status.phase!=Running
+    retries: 9
+    delay: 20
+    register: calico_pods
+    until: (calico_pods is succeeded) and
+           (calico_pods.resources | length == 0)
+
   # Check for pods & nodes on the target cluster
   - name: Wait for all pods to be in running state
     kubernetes.core.k8s_info:
