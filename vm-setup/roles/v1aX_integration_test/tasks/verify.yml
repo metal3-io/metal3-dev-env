@@ -58,12 +58,18 @@
       block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
 
   # Install Calico
-  - name: Download Calico manifest
+  - name: Download Calico v3.21.x manifests
     get_url:
-      url: https://docs.projectcalico.org/manifests/calico.yaml
+      url: "https://docs.projectcalico.org/archive/{{ CALICO_MINOR_RELEASE }}/manifests/calico.yaml"
       dest: /tmp/
       mode: '664'
     register: calico_manifest
+
+  - name: Pin calico version to v3.21.0
+    ansible.builtin.replace:
+      path: /tmp/calico.yaml
+      regexp: 'image: docker.io/calico/(.+):v(.+)$'
+      replace: 'image: docker.io/calico/\1:{{ CALICO_PATCH_RELEASE }}'
 
   - name: Replace the POD_CIDR in calico config
     replace:
@@ -87,6 +93,20 @@
       src: "/tmp/calico.yaml"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: install_cni
+
+  - name: Wait (maximum 3 mins) until Calico pods start running
+    kubernetes.core.k8s_info:
+      api_version: v1
+      kind: Pod
+      namespace: kube-system
+      kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+      field_selectors:
+        - status.phase!=Running
+    retries: 9
+    delay: 20
+    register: calico_pods
+    until: (calico_pods is succeeded) and
+           (calico_pods.resources | length == 0)
 
   # Check for pods & nodes on the target cluster
   - name: Wait for all pods to be in running state
