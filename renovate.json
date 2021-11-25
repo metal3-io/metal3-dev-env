@@ -25,8 +25,11 @@
     },
     {
       "datasources": ["pypi"],
-      "packageNames": ["ansible"],
-      "automerge": false 
+      "packageNames": [
+        "ansible",
+        "kubernetes"
+      ],
+      "automerge": false
     }
 
   ],
@@ -62,6 +65,12 @@
        "datasourceTemplate": "pypi"
      },
      {
+       "fileMatch": ["^vm-setup/roles/packages_installation/defaults/main.yml$"],
+       "matchStrings": ["kubernetes==(?<currentValue>.*?)"],
+       "depNameTemplate": "kubernetes",
+       "datasourceTemplate": "pypi"
+     },
+     {
       "fileMatch": ["^lib/common.sh$"],
       "matchStrings": ["KIND_NODE_IMAGE_VERSION:-\"(?<currentValue>.*?)\"}"],
       "depNameTemplate": "kindest/node",
@@ -72,11 +81,11 @@
       "matchStrings": ["DOCKER_REGISTRY_IMAGE:-\"registry:(?<currentValue>.*?)\"}"],
       "depNameTemplate": "registry",
       "datasourceTemplate": "docker"
-     }  
+     }
    ],
    "assignees": ["fmuyassarov","furkatgofurov7","kashifest"],
    "assigneesSampleSize": 1,
-   "reviewers": [      
+   "reviewers": [
        "jan-est",
        "lentzi90",
        "macaptain",
@@ -87,7 +96,6 @@
        "Sunnatillo",
        "wgslr",
        "Xenwar"
-       
    ],
    "reviewersSampleSize": 2
  }
