@@ -12,7 +12,6 @@ source lib/network.sh
 
 export IRONIC_HOST="${CLUSTER_URL_HOST}"
 export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
-export REPO_IMAGE_PREFIX="quay.io"
 
 sudo mkdir -p "${IRONIC_DATA_DIR}"
 sudo chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
@@ -80,7 +79,7 @@ function update_kustomization_images(){
     OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
     if [[ $OLD_IMAGE == *"$CONTAINER_REGISTRY"* ]]; then
       #shellcheck disable=SC2116
-      OLD_IMAGE="$(echo "${OLD_IMAGE/$CONTAINER_REGISTRY/$REPO_IMAGE_PREFIX}")"
+      OLD_IMAGE="$(echo "${OLD_IMAGE/$CONTAINER_REGISTRY/$FALLBACK_REGISTRY}")"
       echo "Image $OLD_IMAGE will be replaced with local image $LOCAL_IMAGE in image kustomization"
     fi
     sed -i -E "s $OLD_IMAGE$ $LOCAL_IMAGE g" "$FILE_PATH"
@@ -93,7 +92,7 @@ function update_kustomization_images(){
     LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
     if [[ $IMAGE == *"$CONTAINER_REGISTRY"* ]]; then
       #shellcheck disable=SC2116
-      IMAGE="$(echo "${IMAGE/$CONTAINER_REGISTRY/$REPO_IMAGE_PREFIX}")"
+      IMAGE="$(echo "${IMAGE/$CONTAINER_REGISTRY/$FALLBACK_REGISTRY}")"
       echo "Image $IMAGE will be replaced with local image $LOCAL_IMAGE in image kustomization"
     fi
     sed -i -E "s $IMAGE$ $LOCAL_IMAGE g" "$FILE_PATH"

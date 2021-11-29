@@ -169,6 +169,9 @@ export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"registry:2.7.1"}
 # Registry to pull metal3 container images from
 export CONTAINER_REGISTRY=${CONTAINER_REGISTRY:-"quay.io"}
 
+# Container image prefix 
+export FALLBACK_REGISTRY="quay.io"
+
 # VBMC and Redfish images
 export VBMC_IMAGE=${VBMC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/vbmc"}
 export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/sushy-tools"}
@@ -432,26 +435,40 @@ differs(){
   return $RET_CODE
 }
 
-# If a given container with tag doesn't exist locally, pull it. 
-# Otherwise, do nothing.
-# Helps conserve number of API calls to DockerHub to avoid hitting rate limit.
+# If a given container with tag doesn't exist locally, pull it. If pulling fails
+# from default registry, fall back pulling it from quay.io 
+# If container images already exists, do nothing.
+# Helps conserve number of API calls to DockerHub to avoid hitting rate limit and
+# failing the tests if default registry is down.
 #
 # Inputs:
 # - Full name of a Docker/podman/crictl image including tag
 #
 function pull_container_image_if_missing() {
   local IMAGE="$1"
+  strip_container_image_name "$IMAGE" "$CONTAINER_REGISTRY"
   if [ "${CONTAINER_RUNTIME}" == "docker" ]; then
     if [[ -z $(sudo "${CONTAINER_RUNTIME}" image ls "$IMAGE" | tail -n +2) ]]; then
-      sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
+      sudo "${CONTAINER_RUNTIME}" pull "$IMAGE" || IMAGE="$FALLBACK_REGISTRY/$CONTAINER_IMAGE_NAME"; sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
     fi
   else
     if ! sudo "${CONTAINER_RUNTIME}" image exists "$IMAGE"; then  
-      sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
+      sudo "${CONTAINER_RUNTIME}" pull "$IMAGE" || IMAGE="$FALLBACK_REGISTRY/$CONTAINER_IMAGE_NAME"; sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
     fi
   fi
 }
 
+function strip_container_image_name() {
+    local IMAGE="$1"
+    local CONTAINER_REGISTRY="$2"
+    if [[ $IMAGE == *"$CONTAINER_REGISTRY"* ]]; then
+      # shellcheck disable=SC1001
+      CONTAINER_IMAGE_NAME="$(echo "$IMAGE" | cut -f3- -d\/)"
+      export CONTAINER_IMAGE_NAME
+    else
+      export CONTAINER_IMAGE_NAME=$IMAGE
+    fi
+}
 
 #
 # Kill and remove the infra containers

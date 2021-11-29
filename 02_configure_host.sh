@@ -138,11 +138,12 @@ sleep 5
 # Pushing images to local registry
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
   IMAGE="${!IMAGE_VAR}"
+  strip_container_image_name "$IMAGE" "$CONTAINER_REGISTRY"
   #shellcheck disable=SC2086
   IMAGE_NAME="${IMAGE##*/}"
   #shellcheck disable=SC2086
   LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME}"
-  sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
+  sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}" || IMAGE="$FALLBACK_REGISTRY/$CONTAINER_IMAGE_NAME"; sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
 
   if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
     sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
@@ -190,29 +191,48 @@ IRONIC_IMAGE=${IRONIC_LOCAL_IMAGE:-$IRONIC_IMAGE}
 VBMC_IMAGE=${VBMC_LOCAL_IMAGE:-$VBMC_IMAGE}
 SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_LOCAL_IMAGE:-$SUSHY_TOOLS_IMAGE}
 
-# Start httpd container
-if [[ $OS == ubuntu ]]; then
-  #shellcheck disable=SC2086
-  sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra ${POD_NAME_INFRA} \
-      -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd \
-      --env "PROVISIONING_INTERFACE=ironicendpoint" "${IRONIC_IMAGE}"
-else
-  #shellcheck disable=SC2086
-  sudo "${CONTAINER_RUNTIME}" run -d --net host --name httpd-infra ${POD_NAME_INFRA} \
-      -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd \
-      "${IRONIC_IMAGE}"
-fi
+function start_httpd_container() {
+    local image="$1"
+    # Start httpd container
+    if [[ $OS == ubuntu ]]; then
+      #shellcheck disable=SC2086
+      sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra ${POD_NAME_INFRA} \
+          -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd \
+          --env "PROVISIONING_INTERFACE=ironicendpoint" "${image}"
+    else
+      #shellcheck disable=SC2086
+      sudo "${CONTAINER_RUNTIME}" run -d --net host --name httpd-infra ${POD_NAME_INFRA} \
+          -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd \
+          "${image}"
+    fi
+}
 
-# Start vbmc and sushy containers
-#shellcheck disable=SC2086
-sudo "${CONTAINER_RUNTIME}" run -d --net host --name vbmc ${POD_NAME_INFRA} \
-     -v "$WORKING_DIR/virtualbmc/vbmc":/root/.vbmc -v "/root/.ssh":/root/ssh \
-     "${VBMC_IMAGE}"
+strip_container_image_name "$IRONIC_IMAGE" "$CONTAINER_REGISTRY"
+start_httpd_container "$IRONIC_IMAGE" || IRONIC_IMAGE="$FALLBACK_REGISTRY/$CONTAINER_IMAGE_NAME"; start_httpd_container "$IRONIC_IMAGE"
 
-#shellcheck disable=SC2086
-sudo "${CONTAINER_RUNTIME}" run -d --net host --name sushy-tools ${POD_NAME_INFRA} \
-     -v "$WORKING_DIR/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
-     "${SUSHY_TOOLS_IMAGE}"
+function start_vbmc_container() {
+    local image="$1"
+    # Start vbmc container
+    #shellcheck disable=SC2086
+    sudo "${CONTAINER_RUNTIME}" run -d --net host --name vbmc ${POD_NAME_INFRA} \
+        -v "$WORKING_DIR/virtualbmc/vbmc":/root/.vbmc -v "/root/.ssh":/root/ssh \
+        "${image}"
+}
+
+strip_container_image_name "$VBMC_IMAGE" "$CONTAINER_REGISTRY"
+start_vbmc_container "$VBMC_IMAGE" || VBMC_IMAGE="$FALLBACK_REGISTRY/$CONTAINER_IMAGE_NAME"; start_vbmc_container "$VBMC_IMAGE"
+
+function start_sushy_tools_container() {
+    local image="$1"
+    # Start sushy tools container
+    #shellcheck disable=SC2086
+    sudo "${CONTAINER_RUNTIME}" run -d --net host --name sushy-tools ${POD_NAME_INFRA} \
+        -v "$WORKING_DIR/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
+        "${image}"
+}
+
+strip_container_image_name "$SUSHY_TOOLS_IMAGE" "$CONTAINER_REGISTRY"
+start_sushy_tools_container "$SUSHY_TOOLS_IMAGE" || SUSHY_TOOLS_IMAGE="$FALLBACK_REGISTRY/$CONTAINER_IMAGE_NAME"; start_sushy_tools_container "$SUSHY_TOOLS_IMAGE"
 
 # Installing the openstack/ironic clients on the host is optional
 # if not installed, we copy a wrapper to OPENSTACKCLIENT_PATH which
