@@ -125,8 +125,8 @@ export NUM_NODES=4
 Both **Ubuntu** and **Centos** setups for feature/upgrade tests use:
 
 ```bash
-export CAPM3_VERSION=v1alpha5
-export CAPI_VERSION=v1alpha4
+export CAPM3_VERSION=v1beta1
+export CAPI_VERSION=v1beta1
 ```
 
 Recommended resource requirements for the host machine are: 8C CPUs, 32 GB RAM,
