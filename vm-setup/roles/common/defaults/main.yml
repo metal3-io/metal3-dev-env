@@ -48,10 +48,11 @@ ssh_user: root
 # the vm nodes in the order in which they are defined with the following caveats:
 #   *  The first bridge network defined will be used for pxe booting
 manage_baremetal: 'y'
-networks:
+provisioning_network:
   - name: provisioning
     bridge: provisioning
     forward_mode: bridge
+external_network:
   - name: baremetal
     bridge: baremetal
     forward_mode: "{% if manage_baremetal == 'y' %}nat{% else %}bridge{% endif %}"
@@ -78,3 +79,5 @@ networks:
         - domain: "apps.{{ cluster_domain }}"
           addr: "{% if baremetal_network_cidr_v4|ipv4 != False %}127.0.0.1{% else %}::1{% endif %}"
       srvs: "{{dns_externalsrvs | default([])}}"
+
+networks: "{{ provisioning_network + external_network }}"

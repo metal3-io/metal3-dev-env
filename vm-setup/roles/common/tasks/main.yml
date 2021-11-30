@@ -18,3 +18,23 @@
 - debug:
     var: vm_nodes
   when: generate_vm_nodes
+
+- name: "Check if EXTRA_NETWORK_NAMES is configured"
+  set_fact:
+    generate_extra_networks: "{{lookup('env', 'EXTRA_NETWORK_NAMES') and extra_networks is not defined}}"
+
+- name: Calculate extra_networks if EXTRA_NETWORK_NAMES is defined
+  include_tasks: extra_networks_tasks.yml
+  loop: "{{lookup('env', 'EXTRA_NETWORK_NAMES')|split()}}"
+  loop_control:
+    loop_var: network_name
+  when: generate_extra_networks
+
+- name: "Append extra networks when EXTRA_NETWORK_NAMES is configured"
+  set_fact:
+    networks: "{{ networks + extra_networks}}"
+  when: generate_extra_networks
+
+- name: "Show networks data for debugging"
+  debug:
+    var: networks
