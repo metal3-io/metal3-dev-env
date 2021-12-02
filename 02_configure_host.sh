@@ -177,7 +177,14 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   export $IMAGE_VAR="${IMAGE##*/}"
   #shellcheck disable=SC2086
   export $IMAGE_VAR="${REGISTRY}/localimages/${!IMAGE_VAR}"
-  sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f ./Dockerfile
+
+  # Support building ironic-image from source
+  if [[ "${IMAGE}" =~ "ironic" ]] && [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
+    sudo "${CONTAINER_RUNTIME}" build --build-arg INSTALL_TYPE=source -t "${!IMAGE_VAR}" . -f ./Dockerfile
+  else
+    sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f ./Dockerfile
+  fi
+
   cd - || exit
   if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
     sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${!IMAGE_VAR}"
