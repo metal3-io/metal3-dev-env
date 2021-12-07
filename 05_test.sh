@@ -11,6 +11,7 @@ export ACTION="ci_test_provision"
 
 "${METAL3_DIR}"/scripts/run.sh
 
+sleep infinity
 # wait until status of Metal3Machine is rebuilt
 while [ -z "${status}" ]
 do
