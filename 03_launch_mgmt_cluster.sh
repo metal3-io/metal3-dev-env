@@ -58,6 +58,7 @@ function clone_repos() {
   clone_repo "${BMOREPO}" "${BMOBRANCH}" "${BMOPATH}" "${BMOCOMMIT}"
   clone_repo "${CAPM3REPO}" "${CAPM3BRANCH}" "${CAPM3PATH}"
   clone_repo "${IPAMREPO}" "${IPAMBRANCH}" "${IPAMPATH}"
+  clone_repo "${CAPIREPO}" "${CAPIBRANCH}" "${CAPIPATH}"
 }
 
 # ------------------------------------

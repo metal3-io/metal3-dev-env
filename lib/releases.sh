@@ -38,6 +38,7 @@ elif [ "${CAPI_VERSION}" == "v1alpha4" ]; then
 else
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.0.")}"
 fi
+CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
 
 # CAPM3 releases
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then

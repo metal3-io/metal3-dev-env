@@ -83,6 +83,7 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # M3PATH : Path to clone the Metal3 Development Environment repository
 # BMOPATH : Path to clone the Bare Metal Operator repository
 # CAPM3PATH : Path to clone the Cluster API Provider Metal3 repository
+# CAPIPATH : Path to clone the Cluster API repository
 #
 # BMOREPO : Baremetal Operator repository URL
 # BMOBRANCH : Baremetal Operator repository branch to checkout
@@ -130,7 +131,9 @@ fi
 
 IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
 
+CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
+CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
 if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.4}"
