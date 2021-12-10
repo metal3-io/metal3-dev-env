@@ -208,6 +208,7 @@ IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
 CACHEURL=http://${PROVISIONING_URL_HOST}/images
 IRONIC_FAST_TRACK=true
 RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED}"
+IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
 EOF
 
   if [ -n "${DEPLOY_ISO_URL}" ]; then
@@ -232,7 +233,7 @@ EOF
 
     # Copy the generated configmap for ironic deployment
     cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
-    
+
     # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
     "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
 
@@ -240,7 +241,7 @@ EOF
     mv "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
     mv "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml.orig" "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml"
   fi
-  
+
   # Restore original files
   mv "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
   popd
@@ -296,7 +297,7 @@ function update_capm3_imports(){
     sed -i "s/ironic-cacert/empty-ironic-cacert/g" "config/bmo/secret_mount_patch.yaml"
   fi
   # Modify the kustomization imports to use local BMO repo instead of Github Master
-  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then 
+  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     cp config/bmo/kustomization.yaml config/bmo/kustomization.yaml.orig
   fi
 
@@ -356,7 +357,7 @@ function patch_clusterctl(){
   pushd "${CAPM3PATH}"
   mkdir -p "${HOME}"/.cluster-api
   touch "${HOME}"/.cluster-api/clusterctl.yaml
-  
+
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
@@ -393,7 +394,7 @@ function patch_clusterctl(){
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   cp out/*.yaml "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
-  
+
   popd
 }
 

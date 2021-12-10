@@ -76,6 +76,8 @@ if [ ! -f "${SSH_KEY}" ]; then
   mkdir -p "$(dirname "$SSH_KEY")"
   ssh-keygen -f "${SSH_KEY}" -P ""
 fi
+SSH_PUB_KEY_CONTENT="$(cat "${SSH_PUB_KEY}")"
+export SSH_PUB_KEY_CONTENT
 
 FILESYSTEM=${FILESYSTEM:="/"}
 
@@ -241,7 +243,7 @@ if [ "${KUBERNETES_VERSION}" == "v1.21.2" ]; then
   export KIND_NODE_IMAGE_VERSION="v1.21.2"
   # Minikube version (if EPHEMERAL_CLUSTER=minikube)
   export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.22.0"}
-else 
+else
   export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.22.2"}
   # Minikube version (if EPHEMERAL_CLUSTER=minikube)
   export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.23.2"}
@@ -432,7 +434,7 @@ differs(){
   return $RET_CODE
 }
 
-# If a given container with tag doesn't exist locally, pull it. 
+# If a given container with tag doesn't exist locally, pull it.
 # Otherwise, do nothing.
 # Helps conserve number of API calls to DockerHub to avoid hitting rate limit.
 #
@@ -446,7 +448,7 @@ function pull_container_image_if_missing() {
       sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
     fi
   else
-    if ! sudo "${CONTAINER_RUNTIME}" image exists "$IMAGE"; then  
+    if ! sudo "${CONTAINER_RUNTIME}" image exists "$IMAGE"; then
       sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
     fi
   fi
