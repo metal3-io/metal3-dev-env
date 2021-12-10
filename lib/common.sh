@@ -84,6 +84,8 @@ if [ ! -f "${SSH_KEY}" ]; then
   mkdir -p "$(dirname "$SSH_KEY")"
   ssh-keygen -f "${SSH_KEY}" -P ""
 fi
+SSH_PUB_KEY_CONTENT="$(cat "${SSH_PUB_KEY}")"
+export SSH_PUB_KEY_CONTENT
 
 FILESYSTEM=${FILESYSTEM:="/"}
 
