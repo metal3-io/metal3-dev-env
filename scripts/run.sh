@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -xe
-
 METAL3_DIR="$(dirname "$(readlink -f "${0}")")/.."
 
 ACTION="${ACTION:-""}"

@@ -16,7 +16,7 @@ providers:
   - name: kubeadm
     url: {{ HOME }}/.cluster-api/dev-repository/control-plane-kubeadm/{{CAPIRELEASE}}/control-plane-components.yaml
     type: ControlPlaneProvider
-  - name: infrastructure-metal3
+  - name: metal3
     url: {{ HOME }}/.cluster-api/overrides/infrastructure-metal3/{{CAPM3RELEASE}}/infrastructure-components.yaml
     type: InfrastructureProvider
 images:

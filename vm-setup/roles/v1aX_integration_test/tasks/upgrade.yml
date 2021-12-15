@@ -14,7 +14,7 @@
 
   - name: Cleanup - remove existing next versions of controlplane components CRDs
     vars:
-      working_dir: "{{HOME}}/.cluster-api/dev-repository/"
+      working_dir: "{{HOME}}/.cluster-api/dev-repository"
     file:
       state: absent
       path: "{{item}}"
@@ -185,7 +185,7 @@
         replace: "upgm3c"
 
   - name: Perform upgrade on the target cluster
-    ansible.builtin.command: clusterctl upgrade apply --contract v1alpha4
+    ansible.builtin.command: clusterctl upgrade apply --contract v1beta1
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
@@ -202,7 +202,7 @@
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Perform upgrade on the source cluster
-    ansible.builtin.command: clusterctl upgrade apply --contract v1alpha4
+    ansible.builtin.command: clusterctl upgrade apply --contract v1beta1
 
   # TODO: Can we check this somehow instead of just waiting?
   # Relevant issue: https://github.com/kubernetes-sigs/cluster-api/issues/4474
@@ -260,6 +260,7 @@
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: crd
     failed_when: '"upgm3c" not in crd.resources[0].spec.names.shortNames'
+    when: 'CAPM3RELEASE != CAPM3_REL_TO_VERSION'
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade Ironic                                                  |

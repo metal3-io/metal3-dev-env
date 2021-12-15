@@ -9,4 +9,4 @@ source "upgrade_vars.sh"
 
 export ACTION="upgrading"
 
-"${METAL3_DIR}"/scripts/run.sh
+"${METAL3_DIR}"/scripts/run.sh 
