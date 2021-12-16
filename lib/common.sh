@@ -114,7 +114,8 @@ export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 
 export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
-export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
+export CAPM3_LOCAL_IMAGE="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
+export CAPM3_BASE_URL="${CAPM3_BASE_URL:-Nordix/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
 export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
@@ -140,7 +141,7 @@ if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
 elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
 else
-  CAPM3BRANCH="${CAPM3BRANCH:-main}"
+  CAPM3BRANCH="${CAPM3BRANCH:-fix-e2e/furkat}"
 fi
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
