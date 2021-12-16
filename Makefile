@@ -20,6 +20,9 @@ delete_mgmt_cluster:
 host_cleanup:
 	./host_cleanup.sh
 
+deprovision:
+	ACTION="ci_test_deprovision" ./scripts/run.sh
+
 test:
 	./05_test.sh
 
@@ -58,4 +61,4 @@ feature_tests: setup_env inspection_test remediation_test cleanup_env pivoting_t
 
 feature_tests_upgrade: setup_env_ug upgrade_test
 
-.PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint
+.PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup deprovision verify test lint
