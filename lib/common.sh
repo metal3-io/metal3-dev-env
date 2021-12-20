@@ -144,7 +144,7 @@ else
 fi
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-BMOBRANCH="${BMOBRANCH:-master}"
+BMOBRANCH="${BMOBRANCH:-main}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 BMOCOMMIT="${BMOCOMMIT:-HEAD}"
 

@@ -296,7 +296,7 @@ function update_capm3_imports(){
   if [ "${IRONIC_TLS_SETUP}" == "false" ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     sed -i "s/ironic-cacert/empty-ironic-cacert/g" "config/bmo/secret_mount_patch.yaml"
   fi
-  # Modify the kustomization imports to use local BMO repo instead of Github Master
+  # Modify the kustomization imports to use local BMO repo instead of Github Main
   if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then 
     cp config/bmo/kustomization.yaml config/bmo/kustomization.yaml.orig
   fi
@@ -307,7 +307,7 @@ function update_capm3_imports(){
   if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     # Render the BMO components from local repo
     ./hack/tools/bin/kustomize build "${BMOPATH}/config/default" > config/bmo/bmo-components.yaml
-    sed -i -e "s#https://raw.githubusercontent.com/metal3-io/baremetal-operator/master/config/render/capm3.yaml#bmo-components.yaml#" "config/bmo/kustomization.yaml"
+    sed -i -e "s#https://raw.githubusercontent.com/metal3-io/baremetal-operator/main/config/render/capm3.yaml#bmo-components.yaml#" "config/bmo/kustomization.yaml"
     # Render the IPAM components from local repo instead of using the released version
     ./hack/tools/bin/kustomize build "${IPAMPATH}/config/" > config/ipam/metal3-ipam-components.yaml
   else

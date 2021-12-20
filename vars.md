@@ -19,7 +19,7 @@ assured that they are persisted.
 | SSH_PUB_KEY | This SSH key will be automatically injected into the provisioned host by the clusterctl environment template files. | | ~/.ssh/id_rsa.pub |
 | CONTAINER_RUNTIME | Select the Container Runtime | "docker", "podman" | "docker" on ubuntu, "podman" otherwise |
 | BMOREPO | Set the Baremetal Operator repository to clone | | https://github.com/metal3-io/baremetal-operator.git |
-| BMOBRANCH | Set the Baremetal Operator branch to checkout | | master |
+| BMOBRANCH | Set the Baremetal Operator branch to checkout | | main |
 | CAPM3REPO | Set the Cluster Api Metal3 provider repository to clone | | https://github.com/metal3-io/cluster-api-provider-metal3.git |
 | CAPM3BRANCH | Set the Cluster Api Metal3 provider branch to checkout | | main |
 | FORCE_REPO_UPDATE | Force deletion of the BMO, CAPM3 and IPAM repositories before cloning them again | "true", "false" | "true" |
