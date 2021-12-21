@@ -38,7 +38,7 @@
       clusterctl {{ clusterctl_var }} cluster {{ CLUSTER_NAME }}
       --from {{ HOME }}/.cluster-api/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml
       --kubernetes-version {{ KUBERNETES_VERSION }}
-      --control-plane-machine-count={{ NUM_OF_MASTER_REPLICAS }}
+      --control-plane-machine-count={{ NUM_OF_CONTROLPLANE_REPLICAS }}
       --worker-machine-count={{ NUM_OF_WORKER_REPLICAS }}
       --target-namespace={{ NAMESPACE }} > {{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_{{ item }}_{{ IMAGE_OS|lower }}.yaml
     with_items:

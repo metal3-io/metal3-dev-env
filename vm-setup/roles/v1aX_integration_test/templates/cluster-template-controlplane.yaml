@@ -7,7 +7,7 @@ spec:
   rolloutStrategy:
     rollingUpdate:
       maxSurge: ${ MAX_SURGE_VALUE }
-  replicas: ${ NUM_OF_MASTER_REPLICAS }
+  replicas: ${ NUM_OF_CONTROLPLANE_REPLICAS }
   version: ${ KUBERNETES_VERSION }
 {% if CAPI_VERSION == "v1alpha3" %}
   nodeDrainTimeout: ${ NODE_DRAIN_TIMEOUT }

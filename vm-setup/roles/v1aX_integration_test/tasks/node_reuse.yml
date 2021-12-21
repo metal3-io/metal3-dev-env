@@ -1,8 +1,8 @@
 ---
   - set_fact:
-      NUMBER_OF_BMH_KCP: "{{ NUM_OF_MASTER_REPLICAS|int }}"
+      NUMBER_OF_BMH_KCP: "{{ NUM_OF_CONTROLPLANE_REPLICAS|int }}"
       NUMBER_OF_BMH_MD: "{{ NUM_OF_WORKER_REPLICAS|int }}"
-      NUMBER_OF_ALL_BMH: "{{ NUM_OF_WORKER_REPLICAS|int + NUM_OF_MASTER_REPLICAS|int }}"
+      NUMBER_OF_ALL_BMH: "{{ NUM_OF_WORKER_REPLICAS|int + NUM_OF_CONTROLPLANE_REPLICAS|int }}"
 
   - name: Untaint all nodes.
     shell: |

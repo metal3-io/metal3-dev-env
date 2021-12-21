@@ -134,11 +134,11 @@ Recommended resource requirements for the host machine are: 8C CPUs, 32 GB RAM,
 
 ## CI jobs configuration
 
-We are running two master jobs for the **remediation/pivoting** framework testing.
+We are running two main jobs for the **remediation/pivoting** framework testing.
 One is
-[master](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
+[main](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
 job for Ubuntu and the other
-[master](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_centos/)
+[main](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_centos/)
 job for Centos which runs every day.
 
 Similarly two other jobs,
@@ -148,9 +148,9 @@ and
 that can be run when triggered with `/test-features` and `/test-features-centos`
 phrases for Ubuntu and Centos, accordingly on a pull request.
 
-We are running a single master job(both for Ubuntu and Centos) for the **upgrade**
+We are running a single main job(both for Ubuntu and Centos) for the **upgrade**
 framework testing. That is a
-[master](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
+[main](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
 job which runs every night.
 
 Similarly,
