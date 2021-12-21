@@ -23,7 +23,7 @@ if [[ $OS == ubuntu ]]; then
   fi
 
 else
-  sudo dnf update -y && sudo dnf install -y epel-release 
+  sudo dnf update -y && sudo dnf install -y epel-release
   sudo dnf -y install python3-pip
   sudo alternatives --set python /usr/bin/python3
 fi
@@ -101,7 +101,6 @@ else
       curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
       chmod +x ./kind
       sudo mv kind /usr/local/bin/.
-      pull_container_image_if_missing kindest/node:"${KIND_NODE_IMAGE_VERSION}"
   fi
   if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
     curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
@@ -214,7 +213,7 @@ function init_minikube() {
       # Loop to ignore minikube issues
       while /bin/true; do
         minikube_error=0
-        # Restart libvirtd.service as suggested here 
+        # Restart libvirtd.service as suggested here
         # https://github.com/kubernetes/minikube/issues/3566
         sudo systemctl restart libvirtd.service
         configure_minikube

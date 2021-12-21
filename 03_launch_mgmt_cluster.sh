@@ -233,7 +233,7 @@ EOF
 
     # Copy the generated configmap for ironic deployment
     cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
-    
+
     # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
     "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
 
@@ -241,7 +241,7 @@ EOF
     mv "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
     mv "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml.orig" "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml"
   fi
-  
+
   # Restore original files
   mv "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
   popd
@@ -297,7 +297,7 @@ function update_capm3_imports(){
     sed -i "s/ironic-cacert/empty-ironic-cacert/g" "config/bmo/secret_mount_patch.yaml"
   fi
   # Modify the kustomization imports to use local BMO repo instead of Github Main
-  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then 
+  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     cp config/bmo/kustomization.yaml config/bmo/kustomization.yaml.orig
   fi
 
@@ -357,7 +357,7 @@ function patch_clusterctl(){
   pushd "${CAPM3PATH}"
   mkdir -p "${HOME}"/.cluster-api
   touch "${HOME}"/.cluster-api/clusterctl.yaml
-  
+
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
@@ -394,7 +394,7 @@ function patch_clusterctl(){
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   cp out/*.yaml "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
-  
+
   popd
 }
 
@@ -453,7 +453,7 @@ function create_clouds_yaml() {
 # Start a KinD management cluster
 #
 function launch_kind() {
-  cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=kindest/node:${KIND_NODE_IMAGE_VERSION} --config=- " "$USER"
+  cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "$USER"
   kind: Cluster
   apiVersion: kind.x-k8s.io/v1alpha4
   containerdConfigPatches:
@@ -500,26 +500,17 @@ create_clouds_yaml
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   start_management_cluster
   kubectl create namespace metal3
-fi
 
-if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   patch_clusterctl
   launch_cluster_api_provider_metal3
-fi
 
-if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
-    if [ "${CAPM3_VERSION}" != "v1alpha4" ]; then
-        launch_baremetal_operator
-    fi
-    launch_ironic
-fi
-
-if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
     BMO_NAME_PREFIX="${NAMEPREFIX}-baremetal-operator"
   else
     BMO_NAME_PREFIX="${NAMEPREFIX}"
+    launch_baremetal_operator
   fi
+  launch_ironic
 
   if [[ "${BMO_RUN_LOCAL}" != true ]]; then
     if ! kubectl rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout=5m; then
