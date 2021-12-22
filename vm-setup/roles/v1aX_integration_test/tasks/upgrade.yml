@@ -14,7 +14,7 @@
 
   - name: Cleanup - remove existing next versions of controlplane components CRDs
     vars:
-      working_dir: "{{HOME}}/.cluster-api/dev-repository/"
+      working_dir: "{{HOME}}/.cluster-api/dev-repository"
     file:
       state: absent
       path: "{{item}}"
@@ -185,7 +185,7 @@
         replace: "upgm3c"
 
   - name: Perform upgrade on the target cluster
-    ansible.builtin.command: clusterctl upgrade apply --contract v1alpha4
+    ansible.builtin.command: clusterctl upgrade apply --contract v1beta1
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
@@ -202,7 +202,7 @@
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Perform upgrade on the source cluster
-    ansible.builtin.command: clusterctl upgrade apply --contract v1alpha4
+    ansible.builtin.command: clusterctl upgrade apply --contract v1beta1
 
   # TODO: Can we check this somehow instead of just waiting?
   # Relevant issue: https://github.com/kubernetes-sigs/cluster-api/issues/4474
@@ -260,6 +260,7 @@
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: crd
     failed_when: '"upgm3c" not in crd.resources[0].spec.names.shortNames'
+    when: 'CAPM3RELEASE != CAPM3_REL_TO_VERSION'
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade Ironic                                                  |
@@ -267,7 +268,6 @@
   - name: Set expected ironic image based containers
     set_fact:
       ironic_image_containers:
-        - mariadb
         - ironic-api
         - ironic-dnsmasq
         - ironic-conductor
@@ -287,7 +287,7 @@
         spec:
           template:
             spec:
-              containers: "{{ containers }}"
+              containers: "{{ ironic_based_containers + mariadb_container }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     vars:
       # Generate a list of name/image pairs from the ironic_image_containers.
@@ -296,10 +296,14 @@
       #    (all have the same image)
       # 2. Turn it into a dict so we have {container_name: image_name, ...}
       # 3. Convert it to a list of {name: container_name, image: image_name}
-      containers:
+      ironic_based_containers:
         "{{ dict(ironic_image_containers |
               zip_longest([], fillvalue=CONTAINER_REGISTRY+'/metal3-io/ironic:'+IRONIC_IMAGE_TAG)) |
             dict2items(key_name='name', value_name='image') }}"
+      mariadb_container:
+      - name:  mariadb
+        image: "{{CONTAINER_REGISTRY+'/metal3-io/mariadb:'+MARIADB_IMAGE_TAG}}"
+      
 
   - name: Wait for ironic update to rollout
     kubernetes.core.k8s_info:
