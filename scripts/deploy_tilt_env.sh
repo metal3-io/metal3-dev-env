@@ -24,7 +24,7 @@ cat <<EOF > tilt-settings.json
 EOF
 sed -i 's/yaml = str(kustomizesub(context + "\/config"))/yaml = str(kustomizesub(context + "\/config\/tls"))/' Tiltfile
 make kind-reset
-kind create cluster --name capm3 --image="kindest/node:${KIND_NODE_IMAGE_VERSION}"
+kind create cluster --name capm3 --image="${KIND_NODE_IMAGE}"
 kubectl create namespace "${NAMESPACE}"
 kubectl create namespace "${IRONIC_NAMESPACE}"
 mkdir -p "${HOME}/.cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}"
@@ -46,7 +46,7 @@ export IRONIC_SECRET_NAME=$(kubectl get secrets  -n "${IRONIC_NAMESPACE}" -oname
 # shellcheck disable=SC1001
 export IRONICINSPECTOR_SECRET_NAME=$(kubectl get secrets  -n "${IRONIC_NAMESPACE}" -oname | grep "ironic-inspector-credentials" | cut -f2 -d\/)
 
-# use existing ironic and inspector secrets 
+# use existing ironic and inspector secrets
 # Tilt cannot generate new credentials and certificates as it would mismatch with what ironic is already configured with
 cat <<EOF >> config/tls/tls_ca_patch.yaml
 
@@ -68,12 +68,12 @@ spec:
           - mountPath: /opt/metal3/auth/ironic-inspector
             name: ironic-inspector-credentials
             readOnly: true
-      volumes:  
+      volumes:
       - name: ironic-credentials
         secret:
           secretName: ${IRONICINSPECTOR_SECRET_NAME}
       - name: ironic-inspector-credentials
-        secret: 
+        secret:
           secretName: ${IRONIC_SECRET_NAME}
 EOF
 tools/bin/kustomize build config/tls/
@@ -93,4 +93,3 @@ cat <<EOF > tilt-settings.json
 }
 EOF
 popd
-

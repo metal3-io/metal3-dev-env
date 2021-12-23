@@ -166,8 +166,11 @@ export VM_EXTRADISKS_MOUNT_DIR=${VM_EXTRADISKS_MOUNT_DIR:-"/mnt/disk2"}
 export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}
 export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-"1"}"
 
+# Docker Hub proxy registry (or docker.io if no proxy)
+export DOCKER_HUB_PROXY=${DOCKER_HUB_PROXY:-"docker.io"}
+
 # Docker registry for local images
-export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"registry:2.7.1"}
+export DOCKER_REGISTRY_IMAGE=${DOCKER_REGISTRY_IMAGE:-"${DOCKER_HUB_PROXY}/library/registry:2.7.1"}
 
 # Registry to pull metal3 container images from
 export CONTAINER_REGISTRY=${CONTAINER_REGISTRY:-"quay.io"}
@@ -245,11 +248,12 @@ if [ "${KUBERNETES_VERSION}" == "v1.21.2" ]; then
   export KIND_NODE_IMAGE_VERSION="v1.21.2"
   # Minikube version (if EPHEMERAL_CLUSTER=minikube)
   export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.22.0"}
-else 
+else
   export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.22.2"}
   # Minikube version (if EPHEMERAL_CLUSTER=minikube)
   export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.23.2"}
 fi
+export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"${DOCKER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}"}
 
 # Ansible version
 export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.10.0"}
@@ -436,7 +440,7 @@ differs(){
   return $RET_CODE
 }
 
-# If a given container with tag doesn't exist locally, pull it. 
+# If a given container with tag doesn't exist locally, pull it.
 # Otherwise, do nothing.
 # Helps conserve number of API calls to DockerHub to avoid hitting rate limit.
 #
@@ -450,7 +454,7 @@ function pull_container_image_if_missing() {
       sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
     fi
   else
-    if ! sudo "${CONTAINER_RUNTIME}" image exists "$IMAGE"; then  
+    if ! sudo "${CONTAINER_RUNTIME}" image exists "$IMAGE"; then
       sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
     fi
   fi

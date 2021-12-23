@@ -24,7 +24,7 @@ UPGRADED_K8S_VERSION: "{{ lookup('env', 'UPGRADED_K8S_VERSION') | default('v1.22
 MAX_SURGE_VALUE: "{{ lookup('env', 'MAX_SURGE_VALUE') | default('1', true) }}"
 VM_EXTRADISKS: "{{ lookup('env', 'VM_EXTRADISKS') | default('false', true) }}"
 VM_EXTRADISKS_FILE_SYSTEM: "{{ lookup('env', 'VM_EXTRADISKS_FILE_SYSTEM') | default('ext4', true) }}"
-VM_EXTRADISKS_MOUNT_DIR: "{{ lookup('env', 'VM_EXTRADISKS_MOUNT_DIR') | default('/mnt/disk2') }}" 
+VM_EXTRADISKS_MOUNT_DIR: "{{ lookup('env', 'VM_EXTRADISKS_MOUNT_DIR') | default('/mnt/disk2') }}"
 KUBERNETES_BINARIES_VERSION: "{{ lookup('env', 'KUBERNETES_BINARIES_VERSION') | default(lookup('env', 'KUBERNETES_VERSION') | default('v1.18.0', true), true) }}"
 KUBERNETES_BINARIES_CONFIG_VERSION: "{{ lookup('env', 'KUBERNETES_BINARIES_CONFIG_VERSION') | default('v0.2.7', true) }}"
 IP_STACK: "{{ lookup('env', 'IP_STACK') | default('v4', true) }}"
@@ -57,6 +57,7 @@ IMAGE_USERNAME: "{{ lookup('env', 'IMAGE_USERNAME') | default('metal3', true) }}
 REGISTRY: "{{ lookup('env', 'REGISTRY') | default('192.168.111.1:5000', true) }}"
 CALICO_MINOR_RELEASE: "{{ lookup('env', 'CALICO_MINOR_RELEASE') | default('v3.21', true) }}"
 CALICO_PATCH_RELEASE: "{{ lookup('env', 'CALICO_PATCH_RELEASE') | default('v3.21.0', true) }}"
+DOCKER_HUB_PROXY: "{{ lookup('env', 'DOCKER_HUB_PROXY') }}"
 
 # Environment variables for deployment. IMAGE_OS can be Centos or Ubuntu, change accordingly to your needs.
 IMAGE_OS: "{{ lookup('env', 'IMAGE_OS') | default('Centos', true) }}"
