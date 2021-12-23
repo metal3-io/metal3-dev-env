@@ -6,28 +6,28 @@
       namespace: "{{ NAMESPACE }}"
     register: m3m
 
-  - name: Get master and worker objects
+  - name: Get control-plane and worker objects
     set_fact:
-      masters: "{{ m3m.resources | json_query(q_masters) }}"
+      controlplanes: "{{ m3m.resources | json_query(q_controlplanes) }}"
       workers: "{{ m3m.resources | json_query(q_workers) }}"
     vars:
-      q_masters: "[? contains(metadata.name,'controlplane')].[metadata.annotations.\"metal3.io/BareMetalHost\", metadata.ownerReferences[? kind=='Machine']|[0].name]"
+      q_controlplanes: "[? contains(metadata.name,'controlplane')].[metadata.annotations.\"metal3.io/BareMetalHost\", metadata.ownerReferences[? kind=='Machine']|[0].name]"
       q_workers: "[? contains(metadata.name,'workers')].[metadata.annotations.\"metal3.io/BareMetalHost\", metadata.ownerReferences[? kind=='Machine']|[0].name][0]"
 
   - set_fact:
       WORKER_BMH: "{{ workers[0] | replace('metal3/','')}}"
       WORKER_NODE: "{{ workers[1] }}"
-      MASTER_BMH_0: "{{ masters[0][0] | replace('metal3/','')}}"
-      MASTER_NODE_0: "{{ masters[0][1] }}"
-      MASTER_BMH_1: "{{ masters[1][0] | replace('metal3/','')}}"
-      MASTER_NODE_1: "{{ masters[1][1] }}"
-      MASTER_BMH_2: "{{ masters[2][0] | replace('metal3/','')}}"
-      MASTER_NODE_2: "{{ masters[2][1] }}"
-      MASTER_VM_0: "{{ masters[0][0] | replace('-','_') | replace('metal3/','') }}"
-      MASTER_VM_1: "{{ masters[1][0] | replace('-','_') | replace('metal3/','') }}"
-      MASTER_VM_2: "{{ masters[2][0] | replace('-','_') | replace('metal3/','') }}"
+      CONTROLPLANE_BMH_0: "{{ controlplanes[0][0] | replace('metal3/','')}}"
+      CONTROLPLANE_NODE_0: "{{ controlplanes[0][1] }}"
+      CONTROLPLANE_BMH_1: "{{ controlplanes[1][0] | replace('metal3/','')}}"
+      CONTROLPLANE_NODE_1: "{{ controlplanes[1][1] }}"
+      CONTROLPLANE_BMH_2: "{{ controlplanes[2][0] | replace('metal3/','')}}"
+      CONTROLPLANE_NODE_2: "{{ controlplanes[2][1] }}"
+      CONTROLPLANE_VM_0: "{{ controlplanes[0][0] | replace('-','_') | replace('metal3/','') }}"
+      CONTROLPLANE_VM_1: "{{ controlplanes[1][0] | replace('-','_') | replace('metal3/','') }}"
+      CONTROLPLANE_VM_2: "{{ controlplanes[2][0] | replace('-','_') | replace('metal3/','') }}"
       WORKER_VM: "{{ workers[0] | replace('-','_') | replace('metal3/','') }}"
-      NUMBER_OF_BMH: "{{ NUM_OF_MASTER_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
+      NUMBER_OF_BMH: "{{ NUM_OF_CONTROLPLANE_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
 
   - name: Fetch the target cluster kubeconfig
     k8s_info:
@@ -55,15 +55,15 @@
       LIBVIRT_VM: "{{ WORKER_VM }}"
       K8S_NODE: "{{ WORKER_NODE }}"
 
-  - name: Power cycle a single master node
+  - name: Power cycle a single control-plane node
     include_tasks: power_cycle.yml
     vars:
-      BMH_NODE: "{{ MASTER_BMH_0 }}"
-      LIBVIRT_VM: "{{ MASTER_VM_0 }}"
-      K8S_NODE: "{{ MASTER_NODE_0 }}"
+      BMH_NODE: "{{ CONTROLPLANE_BMH_0 }}"
+      LIBVIRT_VM: "{{ CONTROLPLANE_VM_0 }}"
+      K8S_NODE: "{{ CONTROLPLANE_NODE_0 }}"
 
-  # Power cycle two master nodes
-  - name: Power off "{{ MASTER_BMH_1 }}" and "{{ MASTER_BMH_2 }}"
+  # Power cycle two control-plane nodes
+  - name: Power off "{{ CONTROLPLANE_BMH_1 }}" and "{{ CONTROLPLANE_BMH_2 }}"
     k8s:
       state: present
       namespace: "{{ NAMESPACE }}"
@@ -75,8 +75,8 @@
           annotations:
             reboot.metal3.io/poweroff: ""
     with_items:
-      - "{{ MASTER_BMH_1 }}"
-      - "{{ MASTER_BMH_2 }}"
+      - "{{ CONTROLPLANE_BMH_1 }}"
+      - "{{ CONTROLPLANE_BMH_2 }}"
 
   - pause:
       minutes: 1
@@ -89,12 +89,12 @@
     retries: 50
     delay: 10
     until:
-      - MASTER_VM_1 in shutdown_vms.list_vms
-      - MASTER_VM_2 in shutdown_vms.list_vms
+      - CONTROLPLANE_VM_1 in shutdown_vms.list_vms
+      - CONTROLPLANE_VM_2 in shutdown_vms.list_vms
     become: yes
     become_user: root
 
-  - name: Power on masters
+  - name: Power on controlplanes
     k8s:
       state: present
       namespace: "{{ NAMESPACE }}"
@@ -106,17 +106,17 @@
           annotations:
             reboot.metal3.io/poweroff: null
     with_items:
-      - "{{ MASTER_BMH_1 }}"
-      - "{{ MASTER_BMH_2 }}"
+      - "{{ CONTROLPLANE_BMH_1 }}"
+      - "{{ CONTROLPLANE_BMH_2 }}"
 
-  - name: Wait until powered on master nodes become Ready
+  - name: Wait until powered on control-plane nodes become Ready
     shell: "kubectl get nodes --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml | grep -w Ready | awk '{print $1}' | sort"
-    register: ready_master
+    register: ready_controlplane
     retries: 150
     delay: 3
     until:
-      - MASTER_NODE_1 in ready_master.stdout_lines
-      - MASTER_NODE_2 in ready_master.stdout_lines
+      - CONTROLPLANE_NODE_1 in ready_controlplane.stdout_lines
+      - CONTROLPLANE_NODE_2 in ready_controlplane.stdout_lines
 
   - name: List only running VMs
     virt:
@@ -126,8 +126,8 @@
     retries: 50
     delay: 10
     until:
-      - MASTER_VM_1 in running_vms.list_vms
-      - MASTER_VM_2 in running_vms.list_vms
+      - CONTROLPLANE_VM_1 in running_vms.list_vms
+      - CONTROLPLANE_VM_2 in running_vms.list_vms
     become: yes
     become_user: root
 

@@ -24,7 +24,7 @@ kubectl get secrets "${CLUSTER_NAME}-kubeconfig" -n "${NAMESPACE}" -o json | jq 
 NUM_DEPLOYED_NODES="$(kubectl get nodes --kubeconfig "/tmp/kubeconfig-${CLUSTER_NAME}.yaml" | grep -c -w Ready)"
 process_status $? "Fetch number of deployed nodes"
 
-if [ "${NUM_DEPLOYED_NODES}" -ne "$((NUM_OF_MASTER_REPLICAS + NUM_OF_WORKER_REPLICAS))" ]; then
+if [ "${NUM_DEPLOYED_NODES}" -ne "$((NUM_OF_CONTROLPLANE_REPLICAS + NUM_OF_WORKER_REPLICAS))" ]; then
     echo "Failed with incorrect number of nodes deployed"
     exit 1
 fi

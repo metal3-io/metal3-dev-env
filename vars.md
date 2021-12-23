@@ -53,8 +53,8 @@ assured that they are persisted.
 | UPGRADED_K8S_VERSION | Upgraded Kubernetes version | "x.x.x" | "1.22.3" |
 | KUBERNETES_BINARIES_VERSION | Version of kubelet, kubeadm and kubectl | "x.x.x-xx" or "x.x.x" | same as KUBERNETES_VERSION |
 | KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.2.7" |
-| NUM_NODES | Set the number of virtual machines to be provisioned. This VMs will be further configured as control-plane or worker Nodes. Note that NUM_OF_MASTER_REPLICAS and NUM_OF_WORKER_REPLICAS should sum to this value. | | 2 |
-| NUM_OF_MASTER_REPLICAS | Set the controlplane replica count in the target cluster. ||1|
+| NUM_NODES | Set the number of virtual machines to be provisioned. This VMs will be further configured as controlplane or worker Nodes. Note that NUM_OF_CONTROLPLANE_REPLICAS and NUM_OF_WORKER_REPLICAS should sum to this value. | | 2 |
+| NUM_OF_CONTROLPLANE_REPLICAS | Set the controlplane replica count in the target cluster. ||1|
 | NUM_OF_WORKER_REPLICAS | Set the worker replica count in the target cluster. ||1|
 | VM_EXTRADISKS | Add extra disks to the virtual machines provisioned. By default the size of the extra disk is set in the libvirt Ansible role to 8 GB | "true", "false" | "false" |
 | VM_EXTRADISKS_FILE_SYSTEM | Create file system to the extra disk. | "ext4", "xfs" | "ext4" |
