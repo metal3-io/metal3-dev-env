@@ -155,7 +155,7 @@ done
 for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   BRANCH_IMAGE_VAR="${IMAGE_VAR}_BRANCH"
   IMAGE="${!IMAGE_VAR}"
-  BRANCH="${!BRANCH_IMAGE_VAR:-master}"
+  BRANCH="${!BRANCH_IMAGE_VAR:-main}"
 
   # Is it a git repo?
   if [[ "$IMAGE" =~ "://" ]] ; then
@@ -166,7 +166,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     else
       git clone "${IMAGE}" "${REPOPATH}"
       cd "${REPOPATH}" || exit
-      [ "${BRANCH}" = "master" ] || git checkout "${BRANCH}"
+      [ "${BRANCH}" = "main" ] || git checkout "${BRANCH}"
     fi
   # Assume it is a path
   else
