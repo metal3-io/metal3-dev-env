@@ -1,12 +1,5 @@
 ---
 
-  - name: Fetch container images before upgrade
-    shell: |
-      kubectl get pods -A -o jsonpath="{range .items[*].spec.containers[*]}{.image}{'\n'}{end}" |
-      sort | uniq > /tmp/manifests/container_images_before_upgrade.txt
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade controlplane components                                 |
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -42,16 +35,6 @@
       dest: /tmp/cluster-api-clone
       version: "{{ CAPI_REL_TO_VERSION }}"
 
-  - name: Checkout upgraded version of capm3
-    ansible.builtin.git:
-      repo: 'https://github.com/metal3-io/cluster-api-provider-metal3.git'
-      dest: "{{ CAPM3PATH }}"
-      version: "{{ upgraded_capm3_branch }}"
-      # No need to clone, it is already available
-      clone: no
-      # The repo is modified as part of deploying capm3 so we must force
-      force: yes
-
   - name: Create clusterctl-settings.json for cluster-api and capm3 repos
     ansible.builtin.template:
       src: "{{ item.src }}"
@@ -83,48 +66,6 @@
       chdir: /tmp/cluster-api-clone/
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
-  - name: Update kustomizations with images to use
-    ansible.builtin.command: "{{ item }}"
-    args:
-      chdir: "{{ CAPM3PATH }}"
-    environment:
-      MANIFEST_IMG: "{{ upgraded_capm3_image }}"
-      MANIFEST_TAG: "{{ upgraded_capm3_tag }}"
-      MANIFEST_IMG_IPAM: "{{ upgraded_ipam_image }}"
-      MANIFEST_TAG_IPAM: "{{ upgraded_ipam_tag }}"
-    loop:
-      - make set-manifest-image
-      - make set-manifest-image-ipam
-
-  - name: Build IPAM manifests
-    ansible.builtin.command: "{{ item }}"
-    args:
-      chdir: "{{ CAPM3PATH }}"
-    loop:
-      - make hack/tools/bin/kustomize
-      - ./hack/tools/bin/kustomize build "{{ IPAMPATH }}/config/default" --output config/ipam/metal3-ipam-components.yaml
-
-  - name: Update CAPM3 imports to use local IPAM manifest
-    ansible.builtin.replace:
-      path: "{{ CAPM3PATH }}/config/ipam/kustomization.yaml"
-      regexp: https://github\.com/metal3-io/ip-address-manager/releases/download/v.*/ipam-components\.yaml
-      replace: metal3-ipam-components.yaml
-
-  - name: Make capm3 release manifests
-    ansible.builtin.command: make release-manifests
-    args:
-      chdir: "{{ CAPM3PATH }}"
-
-  # Note: release manifests are not impacted by this (they are in .gitignore)
-  - name: Clean CAPM3 repo after building release manifests
-    ansible.builtin.git:
-      repo: 'https://github.com/metal3-io/cluster-api-provider-metal3.git'
-      dest: "{{ CAPM3PATH }}"
-      version: "{{ upgraded_capm3_branch }}"
-      clone: no
-      # Force to discard local changes
-      force: yes
 
   - name: Create folder structure for next version controlplane components
     vars:
@@ -186,29 +127,62 @@
 
   - name: Create next version controller CRDs
     vars:
-      dev_repository: "{{HOME}}/.cluster-api/dev-repository"
-      overrides: "{{HOME}}/.cluster-api/overrides"
-    copy:
-      src: "{{item.src}}"
-      dest: "{{item.dest}}"
-    loop:
-    - src: "{{ dev_repository }}/cluster-api/{{CAPIRELEASE}}/core-components.yaml"
-      dest: "{{ dev_repository }}/cluster-api/{{CAPI_REL_TO_VERSION}}/core-components.yaml"
-    - src: "{{ dev_repository }}/cluster-api/{{CAPIRELEASE}}/metadata.yaml"
-      dest: "{{ dev_repository }}/cluster-api/{{CAPI_REL_TO_VERSION}}/metadata.yaml"
-    - src: "{{ dev_repository }}/bootstrap-kubeadm/{{CAPIRELEASE}}/bootstrap-components.yaml"
-      dest: "{{ dev_repository }}/bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/bootstrap-components.yaml"
-    - src: "{{ dev_repository }}/bootstrap-kubeadm/{{CAPIRELEASE}}/metadata.yaml"
-      dest: "{{ dev_repository }}/bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/metadata.yaml"
-    - src: "{{ dev_repository }}/control-plane-kubeadm/{{CAPIRELEASE}}/control-plane-components.yaml"
-      dest: "{{ dev_repository }}/control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/control-plane-components.yaml"
-    - src: "{{ dev_repository }}/control-plane-kubeadm/{{CAPIRELEASE}}/metadata.yaml"
-      dest: "{{ dev_repository }}/control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/metadata.yaml"
+      working_dir: "{{HOME}}/.cluster-api"
+    copy: src="{{working_dir}}/{{item.src}}" dest="{{working_dir}}/{{item.dest}}"
+    with_items:
+    - {
+        src: "dev-repository/cluster-api/{{CAPIRELEASE}}/core-components.yaml",
+        dest: "dev-repository/cluster-api/{{CAPI_REL_TO_VERSION}}/core-components.yaml"
+      }
+    - {
+        src: "dev-repository/cluster-api/{{CAPIRELEASE}}/metadata.yaml",
+        dest: "dev-repository/cluster-api/{{CAPI_REL_TO_VERSION}}/metadata.yaml"
+      }
+    - {
+        src: "dev-repository/bootstrap-kubeadm/{{CAPIRELEASE}}/bootstrap-components.yaml",
+        dest: "dev-repository/bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/bootstrap-components.yaml"
+      }
+    - {
+        src: "dev-repository/bootstrap-kubeadm/{{CAPIRELEASE}}/metadata.yaml",
+        dest: "dev-repository/bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/metadata.yaml"
+      }
+    - {
+        src: "dev-repository/control-plane-kubeadm/{{CAPIRELEASE}}/control-plane-components.yaml",
+        dest: "dev-repository/control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/control-plane-components.yaml"
+      }
+    - {
+        src: "dev-repository/control-plane-kubeadm/{{CAPIRELEASE}}/metadata.yaml",
+        dest: "dev-repository/control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/metadata.yaml"
+      }
+    - {
+        src: "overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/infrastructure-components.yaml",
+        dest: "overrides/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/infrastructure-components.yaml"
+      }
+    - {
+        src: "overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/metadata.yaml",
+        dest: "overrides/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/metadata.yaml"
+      }
 
-    - src: "{{ CAPM3PATH }}/out/infrastructure-components.yaml"
-      dest: "{{ overrides }}/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/infrastructure-components.yaml"
-    - src: "{{ CAPM3PATH }}/out/metadata.yaml"
-      dest: "{{ overrides }}/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/metadata.yaml"
+  - name: Make changes on CRDs
+    vars:
+      working_dir: "{{HOME}}/.cluster-api"
+    ansible.builtin.replace:
+      path: "{{ item.path }}"
+      regexp: "{{ item.regexp }}"
+      replace: "{{ item.replace }}"
+    loop:
+      - path: "{{working_dir}}/dev-repository/cluster-api/{{CAPI_REL_TO_VERSION}}/core-components.yaml"
+        regexp: 'description: Machine'
+        replace: "description: upgradedMachine"
+      - path: "{{working_dir}}/dev-repository//bootstrap-kubeadm/{{CAPI_REL_TO_VERSION}}/bootstrap-components.yaml"
+        regexp: 'description: KubeadmConfig'
+        replace: "description: upgradedKubeadmConfig"
+      - path: "{{working_dir}}/dev-repository//control-plane-kubeadm/{{CAPI_REL_TO_VERSION}}/control-plane-components.yaml"
+        regexp: 'description: KubeadmControlPlane'
+        replace: "description: upgradedKubeadmControlPlane"
+      - path: "{{working_dir}}/overrides/infrastructure-metal3/{{CAPM3_REL_TO_VERSION}}/infrastructure-components.yaml"
+        regexp: '\bm3c\b'
+        replace: "upgm3c"
 
   - name: Perform upgrade on the target cluster
     ansible.builtin.command: clusterctl upgrade apply --contract v1beta1
@@ -222,7 +196,8 @@
       seconds: 30
 
   - name: Restore secrets to fill missing secret fields after performing target cluster upgrade
-    ansible.builtin.command: kubectl replace -f /tmp/secrets.with.values.yaml
+    shell: |
+           kubectl replace -f /tmp/secrets.with.values.yaml
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
@@ -252,14 +227,40 @@
     until: (controller_deployments is succeeded) and
            (controller_deployments.resources | json_query(query) | length == 0)
 
-  - name: Verify upgraded API resources for CAPI and CAPM3
-    kubernetes.core.k8s_cluster_info:
+  - name: Verify that CRDs are upgraded
+    kubernetes.core.k8s_info:
+      api_version: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: "{{ item.name }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: api_status
-    failed_when: ('cluster.x-k8s.io/' + upgraded_capi_version not in api_status.apis) or
-                 ('controlplane.cluster.x-k8s.io/' + upgraded_capi_version not in api_status.apis) or
-                 ('bootstrap.cluster.x-k8s.io/' + upgraded_capi_version not in api_status.apis) or
-                 ('infrastructure.cluster.x-k8s.io/' + UPGRADED_CAPM3_VERSION not in api_status.apis)
+    register: crd
+    vars:
+      query: "[?name == 'v1alpha3'].schema.openAPIV3Schema.description"
+    failed_when: crd.resources[0].spec.versions | json_query(query) is not search("{{ item.search }}")
+    loop:
+      - name: machines.cluster.x-k8s.io
+        search: upgradedMachine
+      - name: kubeadmcontrolplanes.controlplane.cluster.x-k8s.io
+        search: upgradedKubeadmControlPlane
+      - name: kubeadmconfigs.bootstrap.cluster.x-k8s.io
+        search: upgradedKubeadmConfig
+
+  # Due to https://github.com/ansible-collections/kubernetes.core/issues/17
+  # we cannot use k8s_cluster_info. A fix is to be included in 2.0.0 of kubernetes.core
+  # - name: Verify upgraded API resource for Metal3Clusters
+  #   kubernetes.core.k8s_cluster_info:
+  #   register: api_status
+  #   # failed_when: api_status.apis not contains the upgraded m3c resource(s)?
+
+  - name: Verify upgraded API resource for Metal3Clusters
+    kubernetes.core.k8s_info:
+      api_version: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: metal3clusters.infrastructure.cluster.x-k8s.io
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: crd
+    failed_when: '"upgm3c" not in crd.resources[0].spec.names.shortNames'
+    when: 'CAPM3RELEASE != CAPM3_REL_TO_VERSION'
 
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade Ironic                                                  |
@@ -302,7 +303,7 @@
       mariadb_container:
       - name:  mariadb
         image: "{{CONTAINER_REGISTRY+'/metal3-io/mariadb:'+MARIADB_IMAGE_TAG}}"
-
+      
 
   - name: Wait for ironic update to rollout
     kubernetes.core.k8s_info:
@@ -324,13 +325,6 @@
            (ironic_deployment.resources[0].status.availableReplicas | default(0) == 1) and
            (ironic_deployment.resources[0].status.replicas | default(0) == 1)
 
-  - name: Fetch container images after upgrade
-    shell: |
-      kubectl get pods -A -o jsonpath="{range .items[*].spec.containers[*]}{.image}{'\n'}{end}" |
-      sort | uniq > /tmp/manifests/container_images_after_upgrade.txt
-    environment:
-      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade K8S version and boot-image                              |
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -342,10 +336,10 @@
       IMAGE_LOCATION: "https://artifactory.nordix.org/artifactory/airship/images/k8s_{{UPGRADED_K8S_VERSION}}/"
       IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
       IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
-
+  
   - name: Get cluster uid
     kubernetes.core.k8s_info:
-      api_version: cluster.x-k8s.io/{{ upgraded_capi_version }}
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: Cluster
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -365,8 +359,6 @@
       IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
       IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
       NODE_REUSE_STATUS: "false"
-      CAPI_VERSION: "{{ upgraded_capi_version }}"
-      CAPM3_VERSION: "{{ UPGRADED_CAPM3_VERSION }}"
 
   - name: Create worker Metal3MachineTemplates
     kubernetes.core.k8s:
@@ -381,12 +373,10 @@
       IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
       IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
       NODE_REUSE_STATUS: "false"
-      CAPI_VERSION: "{{ upgraded_capi_version }}"
-      CAPM3_VERSION: "{{ UPGRADED_CAPM3_VERSION }}"
 
   - name: Update boot-disk and kubernetes versions of controlplane nodes
     kubernetes.core.k8s:
-      api_version: controlplane.cluster.x-k8s.io/{{ upgraded_capi_version }}
+      api_version: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: KubeadmControlPlane
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -474,10 +464,10 @@
     until: (workload_pods is succeeded) and
            (workload_pods.resources | length > 0) and
            (workload_pods.resources[0].status.readyReplicas == workload_pods.resources[0].spec.replicas)
-
+  
   - name: Update MachineDeployment maxSurge and maxUnavailable fields
     kubernetes.core.k8s:
-      api_version: cluster.x-k8s.io/{{ upgraded_capi_version }}
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: MachineDeployment
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -491,7 +481,7 @@
 
   - name: Update boot-disk and kubernetes versions of worker node
     kubernetes.core.k8s:
-      api_version: cluster.x-k8s.io/{{ upgraded_capi_version }}
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: MachineDeployment
       name: "{{ CLUSTER_NAME }}"
       namespace: "{{ NAMESPACE }}"
@@ -535,7 +525,7 @@
 
   - name: Verify that kubernetes version is upgraded for CP and worker nodes
     kubernetes.core.k8s_info:
-      api_version: cluster.x-k8s.io/{{ upgraded_capi_version }}
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
       kind: Machine
       namespace: "{{ NAMESPACE }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
