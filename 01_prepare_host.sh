@@ -21,9 +21,10 @@ if [[ $OS == ubuntu ]]; then
   elif [[ ${DISTRO} == "ubuntu20" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
   fi
-
-else
-  sudo dnf update -y && sudo dnf install -y epel-release
+elif [[ $OS == "centos" || $OS == "rhel" ]]; then
+  sudo dnf upgrade -y
+  sudo dnf config-manager --set-enabled powertools
+  sudo dnf install -y epel-release epel-next-release
   sudo dnf -y install python3-pip
   sudo alternatives --set python /usr/bin/python3
 fi
