@@ -542,3 +542,9 @@
     register: machines
     failed_when: (machines.resources | map(attribute='spec.version') | unique | length != 1) or
                  (machines.resources | map(attribute='spec.version') | first != "{{ UPGRADED_K8S_VERSION }}")
+
+# Before pivoting back we must ensure all machines are provisioned and running.
+  - name: Verify that all machines are provisioned and running.
+    include_tasks: verify_resources_states.yml
+    vars:
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
