@@ -2,7 +2,6 @@
 
 approvers:
  - hardys
- - maelk
  - fmuyassarov
  - furkatgofurov7
  - kashifest
@@ -14,3 +13,6 @@ reviewers:
  - namnx228
  - macaptain
  - mboukhalfa
+
+emeritus_approvers:
+ - maelk
