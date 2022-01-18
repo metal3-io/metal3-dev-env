@@ -8,6 +8,7 @@
           - sushy-tools
           - vbmc
       ironic_containers:
+          - ironic
           - ironic-api
           - ironic-conductor
           - ironic-inspector
@@ -29,6 +30,9 @@
           
       - name: Fetch container logs before pivoting (kind cluster)
         shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
+        # FIXME(dtantsur): remove ignore_errors after the transition period
+        # from ironic-api+conductor to just ironic
+        ignore_errors: yes
         with_items:
           - "{{ ironic_containers }}"
           - "{{ general_containers }}"
@@ -37,6 +41,9 @@
         docker_container:
           name: "{{ item }}"
           state: absent
+        # FIXME(dtantsur): remove ignore_errors after the transition period
+        # from ironic-api+conductor to just ironic
+        ignore_errors: yes
         with_items: "{{ ironic_containers }}"
 
     when: EPHEMERAL_CLUSTER == "kind"

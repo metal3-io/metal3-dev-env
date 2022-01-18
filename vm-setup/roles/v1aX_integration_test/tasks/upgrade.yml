@@ -264,7 +264,25 @@
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 #                       Upgrade Ironic                                                  |
 # ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
-  - name: Set expected ironic image based containers
+
+# NOTE(dtantsur): the logic to determine the currently used containers can be
+# removed once we finally switch to the combined ironic executable
+  - name: Get the current deployment
+    kubernetes.core.k8s_info:
+      api_version: v1
+      kind: Deployment
+      name: "{{ NAMEPREFIX }}-ironic"
+      namespace: "{{ IRONIC_NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: ironic_deployment
+
+  - name: Determine if the new ironic executable is used
+    set_fact:
+      has_combined_ironic: >
+        {{ "ironic" in (ironic_deployment.resources[0].spec.template.spec.containers
+                        | map(attribute="name")) }}
+
+  - name: Set expected ironic image based containers (old version)
     set_fact:
       ironic_image_containers:
         - ironic-api
@@ -272,9 +290,20 @@
         - ironic-conductor
         - ironic-log-watch
         - ironic-inspector
+    when: not has_combined_ironic | bool
+
+  - name: Set expected ironic image based containers
+    set_fact:
+      ironic_image_containers:
+        - ironic
+        - ironic-dnsmasq
+        - ironic-httpd
+        - ironic-log-watch
+        - ironic-inspector
         # There is also a keepalived container in the pods, but it is using a
         # different image than the rest and therefore not included in the list.
         # - ironic-endpoint-keepalived
+    when: has_combined_ironic | bool
 
   - name: Upgrade ironic image based containers
     kubernetes.core.k8s:
