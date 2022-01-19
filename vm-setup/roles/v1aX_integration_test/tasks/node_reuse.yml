@@ -2,7 +2,6 @@
   - set_fact:
       NUMBER_OF_BMH_KCP: "{{ NUM_OF_CONTROLPLANE_REPLICAS|int }}"
       NUMBER_OF_BMH_MD: "{{ NUM_OF_WORKER_REPLICAS|int }}"
-      NUMBER_OF_ALL_BMH: "{{ NUM_OF_WORKER_REPLICAS|int + NUM_OF_CONTROLPLANE_REPLICAS|int }}"
 
   - name: Untaint all nodes.
     shell: |
@@ -144,7 +143,7 @@
     until:
       - bmhs is succeeded
       - bmhs.resources | filter_provisioning("provisioning") | length == 1
-      - saved_bmhs.resources | filter_provisioning("deprovisioning") | first | json_query('metadata.name') == 
+      - saved_bmhs.resources | filter_provisioning("deprovisioning") | first | json_query('metadata.name') ==
         bmhs.resources | filter_provisioning("provisioning") | first | json_query('metadata.name')
 
   - name: Wait until two machines become running and updated with new "{{ UPGRADED_K8S_VERSION }}" k8s version.
@@ -395,7 +394,7 @@
     until:
       - bmhs is succeeded
       - bmhs.resources | filter_provisioning("provisioning") | length == 1
-      - saved_bmhs.resources | filter_provisioning("deprovisioning") | first | json_query('metadata.name') == 
+      - saved_bmhs.resources | filter_provisioning("deprovisioning") | first | json_query('metadata.name') ==
         bmhs.resources | filter_provisioning("provisioning") | first | json_query('metadata.name')
 
   - name: Wait until worker machine becomes running and updated with new "{{ UPGRADED_K8S_VERSION }}" k8s version.
@@ -441,28 +440,7 @@
         spec:
           replicas: 3
 
-  - name: Wait until all "{{ NUMBER_OF_ALL_BMH }}" BMHs' are provisioned.
-    k8s_info:
-      api_version: metal3.io/v1alpha1
-      kind: BareMetalHost
-      namespace: "{{ NAMESPACE }}"
+  - name: Verify that all machines are provisioned and running.
+    include_tasks: verify_resources_states.yml
+    vars:
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: bmhs
-    retries: 200
-    delay: 20
-    until:
-      - bmhs is succeeded
-      - bmhs.resources | filter_provisioning("provisioned") | length == (NUMBER_OF_ALL_BMH | int)
-
-  - name: Wait until all "{{ NUMBER_OF_ALL_BMH }}" machines become running.
-    k8s_info:
-      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
-      kind: machines
-      namespace: "{{ NAMESPACE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: machines
-    retries: 200
-    delay: 20
-    until:
-      - machines is succeeded
-      - machines.resources | filter_phase("running") | length == (NUMBER_OF_ALL_BMH | int)

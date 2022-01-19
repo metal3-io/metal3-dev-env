@@ -27,7 +27,7 @@
         with_items:
           - "{{ ironic_containers }}"
           - "{{ general_containers }}"
-          
+
       - name: Fetch container logs before pivoting (kind cluster)
         shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
         # FIXME(dtantsur): remove ignore_errors after the transition period
@@ -48,7 +48,7 @@
 
     when: EPHEMERAL_CLUSTER == "kind"
     become: yes
-    become_user: root 
+    become_user: root
 
   - name: Fetch container logs (minikube cluster)
     block:
@@ -62,7 +62,7 @@
       - name: Fetch container logs before pivoting (minikube cluster)
         shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
         with_items: "{{ general_containers }}"
-  
+
     become: yes
     become_user: root
     when: EPHEMERAL_CLUSTER == "minikube"
@@ -80,7 +80,7 @@
     with_items:
        - clusterctl.cluster.x-k8s.io=""
     when: CAPM3_VERSION != "v1alpha4"
-       
+
   - name: Obtain target cluster kubeconfig
     kubernetes.core.k8s_info:
       kind: secrets
@@ -177,43 +177,13 @@
   - name: Pivot objects to target cluster
     shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
 
-  - name: Check if machines become running.
-    kubernetes.core.k8s_info:
-      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
-      kind: machines
+  - name: Verify that all machines are provisioned and running.
+    include_tasks: verify_resources_states.yml
+    vars:
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: provisioned_machines
-    retries: 50
-    delay: 20
-    until: (provisioned_machines is succeeded) and
-           (provisioned_machines.resources | filter_phase("running") | length == (NUMBER_OF_BMH | int))
-
-  - name: Check if metal3machines become ready.
-    kubernetes.core.k8s_info:
-      api_version: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
-      kind: metal3machine
-      namespace: "{{ NAMESPACE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: m3m_machines
-    retries: 10
-    delay: 20
-    until: (m3m_machines is succeeded) and
-           (m3m_machines.resources | filter_ready | length == (NUMBER_OF_BMH | int))
-
-  - name: Check if bmh is in provisioned state
-    kubernetes.core.k8s_info:
-      api_version: metal3.io/v1alpha1
-      kind: BareMetalHost
-      namespace: "{{ NAMESPACE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: bmh
-    retries: 10
-    delay: 20
-    until: (bmh is succeeded) and
-           (bmh.resources | filter_provisioning("provisioned") | length == (NUMBER_OF_BMH | int))
 
   # Normally as non authenticated user we should
-  # fail here(get 401) to reach Ironic.       
+  # fail here(get 401) to reach Ironic.
   - name: Expect 401 from /v1/nodes ednpoint
     uri:
       url: "{{ IRONIC_URL }}nodes"
