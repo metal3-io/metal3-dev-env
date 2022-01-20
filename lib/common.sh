@@ -2,6 +2,12 @@
 
 [[ ":$PATH:" != *":/usr/local/go/bin:"* ]] && PATH="$PATH:/usr/local/go/bin"
 
+# Verify that passwordless sudo is configured correctly
+if ! sudo -nl | grep -q '(ALL) NOPASSWD: ALL';then
+    echo "ERROR: metal3-dev-env requires passwordless sudo configuration!"
+    exit 1
+fi
+
 eval "$(go env)"
 export GOPATH
 
