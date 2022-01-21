@@ -135,7 +135,7 @@
       chdir: "{{ BMOPATH }}"
 
   - name: Reinstate Baremetal Operator Manager
-    shell: "mv {{ BMOPATH }}/config/manager/manager.yaml.orig {{ BMOPATH }}/config/manager/manager.yaml"
+    shell: "mv {{ BMOPATH }}/config/default/kustomization.yaml.orig {{ BMOPATH }}/config/default/kustomization.yaml"
     when: CAPM3_VERSION != "v1alpha4"
 
   # Install Ironic
