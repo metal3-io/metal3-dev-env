@@ -48,12 +48,6 @@
      },
      {
        "fileMatch": ["^lib/common.sh$"],
-       "matchStrings": ["MINIKUBE_VERSION:-\"(?<currentValue>.*?)\"}"],
-       "depNameTemplate": "kubernetes/minikube",
-       "datasourceTemplate": "github-releases"
-     },
-     {
-       "fileMatch": ["^lib/common.sh$"],
        "matchStrings": ["KIND_VERSION:-\"(?<currentValue>.*?)\"}"],
        "depNameTemplate": "kubernetes-sigs/kind",
        "datasourceTemplate": "github-releases"
@@ -69,12 +63,6 @@
        "matchStrings": ["kubernetes==(?<currentValue>.*?)"],
        "depNameTemplate": "kubernetes",
        "datasourceTemplate": "pypi"
-     },
-     {
-      "fileMatch": ["^lib/common.sh$"],
-      "matchStrings": ["KIND_NODE_IMAGE_VERSION:-\"(?<currentValue>.*?)\"}"],
-      "depNameTemplate": "kindest/node",
-      "datasourceTemplate": "docker"
      },
      {
       "fileMatch": ["^lib/common.sh$"],
