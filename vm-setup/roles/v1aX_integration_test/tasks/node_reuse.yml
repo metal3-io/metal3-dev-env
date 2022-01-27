@@ -44,7 +44,7 @@
     vars:
       IMAGE_NAME: "{{ UPGRADED_IMAGE_NAME }}"
       RAW_IMAGE_NAME: "{{ UPGRADED_RAW_IMAGE_NAME }}"
-      IMAGE_LOCATION: "https://artifactory.nordix.org/artifactory/airship/images/k8s_{{UPGRADED_K8S_VERSION}}/"
+      IMAGE_LOCATION: "https://artifactory.nordix.org/artifactory/airship/images/k8s_{{UPGRADED_K8S_VERSION}}"
       IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
       IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
 
