@@ -64,7 +64,6 @@ assured that they are persisted.
 | DEFAULT_HOSTS_MEMORY | Set the default memory size in MB for the virtual machines provisioned. | | 4096 |
 | CLUSTER_NAME | Set the name of the target cluster | | test1 |
 | IRONIC_TLS_SETUP | Enable TLS for Ironic and inspector | "true", "false" | "true" |
-| IRONIC_BASIC_AUTH | Enable HTTP basic authentication for Ironic and inspector | "true", "false" | "true" |
 | IRONIC_CA_CERT_B64 | Base 64 encoded CA certificate of Ironic | | |
 | IRONIC_CACERT_FILE | Path to the CA certificate of Ironic | | /opt/metal3-dev-env/certs/ironic-ca.pem |
 | IRONIC_INSPECTOR_CACERT_FILE | Path to the CA certificate of Ironic inspector | | /opt/metal3-dev-env/certs/ironic-ca.pem |

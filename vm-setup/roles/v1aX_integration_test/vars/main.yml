@@ -82,7 +82,6 @@ IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM
 # Environment variables to install Ironic with TLS and Basic Auth
 GOPATH: "{{ lookup('env', 'GOPATH')}}"
 IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true) }}"
-IRONIC_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true) }}"
 
 # Environment variables for upgrade workflow
 IRONIC_IMAGE_TAG: "main"

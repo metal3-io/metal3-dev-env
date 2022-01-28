@@ -1,13 +1,9 @@
 clouds:
   metal3:
-{% if env.IRONIC_BASIC_AUTH | lower == "true" %}
     auth_type: http_basic
     auth:
       username: {{ env.IRONIC_USERNAME }}
       password: {{ env.IRONIC_PASSWORD }}
-{% else %}
-    auth_type: none
-{% endif %}
 {% if env.IRONIC_TLS_SETUP | lower == "true" %}
     cacert: /etc/openstack/ironic-ca.crt
     baremetal_endpoint_override: https://{{ env.CLUSTER_URL_HOST }}:{{ env.IRONIC_API_PORT }}

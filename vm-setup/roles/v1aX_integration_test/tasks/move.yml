@@ -125,7 +125,7 @@
 
   # Install BMO
   - name: Install Baremetal Operator
-    shell: "{{ BMOPATH }}/tools/deploy.sh true false {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
+    shell: "{{ BMOPATH }}/tools/deploy.sh true false {{ IRONIC_TLS_SETUP }} true true"
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
@@ -140,7 +140,7 @@
 
   # Install Ironic
   - name: Install Ironic
-    shell: "{{ BMOPATH }}/tools/deploy.sh false true {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
+    shell: "{{ BMOPATH }}/tools/deploy.sh false true {{ IRONIC_TLS_SETUP }} true true"
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"

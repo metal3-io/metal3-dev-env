@@ -127,7 +127,7 @@ EOF
   fi
 
   # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
-  "${BMOPATH}/tools/deploy.sh" true false "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
+  "${BMOPATH}/tools/deploy.sh" true false "${IRONIC_TLS_SETUP}" "true" true
 
   # If BMO should run locally, scale down the deployment and run BMO
   if [ "${BMO_RUN_LOCAL}" == "true" ]; then
@@ -138,16 +138,14 @@ EOF
         cat "${IRONIC_INSPECTOR_CACERT_FILE}" >> /opt/metal3/certs/ca/crt
       fi
     fi
-    if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
-      sudo mkdir -p /opt/metal3/auth/ironic
-      sudo chown "$USER":"$USER" /opt/metal3/auth/ironic
-      cp "${IRONIC_AUTH_DIR}ironic-username" /opt/metal3/auth/ironic/username
-      cp "${IRONIC_AUTH_DIR}ironic-password" /opt/metal3/auth/ironic/password
-      sudo mkdir -p /opt/metal3/auth/ironic-inspector
-      sudo chown "$USER":"$USER" /opt/metal3/auth/ironic-inspector
-      cp "${IRONIC_AUTH_DIR}${IRONIC_INSPECTOR_USERNAME}" /opt/metal3/auth/ironic-inspector/username
-      cp "${IRONIC_AUTH_DIR}${IRONIC_INSPECTOR_PASSWORD}" /opt/metal3/auth/ironic-inspector/password
-    fi
+    sudo mkdir -p /opt/metal3/auth/ironic
+    sudo chown "$USER":"$USER" /opt/metal3/auth/ironic
+    cp "${IRONIC_AUTH_DIR}ironic-username" /opt/metal3/auth/ironic/username
+    cp "${IRONIC_AUTH_DIR}ironic-password" /opt/metal3/auth/ironic/password
+    sudo mkdir -p /opt/metal3/auth/ironic-inspector
+    sudo chown "$USER":"$USER" /opt/metal3/auth/ironic-inspector
+    cp "${IRONIC_AUTH_DIR}${IRONIC_INSPECTOR_USERNAME}" /opt/metal3/auth/ironic-inspector/username
+    cp "${IRONIC_AUTH_DIR}${IRONIC_INSPECTOR_PASSWORD}" /opt/metal3/auth/ironic-inspector/password
 
     export IRONIC_ENDPOINT=${IRONIC_URL}
     export IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
@@ -235,7 +233,7 @@ EOF
     cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
 
     # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
-    "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
+    "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "true" true
 
     # Restore original files
     mv "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
