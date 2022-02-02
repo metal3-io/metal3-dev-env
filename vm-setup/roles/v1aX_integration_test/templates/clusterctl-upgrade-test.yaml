@@ -1,5 +1,10 @@
 # Cluster API config used for upgrade testing.
 
+## Cert-manager has changed the organization on github.
+## This is a temporary fix until CAPI has updated the URL.
+cert-manager:
+  url: "https://github.com/cert-manager/cert-manager/releases/latest/cert-manager.yaml"
+
 # Image is overriden in provider/container_name format
 # list of providers
 # cluster.x-k8s.io/provider: bootstrap-kubeadm
