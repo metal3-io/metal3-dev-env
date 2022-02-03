@@ -358,13 +358,6 @@ function patch_clusterctl(){
   mkdir -p "${HOME}"/.cluster-api
   touch "${HOME}"/.cluster-api/clusterctl.yaml
 
-  ## Cert-manager has changed the organization on github.
-  ## This is a temporary fix until CAPI has updated the URL.
-  cat <<EOF > "${HOME}"/.cluster-api/clusterctl.yaml
-cert-manager:
-  url: "https://github.com/cert-manager/cert-manager/releases/latest/cert-manager.yaml"
-EOF
-
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then

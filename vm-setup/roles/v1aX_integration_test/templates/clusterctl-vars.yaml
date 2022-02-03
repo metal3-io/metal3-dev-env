@@ -2,11 +2,6 @@
 # For deployment to ~/.cluster-api/
 ## Note these settings are overridden by environment variables.
 
-## Cert-manager has changed the organization on github.
-## This is a temporary fix until CAPI has updated the URL.
-cert-manager:
-  url: "https://github.com/cert-manager/cert-manager/releases/latest/cert-manager.yaml"
-
 # Cluster settings
 KUBERNETES_VERSION: {{ KUBERNETES_VERSION }}
 NAMESPACE: {{ NAMESPACE }}
