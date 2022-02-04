@@ -73,7 +73,7 @@ UPGRADED_RAW_IMAGE_NAME: "{{ lookup('env', 'UPGRADED_RAW_IMAGE_NAME') }}"
 # Distibution specific environment variables
 IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}.qcow2', true) }}"
 RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_20.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}-raw.img', true) }}"
-IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifactory.nordix.org/artifactory/airship/images/k8s_{{KUBERNETES_VERSION}}', true) }}"
+IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifactory.nordix.org/artifactory/metal3/images/k8s_{{KUBERNETES_VERSION}}', true) }}"
 IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
 IMAGE_FORMAT: "{{ lookup('env', 'IMAGE_FORMAT') | default('raw', true) }}"
 IMAGE_CHECKSUM_TYPE: "{{ lookup('env', 'IMAGE_CHECKSUM_TYPE') | default('md5', true) }}"
