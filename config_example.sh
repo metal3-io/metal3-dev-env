@@ -153,7 +153,7 @@
 
 # Location of the image to download
 #
-#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/airship/images/k8s_v1.23.3"
+#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/metal3/images/k8s_v1.23.3"
 
 # Image username for ssh
 #

@@ -35,7 +35,7 @@ assured that they are persisted.
 | BOOT_MODE  | Set libvirt firmware and BMH bootMode | "legacy", "UEFI", "UEFISecureBoot" | "legacy" |
 | IMAGE_OS | OS of the image to boot the nodes from, overriden by IMAGE\_\* if set | "Centos", "Cirros", "FCOS", "Ubuntu" | "Centos" |
 | IMAGE_NAME | Image for target hosts deployment | | "CENTOS_8_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2" |
-| IMAGE_LOCATION | Location of the image to download | | https://artifactory.nordix.org/artifactory/airship/images/${KUBERNETES_VERSION} |
+| IMAGE_LOCATION | Location of the image to download | | https://artifactory.nordix.org/artifactory/metal3/images/${KUBERNETES_VERSION} |
 | IMAGE_USERNAME | Image username for ssh | | "metal3" |
 | CONTAINER_REGISTRY | Registry to pull metal3 container images from | | "quay.io" |
 | DOCKER_HUB_PROXY | Registry to pull docker hub images from | | "docker.io" |
