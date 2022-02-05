@@ -12,6 +12,7 @@ if [[ $(id -u) == 0 ]]; then
 fi
 
 if [[ $OS == ubuntu ]]; then
+  sudo apt install ca-certificates
   sudo apt-get update
   sudo apt -y install python3-pip
 
