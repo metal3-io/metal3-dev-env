@@ -134,8 +134,16 @@ Recommended resource requirements for the host machine are: 8C CPUs, 32 GB RAM,
 
 ## CI jobs configuration
 
-We are running two main jobs for the **remediation/pivoting** framework testing.
-One is
+We are running two main jobs for the feature framework testing:
+(in order as they are described below)
+
+- inspection
+- remediation
+- pivoting
+- node reuse
+- repivoting
+
+The jobs are:
 [main](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_ubuntu/)
 job for Ubuntu and the other
 [main](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_centos/)
