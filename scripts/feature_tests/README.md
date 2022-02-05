@@ -2,9 +2,9 @@
 
 ## Build Status
 
-[![Ubuntu V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/badge/icon?subject=Feature-tests)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
-[![Centos V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_centos/badge/icon?subject=Feature-tests-centos)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_centos/)
-[![Ubuntu V1alpha4 build status](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/badge/icon?subject=Feature-tests-upgrade)](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
+[![Ubuntu main feature test build status](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_ubuntu/badge/icon?subject=Feature-tests)](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_ubuntu/)
+[![Centos main feature test build status](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_centos/badge/icon?subject=Feature-tests-centos)](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_centos/)
+[![Ubuntu main upgrade test build status](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_upgrade_ubuntu/badge/icon?subject=Feature-tests-upgrade)](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_upgrade_ubuntu/)
 
 Feature tests framework is made to run a set of scripts for testing pivoting,
 remediation, scale-in, node reuse and upgrade functionalities of Metal3 project.
@@ -136,35 +136,35 @@ Recommended resource requirements for the host machine are: 8C CPUs, 32 GB RAM,
 
 We are running two main jobs for the **remediation/pivoting** framework testing.
 One is
-[main](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_ubuntu/)
+[main](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_ubuntu/)
 job for Ubuntu and the other
-[main](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_centos/)
+[main](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_centos/)
 job for Centos which runs every day.
 
 Similarly two other jobs,
-[airship_*_feature_tests_ubuntu](https://jenkins.nordix.org/view/Airship/job/airship_metal3io_metal3_dev_env_feature_tests_ubuntu/)
+[Metal3_*_feature_tests_ubuntu](https://jenkins.nordix.org/view/Metal3/job/metal3_metal3_dev_env_feature_tests_ubuntu/)
 and
-[airship_*_feature_tests_centos](https://jenkins.nordix.org/view/Airship/job/airship_metal3io_metal3_dev_env_feature_tests_centos/)
+[Metal3_*_feature_tests_centos](https://jenkins.nordix.org/view/Metal3/job/metal3_metal3_dev_env_feature_tests_centos/)
 that can be run when triggered with `/test-features` and `/test-features-centos`
 phrases for Ubuntu and Centos, accordingly on a pull request.
 
 We are running a single main job(both for Ubuntu and Centos) for the **upgrade**
 framework testing. That is a
-[main](https://jenkins.nordix.org/view/Airship/job/airship_master_feature_tests_upgrade_ubuntu/)
+[main](https://jenkins.nordix.org/view/Metal3/job/metal3_main_feature_tests_upgrade_ubuntu/)
 job which runs every night.
 
 Similarly,
-[airship_*_feature_tests_upgrade_ubuntu](https://jenkins.nordix.org/view/Airship/job/airship_metal3io_metal3_dev_env_feature_tests_upgrade_ubuntu/)
+[Metal3_feature_tests_upgrade_ubuntu](https://jenkins.nordix.org/view/Metal3/job/metal3_metal3_dev_env_feature_tests_upgrade_ubuntu/)
 can be triggered with `/test-upgrade-features` phrase on a pull request.
 
 Depending on where from the job is triggered, **\*** can be:
 
-- metal3io_metal3_dev_env
-- metal3io_capi_m3
-- metal3io_bmo
-- metal3io_project_infra
-- metal3io_ironic_ipa_downloader
-- metal3io_ironic_image
-- nordix_capi_m3
+- metal3_dev_env
+- capm3
+- bmo
+- project_infra
+- ironic_ipa_downloader
+- ironic_image
+- nordix_capm3
 - nordix_metal3_dev_env
 - nordix_bmo
