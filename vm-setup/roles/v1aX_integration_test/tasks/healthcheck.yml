@@ -5,7 +5,7 @@
 
 - name: Verify that CAPI healthcheck is created
   kubernetes.core.k8s_info:
-    api_version: cluster.x-k8s.io/v1alpha3
+    api_version: cluster.x-k8s.io/v1beta1
     kind: MachineHealthCheck
     namespace: "{{ NAMESPACE }}"
   retries: 20
@@ -13,50 +13,6 @@
   register: capi_healthcheck
   until: (capi_healthcheck is succeeded) and
          (capi_healthcheck.resources | length == 1)
-
-- name: Fetch the target cluster kubeconfig
-  k8s_info:
-    kind: secrets
-    name: "{{ CLUSTER_NAME }}-kubeconfig"
-    namespace: "{{ NAMESPACE }}"
-  register: metal3_kubeconfig
-
-- name: Decode and save cluster kubeconfig
-  copy:
-    content: "{{ metal3_kubeconfig.resources[0].data.value | b64decode }}"
-    dest: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-
-# - name: Install Calico to workflow cluster
-#   shell: kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml apply -f https://docs.projectcalico.org/v3.20/manifests/calico.yaml
-
-# Install Calico
-- name: Download Calico manifest
-  get_url:
-    url: https://docs.projectcalico.org/manifests/calico.yaml
-    dest: /tmp/
-    mode: '664'
-  register: calico_manifest
-
-- name: Apply Calico manifest
-  kubernetes.core.k8s:
-    state: present
-    src: "/tmp/calico.yaml"
-    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-  register: install_cni
-
-- name: Wait until nodes becomes Ready
-  k8s_info:
-    api_version: v1
-    kind: Node
-    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-  register: nodes
-  retries: 150
-  delay: 3
-  vars:
-    q: "[? status.conditions[? type=='Ready' && status=='True']]"
-  until:
-    - nodes is succeeded
-    - nodes.resources | json_query(q) | length == 4
 
 - name: Register worker nodes
   kubernetes.core.k8s_info:
@@ -81,17 +37,17 @@
 
 - name: Wait until CAPI machine healthcheck detects the unhealthy machine
   kubernetes.core.k8s_info:
-    api_version: cluster.x-k8s.io/v1alpha3
+    api_version: cluster.x-k8s.io/v1beta1
     kind: MachineHealthCheck
     namespace: "{{ NAMESPACE }}"
   retries: 120
   delay: 20
   register: capi_healthcheck
-  until: (capi_healthcheck.resources[0].status.currentHealthy | default(0) == 0)
+  until: (capi_healthcheck.resources[0].status.currentHealthy == 0)
 
 - name: Verify that new Remediation Request is created
   kubernetes.core.k8s_info:
-    api_version: infrastructure.cluster.x-k8s.io/v1alpha5
+    api_version: infrastructure.cluster.x-k8s.io/v1beta1
     kind: Metal3Remediation
     namespace: "{{ NAMESPACE }}"
   retries: 120
@@ -102,17 +58,17 @@
 
 - name: Wait until unhealthy machine is healthy again
   kubernetes.core.k8s_info:
-    api_version: cluster.x-k8s.io/v1alpha3
+    api_version: cluster.x-k8s.io/v1beta1
     kind: MachineHealthCheck
     namespace: "{{ NAMESPACE }}"
   retries: 120
   delay: 20
   register: capi_healthcheck
-  until: (capi_healthcheck.resources[0].status.currentHealthy | default(0) == 1)
+  until: (capi_healthcheck.resources[0].status.currentHealthy == 1)
 
 - name: Verify that new Remediation Request is deleted
   kubernetes.core.k8s_info:
-    api_version: infrastructure.cluster.x-k8s.io/v1alpha5
+    api_version: infrastructure.cluster.x-k8s.io/v1beta1
     kind: Metal3Remediation
     namespace: "{{ NAMESPACE }}"
   retries: 120
@@ -131,7 +87,7 @@
 
 - name: Verify that CAPI healthcheck is created
   kubernetes.core.k8s_info:
-    api_version: cluster.x-k8s.io/v1alpha3
+    api_version: cluster.x-k8s.io/v1beta1
     kind: MachineHealthCheck
     namespace: "{{ NAMESPACE }}"
   retries: 20
@@ -163,17 +119,17 @@
 
 - name: Wait until CAPI machine healthcheck detects the unhealthy machine
   kubernetes.core.k8s_info:
-    api_version: cluster.x-k8s.io/v1alpha3
+    api_version: cluster.x-k8s.io/v1beta1
     kind: MachineHealthCheck
     namespace: "{{ NAMESPACE }}"
   retries: 120
   delay: 20
   register: capi_healthcheck
-  until: (capi_healthcheck.resources[0].status.currentHealthy | default(0) == 2)
+  until: (capi_healthcheck.resources[0].status.currentHealthy == 2)
 
 - name: Verify that new Remediation Request is created
   kubernetes.core.k8s_info:
-    api_version: infrastructure.cluster.x-k8s.io/v1alpha5
+    api_version: infrastructure.cluster.x-k8s.io/v1beta1
     kind: Metal3Remediation
     namespace: "{{ NAMESPACE }}"
   retries: 120
@@ -184,17 +140,17 @@
 
 - name: Wait until unhealthy machine is healthy again
   kubernetes.core.k8s_info:
-    api_version: cluster.x-k8s.io/v1alpha3
+    api_version: cluster.x-k8s.io/v1beta1
     kind: MachineHealthCheck
     namespace: "{{ NAMESPACE }}"
   retries: 120
   delay: 20
   register: capi_healthcheck
-  until: (capi_healthcheck.resources[0].status.currentHealthy | default(0) == 3)
+  until: (capi_healthcheck.resources[0].status.currentHealthy == 3)
 
 - name: Verify that new Remediation Request is deleted
   kubernetes.core.k8s_info:
-    api_version: infrastructure.cluster.x-k8s.io/v1alpha5
+    api_version: infrastructure.cluster.x-k8s.io/v1beta1
     kind: Metal3Remediation
     namespace: "{{ NAMESPACE }}"
   retries: 120
@@ -205,4 +161,3 @@
 
 - name: Delete CAPI healthcheck for controlplane
   shell: kubectl delete -f "{{ CRS_PATH }}/machine-healthcheck-controlplane.yaml" -n "{{ NAMESPACE }}"
-  

@@ -1,4 +1,4 @@
-apiVersion: cluster.x-k8s.io/v1alpha3
+apiVersion: cluster.x-k8s.io/v1beta1
 kind: MachineHealthCheck
 metadata:
   name: worker-healthcheck
@@ -31,12 +31,10 @@ spec:
     timeout: 300s
   remediationTemplate: # added infrastructure reference
     kind: Metal3RemediationTemplate
-    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha5
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
     name: worker-remediation-request
-
 ---
-
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha5
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 kind: Metal3RemediationTemplate
 metadata:
     name: worker-remediation-request
