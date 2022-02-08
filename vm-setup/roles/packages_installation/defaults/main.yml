@@ -54,8 +54,8 @@ packages:
      - jmespath
      - passlib
   centos:
-    rhel8:
-        packages:
+    common:
+      packages:
          - curl
          - dnsmasq
          - edk2-ovmf
@@ -68,7 +68,6 @@ packages:
          - bind-utils
          - jq
          - libguestfs-tools
-         - redhat-lsb-core
          - unzip
          - genisoimage
          - qemu-kvm
@@ -81,15 +80,20 @@ packages:
          - polkit-pkla-compat
          - python3-netaddr
          - virt-install
-         - network-scripts
          - firewalld
          - python3-six
          - httpd-tools
-         - python3-passlib
          - python3-bcrypt
-        pip3:
-          - jmespath
-          - kubernetes==17.17.0
+    el8:
+      packages:
+         - redhat-lsb-core
+         - network-scripts
+    el9:
+      packages: []
+    pip3:
+      - jmespath
+      - kubernetes==17.17.0
+      - passlib
 DAEMON_JSON_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/files"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') }}"
 OS_VERSION_ID: "{{ lookup('env', 'OS_VERSION_ID') }}"
