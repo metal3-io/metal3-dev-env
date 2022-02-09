@@ -157,6 +157,7 @@ verify_actions:
     - "feature_test_provisioning"
     - "pivoting"
     - "upgrading"
+    - "healthcheck"
 pivot_actions:
     - "ci_test_provision"
     - "pivoting"
@@ -175,3 +176,5 @@ image_download_actions:
     - "provision_worker"
 inspection_action:
     - "inspection"
+healthcheck_action:
+    - "healthcheck"

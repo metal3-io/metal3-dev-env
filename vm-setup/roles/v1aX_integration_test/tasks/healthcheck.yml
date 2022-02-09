@@ -1,0 +1,163 @@
+# Worker CAPI healthcheck and remediation controller test
+
+- name: Deploy CAPI healthcheck for worker
+  shell: kubectl apply -f "{{ CRS_PATH }}/machine-healthcheck-worker.yaml" -n "{{ NAMESPACE }}"
+
+- name: Verify that CAPI healthcheck is created
+  kubernetes.core.k8s_info:
+    api_version: cluster.x-k8s.io/v1beta1
+    kind: MachineHealthCheck
+    namespace: "{{ NAMESPACE }}"
+  retries: 20
+  delay: 20
+  register: capi_healthcheck
+  until: (capi_healthcheck is succeeded) and
+         (capi_healthcheck.resources | length == 1)
+
+- name: Register worker nodes
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Node
+    label_selectors:
+      - "!node-role.kubernetes.io/control-plane"
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  register: worker_nodes
+
+- name: Set worker IP address
+  set_fact:
+    worker_ip: "{{worker_nodes.resources[0].status.addresses[0].address}}"
+
+- name: Stop kubelet on worker node
+  ansible.builtin.shell: | 
+    ssh -o "StrictHostKeyChecking no" metal3@{{ worker_ip }} /bin/bash <<'EOT'
+    echo "These commands will be run on: $( sudo systemctl stop kubelet )"
+    exit 0
+    EOT
+  ignore_errors: yes
+
+- name: Wait until CAPI machine healthcheck detects the unhealthy machine
+  kubernetes.core.k8s_info:
+    api_version: cluster.x-k8s.io/v1beta1
+    kind: MachineHealthCheck
+    namespace: "{{ NAMESPACE }}"
+  retries: 120
+  delay: 20
+  register: capi_healthcheck
+  until: (capi_healthcheck.resources[0].status.currentHealthy == 0)
+
+- name: Verify that new Remediation Request is created
+  kubernetes.core.k8s_info:
+    api_version: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: Metal3Remediation
+    namespace: "{{ NAMESPACE }}"
+  retries: 120
+  delay: 30
+  register: metal3_remediation
+  until: (metal3_remediation is succeeded) and
+         (metal3_remediation.resources | length == 1)
+
+- name: Wait until unhealthy machine is healthy again
+  kubernetes.core.k8s_info:
+    api_version: cluster.x-k8s.io/v1beta1
+    kind: MachineHealthCheck
+    namespace: "{{ NAMESPACE }}"
+  retries: 120
+  delay: 20
+  register: capi_healthcheck
+  until: (capi_healthcheck.resources[0].status.currentHealthy == 1)
+
+- name: Verify that new Remediation Request is deleted
+  kubernetes.core.k8s_info:
+    api_version: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: Metal3Remediation
+    namespace: "{{ NAMESPACE }}"
+  retries: 120
+  delay: 20
+  register: metal3_remediation
+  until: (metal3_remediation is succeeded) and
+         (metal3_remediation.resources | length == 0)
+
+- name: Delete CAPI healthcheck for worker
+  shell: kubectl delete -f "{{ CRS_PATH }}/machine-healthcheck-worker.yaml" -n "{{ NAMESPACE }}"
+
+# Controlplane CAPI healthcheck and remediation controller test
+
+- name: Deploy CAPI healthcheck for controlplane
+  shell: kubectl apply -f "{{ CRS_PATH }}/machine-healthcheck-controlplane.yaml" -n "{{ NAMESPACE }}"
+
+- name: Verify that CAPI healthcheck is created
+  kubernetes.core.k8s_info:
+    api_version: cluster.x-k8s.io/v1beta1
+    kind: MachineHealthCheck
+    namespace: "{{ NAMESPACE }}"
+  retries: 20
+  delay: 20
+  register: capi_healthcheck
+  until: (capi_healthcheck is succeeded) and
+         (capi_healthcheck.resources | length == 1)
+
+- name: Register controlplane nodes
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Node
+    label_selectors:
+      - "node-role.kubernetes.io/control-plane"
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  register: controlplane_nodes
+
+- name: Set controlplane node IP address
+  set_fact:
+    controlplane_node_ip: "{{controlplane_nodes.resources[0].status.addresses[0].address}}"
+
+- name: Stop kubelet on controlplane node
+  ansible.builtin.shell: | 
+    ssh -o "StrictHostKeyChecking no" metal3@{{ controlplane_node_ip }} /bin/bash <<'EOT'
+    echo "These commands will be run on: $( sudo systemctl stop kubelet )"
+    exit 0
+    EOT
+  ignore_errors: yes
+
+- name: Wait until CAPI machine healthcheck detects the unhealthy machine
+  kubernetes.core.k8s_info:
+    api_version: cluster.x-k8s.io/v1beta1
+    kind: MachineHealthCheck
+    namespace: "{{ NAMESPACE }}"
+  retries: 120
+  delay: 20
+  register: capi_healthcheck
+  until: (capi_healthcheck.resources[0].status.currentHealthy == 2)
+
+- name: Verify that new Remediation Request is created
+  kubernetes.core.k8s_info:
+    api_version: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: Metal3Remediation
+    namespace: "{{ NAMESPACE }}"
+  retries: 120
+  delay: 30
+  register: metal3_remediation
+  until: (metal3_remediation is succeeded) and
+         (metal3_remediation.resources | length == 1)
+
+- name: Wait until unhealthy machine is healthy again
+  kubernetes.core.k8s_info:
+    api_version: cluster.x-k8s.io/v1beta1
+    kind: MachineHealthCheck
+    namespace: "{{ NAMESPACE }}"
+  retries: 120
+  delay: 20
+  register: capi_healthcheck
+  until: (capi_healthcheck.resources[0].status.currentHealthy == 3)
+
+- name: Verify that new Remediation Request is deleted
+  kubernetes.core.k8s_info:
+    api_version: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: Metal3Remediation
+    namespace: "{{ NAMESPACE }}"
+  retries: 120
+  delay: 20
+  register: metal3_remediation
+  until: (metal3_remediation is succeeded) and
+         (metal3_remediation.resources | length == 0)
+
+- name: Delete CAPI healthcheck for controlplane
+  shell: kubectl delete -f "{{ CRS_PATH }}/machine-healthcheck-controlplane.yaml" -n "{{ NAMESPACE }}"
