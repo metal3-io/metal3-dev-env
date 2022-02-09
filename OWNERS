@@ -7,7 +7,6 @@ approvers:
  - kashifest
 
 reviewers:
- - jan-est
  - xenwar
  - smoshiur1237
  - namnx228
@@ -17,3 +16,6 @@ reviewers:
 
 emeritus_approvers:
  - maelk
+
+emeritus_reviewers:
+ - jan-est
