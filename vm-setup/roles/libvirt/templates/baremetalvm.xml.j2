@@ -5,6 +5,7 @@
 
   {{baremetal_vm_xml|default('')}}
 
+{% if libvirt_arch != 'aarch64' %}
   <os>
     <type arch='{{ libvirt_arch }}' machine='q35'>hvm</type>
 {% if libvirt_firmware  == 'uefi' %}
@@ -18,6 +19,12 @@
     <boot dev='network'/>
     <bootmenu enable='no'/>
   </os>
+{% else %}
+<os firmware='efi'>
+  <type arch='aarch64' machine='virt-rhel8.2.0'>hvm</type>
+</os>
+{% endif %}
+
   <features>
     <acpi/>
     <apic/>
