@@ -326,7 +326,9 @@ if [ ! -d "$WORKING_DIR" ]; then
   sudo mkdir "$WORKING_DIR"
   sudo chmod 755 "$WORKING_DIR"
 fi
-sudo chown "${USER}:${USER}" "$WORKING_DIR"
+
+# Ensure all files in the working directory are owned by the current user
+sudo chown -R "${USER}:${USER}" "$WORKING_DIR"
 
 function list_nodes() {
     # Includes -machine and -machine-namespace
