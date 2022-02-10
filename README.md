@@ -67,19 +67,19 @@ export CAPI_VERSION=v1beta1
 The following environment variables need to be set for **Centos**:
 
 ```sh
-export IMAGE_OS=Centos
+export IMAGE_OS=centos
 ```
 
 And the following environment variables need to be set for **Ubuntu**:
 
 ```sh
-export IMAGE_OS=Ubuntu
+export IMAGE_OS=ubuntu
 ```
 
 And the following environment variables need to be set for **Flatcar**:
 
 ```sh
-export IMAGE_OS=Flatcar
+export IMAGE_OS=flatcar
 ```
 
 You can check a list of all the environment variables [here](vars.md)

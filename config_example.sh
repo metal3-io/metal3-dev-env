@@ -42,7 +42,7 @@
 # This variable defines if controlplane should scale-in or scale-out during upgrade
 # The field values can be 0 or 1. Default is 1. When set to 1 controlplane scale-out
 # When set to 0 controlplane scale-in. In case of scale-in NUM_OF_CONTROLPLANE_REPLICAS must be >=3.
-# 
+#
 # In case of worker, this variable defines maximum number of machines that can be scheduled
 # above the desired number of machines. Value can be an absolute number (ex: 5) or a percentage
 # of desired machines (ex: 10%). This can not be 0 if MAX_UNAVAILABLE_VALUE is 0. Absolute number
@@ -145,7 +145,7 @@
 
 # Image OS (can be "Cirros", "Ubuntu", "Centos", overriden by IMAGE_* if set)
 # Default: Centos
-#export IMAGE_OS="Centos"
+#export IMAGE_OS="centos"
 
 # Image for target hosts deployment
 #
@@ -200,10 +200,9 @@
 # Secure Ironic deployment with TLS ("true" or "false")
 #export IRONIC_TLS_SETUP="true"
 
-# Set nodeDrainTimeout for controlplane and worker template, otherwise default value will be  '0s'. 
+# Set nodeDrainTimeout for controlplane and worker template, otherwise default value will be  '0s'.
 #
 #export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}
 
 # Uncomment the line below to build ironic-image from source
 # export IRONIC_FROM_SOURCE="true"
-

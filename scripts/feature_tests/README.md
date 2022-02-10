@@ -107,7 +107,7 @@ Currently the test-framework uses the following environment variables
 by default for feature/upgrade tests, in case of **Ubuntu** setup:
 
 ```bash
-export IMAGE_OS=Ubuntu
+export IMAGE_OS=ubuntu
 export EPHEMERAL_CLUSTER=kind
 export CONTAINER_RUNTIME=docker
 export NUM_NODES=4
@@ -116,7 +116,7 @@ export NUM_NODES=4
 while **Centos** uses:
 
 ```bash
-export IMAGE_OS=Centos
+export IMAGE_OS=centos
 export EPHEMERAL_CLUSTER=minikube
 export CONTAINER_RUNTIME=podman
 export NUM_NODES=4
