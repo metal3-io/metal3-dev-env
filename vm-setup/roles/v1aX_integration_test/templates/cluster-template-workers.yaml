@@ -77,5 +77,5 @@ spec:
         sshAuthorizedKeys:
         - {{ SSH_PUB_KEY_CONTENT }}
 {% filter indent(width=6, first=True) %}
-{% include "cluster-template-workers-kubeadm-config-%s.yaml" % (IMAGE_OS | lower) %}
+{% include "cluster-template-workers-kubeadm-config-%s.yaml" % IMAGE_OS %}
 {% endfilter %}

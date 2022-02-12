@@ -12,19 +12,19 @@
   when: v1aX_integration_test_action in inspection_action
 
 - name: Provision cluster
-  shell: kubectl apply -f "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_cluster_{{ IMAGE_OS|lower }}.yaml" -n "{{ NAMESPACE }}"
+  shell: kubectl apply -f "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_cluster_{{ IMAGE_OS }}.yaml" -n "{{ NAMESPACE }}"
   register: kubectl_apply_cluster
   changed_when: "'configured' in kubectl_apply_cluster.stdout"
   when: v1aX_integration_test_action in provision_cluster_actions
 
 - name: Create control plane
-  shell: kubectl apply -f "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_controlplane_{{ IMAGE_OS|lower }}.yaml" -n "{{ NAMESPACE }}"
+  shell: kubectl apply -f "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_controlplane_{{ IMAGE_OS }}.yaml" -n "{{ NAMESPACE }}"
   register: kubectl_apply_controlplane
   changed_when: "'configured' in kubectl_apply_controlplane.stdout"
   when: v1aX_integration_test_action in provision_controlplane_actions
 
 - name: Create worker nodes
-  shell: kubectl apply -f "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_workers_{{ IMAGE_OS|lower }}.yaml" -n "{{ NAMESPACE }}"
+  shell: kubectl apply -f "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_workers_{{ IMAGE_OS }}.yaml" -n "{{ NAMESPACE }}"
   register: kubectl_apply_workers
   changed_when: "'configured' in kubectl_apply_workers.stdout"
   when: v1aX_integration_test_action in provision_workers_actions
@@ -48,7 +48,7 @@
 - name: Deprovision worker nodes
   kubernetes.core.k8s:
     state: absent
-    src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_workers_{{ IMAGE_OS|lower }}.yaml"
+    src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_workers_{{ IMAGE_OS }}.yaml"
     namespace: "{{ NAMESPACE }}"
   ignore_errors: yes
   when: v1aX_integration_test_action in deprovision_workers_actions
@@ -56,7 +56,7 @@
 - name: Deprovision control plane
   kubernetes.core.k8s:
     state: absent
-    src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_controlplane_{{ IMAGE_OS|lower }}.yaml"
+    src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_controlplane_{{ IMAGE_OS }}.yaml"
     namespace: "{{ NAMESPACE }}"
   ignore_errors: yes
   when: v1aX_integration_test_action in deprovision_controlplane_actions
@@ -64,7 +64,7 @@
 - name: Deprovision cluster
   kubernetes.core.k8s:
     state: absent
-    src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_cluster_{{ IMAGE_OS|lower }}.yaml"
+    src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_cluster_{{ IMAGE_OS }}.yaml"
     namespace: "{{ NAMESPACE }}"
   ignore_errors: yes
   when: v1aX_integration_test_action in deprovision_cluster_actions
