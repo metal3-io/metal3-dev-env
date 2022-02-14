@@ -47,7 +47,7 @@ elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.5.")}"
 else
   # workaround until we have a proper CAPM3 v1beta1 release.
-  export CAPM3RELEASE="v1.0.0"
+  export CAPM3RELEASE="v1.1.0"
   # TODO(furkat) Uncomment below once we start releasing CAPM3 with v1beta1 API.
   # export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.0.")}"
 fi
