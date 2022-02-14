@@ -10,7 +10,7 @@
     with_items:
       - controlplane_ubuntu
       - workers_ubuntu
-    when: IMAGE_OS|lower == "ubuntu"
+    when: IMAGE_OS == "ubuntu"
 
   - name: Remove temporary CentOS crs
     file:
@@ -19,7 +19,7 @@
     with_items:
       - controlplane_centos
       - workers_centos
-    when: (IMAGE_OS|lower == "centos") or
+    when: (IMAGE_OS == "centos") or
           (IMAGE_OS == "")
 
   - name: Check if cluster deprovisioning started.

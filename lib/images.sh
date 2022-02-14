@@ -2,10 +2,7 @@
 
 # Image name and location
 IMAGE_OS=${IMAGE_OS:-centos}
-# NOTE: ${VAR,,} is making the varable lower case.
-# This is temporary and will be removed once we have changed IMAGE_OS to be
-# lower case in the CI.
-if [[ "${IMAGE_OS,,}" == "ubuntu" ]]; then
+if [[ "${IMAGE_OS}" == "ubuntu" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-UBUNTU_20.04_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/metal3/images/k8s_${KUBERNETES_VERSION}}
 elif [[ "${IMAGE_OS}" == "FCOS" ]]; then
@@ -14,10 +11,10 @@ elif [[ "${IMAGE_OS}" == "FCOS" ]]; then
 elif [[ "${IMAGE_OS}" == "FCOS-ISO" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-fedora-coreos-33.20201201.2.1-live.x86_64.iso}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://builds.coreos.fedoraproject.org/prod/streams/testing/builds/33.20201201.2.1/x86_64}
-elif [[ "${IMAGE_OS,,}" == "centos" ]]; then
+elif [[ "${IMAGE_OS}" == "centos" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-CENTOS_8_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/metal3/images/k8s_${KUBERNETES_VERSION}}
-elif [[ "${IMAGE_OS,,}" == "flatcar" ]]; then
+elif [[ "${IMAGE_OS}" == "flatcar" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-flatcar_production_qemu_image.img.bz2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://stable.release.flatcar-linux.net/amd64-usr/current/}
 else
