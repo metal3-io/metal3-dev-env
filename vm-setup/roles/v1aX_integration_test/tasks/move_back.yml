@@ -16,7 +16,8 @@
     when: EPHEMERAL_CLUSTER == "kind"
 
   - name: Install Ironic in Source cluster (Ephemeral Cluster is minikube)
-    shell: "{{ BMOPATH }}/tools/deploy.sh false true {{ IRONIC_TLS_SETUP }} true true"
+    shell: |
+      {{ BMOPATH }}/tools/deploy.sh -i -k {{ "-t" if IRONIC_TLS_SETUP | bool else "" }}
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"

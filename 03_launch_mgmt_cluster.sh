@@ -22,6 +22,11 @@ source lib/ironic_tls_setup.sh
 # shellcheck disable=SC1091
 source lib/ironic_basic_auth.sh
 
+DEPLOY_ARGS=
+if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
+  DEPLOY_ARGS="-t"
+fi
+
 # -----------------------
 # Repositories management
 # -----------------------
@@ -126,8 +131,7 @@ EOF
     echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${BMOPATH}/config/default/ironic.env"
   fi
 
-  # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
-  "${BMOPATH}/tools/deploy.sh" true false "${IRONIC_TLS_SETUP}" "true" true
+  "${BMOPATH}/tools/deploy.sh" -b -k ${DEPLOY_ARGS}
 
   # If BMO should run locally, scale down the deployment and run BMO
   if [ "${BMO_RUN_LOCAL}" == "true" ]; then
@@ -232,8 +236,7 @@ EOF
     # Copy the generated configmap for ironic deployment
     cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
 
-    # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
-    "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "true" true
+    "${BMOPATH}/tools/deploy.sh" -i -k ${DEPLOY_ARGS}
 
     # Restore original files
     mv "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
