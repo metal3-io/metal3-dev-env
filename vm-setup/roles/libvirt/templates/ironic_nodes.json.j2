@@ -20,7 +20,10 @@
     {% set vm_driver_tmp = vm_driver -%}
     {# If vm_driver == mixed we alternate between ipmi and refish to test both #}
     {% if vm_driver == 'mixed' -%}
-      {% if loop.index is divisibleby 2 -%}
+      {# For extraworker always use redfish #}
+      {% if 'extraworker' in node.name -%}
+        {% set vm_driver_tmp = 'redfish' -%}
+      {% elif loop.index is divisibleby 2 -%}
         {% set vm_driver_tmp = 'redfish' -%}
       {% else -%}
         {% set vm_driver_tmp = 'ipmi' -%}
