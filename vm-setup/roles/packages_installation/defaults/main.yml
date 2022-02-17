@@ -89,7 +89,8 @@ packages:
          - redhat-lsb-core
          - network-scripts
     el9:
-      packages: []
+      packages:
+        - NetworkManager-initscripts-updown
     pip3:
       - jmespath
       - kubernetes==17.17.0

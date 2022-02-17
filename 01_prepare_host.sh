@@ -27,15 +27,28 @@ if [[ $OS == ubuntu ]]; then
   fi
 elif [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo dnf upgrade -y
-  sudo dnf config-manager --set-enabled powertools
-  sudo dnf install -y epel-release epel-next-release
+  case $VERSION_ID in
+    8)
+      sudo dnf config-manager --set-enabled powertools
+      sudo dnf install -y epel-release
+      sudo alternatives --set python /usr/bin/python3
+      ;;
+    9)
+      sudo dnf config-manager --set-enabled crb
+      sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+      sudo ln -s /usr/bin/python3 /usr/bin/python || true
+      ;;
+    *)
+      echo -n "CentOS or RHEL version not supported"
+      exit 1
+      ;;
+  esac
   sudo dnf -y install python3-pip jq curl
-  sudo alternatives --set python /usr/bin/python3
 fi
 
 # Ansible version
 export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.10.0"}
-sudo pip3 install ansible=="${ANSIBLE_VERSION}"
+sudo python -m pip install ansible=="${ANSIBLE_VERSION}"
 
 # Now that the basics are installed, we can source common.sh.
 # common.sh cannot be sourced before things like curl and jq are installed.
@@ -225,6 +238,8 @@ function init_minikube() {
         # https://github.com/kubernetes/minikube/issues/3566
         sudo systemctl restart libvirtd.service
         configure_minikube
+        #NOTE(elfosardo): workaround for https://bugzilla.redhat.com/show_bug.cgi?id=2057769
+        sudo touch /etc/qemu/firmware/50-edk2-ovmf-amdsev.json
         sudo su -l -c "minikube start --insecure-registry ${REGISTRY}"  "${USER}" || minikube_error=1
         if [[ $minikube_error -eq 0 ]]; then
           break
