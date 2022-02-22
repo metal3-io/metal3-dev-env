@@ -1,7 +1,8 @@
 # CentOS specific worker kubeadm config
 preKubeadmCommands:
   - systemctl restart NetworkManager.service
-  - ifup eth0
+  - nmcli connection load /etc/sysconfig/network-scripts/ifcfg-eth0
+  - nmcli connection up filename /etc/sysconfig/network-scripts/ifcfg-eth0
   - systemctl enable --now crio kubelet
 files:
   - path: /usr/local/bin/retrieve.configuration.files.sh
