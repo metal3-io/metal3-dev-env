@@ -1,7 +1,8 @@
 # CentOS specific controlplane kubeadm config
 preKubeadmCommands:
   - systemctl restart NetworkManager.service
-  - ifup eth0
+  - nmcli connection load /etc/sysconfig/network-scripts/ifcfg-eth0
+  - nmcli connection up filename /etc/sysconfig/network-scripts/ifcfg-eth0
 {% if VM_EXTRADISKS == "true" %}
   - (echo n; echo p; echo 1; echo  ;echo  ;echo w) | fdisk /dev/vda
   - mkfs.{{ VM_EXTRADISKS_FILE_SYSTEM }} /dev/vda1
