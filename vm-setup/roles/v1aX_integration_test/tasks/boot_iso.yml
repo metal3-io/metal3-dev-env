@@ -1,0 +1,48 @@
+---
+  - set_fact:
+      NUM_OF_CONTROLPLANE_REPLICAS: "{{ NUM_OF_CONTROLPLANE_REPLICAS|int }}"
+      NUMBER_OF_BMNUM_OF_WORKER_REPLICASH_MD: "{{ NUM_OF_WORKER_REPLICAS|int }}"
+
+  - name: Get workers bmh 
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep workers | cut -f1 -d' '
+    register: worker_bmh
+
+  - name: Update MD Metal3MachineTemplate to boot from ISO image located remotely
+    k8s:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      name: "{{ worker_bmh.stdout }}"
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        spec:
+          image:
+            format: "live-iso"
+            url: "{{REMOTE_ISO_IMAGE}}"
+
+  - name: Wait until worker BMH is provisioned with live iso
+    k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+      name: "{{ worker_bmh.stdout }}"
+    register: workerwithiso
+    retries: 200
+    delay: 20
+    until:
+      - workerwithiso is succeeded
+      - workerwithiso.resources | filter_provisioning("provisioned") | length == 1
+
+  - name: Verify node has booted from iso
+    shell: |
+      seriallogs=$(echo  /var/log/libvirt/qemu/"{{ worker_bmh.stdout }}-serial0.log" | sed 's/-/_/')
+      sudo grep -r "#  Welcome" "${seriallogs}"
+    register: bootresult 
+    retries: 10
+    delay: 30
+    register: bootresult
+    until: bootresult.rc == 0
+
+  - name: Report boot success
+    debug:
+      msg: "Node has booted from remote live iso located successfully"

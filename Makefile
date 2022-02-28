@@ -48,6 +48,9 @@ remediation_test:
 node_reuse_test:
 	make -C ./scripts/feature_tests/node_reuse/
 
+boot_iso_test:
+	make -C ./scripts/feature_tests/boot_iso/
+
 upgrade_test:
 	make -C ./scripts/feature_tests/upgrade/
 
@@ -57,7 +60,7 @@ inspection_test:
 healthcheck_test:
 	make -C ./scripts/feature_tests/healthcheck/
 
-feature_tests: setup_env inspection_test remediation_test healthcheck_test cleanup_env pivoting_test node_reuse_test repivoting_test
+feature_tests: setup_env inspection_test remediation_test healthcheck_test cleanup_env pivoting_test node_reuse_test boot_iso_test repivoting_test
 
 feature_tests_upgrade: setup_env_ug upgrade_test
 

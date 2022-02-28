@@ -78,6 +78,7 @@ IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
 IMAGE_FORMAT: "{{ lookup('env', 'IMAGE_FORMAT') | default('raw', true) }}"
 IMAGE_CHECKSUM_TYPE: "{{ lookup('env', 'IMAGE_CHECKSUM_TYPE') | default('md5', true) }}"
 IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
+REMOTE_ISO_IMAGE: "{{ lookup('env', 'REMOTE_ISO_IMAGE') | default('https://artifactory.nordix.org/artifactory/metal3/images/iso/minimal_linux_live-v2.iso', true) }}"
 
 # Environment variables to install Ironic with TLS and Basic Auth
 GOPATH: "{{ lookup('env', 'GOPATH')}}"
@@ -119,16 +120,19 @@ provision_cluster_actions:
     - "provision_cluster"
     - "feature_test_provisioning"
     - "upgrading"
+    - "boot_iso"
 provision_controlplane_actions:
     - "ci_test_provision"
     - "provision_controlplane"
     - "feature_test_provisioning"
     - "upgrading"
+    - "boot_iso"
 provision_workers_actions:
     - "ci_test_provision"
     - "provision_worker"
     - "feature_test_provisioning"
     - "upgrading"
+    - "boot_iso"
 provision_actions:
     - "ci_test_provision"
     - "provision_cluster"
@@ -137,6 +141,7 @@ provision_actions:
     - "feature_test_provisioning"
     - "upgrading"
     - "generate_template"
+    - "boot_iso"
 deprovision_cluster_actions:
     - "ci_test_deprovision"
     - "deprovision_cluster"
