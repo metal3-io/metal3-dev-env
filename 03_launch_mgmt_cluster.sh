@@ -66,43 +66,7 @@ function clone_repos() {
 # ------------------------------------
 
 #
-# Modifies the images to use the ones built locally in the kustomization
-# This is v1a3 specific for BMO, all versions for Ironic
-#
-function update_kustomization_images(){
-  FILE_PATH=$1
-  for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
-    IMAGE=${!IMAGE_VAR}
-    #shellcheck disable=SC2086
-    IMAGE_NAME="${IMAGE##*/}"
-    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
-    OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
-    # Strip the tag for image replacement
-    OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
-    if [[ $OLD_IMAGE == *"$CONTAINER_REGISTRY"* ]]; then
-      #shellcheck disable=SC2116
-      OLD_IMAGE="$(echo "${OLD_IMAGE/$CONTAINER_REGISTRY/$REPO_IMAGE_PREFIX}")"
-      echo "Image $OLD_IMAGE will be replaced with local image $LOCAL_IMAGE in image kustomization"
-    fi
-    sed -i -E "s $OLD_IMAGE$ $LOCAL_IMAGE g" "$FILE_PATH"
-  done
-  # Assign images from local image registry for kustomization
-  for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
-    IMAGE=${!IMAGE_VAR}
-    #shellcheck disable=SC2086
-    IMAGE_NAME="${IMAGE##*/}"
-    LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
-    if [[ $IMAGE == *"$CONTAINER_REGISTRY"* ]]; then
-      #shellcheck disable=SC2116
-      IMAGE="$(echo "${IMAGE/$CONTAINER_REGISTRY/$REPO_IMAGE_PREFIX}")"
-      echo "Image $IMAGE will be replaced with local image $LOCAL_IMAGE in image kustomization"
-    fi
-    sed -i -E "s $IMAGE$ $LOCAL_IMAGE g" "$FILE_PATH"
-  done
-}
-
-#
-# Create the BMO deployment (used for v1a4 only)
+# Create the BMO deployment (not used for CAPM3 v1a4 since BMO is bundeled there)
 #
 function launch_baremetal_operator() {
   pushd "${BMOPATH}"
@@ -110,8 +74,12 @@ function launch_baremetal_operator() {
   # Deploy BMO using deploy.sh script
 
   # Update container images to use local ones
-  cp "${BMOPATH}/config/manager/manager.yaml" "${BMOPATH}/config/manager/manager.yaml.orig"
-  update_kustomization_images "${BMOPATH}/config/manager/manager.yaml"
+  cp "${BMOPATH}/config/default/kustomization.yaml" "${BMOPATH}/config/default/kustomization.yaml.orig"
+  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
+    update_component_image BMO "${BAREMETAL_OPERATOR_LOCAL_IMAGE}"
+  else
+    update_component_image BMO "${BAREMETAL_OPERATOR_IMAGE}"
+  fi
 
   # Update Configmap parameters with correct urls
   cp "${BMOPATH}/config/default/ironic.env" "${BMOPATH}/config/default/ironic.env.orig"
@@ -172,8 +140,6 @@ function update_images(){
     IMAGE_NAME="${IMAGE##*/}"
     LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
-    # Strip the tag for image replacement
-    OLD_IMAGE="${!OLD_IMAGE_VAR%:*}"
     eval "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
     export "${OLD_IMAGE_VAR?}"
   done
@@ -225,11 +191,29 @@ EOF
   else
     # Deploy Ironic using deploy.sh script
 
-    # Update container images to use local ones
-    cp "${BMOPATH}/ironic-deployment/ironic/ironic.yaml" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig"
-    cp "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml" "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml.orig"
-    update_kustomization_images "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
-    update_kustomization_images "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml"
+    cp "${BMOPATH}/ironic-deployment/default/kustomization.yaml" "${BMOPATH}/ironic-deployment/default/kustomization.yaml.orig"
+    cp "${BMOPATH}/ironic-deployment/keepalived/kustomization.yaml" "${BMOPATH}/ironic-deployment/keepalived/kustomization.yaml.orig"
+
+    if [ -n "${IRONIC_LOCAL_IMAGE}" ]; then
+      update_component_image Ironic "${IRONIC_LOCAL_IMAGE}"
+    else
+      update_component_image Ironic "${IRONIC_IMAGE}"
+    fi
+    if [ -n "${MARIADB_LOCAL_IMAGE}" ]; then
+      update_component_image Mariadb "${MARIADB_LOCAL_IMAGE}"
+    else
+      update_component_image Mariadb "${MARIADB_IMAGE}"
+    fi
+    if [ -n "${IRONIC_KEEPALIVED_LOCAL_IMAGE}" ]; then
+      update_component_image Keepalived "${IRONIC_KEEPALIVED_LOCAL_IMAGE}"
+    else
+      update_component_image Keepalived "${IRONIC_KEEPALIVED_IMAGE}"
+    fi
+    if [ -n "${IPA_DOWNLOADER_LOCAL_IMAGE}" ]; then
+      update_component_image IPA-downloader "${IPA_DOWNLOADER_LOCAL_IMAGE}"
+    else
+      update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
+    fi
 
     # Copy the generated configmap for ironic deployment
     cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
@@ -238,8 +222,8 @@ EOF
     "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
 
     # Restore original files
-    mv "${BMOPATH}/ironic-deployment/ironic/ironic.yaml.orig" "${BMOPATH}/ironic-deployment/ironic/ironic.yaml"
-    mv "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml.orig" "${BMOPATH}/ironic-deployment/keepalived/keepalived_patch.yaml"
+    mv "${BMOPATH}/ironic-deployment/default/kustomization.yaml.orig" "${BMOPATH}/ironic-deployment/default/kustomization.yaml"
+    mv "${BMOPATH}/ironic-deployment/keepalived/kustomization.yaml.orig" "${BMOPATH}/ironic-deployment/keepalived/kustomization.yaml"
   fi
 
   # Restore original files
@@ -319,7 +303,7 @@ function update_capm3_imports(){
 }
 
 #
-# Update the images for the CAPM3 deployment file to use local ones
+# Update the CAPM3 and BMO manifests to use local images as defined in variables
 #
 function update_component_image(){
   IMPORT=$1
@@ -333,21 +317,51 @@ function update_component_image(){
     TMP_IMAGE_TAG="latest"
   fi
 
-  if [ "${IMPORT}" == "BMO" ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-    export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
-    export MANIFEST_TAG_BMO="$TMP_IMAGE_TAG"
-    make set-manifest-image-bmo
-  fi
-
-  if [ "${IMPORT}" == "CAPM3" ]; then
-    export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-    export MANIFEST_TAG="${TMP_IMAGE_TAG}"
-    make set-manifest-image
-  elif [ "${IMPORT}" == "IPAM" ]; then
-    export MANIFEST_IMG_IPAM="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
-    export MANIFEST_TAG_IPAM="$TMP_IMAGE_TAG"
-    make set-manifest-image-ipam
-  fi
+  # NOTE: It is assumed that we are already in the correct directory to run make
+  case "${IMPORT}" in
+    "BMO")
+      # In v1alpha4 the variable name is different because BMO is bundeled with
+      # CAPM3 and using the CAPM3 Makefile
+      if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
+        export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
+        export MANIFEST_TAG_BMO="$TMP_IMAGE_TAG"
+      else
+        export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
+        export MANIFEST_TAG="${TMP_IMAGE_TAG}"
+      fi
+      make set-manifest-image-bmo
+      ;;
+    "CAPM3")
+      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
+      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
+      make set-manifest-image
+      ;;
+    "IPAM")
+      export MANIFEST_IMG_IPAM="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
+      export MANIFEST_TAG_IPAM="$TMP_IMAGE_TAG"
+      make set-manifest-image-ipam
+      ;;
+    "Ironic")
+      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
+      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
+      make set-manifest-image-ironic
+      ;;
+    "Mariadb")
+      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
+      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
+      make set-manifest-image-mariadb
+      ;;
+    "Keepalived")
+      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
+      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
+      make set-manifest-image-keepalived
+      ;;
+    "IPA-downloader")
+      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
+      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
+      make set-manifest-image-ipa-downloader
+      ;;
+  esac
 }
 
 #
