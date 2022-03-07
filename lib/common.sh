@@ -247,7 +247,7 @@ fi
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v4.4.1"}
 
 # Kind version (if EPHEMERAL_CLUSTER=kind)
-export KIND_VERSION=${KIND_VERSION:-"v0.11.1"}
+export KIND_VERSION=${KIND_VERSION:-"v0.12.0"}
 
 # Remove this KUBERNETES_VERSION Check once we stop supporting capm3 v1a4
 if [ "${KUBERNETES_VERSION}" == "v1.21.2" ]; then
