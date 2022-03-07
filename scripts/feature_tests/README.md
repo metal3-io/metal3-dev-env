@@ -122,12 +122,21 @@ export CONTAINER_RUNTIME=podman
 export NUM_NODES=4
 ```
 
-Both **Ubuntu** and **Centos** setups for feature/upgrade tests use:
+Both **Ubuntu** and **Centos** setups for feature tests use:
 
 ```bash
 export CAPM3_VERSION=v1beta1
 export CAPI_VERSION=v1beta1
 ```
+while upgrade tests use:
+
+```bash
+export CAPM3_VERSION=v1alpha5
+export CAPI_VERSION=v1alpha4
+```
+
+in order to perform an upgrade from old API versions of CAPM3/CAPI exported above 
+to newer versions of CAPM3/CAPI which is v1beta.
 
 Recommended resource requirements for the host machine are: 8C CPUs, 32 GB RAM,
 300 GB disk space.
