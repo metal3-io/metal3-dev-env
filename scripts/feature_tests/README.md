@@ -22,7 +22,7 @@ to ensure that new changes will not break the existing functionalities.
 
 Test-framework can be triggered by leaving
 
-- `/test-features` (Ubuntu based)
+- `/test-features-ubuntu` (Ubuntu based)
 - `/test-features-centos` (Centos based)
 
 comments for remediation/scale-in/node reuse/pivoting and
@@ -68,7 +68,7 @@ N (from the test-framework perspective N=4) number of ready BMH as an output.
 `feature_test_provisioning.sh` and `feature_test_deprovisioning.sh` are used by
 each feature test to provision/deprovision cluster and BMH.
 
-When the test-framework is triggered with `/test-features` or
+When the test-framework is triggered with `/test-features-ubuntu` or
 `/test-features-centos`, it will:
 
 - setup metal3-dev-env
@@ -153,7 +153,7 @@ Similarly two other jobs,
 [Metal3_*_feature_tests_ubuntu](https://jenkins.nordix.org/view/Metal3/job/metal3_metal3_dev_env_feature_tests_ubuntu/)
 and
 [Metal3_*_feature_tests_centos](https://jenkins.nordix.org/view/Metal3/job/metal3_metal3_dev_env_feature_tests_centos/)
-that can be run when triggered with `/test-features` and `/test-features-centos`
+that can be run when triggered with `/test-features-ubuntu` and `/test-features-centos`
 phrases for Ubuntu and Centos, accordingly on a pull request.
 
 We are running a single main job(both for Ubuntu and Centos) for the **upgrade**
