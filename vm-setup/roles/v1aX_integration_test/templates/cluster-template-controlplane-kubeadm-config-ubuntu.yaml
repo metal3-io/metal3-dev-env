@@ -14,6 +14,7 @@ preKubeadmCommands:
   - systemctl start monitor.keepalived.service
 postKubeadmCommands:
   - mkdir -p /home/{{ IMAGE_USERNAME }}/.kube
+  - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube
   - cp /etc/kubernetes/admin.conf /home/{{ IMAGE_USERNAME }}/.kube/config
   - systemctl enable --now keepalived
   - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube/config
