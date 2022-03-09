@@ -10,22 +10,24 @@ Feature tests framework is made to run a set of scripts for testing pivoting,
 remediation, scale-in, node reuse and upgrade functionalities of Metal3 project.
 The framework relies on already existing test scripts of each
 feature in Metal3-dev-env. The motivation behind the framework is to be able to
-test pivoting/remediation/scale-in/node reuse/upgrade features in Metal3-dev-env
-environment and detect breaking changes in advance.
+test inspection/remediation/healthcheck/pivoting/scale-in/node reuse/repivoting/upgrade
+features in Metal3-dev-env environment and detect breaking changes in advance.
 
 Test-framework CI can be triggered from a pull request in CAPM3, BMO,
 metal3-dev-env, project-infra, ironic-image, and
 ironic-ipa-downloader repositories.
 It is recommended to run test-framework CI especially when
-introducing a commit related to pivoting/remediation/scale-in/node reuse/upgrade,
+introducing a commit related to
+inspection/remediation/healthcheck/pivoting/scale-in/node reuse/repivoting/upgrade
 to ensure that new changes will not break the existing functionalities.
 
 Test-framework can be triggered by leaving
 
-- `/test-features` (Ubuntu based)
+- `/test-features-ubuntu` (Ubuntu based)
 - `/test-features-centos` (Centos based)
 
-comments for remediation/scale-in/node reuse/pivoting and
+comments for inspection/remediation/healthcheck/pivoting/scale-in/node reuse/repivoting
+and
 
 - `/test-upgrade-features`
 
@@ -40,10 +42,14 @@ feature_tests/
 ├── feature_test_deprovisioning.sh
 ├── feature_test_provisioning.sh
 ├── feature_test_vars.sh
+├── healthcheck
+│   ├── healthcheck.sh
+│   └── Makefile
 ├── inspection_test.sh
 ├── node_reuse
 │   ├── Makefile
-│   └── node_reuse.sh
+│   ├── node_reuse.sh
+│   └── node_reuse_vars.sh
 ├── OWNERS
 ├── pivoting
 │   ├── Makefile
@@ -68,7 +74,7 @@ N (from the test-framework perspective N=4) number of ready BMH as an output.
 `feature_test_provisioning.sh` and `feature_test_deprovisioning.sh` are used by
 each feature test to provision/deprovision cluster and BMH.
 
-When the test-framework is triggered with `/test-features` or
+When the test-framework is triggered with `/test-features-ubuntu` or
 `/test-features-centos`, it will:
 
 - setup metal3-dev-env
@@ -76,6 +82,10 @@ When the test-framework is triggered with `/test-features` or
 - run remediation tests
   - provision cluster and BMH
   - run remediation tests
+  - deprovision cluster and BMH
+- run healthcheck tests
+  - provision cluster and BMH
+  - run healthcheck tests
   - deprovision cluster and BMH
 - clean up the environment
   - run `cleanup_env.sh`
@@ -85,8 +95,8 @@ When the test-framework is triggered with `/test-features` or
 - run scale-in and node reuse tests
   - run scale-in and node reuse tests for KubeadmControlPlane scenario
   - run node reuse tests for MachineDeployment scenario
-- run re-pivoting tests
-  - run re-pivoting tests
+- run repivoting tests
+  - run repivoting tests
   - deprovision cluster and BMH
 - clean up the environment
   - run `cleanup_env.sh`
@@ -122,12 +132,22 @@ export CONTAINER_RUNTIME=podman
 export NUM_NODES=4
 ```
 
-Both **Ubuntu** and **Centos** setups for feature/upgrade tests use:
+Both **Ubuntu** and **Centos** setups for feature tests use:
 
 ```bash
 export CAPM3_VERSION=v1beta1
 export CAPI_VERSION=v1beta1
 ```
+
+while upgrade tests use:
+
+```bash
+export CAPM3_VERSION=v1alpha5
+export CAPI_VERSION=v1alpha4
+```
+
+in order to perform an upgrade from old API versions of CAPM3/CAPI exported above
+to newer versions of CAPM3/CAPI which is v1beta.
 
 Recommended resource requirements for the host machine are: 8C CPUs, 32 GB RAM,
 300 GB disk space.
@@ -139,7 +159,9 @@ We are running two main jobs for the feature framework testing:
 
 - inspection
 - remediation
+- healthcheck
 - pivoting
+- scale-in
 - node reuse
 - repivoting
 
@@ -153,7 +175,7 @@ Similarly two other jobs,
 [Metal3_*_feature_tests_ubuntu](https://jenkins.nordix.org/view/Metal3/job/metal3_metal3_dev_env_feature_tests_ubuntu/)
 and
 [Metal3_*_feature_tests_centos](https://jenkins.nordix.org/view/Metal3/job/metal3_metal3_dev_env_feature_tests_centos/)
-that can be run when triggered with `/test-features` and `/test-features-centos`
+that can be run when triggered with `/test-features-ubuntu` and `/test-features-centos`
 phrases for Ubuntu and Centos, accordingly on a pull request.
 
 We are running a single main job(both for Ubuntu and Centos) for the **upgrade**
