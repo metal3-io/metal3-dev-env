@@ -4,7 +4,7 @@ The vast majority of configurations for the environment are stored
 in `config_${user}.sh`. You can manipulate the values of some
 environment variables with allowed values as in this table and it is
 recommended modifying or adding variables in `config_${user}.sh` config
-file instead of exporting them in the shell. By doing that, it is
+file instead of exporting them in the shell. By doing that, it is,
 assured that they are persisted.
 
 | Name | Option | Allowed values | Default |
