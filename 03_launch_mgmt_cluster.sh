@@ -6,8 +6,6 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 # shellcheck disable=SC1091
-source lib/releases.sh
-# shellcheck disable=SC1091
 source lib/network.sh
 
 export IRONIC_HOST="${CLUSTER_URL_HOST}"
