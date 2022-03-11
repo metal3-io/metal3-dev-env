@@ -29,6 +29,8 @@ if [ "${NUM_DEPLOYED_NODES}" -ne "$((NUM_OF_CONTROLPLANE_REPLICAS + NUM_OF_WORKE
     exit 1
 fi
 
-export ACTION="ci_test_deprovision"
+sleep infinity
 
-"${METAL3_DIR}"/scripts/run.sh
+# export ACTION="ci_test_deprovision"
+
+# "${METAL3_DIR}"/scripts/run.sh

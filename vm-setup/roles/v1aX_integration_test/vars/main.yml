@@ -163,7 +163,7 @@ pivot_actions:
     - "pivoting"
     - "upgrading"
 repivot_actions:
-    - "ci_test_provision"
+    # - "ci_test_provision"
     - "repivoting"
     - "upgrading"
 cleanup_actions:
