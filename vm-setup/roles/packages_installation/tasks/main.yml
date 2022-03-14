@@ -48,16 +48,26 @@
 
 - name: Install packages on CentOS/RHEL8
   block:
-    - name: Install packages on CentOS/RHEL8
+    - name: Install packages on CentOS/RHEL
       package:
-          name: "{{ packages.centos.rhel8.packages }}"
+          name: "{{ packages.centos.common.packages }}"
           state: present
+    - name: Install packages on CentOS8/RHEL8
+      package:
+          name: "{{ packages.centos.el8.packages }}"
+          state: present
+      when: ansible_distribution_version == "8"
+    - name: Install packages on CentOS9/RHEL9
+      package:
+          name: "{{ packages.centos.el9.packages }}"
+          state: present
+      when: ansible_distribution_version == "9"
     - name: Perform CentOS/RHEL8 required configurations
       include_tasks: centos_required_packages.yml
     - name: Install packages using pip3
       pip:
         executable: "pip3"
-        name: "{{ packages.centos.rhel8.pip3 }}"
+        name: "{{ packages.centos.pip3 }}"
         state: present
     - name: Install TPM emulator packages
       when: tpm_emulator|default(false)|bool
