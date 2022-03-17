@@ -53,7 +53,7 @@ assured that they are persisted.
 | KUBERNETES_VERSION | Kubernetes version | "x.x.x" | "1.23.5" |
 | UPGRADED_K8S_VERSION | Upgraded Kubernetes version | "x.x.x" | "1.23.5" |
 | KUBERNETES_BINARIES_VERSION | Version of kubelet, kubeadm and kubectl | "x.x.x-xx" or "x.x.x" | same as KUBERNETES_VERSION |
-| KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.2.7" |
+| KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.13.0" |
 | NUM_NODES | Set the number of virtual machines to be provisioned. This VMs will be further configured as controlplane or worker Nodes. Note that NUM_OF_CONTROLPLANE_REPLICAS and NUM_OF_WORKER_REPLICAS should sum to this value. | | 2 |
 | NUM_OF_CONTROLPLANE_REPLICAS | Set the controlplane replica count in the target cluster. ||1|
 | NUM_OF_WORKER_REPLICAS | Set the worker replica count in the target cluster. ||1|
