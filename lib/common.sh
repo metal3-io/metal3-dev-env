@@ -262,7 +262,7 @@ fi
 export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"${DOCKER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}"}
 
 # Ansible version
-export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.10.0"}
+export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"5.5.0"}
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
