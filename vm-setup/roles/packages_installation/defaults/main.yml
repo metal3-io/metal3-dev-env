@@ -84,6 +84,7 @@ packages:
          - python3-six
          - httpd-tools
          - python3-bcrypt
+         - python3-libselinux
     el8:
       packages:
          - redhat-lsb-core
