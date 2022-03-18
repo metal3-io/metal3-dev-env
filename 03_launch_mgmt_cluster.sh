@@ -73,6 +73,7 @@ function launch_baremetal_operator() {
 
   # Deploy BMO using deploy.sh script
 
+if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   # Update container images to use local ones
   cp "${BMOPATH}/config/default/kustomization.yaml" "${BMOPATH}/config/default/kustomization.yaml.orig"
   if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
@@ -80,6 +81,7 @@ function launch_baremetal_operator() {
   else
     update_component_image BMO "${BAREMETAL_OPERATOR_IMAGE}"
   fi
+fi
 
   # Update Configmap parameters with correct urls
   cp "${BMOPATH}/config/default/ironic.env" "${BMOPATH}/config/default/ironic.env.orig"
