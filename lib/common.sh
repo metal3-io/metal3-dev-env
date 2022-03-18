@@ -239,7 +239,6 @@ export KUBERNETES_BINARIES_CONFIG_VERSION=${KUBERNETES_BINARIES_CONFIG_VERSION:-
 if [ "${CONTAINER_RUNTIME}" == "docker" ]; then
   export EPHEMERAL_CLUSTER=${EPHEMERAL_CLUSTER:-"kind"}
 else
-  echo "Management cluster forced to be minikube when container runtime is not docker"
   export EPHEMERAL_CLUSTER="minikube"
 fi
 
