@@ -13,9 +13,6 @@ source "${METAL3_DIR}/lib/logging.sh"
 source "${METAL3_DIR}/lib/common.sh"
 # shellcheck disable=SC1090
 # shellcheck disable=SC1091
-source "${METAL3_DIR}/lib/releases.sh"
-# shellcheck disable=SC1090
-# shellcheck disable=SC1091
 source "${METAL3_DIR}/lib/network.sh"
 # shellcheck disable=SC1090
 # shellcheck disable=SC1091
@@ -30,7 +27,7 @@ source "${METAL3_DIR}/lib/ironic_basic_auth.sh"
 # Disable SSH strong authentication
 export ANSIBLE_HOST_KEY_CHECKING=False
 
-# Ansible config file 
+# Ansible config file
 export ANSIBLE_CONFIG=${METAL3_DIR}/ansible.cfg
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
