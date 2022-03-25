@@ -17,7 +17,7 @@ export OS="${ID}"
 
 if [[ $OS == ubuntu ]]; then
   sudo apt-get update
-  sudo apt -y install python3-pip
+  sudo apt -y install python3-pip jq curl
 
   # Set update-alternatives to python3
   if [[ ${DISTRO} == "ubuntu18" ]]; then
@@ -29,7 +29,7 @@ elif [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo dnf upgrade -y
   sudo dnf config-manager --set-enabled powertools
   sudo dnf install -y epel-release epel-next-release
-  sudo dnf -y install python3-pip
+  sudo dnf -y install python3-pip jq curl
   sudo alternatives --set python /usr/bin/python3
 fi
 
