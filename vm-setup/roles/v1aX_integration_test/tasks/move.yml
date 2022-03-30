@@ -91,12 +91,6 @@
       state: present
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  # Configure Ironic configmap
-  - name: Configure Ironic Configmap
-    shell: |
-      cp {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig
-      cp {{ IRONIC_DATA_DIR }}/ironic_bmo_configmap.env  {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env
-
   - name: Initialize Provider component in target cluster
     shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
 
@@ -125,10 +119,6 @@
     args:
       chdir: "{{ BMOPATH }}"
 
-  - name: Reinstate Baremetal Operator Manager
-    shell: "mv {{ BMOPATH }}/config/default/kustomization.yaml.orig {{ BMOPATH }}/config/default/kustomization.yaml"
-    when: CAPM3_VERSION != "v1alpha4"
-
   # Install Ironic
   - name: Install Ironic
     shell: "{{ BMOPATH }}/tools/deploy.sh false true {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
@@ -138,13 +128,6 @@
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
     args:
       chdir: "{{ BMOPATH }}"
-
-  - name: Restore original BMO Configmap
-    shell: "mv {{ BMOPATH }}/config/default/ironic.env.orig {{ BMOPATH }}/config/default/ironic.env"
-    when: CAPM3_VERSION != "v1alpha4"
-
-  - name: Restore original Ironic Configmap
-    shell: "mv {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig {{ BMOPATH }}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
 
   - name: Label BMO CRDs in target cluster.
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
