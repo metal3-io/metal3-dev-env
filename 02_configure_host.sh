@@ -53,14 +53,22 @@ if [[ $OS == ubuntu ]]; then
   source disable_apparmor_driver_libvirtd.sh
 else
   if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
+      case $VERSION_ID in
+        8)
+          NMC="NM_CONTROLLED=no\n"
+          ;;
+        9)
+          NMC=""
+          ;;
+      esac
       # Adding an IP address in the libvirt definition for this network results in
       # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
       # the IP address here
       if [ ! -e /etc/sysconfig/network-scripts/ifcfg-provisioning ] ; then
         if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
-          echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no\nIPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=$PROVISIONING_IP/$PROVISIONING_CIDR" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
+          echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\n${NMC}IPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=$PROVISIONING_IP/$PROVISIONING_CIDR" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
         else
-          echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no\nBOOTPROTO=static\nIPADDR=$PROVISIONING_IP\nNETMASK=$PROVISIONING_NETMASK" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
+          echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\n${NMC}BOOTPROTO=static\nIPADDR=$PROVISIONING_IP\nNETMASK=$PROVISIONING_NETMASK" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
      	  fi
       fi
       sudo ifdown provisioning || true
@@ -68,7 +76,7 @@ else
 
       # Need to pass the provision interface for bare metal
       if [ "$PRO_IF" ]; then
-          echo -e "DEVICE=$PRO_IF\nTYPE=Ethernet\nONBOOT=yes\nNM_CONTROLLED=no\nBRIDGE=provisioning" | sudo dd of="/etc/sysconfig/network-scripts/ifcfg-$PRO_IF"
+          echo -e "DEVICE=$PRO_IF\nTYPE=Ethernet\nONBOOT=yes\n${NMC}BRIDGE=provisioning" | sudo dd of="/etc/sysconfig/network-scripts/ifcfg-$PRO_IF"
           sudo ifdown "$PRO_IF" || true
           sudo ifup "$PRO_IF"
       fi
@@ -77,7 +85,7 @@ else
   if [ "$MANAGE_INT_BRIDGE" == "y" ]; then
       # Create the baremetal bridge
       if [ ! -e /etc/sysconfig/network-scripts/ifcfg-baremetal ] ; then
-          echo -e "DEVICE=baremetal\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-baremetal
+          echo -e "DEVICE=baremetal\nTYPE=Bridge\nONBOOT=yes\n${NMC}" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-baremetal
       fi
       sudo ifdown baremetal || true
       sudo ifup baremetal
@@ -85,7 +93,7 @@ else
       # Add the internal interface to it if requests, this may also be the interface providing
       # external access so we need to make sure we maintain dhcp config if its available
       if [ "$INT_IF" ]; then
-          echo -e "DEVICE=$INT_IF\nTYPE=Ethernet\nONBOOT=yes\nNM_CONTROLLED=no\nBRIDGE=baremetal" | sudo dd of="/etc/sysconfig/network-scripts/ifcfg-$INT_IF"
+          echo -e "DEVICE=$INT_IF\nTYPE=Ethernet\nONBOOT=yes\n${NMC}BRIDGE=baremetal" | sudo dd of="/etc/sysconfig/network-scripts/ifcfg-$INT_IF"
           if sudo nmap --script broadcast-dhcp-discover -e "$INT_IF" | grep "IP Offered" ; then
               echo -e "\nBOOTPROTO=dhcp\n" | sudo tee -a /etc/sysconfig/network-scripts/ifcfg-baremetal
               sudo systemctl restart network
