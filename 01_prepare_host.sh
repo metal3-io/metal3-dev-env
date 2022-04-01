@@ -31,18 +31,17 @@ elif [[ $OS == "centos" || $OS == "rhel" ]]; then
     8)
       sudo dnf config-manager --set-enabled powertools
       sudo dnf install -y epel-release
-      sudo alternatives --set python /usr/bin/python3
       ;;
     9)
       sudo dnf config-manager --set-enabled crb
       sudo dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
-      sudo ln -s /usr/bin/python3 /usr/bin/python || true
       ;;
     *)
       echo -n "CentOS or RHEL version not supported"
       exit 1
       ;;
   esac
+  sudo ln -s /usr/bin/python3 /usr/bin/python || true
   sudo dnf -y install python3-pip jq curl
 fi
 
