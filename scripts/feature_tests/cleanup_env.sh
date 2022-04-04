@@ -10,6 +10,8 @@ source "${ROOTPATH}/lib/logging.sh"
 # shellcheck disable=SC1091
 source "${ROOTPATH}/lib/common.sh"
 # shellcheck disable=SC1091
+source "${ROOTPATH}/lib/releases.sh"
+# shellcheck disable=SC1091
 source "${ROOTPATH}/lib/network.sh"
 # shellcheck disable=SC1091
 source "${ROOTPATH}/lib/ironic_tls_setup.sh"
@@ -22,7 +24,7 @@ ssh-keygen -f /home/"${USER}"/.ssh/known_hosts -R "${CLUSTER_APIENDPOINT_IP}"
 if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
   # Kill and remove the running ironic containers
   "$BMOPATH"/tools/remove_local_ironic.sh
-else
+else 
   # Scale down ironic
   kubectl scale deploy -n "${IRONIC_NAMESPACE}" "${NAMEPREFIX}-ironic" --replicas=0
 fi
@@ -63,11 +65,11 @@ done
 delete_finalizers
 
 if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
-  # Re-create ironic containers and BMH
+  # Re-create ironic containers and BMH 
   pushd "${BMOPATH}" || exit
   ./tools/run_local_ironic.sh
   popd || exit
-else
+else 
   # Scale up ironic
   kubectl scale deploy -n "${IRONIC_NAMESPACE}" "${NAMEPREFIX}-ironic" --replicas=1
 fi

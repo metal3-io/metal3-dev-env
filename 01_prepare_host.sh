@@ -3,17 +3,13 @@ set -xe
 
 # shellcheck disable=SC1091
 source lib/logging.sh
+# shellcheck disable=SC1091
+source lib/common.sh
 
 if [[ $(id -u) == 0 ]]; then
   echo "Please run 'make' as a non-root user"
   exit 1
 fi
-
-# Check OS type and version
-# shellcheck disable=SC1091
-source /etc/os-release
-export DISTRO="${ID}${VERSION_ID%.*}"
-export OS="${ID}"
 
 if [[ $OS == ubuntu ]]; then
   sudo apt-get update
@@ -45,14 +41,8 @@ elif [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo dnf -y install python3-pip jq curl
 fi
 
-# Ansible version
-export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.10.0"}
 sudo python -m pip install ansible=="${ANSIBLE_VERSION}"
 
-# Now that the basics are installed, we can source common.sh.
-# common.sh cannot be sourced before things like curl and jq are installed.
-# shellcheck disable=SC1091
-source lib/common.sh
 # NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
 # because there are some vars exported in network.sh and used by
 # install-package-playbook.yml.
@@ -82,6 +72,9 @@ if [[ ":$PATH:" != *":$GOBINARY:"* ]]; then
   # shellcheck disable=SC1090
   source ~/.bashrc
 fi
+
+# shellcheck disable=SC1091
+source lib/releases.sh
 
 ## Install krew
 if ! kubectl krew > /dev/null 2>&1; then
