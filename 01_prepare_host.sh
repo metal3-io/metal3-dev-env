@@ -41,8 +41,8 @@ elif [[ $OS == "centos" || $OS == "rhel" ]]; then
       exit 1
       ;;
   esac
-  sudo ln -s /usr/bin/python3 /usr/bin/python || true
   sudo dnf -y install python3-pip jq curl
+  sudo ln -s /usr/bin/python3 /usr/bin/python || true
 fi
 
 # Ansible version
