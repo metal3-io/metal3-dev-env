@@ -52,7 +52,7 @@
        "datasourceTemplate": "github-releases"
      },
      {
-       "fileMatch": ["^01_prepare_hosts.sh$"],
+       "fileMatch": ["^lib/common.sh$"],
        "matchStrings": ["ANSIBLE_VERSION:-\"(?<currentValue>.*?)\"}"],
        "depNameTemplate": "ansible",
        "datasourceTemplate": "pypi"

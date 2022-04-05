@@ -114,10 +114,6 @@ else
   exit 1
 fi
 
-# Based on CAPM3_VERSION and CAPI_VERSION, set CAPM3RELEASE and CAPIRELEASE
-# (unless they are already specified)
-source "${SCRIPTDIR}/lib/releases.sh"
-
 export M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
 export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 # shellcheck disable=SC2034
@@ -193,6 +189,7 @@ export SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/s
 export IRONIC_TLS_SETUP=${IRONIC_TLS_SETUP:-"true"}
 export IRONIC_BASIC_AUTH=${IRONIC_BASIC_AUTH:-"true"}
 export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-ipa-downloader"}
+export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic"}
 export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-client"}
 export MARIADB_IMAGE=${MARIADB_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/mariadb"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
@@ -210,13 +207,8 @@ fi
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
 
-# Baremetal operator and Ironic image
-# Set the tags based on the CAPM3RELEASE. Both BMO and Ironic has tags with the
-# following format: capm3-vX.Y.Z, where vX.Y.Z is the CAPM3 release.
-bmo_tag="capm3-${CAPM3RELEASE}"
-ironic_tag="capm3-${CAPM3RELEASE}"
-export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:${bmo_tag}"}
-export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:${ironic_tag}"}
+# Baremetal operator image
+export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator"}
 
 # Config for OpenStack CLI
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
@@ -267,6 +259,9 @@ else
   export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.25.2"}
 fi
 export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"${DOCKER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}"}
+
+# Ansible version
+export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.10.0"}
 
 # Test and verification related variables
 SKIP_RETRIES="${SKIP_RETRIES:-false}"

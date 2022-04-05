@@ -14,6 +14,9 @@ source "${METAL3_DIR}/lib/logging.sh"
 source "${METAL3_DIR}/lib/common.sh"
 # shellcheck disable=SC1090
 # shellcheck disable=SC1091
+source "${METAL3_DIR}/lib/releases.sh"
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
 source "${METAL3_DIR}/lib/network.sh"
 # shellcheck disable=SC1090
 # shellcheck disable=SC1091
