@@ -13,6 +13,11 @@ export CAPM3_VERSION="${CAPM3_VERSION:-v1alpha5}"
 export CAPM3_REL_TO_VERSION="v1.1.0"
 export UPGRADED_CAPM3_VERSION="v1beta1"
 
+# Set the container tag for Ironic and BMO to start from.
+# They will then upgrade to main/latest
+export IRONIC_TAG="capm3-v0.5.5"
+export BAREMETAL_OPERATOR_TAG="capm3-v0.5.5"
+
 # Ubuntu is hard coded in the upgrade tests. Make sure we use it throughout.
 export IMAGE_OS="ubuntu"
 export FROM_K8S_VERSION="v1.23.3"
