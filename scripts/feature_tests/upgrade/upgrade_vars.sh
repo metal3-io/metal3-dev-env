@@ -4,13 +4,13 @@ set -eux
 # Folder created for specific capi release when running
 # ${CLUSTER_API_REPO}/cmd/clusterctl/hack/create-local-repository.py
 
-export CAPIRELEASE_HARDCODED="v1.0.99"
+export CAPIRELEASE_HARDCODED="v1.1.99"
 
 export CAPI_VERSION="${CAPI_VERSION:-v1alpha4}"
-export CAPI_REL_TO_VERSION="v1.0.1"
+export CAPI_REL_TO_VERSION="v1.1.3"
 
 export CAPM3_VERSION="${CAPM3_VERSION:-v1alpha5}"
-export CAPM3_REL_TO_VERSION="v1.1.0"
+export CAPM3_REL_TO_VERSION="v1.1.1"
 export UPGRADED_CAPM3_VERSION="v1beta1"
 
 # Ubuntu is hard coded in the upgrade tests. Make sure we use it throughout.
