@@ -27,7 +27,7 @@ def filter_phase(resources, phase):
             if r["status"]["phase"].lower() == phase:
                 filtered.append(r)
         except KeyError:
-            display.warning(msg("['status']['phase']", resources))
+            display.warning(msg("['status']['phase']", r))
 
     return filtered
 
@@ -40,7 +40,7 @@ def filter_ready(resources):
             if r["status"]["ready"]:
                 filtered.append(r)
         except KeyError:
-            display.warning(msg("['status']['ready']", resources))
+            display.warning(msg("['status']['ready']", r))
 
     return filtered
 
@@ -64,10 +64,29 @@ def filter_provisioning(resources, state):
             if r["status"]["provisioning"]["state"].lower() in states:
                 filtered.append(r)
         except KeyError:
-            display.warning(msg("['status']['provisioning']['state']", resources))
+            display.warning(msg("['status']['provisioning']['state']", r))
 
     return filtered
 
+def filter_unavailable_replicas(resources):
+    """Filter deployments with unavailable replicas
+
+    Args:
+        resources : Json object contains a list of deployments.
+
+    Returns:
+        list: A list of deployments with unavailable replicas.
+    """
+ 
+    filtered = []
+    for r in resources:
+        try:
+            if r["status"]["unavailableReplicas"] > 0:
+                filtered.append(r)
+        except KeyError:
+            pass
+
+    return filtered
 
 class FilterModule:
     def filters(self):
@@ -75,5 +94,6 @@ class FilterModule:
             "filter_phase": filter_phase,
             "filter_ready": filter_ready,
             "filter_provisioning": filter_provisioning,
+            "filter_unavailable_replicas": filter_unavailable_replicas,
         }
         return filters

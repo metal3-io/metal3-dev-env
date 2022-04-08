@@ -165,6 +165,16 @@
     until: (target_running_pods is succeeded) and
            (target_running_pods.resources | length == 0)
 
+  - name: Check if all deployments replicas are available
+    kubernetes.core.k8s_info:
+      kind: Deployment
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: deployments
+    retries: 150
+    delay: 20
+    until: (deployments is succeeded) and
+           (deployments.resources | filter_unavailable_replicas | length == 0 )
+
   - name: Pivot objects to target cluster
     shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
 
