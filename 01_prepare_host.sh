@@ -13,7 +13,7 @@ fi
 
 if [[ $OS == ubuntu ]]; then
   sudo apt-get update
-  sudo apt -y install python3-pip jq curl
+  sudo apt -y install python3-pip jq curl wget
 
   # Set update-alternatives to python3
   if [[ ${DISTRO} == "ubuntu18" ]]; then
@@ -37,7 +37,7 @@ elif [[ $OS == "centos" || $OS == "rhel" ]]; then
       exit 1
       ;;
   esac
-  sudo dnf -y install python3-pip jq curl
+  sudo dnf -y install python3-pip jq curl wget
   sudo ln -s /usr/bin/python3 /usr/bin/python || true
 fi
 
@@ -98,20 +98,20 @@ fi
 
 if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
   if ! command -v minikube 2>/dev/null || [[ "$(minikube version --short)" != "${MINIKUBE_VERSION}" ]]; then
-      curl -Lo minikube https://storage.googleapis.com/minikube/releases/"${MINIKUBE_VERSION}"/minikube-linux-amd64
+      wget -O minikube https://storage.googleapis.com/minikube/releases/"${MINIKUBE_VERSION}"/minikube-linux-amd64
       chmod +x minikube
       sudo mv minikube /usr/local/bin/.
   fi
 
   if ! command -v docker-machine-driver-kvm2 2>/dev/null ; then
-      curl -LO https://storage.googleapis.com/minikube/releases/"${MINIKUBE_VERSION}"/docker-machine-driver-kvm2
+      wget -O docker-machine-driver-kvm2 https://storage.googleapis.com/minikube/releases/"${MINIKUBE_VERSION}"/docker-machine-driver-kvm2
       chmod +x docker-machine-driver-kvm2
       sudo mv docker-machine-driver-kvm2 /usr/local/bin/.
   fi
 # Install Kind for both Kind and tilt
 else
   if ! command -v kind 2>/dev/null || [[ "v$(kind version -q)" != "$KIND_VERSION" ]]; then
-      curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
+      wget -O ./kind https://github.com/kubernetes-sigs/kind/releases/download/"${KIND_VERSION}"/kind-"$(uname)"-amd64
       chmod +x ./kind
       sudo mv kind /usr/local/bin/.
   fi
@@ -125,14 +125,14 @@ KUBECTL_LOCAL=$(kubectl version --client --short | cut -d ":" -f2 | sed 's/[[:sp
 KUBECTL_PATH=$(whereis -b kubectl | cut -d ":" -f2 | awk '{print $1}')
 
 if [ "$KUBECTL_LOCAL" != "$KUBECTL_LATEST" ]; then
-    curl -LO "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_LATEST}/bin/linux/amd64/kubectl"
+    wget -O kubectl "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_LATEST}/bin/linux/amd64/kubectl"
     chmod +x kubectl
     KUBECTL_PATH="${KUBECTL_PATH:-/usr/local/bin/kubectl}"
     sudo mv kubectl "${KUBECTL_PATH}"
 fi
 
 if ! command -v kustomize 2>/dev/null ; then
-    curl -L -O "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+    wget "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
     tar -xzvf "kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
     chmod +x kustomize
     sudo mv kustomize /usr/local/bin/.
@@ -141,7 +141,7 @@ fi
 
 # Install clusterctl client
 function install_clusterctl() {
-  curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/"${CAPIRELEASE}"/clusterctl-linux-amd64 -o clusterctl
+  wget -O clusterctl https://github.com/kubernetes-sigs/cluster-api/releases/download/"${CAPIRELEASE}"/clusterctl-linux-amd64
   chmod +x ./clusterctl
   sudo mv ./clusterctl /usr/local/bin/clusterctl
 }
