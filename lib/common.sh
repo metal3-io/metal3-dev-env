@@ -1,7 +1,7 @@
 #!/bin/bash
 
 [[ ":$PATH:" != *":/usr/local/go/bin:"* ]] && PATH="$PATH:/usr/local/go/bin"
-
+export IMAGE_OS="ubuntu"
 # Verify that passwordless sudo is configured correctly
 if ! sudo -nl | grep -q '(ALL) NOPASSWD: ALL';then
     echo "ERROR: metal3-dev-env requires passwordless sudo configuration!"
