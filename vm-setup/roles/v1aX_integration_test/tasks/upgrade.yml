@@ -116,16 +116,6 @@
     args:
       chdir: "{{ CAPM3PATH }}"
 
-  # Note: release manifests are not impacted by this (they are in .gitignore)
-  - name: Clean CAPM3 repo after building release manifests
-    ansible.builtin.git:
-      repo: 'https://github.com/metal3-io/cluster-api-provider-metal3.git'
-      dest: "{{ CAPM3PATH }}"
-      version: "{{ upgraded_capm3_branch }}"
-      clone: no
-      # Force to discard local changes
-      force: yes
-
   - name: Create folder structure for next version controlplane components
     vars:
       working_dir: "{{HOME}}/.cluster-api"

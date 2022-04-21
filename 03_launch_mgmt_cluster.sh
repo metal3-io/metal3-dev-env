@@ -75,7 +75,6 @@ function launch_baremetal_operator() {
 
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   # Update container images to use local ones
-  cp "${BMOPATH}/config/default/kustomization.yaml" "${BMOPATH}/config/default/kustomization.yaml.orig"
   if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
     update_component_image BMO "${BAREMETAL_OPERATOR_LOCAL_IMAGE}"
   else
@@ -84,7 +83,6 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
 fi
 
   # Update Configmap parameters with correct urls
-  cp "${BMOPATH}/config/default/ironic.env" "${BMOPATH}/config/default/ironic.env.orig"
   cat << EOF | sudo tee "${BMOPATH}/config/default/ironic.env"
 DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
 DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
@@ -163,7 +161,6 @@ function launch_ironic() {
   pushd "${BMOPATH}"
 
     # Update Configmap parameters with correct urls
-    cp "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig"
     cat << EOF | sudo tee "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
 PROVISIONING_IP=${CLUSTER_PROVISIONING_IP}
@@ -187,49 +184,42 @@ EOF
     echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
   fi
 
+  # Copy the generated configmap for ironic deployment
+  cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+
+  # Update manifests to use the correct images.
+  # Note: Even though the manifests are not used for local deployment we need
+  # to do this since Ironic will no longer run locally after pivot.
+  # The workload cluster will use these images after pivoting.
+  if [ -n "${IRONIC_LOCAL_IMAGE}" ]; then
+    update_component_image Ironic "${IRONIC_LOCAL_IMAGE}"
+  else
+    update_component_image Ironic "${IRONIC_IMAGE}"
+  fi
+  if [ -n "${MARIADB_LOCAL_IMAGE}" ]; then
+    update_component_image Mariadb "${MARIADB_LOCAL_IMAGE}"
+  else
+    update_component_image Mariadb "${MARIADB_IMAGE}"
+  fi
+  if [ -n "${IRONIC_KEEPALIVED_LOCAL_IMAGE}" ]; then
+    update_component_image Keepalived "${IRONIC_KEEPALIVED_LOCAL_IMAGE}"
+  else
+    update_component_image Keepalived "${IRONIC_KEEPALIVED_IMAGE}"
+  fi
+  if [ -n "${IPA_DOWNLOADER_LOCAL_IMAGE}" ]; then
+    update_component_image IPA-downloader "${IPA_DOWNLOADER_LOCAL_IMAGE}"
+  else
+    update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
+  fi
+
   if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
     update_images
     ${RUN_LOCAL_IRONIC_SCRIPT}
   else
     # Deploy Ironic using deploy.sh script
-
-    cp "${BMOPATH}/ironic-deployment/default/kustomization.yaml" "${BMOPATH}/ironic-deployment/default/kustomization.yaml.orig"
-    cp "${BMOPATH}/ironic-deployment/keepalived/kustomization.yaml" "${BMOPATH}/ironic-deployment/keepalived/kustomization.yaml.orig"
-
-    if [ -n "${IRONIC_LOCAL_IMAGE}" ]; then
-      update_component_image Ironic "${IRONIC_LOCAL_IMAGE}"
-    else
-      update_component_image Ironic "${IRONIC_IMAGE}"
-    fi
-    if [ -n "${MARIADB_LOCAL_IMAGE}" ]; then
-      update_component_image Mariadb "${MARIADB_LOCAL_IMAGE}"
-    else
-      update_component_image Mariadb "${MARIADB_IMAGE}"
-    fi
-    if [ -n "${IRONIC_KEEPALIVED_LOCAL_IMAGE}" ]; then
-      update_component_image Keepalived "${IRONIC_KEEPALIVED_LOCAL_IMAGE}"
-    else
-      update_component_image Keepalived "${IRONIC_KEEPALIVED_IMAGE}"
-    fi
-    if [ -n "${IPA_DOWNLOADER_LOCAL_IMAGE}" ]; then
-      update_component_image IPA-downloader "${IPA_DOWNLOADER_LOCAL_IMAGE}"
-    else
-      update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
-    fi
-
-    # Copy the generated configmap for ironic deployment
-    cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
-
     # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
     "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
-
-    # Restore original files
-    mv "${BMOPATH}/ironic-deployment/default/kustomization.yaml.orig" "${BMOPATH}/ironic-deployment/default/kustomization.yaml"
-    mv "${BMOPATH}/ironic-deployment/keepalived/kustomization.yaml.orig" "${BMOPATH}/ironic-deployment/keepalived/kustomization.yaml"
   fi
-
-  # Restore original files
-  mv "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env.orig" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
   popd
 }
 
@@ -283,11 +273,6 @@ function update_capm3_imports(){
     sed -i "s/ironic-cacert/empty-ironic-cacert/g" "config/bmo/secret_mount_patch.yaml"
   fi
   # Modify the kustomization imports to use local BMO repo instead of Github Main
-  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-    cp config/bmo/kustomization.yaml config/bmo/kustomization.yaml.orig
-  fi
-
-  cp config/ipam/kustomization.yaml config/ipam/kustomization.yaml.orig
   make hack/tools/bin/kustomize
 
   if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
@@ -398,14 +383,6 @@ function patch_clusterctl(){
 
   update_capm3_imports
   make release-manifests
-
-  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-    mv config/bmo/kustomization.yaml.orig config/bmo/kustomization.yaml
-    rm config/bmo/bmo-components.yaml
-  fi
-
-  mv config/ipam/kustomization.yaml.orig config/ipam/kustomization.yaml
-  rm config/ipam/metal3-ipam-components.yaml
 
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
