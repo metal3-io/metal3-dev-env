@@ -48,6 +48,33 @@
                       - name: IP_AUTODETECTION_METHOD
                         value: "cidr={{ EXTERNAL_SUBNET_V4_HOST }}/{{ EXTERNAL_SUBNET_V4_PREFIX }}"
 
+  - name: Wait for all control-plane pods become created
+    shell: "kubectl get pod --namespace=kube-system --selector tier=control-plane --output=jsonpath='{.items[*].metadata.name}'"
+    register: control_plane_pods_created
+    until: item in control_plane_pods_created.stdout
+    retries: 30
+    delay: 10
+    with_items:
+      - etcd
+      - kube-apiserver
+      - kube-controller-manager
+      - kube-scheduler
+
+  - name: Wait for control-plane pods become ready
+    kubernetes.core.k8s_info:
+      kind: Pod
+      wait: yes
+      field_selectors:
+        - status.phase=Running
+      label_selectors:
+        - tier = control-plane
+      namespace: kube-system
+      wait_sleep: 10
+      wait_timeout: 300
+      wait_condition:
+        type: Ready
+        status: "True"
+
   - name: Apply Calico manifest
     kubernetes.core.k8s:
       state: present
