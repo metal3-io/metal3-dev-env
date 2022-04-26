@@ -91,3 +91,21 @@
     delay: 3
     until: (deprovisioned_cluster is succeeded) and
            (deprovisioned_cluster.resources | length ==  0)
+
+  - name: Delete baremetalhosts
+    kubernetes.core.k8s:
+      state: absent
+      src: "{{ WORKING_DIR }}/bmhosts_crs.yaml"
+      namespace: "{{ NAMESPACE }}"
+    ignore_errors: yes
+
+  - name: Wait until no baremetalhost is remaining
+    kubernetes.core.k8s_info:
+      api_version: metal3.io/v1alpha1
+      kind: BareMetalHost
+      namespace: "{{ NAMESPACE }}"
+    register: dedeleted_baremetalhost
+    retries: 100
+    delay: 3
+    until: (dedeleted_baremetalhost is succeeded) and
+           (dedeleted_baremetalhost.resources | length ==  0)

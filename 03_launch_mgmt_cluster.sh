@@ -246,11 +246,12 @@ function make_bm_hosts() {
 # Apply the BMH CRs
 #
 function apply_bm_hosts() {
+  NAMESPACE=$1
   pushd "${BMOPATH}"
   list_nodes | make_bm_hosts > "${WORKING_DIR}/bmhosts_crs.yaml"
   if [[ -n "$(list_nodes)" ]]; then
     echo "bmhosts_crs.yaml is applying"
-    while ! kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n metal3 &>/dev/null; do
+    while ! kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n "$NAMESPACE" &>/dev/null; do
 	    sleep 3
     done
     echo "bmhosts_crs.yaml is successfully applied"
@@ -515,7 +516,7 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
     # Thus we are deleting validatingwebhookconfiguration resource if exists to let BMO is working properly on local runs.
     kubectl delete validatingwebhookconfiguration/"${BMO_NAME_PREFIX}"-validating-webhook-configuration --ignore-not-found=true
   fi
-  apply_bm_hosts
+  apply_bm_hosts "$NAMESPACE"
 elif [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
 
 source scripts/deploy_tilt_env.sh
