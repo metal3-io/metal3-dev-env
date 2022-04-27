@@ -30,12 +30,11 @@ source "${METAL3_DIR}/lib/ironic_basic_auth.sh"
 # Disable SSH strong authentication
 export ANSIBLE_HOST_KEY_CHECKING=False
 
-# Ansible config file 
+# Ansible config file
 export ANSIBLE_CONFIG=${METAL3_DIR}/ansible.cfg
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
    -e "metal3_dir=$SCRIPTDIR" \
    -e "v1aX_integration_test_action=${ACTION}" \
-   -e "working_dir=$WORKING_DIR" \
    -i "${METAL3_DIR}/vm-setup/inventory.ini" \
    -b -v "${METAL3_DIR}/vm-setup/v1aX_integration_test.yml"
