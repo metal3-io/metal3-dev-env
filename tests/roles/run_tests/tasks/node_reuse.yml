@@ -5,6 +5,7 @@
 
   - name: Untaint all nodes.
     shell: |
+        kubectl taint nodes --all node-role.kubernetes.io/control-plane-
         kubectl taint nodes --all node-role.kubernetes.io/master-
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
@@ -162,6 +163,7 @@
 
   - name: Untaint all CP nodes after upgrade of two controlplane nodes.
     shell: |
+        kubectl taint nodes --all node-role.kubernetes.io/control-plane-
         kubectl taint nodes --all node-role.kubernetes.io/master-
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
@@ -215,6 +217,7 @@
 
   - name: Untaint all CP nodes.
     shell: |
+        kubectl taint nodes --all node-role.kubernetes.io/control-plane-
         kubectl taint nodes --all node-role.kubernetes.io/master-
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"

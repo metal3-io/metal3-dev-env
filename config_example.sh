@@ -133,12 +133,12 @@
 #
 #export CAPI_VERSION=v1beta1
 
-#export KUBERNETES_VERSION="v1.23.8"
-#export UPGRADED_K8S_VERSION="v1.23.8"
+#export KUBERNETES_VERSION="v1.24.1"
+#export UPGRADED_K8S_VERSION="v1.24.1"
 
 # Version of kubelet, kubeadm and kubectl binaries
 #export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
-#export KUBERNETES_BINARIES_CONFIG_VERSION="v0.13.0"
+#export KUBERNETES_BINARIES_CONFIG_VERSION="v0.14.0"
 
 # Configure provisioning network for single-stack ipv6
 #export PROVISIONING_IPV6=false
@@ -149,11 +149,11 @@
 
 # Image for target hosts deployment
 #
-#export IMAGE_NAME="CENTOS_8_NODE_IMAGE_K8S_v1.23.8.qcow2"
+#export IMAGE_NAME="CENTOS_9_NODE_IMAGE_K8S_v1.24.1.qcow2"
 
 # Location of the image to download
 #
-#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/metal3/images/k8s_v1.23.8"
+#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/metal3/images/k8s_v1.24.1"
 
 # Image username for ssh
 #
