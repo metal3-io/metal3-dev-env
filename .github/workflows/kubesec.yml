@@ -1,6 +1,6 @@
 name: Kubesec
 on:
-  push: 
+  push:
     branches: [ main ]
   schedule:
     - cron: '30 7 * * 2'
@@ -18,7 +18,7 @@ jobs:
       - name: Collect all yaml
         id: list_yaml
         run: |
-          LIST_YAML="$(find * -type f -name '*.yaml')"
+          LIST_YAML="$(find * -type f -name '*.yaml' ! -path '*/templates/*')"
           echo "::set-output name=value::$(IFS=$','; echo $LIST_YAML | jq -cnR '[inputs | select(length>0)]'; IFS=$'\n')"
     outputs:
       matrix: ${{ steps.list_yaml.outputs.value }}
@@ -31,8 +31,8 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    strategy: 
-      matrix: 
+    strategy:
+      matrix:
         value: ${{ fromJson(needs.setup.outputs.matrix) }}
     steps:
       - name: Checkout code
