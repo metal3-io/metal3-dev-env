@@ -37,7 +37,7 @@
   "rangeStrategy": "bump",
   "renovateFork": true,
   "includeForks": false,
-  "stabilityDays":"5",
+  "stabilityDays": 5,
   "regexManagers": [
      {
        "fileMatch": ["^lib/common.sh$"],
