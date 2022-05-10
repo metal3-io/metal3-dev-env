@@ -20,6 +20,8 @@ if [[ $OS == ubuntu ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
   elif [[ ${DISTRO} == "ubuntu20" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
+  elif [[ ${DISTRO} == "ubuntu22" ]]; then
+    sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
   fi
 elif [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo dnf upgrade -y

@@ -28,11 +28,13 @@
         owner: root
         group: root
         mode: '0644'
+      when: ansible_distribution_version != "22.04"
 
     - name: Fetch OS release key
       apt_key:
         url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/Release.key"
         state: present
+      when: ansible_distribution_version != "22.04"
 
     - name: Update all packages to their latest version
       apt:
