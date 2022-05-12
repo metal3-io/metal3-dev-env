@@ -223,9 +223,11 @@ function configure_minikube() {
 function init_minikube() {
     #If the vm exists, it has already been initialized
     if [[ "$(sudo virsh list --name --all)" != *"minikube"* ]]; then
+      checking=1
       # Loop to ignore minikube issues
       while /bin/true; do
         minikube_error=0
+        
         # Restart libvirtd.service as suggested here
         # https://github.com/kubernetes/minikube/issues/3566
         sudo systemctl restart libvirtd.service
@@ -234,10 +236,16 @@ function init_minikube() {
         sudo mkdir -p /etc/qemu/firmware
         sudo touch /etc/qemu/firmware/50-edk2-ovmf-amdsev.json
         sudo su -l -c "minikube start --insecure-registry ${REGISTRY}"  "${USER}" || minikube_error=1
-        if [[ $minikube_error -eq 0 ]]; then
-          break
+        if [[ $minikube_error -eq $checking ]]; then
+          if [[ 0 -eq $checking ]]; then
+            break
+          else
+            checking=0
+          fi
         fi
         sudo su -l -c 'minikube delete --all --purge' "${USER}"
+        sudo yum remove libvirt -y
+        sudo yum install libvirt -y
       done
       sudo su -l -c "minikube stop" "$USER"
     fi
