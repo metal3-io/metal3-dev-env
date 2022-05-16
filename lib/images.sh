@@ -13,8 +13,14 @@ elif [[ "${IMAGE_OS}" == "FCOS-ISO" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-fedora-coreos-33.20201201.2.1-live.x86_64.iso}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://builds.coreos.fedoraproject.org/prod/streams/testing/builds/33.20201201.2.1/x86_64}
 elif [[ "${IMAGE_OS}" == "centos" ]]; then
-  export IMAGE_NAME=${IMAGE_NAME:-CENTOS_9_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/metal3/images/k8s_${KUBERNETES_VERSION}}
+  if [[ -z "${EXTERNAL_VLAN_ID}" ]]; then
+    export IMAGE_NAME=${IMAGE_NAME:-CENTOS_9_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2}
+    export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/metal3/images/k8s_${KUBERNETES_VERSION}}
+  else
+    # Pin node image to be used in BML to CENTOS_8_NODE_IMAGE_K8S_v1.23.3.qcow2
+    export IMAGE_NAME=${IMAGE_NAME:-CENTOS_8_NODE_IMAGE_K8S_v1.23.3.qcow2}
+    export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/metal3/images/k8s_v1.23.3}
+  fi
 elif [[ "${IMAGE_OS}" == "flatcar" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-flatcar_production_qemu_image.img.bz2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://stable.release.flatcar-linux.net/amd64-usr/current/}
