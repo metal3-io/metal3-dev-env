@@ -1,8 +1,9 @@
 # CentOS specific controlplane kubeadm config
 preKubeadmCommands:
   - systemctl restart NetworkManager.service
-  - nmcli connection load /etc/sysconfig/network-scripts/ifcfg-eth0
-  - nmcli connection up filename /etc/sysconfig/network-scripts/ifcfg-eth0
+  - nmcli connection add type bridge con-name ironicendpoint ifname {{ IRONIC_ENDPOINT_BRIDGE }} ipv4.address {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }} ipv4.method manual ipv6.method ignore bridge.stp no
+  - nmcli con add type ethernet con-name eth0 ifname eth0 master {{ IRONIC_ENDPOINT_BRIDGE }} slave-type bridge
+  - nmcli connection up eth0
 {% if VM_EXTRADISKS == "true" %}
   - (echo n; echo p; echo 1; echo  ;echo  ;echo w) | fdisk /dev/vda
   - mkfs.{{ VM_EXTRADISKS_FILE_SYSTEM }} /dev/vda1
@@ -92,27 +93,6 @@ files:
               {{ CLUSTER_APIENDPOINT_HOST }}
           }
       }
-  - path: /etc/sysconfig/network-scripts/ifcfg-eth0
-    owner: root:root
-    permissions: '0644'
-    content: |
-      BOOTPROTO=none
-      DEVICE=eth0
-      ONBOOT=yes
-      TYPE=Ethernet
-      USERCTL=no
-      BRIDGE={{ IRONIC_ENDPOINT_BRIDGE }}
-  - path: /etc/sysconfig/network-scripts/ifcfg-{{ IRONIC_ENDPOINT_BRIDGE }}
-    owner: root:root
-    permissions: '0644'
-    content: |
-      TYPE=Bridge
-      DEVICE={{ IRONIC_ENDPOINT_BRIDGE }}
-      ONBOOT=yes
-      USERCTL=no
-      BOOTPROTO="static"
-      IPADDR={{ "{{ ds.meta_data.provisioningIP }}" }}
-      PREFIX={{ "{{ ds.meta_data.provisioningCIDR }}" }}
   - path: /etc/yum.repos.d/kubernetes.repo
     owner: root:root
     permissions: '0644'
