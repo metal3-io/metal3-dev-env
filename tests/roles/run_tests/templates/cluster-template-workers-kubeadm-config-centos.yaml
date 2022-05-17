@@ -1,8 +1,10 @@
 # CentOS specific worker kubeadm config
 preKubeadmCommands:
   - systemctl restart NetworkManager.service
-  - nmcli connection load /etc/sysconfig/network-scripts/ifcfg-eth0
-  - nmcli connection up filename /etc/sysconfig/network-scripts/ifcfg-eth0
+  - nmcli connection load /etc/NetworkManager/system-connections/eth0.nmconnection
+  - nmcli connection up eth0
+  - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
+  - nmcli connection up {{ IRONIC_ENDPOINT_BRIDGE }}
   - systemctl enable --now crio kubelet
 files:
   - path: /usr/local/bin/retrieve.configuration.files.sh
@@ -23,27 +25,35 @@ files:
         else
           cat "$tmpfile"| sed '$d' > "$dst";
         fi
-  - path: /etc/sysconfig/network-scripts/ifcfg-eth0
+  - path: /etc/NetworkManager/system-connections/eth0.nmconnection
     owner: root:root
-    permissions: '0644'
+    permissions: '0600'
     content: |
-      BOOTPROTO=none
-      DEVICE=eth0
-      ONBOOT=yes
-      TYPE=Ethernet
-      USERCTL=no
-      BRIDGE={{ IRONIC_ENDPOINT_BRIDGE }}
-  - path: /etc/sysconfig/network-scripts/ifcfg-{{ IRONIC_ENDPOINT_BRIDGE }}
+      [connection]
+      id=eth0
+      type=ethernet
+      interface-name=eth0
+      master={{ IRONIC_ENDPOINT_BRIDGE }}
+      slave-type=bridge
+  - path: /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
     owner: root:root
-    permissions: '0644'
+    permissions: '0600'
     content: |
-      TYPE=Bridge
-      DEVICE={{ IRONIC_ENDPOINT_BRIDGE }}
-      ONBOOT=yes
-      USERCTL=no
-      BOOTPROTO="static"
-      IPADDR={{ "{{ ds.meta_data.provisioningIP }}" }}
-      PREFIX={{ "{{ ds.meta_data.provisioningCIDR }}" }}
+      [connection]
+      id={{ IRONIC_ENDPOINT_BRIDGE }}
+      type=bridge
+      interface-name={{ IRONIC_ENDPOINT_BRIDGE }}
+
+      [bridge]
+      stp=false
+
+      [ipv4]
+      address1={{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
+      method=manual
+
+      [ipv6]
+      addr-gen-mode=eui64
+      method=ignore
   - path: /etc/yum.repos.d/kubernetes.repo
     owner: root:root
     permissions: '0644'
