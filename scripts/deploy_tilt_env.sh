@@ -34,7 +34,7 @@ sleep 120
 launch_ironic
 # deploy bmo in order to generate ironic credentials and tls
 launch_baremetal_operator
-apply_bm_hosts
+apply_bm_hosts "${NAMESPACE}"
 # remove bmo, so that is deployed and monitored by Tilt
 kubectl delete deployments.apps -n "${IRONIC_NAMESPACE}" baremetal-operator-controller-manager
 
