@@ -66,10 +66,17 @@
       namespace: "{{ IRONIC_NAMESPACE }}"
     when: EPHEMERAL_CLUSTER == "minikube"
 
-  - name: Label BMO CRDs.
+  - name: Label baremetalhost CRD to pivot.
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
     with_items:
        - clusterctl.cluster.x-k8s.io=""
+    when: CAPM3_VERSION != "v1alpha4"
+
+  - name: Label hardwareData CRD to pivot.
+    shell: "kubectl label --overwrite crds hardwaredata.metal3.io {{ item }}"
+    with_items:
+       - clusterctl.cluster.x-k8s.io=""
+       - clusterctl.cluster.x-k8s.io/move=""
     when: CAPM3_VERSION != "v1alpha4"
 
   - name: Obtain target cluster kubeconfig
@@ -129,10 +136,17 @@
     args:
       chdir: "{{ BMOPATH }}"
 
-  - name: Label BMO CRDs in target cluster.
+  - name: Label baremetalhost CRD in target cluster to pivot back.
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
     with_items:
       - clusterctl.cluster.x-k8s.io=""
+    when: CAPM3_VERSION != "v1alpha4"
+
+  - name: Label hardwareData CRD in target cluster to pivot back.
+    shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds hardwaredata.metal3.io {{ item }} --overwrite "
+    with_items:
+       - clusterctl.cluster.x-k8s.io=""
+       - clusterctl.cluster.x-k8s.io/move=""
     when: CAPM3_VERSION != "v1alpha4"
 
   # Check for pods & nodes on the target cluster
