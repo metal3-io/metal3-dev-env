@@ -36,7 +36,7 @@ packages:
         - libvirt-bin
         - libpolkit-backend-1-0
         - libssl1.0-dev
-    focal:
+    focal_jammy:
       packages:
         - libvirt-daemon
         - libvirt-daemon-system

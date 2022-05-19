@@ -53,10 +53,10 @@ source /etc/os-release
 export DISTRO="${ID}${VERSION_ID%.*}"
 export OS="${ID}"
 export OS_VERSION_ID=$VERSION_ID
-export SUPPORTED_DISTROS=(centos8 centos9 rhel8 rhel9 ubuntu18 ubuntu20)
+export SUPPORTED_DISTROS=(centos8 centos9 rhel8 rhel9 ubuntu18 ubuntu20 ubuntu22)
 
 if [[ ! "${SUPPORTED_DISTROS[*]}" =~ $DISTRO ]]; then
-   echo "Supported OS distros for the host are: CentOS Stream 8/9 or RHEL8/9 or Ubuntu20.04"
+   echo "Supported OS distros for the host are: CentOS Stream 8/9 or RHEL8/9 or Ubuntu20.04 or Ubuntu 22.04"
    exit 1
 fi
 

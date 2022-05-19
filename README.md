@@ -17,9 +17,9 @@ Instructions can be found here: <https://metal3.io/try-it.html>
 
 Versions v1alpha4, v1alpha5 or v1beta1 are later referred as **v1alphaX**/**v1betaX**.
 
-The v1alphaX or v1betaX deployment can be done with Ubuntu 18.04, 20.04 or
+The v1alphaX or v1betaX deployment can be done with Ubuntu 18.04, 20.04, 22.04 or
 Centos 9 Stream target host images. By default, for Ubuntu based target hosts
-we are using Ubuntu 20.04
+we are using Ubuntu 22.04
 
 ### Requirements
 
