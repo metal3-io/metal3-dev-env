@@ -2,18 +2,20 @@
 
 [[ ":$PATH:" != *":/usr/local/go/bin:"* ]] && PATH="$PATH:/usr/local/go/bin"
 
+USER="$(whoami)"
+export USER=${USER}
 # Verify that passwordless sudo is configured correctly
-if ! sudo -nl | grep -q '(ALL) NOPASSWD: ALL';then
-    echo "ERROR: metal3-dev-env requires passwordless sudo configuration!"
-    exit 1
+if [[ "$USER" != "root" ]]; then
+    if ! sudo -nl | grep -q '(ALL) NOPASSWD: ALL';then
+        echo "ERROR: metal3-dev-env requires passwordless sudo configuration!"
+        exit 1
+    fi
 fi
 
 eval "$(go env)"
 export GOPATH
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-USER="$(whoami)"
-export USER=${USER}
 
 # Get variables from the config file
 if [ -z "${CONFIG:-}" ]; then
