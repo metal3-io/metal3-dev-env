@@ -1,5 +1,7 @@
 # Ubuntu specific worker kubeadm config
 preKubeadmCommands:
+  - apt-get update -y
+  - apt-get install network-manager -y
   - netplan apply
   - systemctl enable --now crio kubelet
 files:
@@ -9,7 +11,7 @@ files:
     content: |
       network:
         version: 2
-        renderer: networkd
+        renderer: NetworkManager
         bridges:
           {{ IRONIC_ENDPOINT_BRIDGE }}:
             interfaces: [enp1s0]

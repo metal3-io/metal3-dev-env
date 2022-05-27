@@ -6,6 +6,8 @@ preKubeadmCommands:
   - mkdir {{ VM_EXTRADISKS_MOUNT_DIR }}
   - mount /dev/vda1 {{ VM_EXTRADISKS_MOUNT_DIR }}
 {% endif %}
+  - apt-get update -y
+  - apt-get install network-manager -y
   - netplan apply
   - systemctl enable --now crio kubelet
   - if (curl -sk --max-time 10 https://{{ CLUSTER_APIENDPOINT_HOST }}:{{ CLUSTER_APIENDPOINT_PORT }}/healthz); then echo "keepalived already running";else systemctl start keepalived; fi
@@ -82,7 +84,7 @@ files:
     content: |
       network:
         version: 2
-        renderer: networkd
+        renderer: NetworkManager
         bridges:
           {{ IRONIC_ENDPOINT_BRIDGE }}:
             interfaces: [enp1s0]
