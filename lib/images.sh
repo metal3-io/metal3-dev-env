@@ -4,7 +4,7 @@
 IMAGE_OS="$(echo "${IMAGE_OS:-centos}" | tr '[:upper:]' '[:lower:]')"
 export "${IMAGE_OS?}"
 if [[ "${IMAGE_OS}" == "ubuntu" ]]; then
-  export IMAGE_NAME=${IMAGE_NAME:-UBUNTU_22.04_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2}
+  export IMAGE_NAME=${IMAGE_NAME:-UBUNTU_20.04_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/metal3/images/k8s_${KUBERNETES_VERSION}}
 elif [[ "${IMAGE_OS}" == "FCOS" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-fedora-coreos-32.20200923.2.0-openstack.x86_64.qcow2.xz}
