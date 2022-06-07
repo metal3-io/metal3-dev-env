@@ -4,7 +4,7 @@ non_root_user: "{{ lookup('env', 'USER') }}"
 cluster_domain: "{{ lookup('env', 'CLUSTER_DOMAIN') | default('ostest.test.metalkube.org', true) }}"
 
 # allow the nic model to be overridden
-libvirt_nic_model: virtio
+libvirt_nic_model: e1000
 
 # These defaults are used if there are no flavor-specific
 # overrides configured.
