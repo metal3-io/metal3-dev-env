@@ -1,0 +1,4 @@
+[inspector]
+auth_type=http_basic
+username=inspector
+password=changeme

@@ -10,6 +10,7 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
+export KUSTOMIZATIONS="${SCRIPTDIR}/hack/kustomizations"
 export IRONIC_HOST="${CLUSTER_URL_HOST}"
 export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
 export REPO_IMAGE_PREFIX="quay.io"
@@ -75,15 +76,13 @@ function launch_baremetal_operator() {
 
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   # Update container images to use local ones
-  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
-    update_component_image BMO "${BAREMETAL_OPERATOR_LOCAL_IMAGE}"
-  else
-    update_component_image BMO "${BAREMETAL_OPERATOR_IMAGE}"
-  fi
+  pushd "${KUSTOMIZATIONS}/bmo"
+  kustomize edit set image quay.io/metal3-io/baremetal-operator="${BAREMETAL_OPERATOR_LOCAL_IMAGE:-${BAREMETAL_OPERATOR_IMAGE}}"
+  popd
 fi
 
   # Update Configmap parameters with correct urls
-  cat << EOF | sudo tee "${BMOPATH}/config/default/ironic.env"
+  cat << EOF | tee "${KUSTOMIZATIONS}/bmo/ironic.env"
 DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
 DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
 IRONIC_ENDPOINT=${IRONIC_URL}
@@ -91,11 +90,31 @@ IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
 EOF
 
   if [ -n "${DEPLOY_ISO_URL}" ]; then
-    echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${BMOPATH}/config/default/ironic.env"
+    echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | tee -a "${KUSTOMIZATIONS}/bmo/ironic.env"
   fi
 
-  # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
-  "${BMOPATH}/tools/deploy.sh" true false "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
+  # Set correct repo and commit to use
+  sed "s#BMOREPO#${BMOREPO}#g" -i "${KUSTOMIZATIONS}/bmo/kustomization.yaml"
+  sed "s#BMOCOMMIT#${BMOCOMMIT}#g" -i "${KUSTOMIZATIONS}/bmo/kustomization.yaml"
+
+  # Based on IRONIC_TLS_SETUP, IRONIC_BASIC_AUTH, pick the proper components
+  # and edit the kustomization.
+  pushd "${KUSTOMIZATIONS}/bmo"
+  if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
+    kustomize edit add component components/basic-auth
+  fi
+  if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
+    kustomize edit add component components/tls
+  fi
+  popd
+
+  # Generate credentials
+  echo "${IRONIC_USERNAME}" > "${KUSTOMIZATIONS}/bmo/components/basic-auth/ironic-username"
+  echo "${IRONIC_PASSWORD}" > "${KUSTOMIZATIONS}/bmo/components/basic-auth/ironic-password"
+  echo "${IRONIC_INSPECTOR_USERNAME}" > "${KUSTOMIZATIONS}/bmo/components/basic-auth/ironic-inspector-username"
+  echo "${IRONIC_INSPECTOR_PASSWORD}" > "${KUSTOMIZATIONS}/bmo/components/basic-auth/ironic-inspector-password"
+
+  kustomize build "${KUSTOMIZATIONS}/bmo" | kubectl apply -f -
 
   # If BMO should run locally, scale down the deployment and run BMO
   if [ "${BMO_RUN_LOCAL}" == "true" ]; then
@@ -158,10 +177,8 @@ function update_images(){
 # Launch Ironic locally for Kind and Tilt, in cluster for Minikube
 #
 function launch_ironic() {
-  pushd "${BMOPATH}"
-
-    # Update Configmap parameters with correct urls
-    cat << EOF | sudo tee "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
+    # Create Configmap parameters with correct urls
+    cat << EOF | tee "${KUSTOMIZATIONS}/ironic/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
 PROVISIONING_IP=${CLUSTER_PROVISIONING_IP}
 PROVISIONING_CIDR=${PROVISIONING_CIDR}
@@ -178,50 +195,61 @@ IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
 EOF
 
   if [ -n "${DEPLOY_ISO_URL}" ]; then
-    echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
+    echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | tee -a "${KUSTOMIZATIONS}/ironic/ironic_bmo_configmap.env"
   fi
 
   if [ "$NODES_PLATFORM" == "libvirt" ] ; then
-    echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
+    echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | tee -a "${KUSTOMIZATIONS}/ironic/ironic_bmo_configmap.env"
   fi
-
-  # Copy the generated configmap for ironic deployment
-  cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
 
   # Update manifests to use the correct images.
   # Note: Even though the manifests are not used for local deployment we need
   # to do this since Ironic will no longer run locally after pivot.
   # The workload cluster will use these images after pivoting.
-  if [ -n "${IRONIC_LOCAL_IMAGE}" ]; then
-    update_component_image Ironic "${IRONIC_LOCAL_IMAGE}"
-  else
-    update_component_image Ironic "${IRONIC_IMAGE}"
-  fi
-  if [ -n "${MARIADB_LOCAL_IMAGE}" ]; then
-    update_component_image Mariadb "${MARIADB_LOCAL_IMAGE}"
-  else
-    update_component_image Mariadb "${MARIADB_IMAGE}"
-  fi
-  if [ -n "${IRONIC_KEEPALIVED_LOCAL_IMAGE}" ]; then
-    update_component_image Keepalived "${IRONIC_KEEPALIVED_LOCAL_IMAGE}"
-  else
-    update_component_image Keepalived "${IRONIC_KEEPALIVED_IMAGE}"
-  fi
-  if [ -n "${IPA_DOWNLOADER_LOCAL_IMAGE}" ]; then
-    update_component_image IPA-downloader "${IPA_DOWNLOADER_LOCAL_IMAGE}"
-  else
-    update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
-  fi
+  pushd "${KUSTOMIZATIONS}/ironic"
+  kustomize edit set image quay.io/metal3-io/ironic="${IRONIC_LOCAL_IMAGE:-${IRONIC_IMAGE}}"
+  kustomize edit set image quay.io/metal3-io/mariadb="${MARIADB_LOCAL_IMAGE:-${MARIADB_IMAGE}}"
+  kustomize edit set image quay.io/metal3-io/keepalived="${IRONIC_KEEPALIVED_LOCAL_IMAGE:-${IRONIC_KEEPALIVED_IMAGE}}"
+  kustomize edit set image quay.io/metal3-io/ironic-ipa-downloader="${IPA_DOWNLOADER_LOCAL_IMAGE:-${IPA_DOWNLOADER_IMAGE}}"
+  popd
 
   if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
     update_images
     ${RUN_LOCAL_IRONIC_SCRIPT}
   else
-    # Deploy Ironic using deploy.sh script
-    # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
-    "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
+    # Based on IRONIC_TLS_SETUP, IRONIC_BASIC_AUTH, pick the proper components
+    # and edit the kustomization.
+    pushd "${KUSTOMIZATIONS}/ironic"
+    if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
+      kustomize edit add component components/basic-auth
+    fi
+    if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
+      kustomize edit add component components/tls
+    fi
+    kustomize edit add component components/keepalived
+    popd
+
+    # Set correct repo and commit to use
+    sed "s#BMOREPO#${BMOREPO}#g" -i "${KUSTOMIZATIONS}/ironic/kustomization.yaml"
+    sed "s#BMOCOMMIT#${BMOCOMMIT}#g" -i "${KUSTOMIZATIONS}/ironic/kustomization.yaml"
+    sed "s#BMOREPO#${BMOREPO}#g" -i "${KUSTOMIZATIONS}/ironic/components/tls/kustomization.yaml"
+    sed "s#BMOCOMMIT#${BMOCOMMIT}#g" -i "${KUSTOMIZATIONS}/ironic/components/tls/kustomization.yaml"
+    # Set correct IPs for the certificates
+    sed -i "s/IRONIC_HOST_IP/${IRONIC_HOST_IP}/g; s/MARIADB_HOST_IP/${MARIADB_HOST_IP}/g" "${KUSTOMIZATIONS}/ironic/components/tls/certificate.yaml"
+
+    # Generate credentials
+    envsubst < "${KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-auth-config-tpl" > \
+    "${KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-auth-config"
+    envsubst < "${KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-auth-config-tpl" > \
+    "${KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-auth-config"
+
+    echo "IRONIC_HTPASSWD=$(htpasswd -n -b -B "${IRONIC_USERNAME}" "${IRONIC_PASSWORD}")" > \
+    "${KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-htpasswd"
+    echo "INSPECTOR_HTPASSWD=$(htpasswd -n -b -B "${IRONIC_INSPECTOR_USERNAME}" \
+    "${IRONIC_INSPECTOR_PASSWORD}")" > "${KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-htpasswd"
+
+    kustomize build "${KUSTOMIZATIONS}/ironic" | kubectl apply -f -
   fi
-  popd
 }
 
 # ------------

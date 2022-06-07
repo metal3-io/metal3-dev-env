@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: baremetal-operator-system
+resources:
+# - ../../../../baremetal-operator/ironic-deployment/ironic
+- BMOREPO/ironic-deployment/ironic?ref=BMOCOMMIT
+
+# components:
+# - components/basic-auth
+# - components/keepalived
+# - components/tls
+
+configMapGenerator:
+- envs:
+  - ironic_bmo_configmap.env
+  name: ironic-bmo-configmap
+
+secretGenerator:
+- literals:
+  - password=changeme
+  name: mariadb-password
+  type: Opaque
+
+images:
+- name: quay.io/metal3-io/ironic
+  newName: IRONIC_IMAGE
+- name: quay.io/metal3-io/ironic-ipa-downloader
+  newName: IPA_DOWNLOADER_IMAGE
+- name: quay.io/metal3-io/keepalived
+  newName: KEEPALIVED_IMAGE
+- name: quay.io/metal3-io/mariadb
+  newName: MARIADB_IMAGE

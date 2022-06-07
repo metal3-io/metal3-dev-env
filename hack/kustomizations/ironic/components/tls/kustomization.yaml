@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  # - ../../../../../../baremetal-operator/ironic-deployment/certmanager
+  - BMOREPO/ironic-deployment/certmanager?ref=BMOCOMMIT
+
+patchesStrategicMerge:
+- tls.yaml
+- certificate.yaml

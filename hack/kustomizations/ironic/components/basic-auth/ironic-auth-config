@@ -1,0 +1,4 @@
+[ironic]
+auth_type=http_basic
+username=ironic
+password=changeme

@@ -1,0 +1,31 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ironic-cacert
+spec:
+  ipAddresses:
+  - IRONIC_HOST_IP
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ironic-cert
+spec:
+  ipAddresses:
+  - IRONIC_HOST_IP
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ironic-inspector-cert
+spec:
+  ipAddresses:
+  - IRONIC_HOST_IP
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: mariadb-cert
+spec:
+  ipAddresses:
+  - MARIADB_HOST_IP
