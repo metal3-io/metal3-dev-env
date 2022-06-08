@@ -17,10 +17,8 @@
               msg: "Local image {{ IMAGE_LOCATION }}/{{ IMAGE_NAME }} is not found, starting to download"
 
           - name: Verify specific image containing newer version of cloud-init is downloaded
-            get_url:
-              url: "{{ IMAGE_LOCATION }}/{{ IMAGE_NAME }}"
-              dest: "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}"
-              mode: 0664
+            shell: | 
+              wget -q "{{ IMAGE_LOCATION }}/{{ IMAGE_NAME }}" -O "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}" 
 
           - name: Create raw image
             shell: |
