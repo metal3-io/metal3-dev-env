@@ -6,6 +6,10 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 
+sudo modprobe -r -a kvm_intel kvm
+sudo modprobe kvm tdp_mmu=0
+sudo modprobe -a kvm kvm_intel
+
 if [[ $(id -u) == 0 ]]; then
   echo "Please run 'make' as a non-root user"
   exit 1
