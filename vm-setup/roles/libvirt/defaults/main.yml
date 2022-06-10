@@ -11,7 +11,9 @@ vm_platform: libvirt
 libvirt_volume_pool: oooq_pool
 libvirt_domain_type: kvm
 libvirt_diskdev: sda
+libvirt_cdromdev: sdb
 libvirt_diskbus: scsi
+libvirt_cdrombus: sata
 libvirt_arch: x86_64
 libvirt_cpu_mode: host-model
 libvirt_firmware: bios
