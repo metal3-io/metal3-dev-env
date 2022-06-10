@@ -36,6 +36,10 @@
   <on_reboot>restart</on_reboot>
   <on_crash>restart</on_crash>
   <devices>
+    <disk type="file" device="cdrom">
+      <target dev='{{ libvirt_cdromdev }}' bus='{{ libvirt_cdrombus }}'/>
+      <readonly/>
+    </disk>
     <disk type='volume' device='disk'>
       <driver name='qemu' type='qcow2' cache='unsafe'/>
       <source pool='{{ libvirt_volume_pool }}' volume='{{ item.name }}.qcow2'/>
