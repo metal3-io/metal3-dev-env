@@ -298,7 +298,7 @@ fi
 
 # Use firewalld on CentOS/RHEL, iptables everywhere else
 export USE_FIREWALLD=False
-if [[ $DISTRO == "rhel8" || $DISTRO == "centos8" ]]; then
+if [[ $DISTRO == "rhel"* || $DISTRO == "centos"* ]]; then
   export USE_FIREWALLD=True
 fi
 
