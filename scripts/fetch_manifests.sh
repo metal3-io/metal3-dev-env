@@ -5,6 +5,7 @@ mkdir -p /tmp/manifests
 
 manifests=(
   bmh
+  hardwaredata
   cluster
   deployment
   machine
