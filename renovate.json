@@ -1,36 +1,75 @@
 {
-  "extends":[
+  "extends": [
     "config:base"
   ],
   "enabled": "true",
-  "baseBranches": ["main"],
+  "baseBranches": [
+    "main"
+  ],
   "packageRules": [
     {
-      "depTypeList": ["devDependencies"],
-      "matchUpdateTypes": ["minor"],
+      "depTypeList": [
+        "devDependencies"
+      ],
+      "matchUpdateTypes": [
+        "minor"
+      ],
       "automerge": false
     },
     {
-      "datasources": ["docker"],
-      "packageNames": ["kindest/node"],
+      "datasources": [
+        "docker"
+      ],
+      "packageNames": [
+        "kindest/node"
+      ],
       "automerge": false,
       "commitMessageTopic": "kindest/node"
     },
     {
-      "datasources": ["docker"],
-      "packageNames": ["registry"],
+      "datasources": [
+        "docker"
+      ],
+      "packageNames": [
+        "registry"
+      ],
       "automerge": false,
       "commitMessageTopic": "Docker registry"
     },
     {
-      "datasources": ["pypi"],
+      "datasources": [
+        "pypi"
+      ],
       "packageNames": [
         "ansible",
         "kubernetes"
       ],
       "automerge": false
+    },
+    {
+      "matchPackageNames": [
+        "golang"
+      ],
+      "allowedVersions": "<=1.17"
+    },
+    {
+      "matchPackageNames": [
+        "kubernetes/kubernetes"
+      ],
+      "allowedVersions": "<=1.23"
+    },
+    {
+      "matchPackageNames": [
+        "kindest/node"
+      ],
+      "allowedVersions": "<=1.23"
+    },
+    {
+      "matchPackageNames": [
+        "kubernetes-sigs/cri-tools"
+      ],
+      "allowedVersions": "<=1.23"
     }
-
   ],
   "prHourlyLimit": 5,
   "prConcurrentLimit": 5,
@@ -39,49 +78,73 @@
   "includeForks": false,
   "stabilityDays": 5,
   "regexManagers": [
-     {
-       "fileMatch": ["^lib/common.sh$"],
-       "matchStrings": ["KUBERNETES_VERSION:-\"(?<currentValue>.*?)\"}"],
-       "depNameTemplate": "kubernetes/kubernetes",
-       "datasourceTemplate": "github-releases"
-     },
-     {
-       "fileMatch": ["^lib/common.sh$"],
-       "matchStrings": ["KIND_VERSION:-\"(?<currentValue>.*?)\"}"],
-       "depNameTemplate": "kubernetes-sigs/kind",
-       "datasourceTemplate": "github-releases"
-     },
-     {
-       "fileMatch": ["^lib/common.sh$"],
-       "matchStrings": ["ANSIBLE_VERSION:-\"(?<currentValue>.*?)\"}"],
-       "depNameTemplate": "ansible",
-       "datasourceTemplate": "pypi"
-     },
-     {
-       "fileMatch": ["^vm-setup/roles/packages_installation/defaults/main.yml$"],
-       "matchStrings": ["kubernetes==(?<currentValue>.*?)"],
-       "depNameTemplate": "kubernetes",
-       "datasourceTemplate": "pypi"
-     },
-     {
-      "fileMatch": ["^lib/common.sh$"],
-      "matchStrings": ["DOCKER_REGISTRY_IMAGE:-\"registry:(?<currentValue>.*?)\"}"],
+    {
+      "fileMatch": [
+        "^lib/common.sh$"
+      ],
+      "matchStrings": [
+        "KUBERNETES_VERSION:-\"(?<currentValue>.*?)\"}"
+      ],
+      "depNameTemplate": "kubernetes/kubernetes",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "fileMatch": [
+        "^lib/common.sh$"
+      ],
+      "matchStrings": [
+        "KIND_VERSION:-\"(?<currentValue>.*?)\"}"
+      ],
+      "depNameTemplate": "kubernetes-sigs/kind",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "fileMatch": [
+        "^lib/common.sh$"
+      ],
+      "matchStrings": [
+        "ANSIBLE_VERSION:-\"(?<currentValue>.*?)\"}"
+      ],
+      "depNameTemplate": "ansible",
+      "datasourceTemplate": "pypi"
+    },
+    {
+      "fileMatch": [
+        "^vm-setup/roles/packages_installation/defaults/main.yml$"
+      ],
+      "matchStrings": [
+        "kubernetes==(?<currentValue>.*?)"
+      ],
+      "depNameTemplate": "kubernetes",
+      "datasourceTemplate": "pypi"
+    },
+    {
+      "fileMatch": [
+        "^lib/common.sh$"
+      ],
+      "matchStrings": [
+        "DOCKER_REGISTRY_IMAGE:-\"registry:(?<currentValue>.*?)\"}"
+      ],
       "depNameTemplate": "registry",
       "datasourceTemplate": "docker"
-     }
-   ],
-   "assignees": ["fmuyassarov","furkatgofurov7","kashifest"],
-   "assigneesSampleSize": 1,
-   "reviewers": [
-       "lentzi90",
-       "macaptain",
-       "mboukhalfa",
-       "namnx228",
-       "Rozzii",
-       "smoshiur1237",
-       "Sunnatillo",
-       "wgslr",
-       "Xenwar"
-   ],
-   "reviewersSampleSize": 2
- }
+    }
+  ],
+  "assignees": [
+    "fmuyassarov",
+    "furkatgofurov7",
+    "kashifest"
+  ],
+  "assigneesSampleSize": 1,
+  "reviewers": [
+    "lentzi90",
+    "macaptain",
+    "mboukhalfa",
+    "namnx228",
+    "Rozzii",
+    "smoshiur1237",
+    "Sunnatillo",
+    "wgslr",
+    "Xenwar"
+  ],
+  "reviewersSampleSize": 2
+}
