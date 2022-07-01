@@ -21,41 +21,41 @@ host_cleanup:
 	./host_cleanup.sh
 
 test:
-	./05_test.sh
+	./tests/05_test.sh
 
 lint:
 	./hack/shellcheck.sh
 
 setup_env:
-	./scripts/feature_tests/setup_env.sh
+	./tests/feature_tests/setup_env.sh
 
 setup_env_ug:
-	./scripts/feature_tests/setup_env.sh "ug"
+	./tests/feature_tests/setup_env.sh "ug"
 
 cleanup_env:
-	./scripts/feature_tests/cleanup_env.sh
+	./tests/feature_tests/cleanup_env.sh
 
 pivoting_test:
-	make -C ./scripts/feature_tests/pivoting/
+	make -C ./tests/feature_tests/pivoting/
 
 repivoting_test:
-	make -C ./scripts/feature_tests/pivoting/ repivoting
-	make -C ./scripts/feature_tests/pivoting/ deprovision
+	make -C ./tests/feature_tests/pivoting/ repivoting
+	make -C ./tests//feature_tests/pivoting/ deprovision
 
 remediation_test:
-	make -C ./scripts/feature_tests/remediation/
+	make -C ./tests/feature_tests/remediation/
 
 node_reuse_test:
-	make -C ./scripts/feature_tests/node_reuse/
+	make -C ./tests/feature_tests/node_reuse/
 
 upgrade_test:
-	make -C ./scripts/feature_tests/upgrade/
+	make -C ./tests/feature_tests/upgrade/
 
 inspection_test:
-	./scripts/feature_tests/inspection_test.sh
+	./tests/feature_tests/inspection_test.sh
 
 healthcheck_test:
-	make -C ./scripts/feature_tests/healthcheck/
+	make -C ./tests/feature_tests/healthcheck/
 
 feature_tests: setup_env inspection_test remediation_test healthcheck_test cleanup_env pivoting_test node_reuse_test repivoting_test
 
