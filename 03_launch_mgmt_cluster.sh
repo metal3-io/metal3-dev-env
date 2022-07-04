@@ -519,5 +519,5 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   apply_bm_hosts "$NAMESPACE"
 elif [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
 
-source scripts/deploy_tilt_env.sh
+source tilt-setup/deploy_tilt_env.sh
 fi

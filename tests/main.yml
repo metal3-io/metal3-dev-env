@@ -1,0 +1,10 @@
+---
+- name: "{{ CAPM3_VERSION }} integration test"
+  hosts: virthost
+  connection: local
+  gather_facts: true
+  become: yes
+  become_user: "{{ lookup('env', 'USER') }}"
+  tasks:
+    - import_role:
+        name: "run_tests"
