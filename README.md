@@ -99,15 +99,15 @@ make
 ### Deploy the target cluster
 
 ```sh
-./scripts/provision/cluster.sh
-./scripts/provision/controlplane.sh
-./scripts/provision/worker.sh
+./tests/scripts/provision/cluster.sh
+./tests/scripts/provision/controlplane.sh
+./tests/scripts/provision/worker.sh
 ```
 
 ### Pivot to the target cluster
 
 ```sh
-./scripts/provision/pivot.sh
+./tests/scripts/provision/pivot.sh
 ```
 
 ### Delete the target cluster
