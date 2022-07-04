@@ -44,13 +44,6 @@ hosts with 4 vCPUs and 4GB of RAM.
 Select:
 
 ```sh
-export CAPM3_VERSION=v1alpha4
-export CAPI_VERSION=v1alpha3
-```
-
-or
-
-```sh
 export CAPM3_VERSION=v1alpha5
 export CAPI_VERSION=v1alpha4
 ```

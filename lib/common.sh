@@ -105,9 +105,7 @@ FILESYSTEM=${FILESYSTEM:="/"}
 CAPM3_VERSION_LIST="v1alpha4 v1alpha5 v1beta1"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export CAPI_VERSION="v1alpha3"
-elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export CAPI_VERSION="v1alpha4"
 elif [ "${CAPM3_VERSION}" == "v1beta1" ]; then
   export CAPI_VERSION="v1beta1"
@@ -129,9 +127,7 @@ export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
 export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 
-if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
-elif [ "${CAPI_VERSION}" == "v1alpha4" ]; then
+if [ "${CAPI_VERSION}" == "v1alpha4" ]; then
   IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
 else
   IPAMBRANCH="${IPAMBRANCH:-main}"

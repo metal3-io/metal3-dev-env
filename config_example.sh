@@ -128,7 +128,7 @@
 #export CAPM3_VERSION=v1beta1
 
 # Select the Cluster API version
-# Accepted values : v1alpha3, v1alpha4, v1beta1
+# Accepted values : v1alpha4, v1beta1
 # default: v1beta1
 #
 #export CAPI_VERSION=v1beta1
