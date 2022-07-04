@@ -100,7 +100,6 @@ CAPI_REL_TO_VERSION: "{{ lookup('env', 'CAPI_REL_TO_VERSION') }}"
 UPGRADED_CAPM3_VERSION: "{{ lookup('env', 'UPGRADED_CAPM3_VERSION') }}"
 
 capm3_version_to_branch:
-  v1alpha4: release-0.4
   v1alpha5: release-0.5
   v1beta1: main
 capm3_version_to_capi_version:

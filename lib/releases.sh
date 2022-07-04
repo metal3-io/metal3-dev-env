@@ -39,9 +39,7 @@ fi
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
 
 # CAPM3 releases
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.4.")}"
-elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.5.")}"
 else
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.1.")}"

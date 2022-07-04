@@ -269,22 +269,9 @@ function apply_bm_hosts() {
 function update_capm3_imports(){
   pushd "${CAPM3PATH}"
 
-  # Assign empty secret to BMO when TLS is disabled
-  if [ "${IRONIC_TLS_SETUP}" == "false" ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-    sed -i "s/ironic-cacert/empty-ironic-cacert/g" "config/bmo/secret_mount_patch.yaml"
-  fi
   # Modify the kustomization imports to use local BMO repo instead of Github Main
   make hack/tools/bin/kustomize
-
-  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-    # Render the BMO components from local repo
-    ./hack/tools/bin/kustomize build "${BMOPATH}/config/default" > config/bmo/bmo-components.yaml
-    sed -i -e "s#https://raw.githubusercontent.com/metal3-io/baremetal-operator/main/config/render/capm3.yaml#bmo-components.yaml#" "config/bmo/kustomization.yaml"
-    # Render the IPAM components from local repo instead of using the released version
-    ./hack/tools/bin/kustomize build "${IPAMPATH}/config/" > config/ipam/metal3-ipam-components.yaml
-  else
-    ./hack/tools/bin/kustomize build "${IPAMPATH}/config/default" > config/ipam/metal3-ipam-components.yaml
-  fi
+  ./hack/tools/bin/kustomize build "${IPAMPATH}/config/default" > config/ipam/metal3-ipam-components.yaml
 
   sed -i -e "s#https://github.com/metal3-io/ip-address-manager/releases/download/v.*/ipam-components.yaml#metal3-ipam-components.yaml#" "config/ipam/kustomization.yaml"
   popd
@@ -308,15 +295,8 @@ function update_component_image(){
   # NOTE: It is assumed that we are already in the correct directory to run make
   case "${IMPORT}" in
     "BMO")
-      # In v1alpha4 the variable name is different because BMO is bundeled with
-      # CAPM3 and using the CAPM3 Makefile
-      if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-        export MANIFEST_IMG_BMO="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
-        export MANIFEST_TAG_BMO="$TMP_IMAGE_TAG"
-      else
-        export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-        export MANIFEST_TAG="${TMP_IMAGE_TAG}"
-      fi
+      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
+      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-bmo
       ;;
     "CAPM3")
@@ -368,14 +348,6 @@ function patch_clusterctl(){
     update_component_image CAPM3 "${CAPM3_IMAGE}"
   fi
 
-  if  [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-    if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
-      update_component_image BMO "${BAREMETAL_OPERATOR_LOCAL_IMAGE}"
-    else
-      update_component_image BMO "${BAREMETAL_OPERATOR_IMAGE}"
-    fi
-  fi
-
   if [ -n "${IPAM_LOCAL_IMAGE}" ]; then
     update_component_image IPAM "${IPAM_LOCAL_IMAGE}"
   else
@@ -407,13 +379,6 @@ function launch_cluster_api_provider_metal3() {
     touch capm3.err.log
     kubectl scale -n capm3-system deployment.v1.apps capm3-controller-manager --replicas 0
     nohup make run >> capm3.out.log 2>> capm3.err.log &
-  fi
-
-  if [ "${BMO_RUN_LOCAL}" == true ] && [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-    touch bmo.out.log
-    touch bmo.err.log
-    kubectl scale deployment capm3-baremetal-operator-controller-manager -n capm3-system --replicas=0
-    nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
   fi
 
   popd
@@ -497,13 +462,8 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
 
   patch_clusterctl
   launch_cluster_api_provider_metal3
-
-  if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-    BMO_NAME_PREFIX="${NAMEPREFIX}-baremetal-operator"
-  else
-    BMO_NAME_PREFIX="${NAMEPREFIX}"
-    launch_baremetal_operator
-  fi
+  BMO_NAME_PREFIX="${NAMEPREFIX}"
+  launch_baremetal_operator
   launch_ironic
 
   if [[ "${BMO_RUN_LOCAL}" != true ]]; then

@@ -122,7 +122,7 @@
 # export BOOT_MODE="UEFI"
 
 # Select the Cluster API provider Metal3 version
-# Accepted values : v1alpha4, v1alpha5, v1beta1
+# Accepted values : v1alpha5, v1beta1
 # default: v1beta1
 #
 #export CAPM3_VERSION=v1beta1

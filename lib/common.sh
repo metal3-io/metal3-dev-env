@@ -102,7 +102,7 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
 
-CAPM3_VERSION_LIST="v1alpha4 v1alpha5 v1beta1"
+CAPM3_VERSION_LIST="v1alpha5 v1beta1"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
 if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
@@ -139,9 +139,7 @@ CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  CAPM3BRANCH="${CAPM3BRANCH:-release-0.4}"
-elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
 else
   CAPM3BRANCH="${CAPM3BRANCH:-main}"
@@ -195,14 +193,8 @@ export MARIADB_IMAGE=${MARIADB_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/mariadb"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived"}
-
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
-  export NAMEPREFIX=${NAMEPREFIX:-"capm3"}
-else
-  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
-  export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
-fi
+export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
+export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
 
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
@@ -214,10 +206,7 @@ export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTR
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
 # CAPM3 and IPAM controller images
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-0.4"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-0.0"}
-elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-0.5"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-0.1"}
 else
