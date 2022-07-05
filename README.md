@@ -15,7 +15,7 @@ Instructions can be found here: <https://metal3.io/try-it.html>
 
 ## Quickstart
 
-Versions v1alpha4, v1alpha5 or v1beta1 are later referred as **v1alphaX**/**v1betaX**.
+Versions v1alpha5 or v1beta1 are later referred as **v1alphaX**/**v1betaX**.
 
 The v1alphaX or v1betaX deployment can be done with Ubuntu 18.04, 20.04, 22.04 or
 Centos 9 Stream target host images. By default, for Ubuntu based target hosts
@@ -42,13 +42,6 @@ hosts with 4 vCPUs and 4GB of RAM.
 ### Environment variables
 
 Select:
-
-```sh
-export CAPM3_VERSION=v1alpha4
-export CAPI_VERSION=v1alpha3
-```
-
-or
 
 ```sh
 export CAPM3_VERSION=v1alpha5

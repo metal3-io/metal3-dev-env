@@ -70,14 +70,12 @@
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
     with_items:
        - clusterctl.cluster.x-k8s.io=""
-    when: CAPM3_VERSION != "v1alpha4"
 
   - name: Label hardwareData CRD to pivot.
     shell: "kubectl label --overwrite crds hardwaredata.metal3.io {{ item }}"
     with_items:
        - clusterctl.cluster.x-k8s.io=""
        - clusterctl.cluster.x-k8s.io/move=""
-    when: CAPM3_VERSION != "v1alpha4"
 
   - name: Obtain target cluster kubeconfig
     kubernetes.core.k8s_info:
@@ -122,7 +120,6 @@
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
-    when: CAPM3_VERSION != "v1alpha4"
     args:
       chdir: "{{ BMOPATH }}"
 
@@ -140,14 +137,12 @@
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
     with_items:
       - clusterctl.cluster.x-k8s.io=""
-    when: CAPM3_VERSION != "v1alpha4"
 
   - name: Label hardwareData CRD in target cluster to pivot back.
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds hardwaredata.metal3.io {{ item }} --overwrite "
     with_items:
        - clusterctl.cluster.x-k8s.io=""
        - clusterctl.cluster.x-k8s.io/move=""
-    when: CAPM3_VERSION != "v1alpha4"
 
   # Check for pods & nodes on the target cluster
   - name: Check if pods in running state

@@ -102,12 +102,10 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
 # CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
 
-CAPM3_VERSION_LIST="v1alpha4 v1alpha5 v1beta1"
+CAPM3_VERSION_LIST="v1alpha5 v1beta1"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export CAPI_VERSION="v1alpha3"
-elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export CAPI_VERSION="v1alpha4"
 elif [ "${CAPM3_VERSION}" == "v1beta1" ]; then
   export CAPI_VERSION="v1beta1"
@@ -129,9 +127,7 @@ export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
 export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 
-if [ "${CAPI_VERSION}" == "v1alpha3" ]; then
-  IPAMBRANCH="${IPAMBRANCH:-release-0.0}"
-elif [ "${CAPI_VERSION}" == "v1alpha4" ]; then
+if [ "${CAPI_VERSION}" == "v1alpha4" ]; then
   IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
 else
   IPAMBRANCH="${IPAMBRANCH:-main}"
@@ -143,9 +139,7 @@ CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  CAPM3BRANCH="${CAPM3BRANCH:-release-0.4}"
-elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
 else
   CAPM3BRANCH="${CAPM3BRANCH:-main}"
@@ -199,14 +193,8 @@ export MARIADB_IMAGE=${MARIADB_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/mariadb"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived"}
-
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"capm3-system"}
-  export NAMEPREFIX=${NAMEPREFIX:-"capm3"}
-else
-  export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
-  export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
-fi
+export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
+export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
 
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
@@ -218,10 +206,7 @@ export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTR
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml
 
 # CAPM3 and IPAM controller images
-if [ "${CAPM3_VERSION}" == "v1alpha4" ]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-0.4"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-0.0"}
-elif [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-0.5"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-0.1"}
 else
@@ -249,20 +234,13 @@ fi
 # Kustomize version
 export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v4.4.1"}
 
-# Kind version (if EPHEMERAL_CLUSTER=kind)
+# Kind, kind node image versions (if EPHEMERAL_CLUSTER=kind)
 export KIND_VERSION=${KIND_VERSION:-"v0.14.0"}
-
-# Remove this KUBERNETES_VERSION Check once we stop supporting capm3 v1a4
-if [ "${KUBERNETES_VERSION}" == "v1.21.2" ]; then
-  export KIND_NODE_IMAGE_VERSION="v1.21.2"
-  # Minikube version (if EPHEMERAL_CLUSTER=minikube)
-  export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.22.0"}
-else
-  export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.23.4"}
-  # Minikube version (if EPHEMERAL_CLUSTER=minikube)
-  export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.25.2"}
-fi
+export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.23.4"}
 export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"${DOCKER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}"}
+
+# Minikube version (if EPHEMERAL_CLUSTER=minikube)
+export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.25.2"}
 
 # Ansible version
 export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"6.0.0"}
