@@ -4,7 +4,7 @@
 
 set -xe
 
-METAL3_DIR="$(dirname "$(readlink -f "${0}")")/.."
+METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../.."
 
 # shellcheck disable=SC1090
 # shellcheck disable=SC1091
