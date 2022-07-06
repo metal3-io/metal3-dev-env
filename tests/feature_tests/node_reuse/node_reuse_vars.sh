@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export UPGRADED_K8S_VERSION="v1.23.5"
+export UPGRADED_K8S_VERSION="v1.23.8"
 
 if [[ "${IMAGE_OS}" == "ubuntu" ]]; then
   export UPGRADED_IMAGE_NAME="UBUNTU_20.04_NODE_IMAGE_K8S_${UPGRADED_K8S_VERSION}.qcow2"
