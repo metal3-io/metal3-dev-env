@@ -123,27 +123,26 @@ export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
+if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+  CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
+  IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
+elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
+  CAPM3BRANCH="${CAPM3BRANCH:-release-1.1}"
+  IPAMBRANCH="${IPAMBRANCH:-release-1.1}"
+else
+  CAPM3BRANCH="${CAPM3BRANCH:-main}"
+  IPAMBRANCH="${IPAMBRANCH:-main}"
+fi
+
 export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
 export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
-
-if [ "${CAPI_VERSION}" == "v1alpha4" ]; then
-  IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
-else
-  IPAMBRANCH="${IPAMBRANCH:-main}"
-fi
 
 IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
 
 CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
-
-if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
-  CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
-else
-  CAPM3BRANCH="${CAPM3BRANCH:-main}"
-fi
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 BMOBRANCH="${BMOBRANCH:-main}"
