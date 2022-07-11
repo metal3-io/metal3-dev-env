@@ -123,6 +123,8 @@ export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 
+export CAPM3RELEASEBRANCH=${CAPM3RELEASEBRANCH:-main}
+
 if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
   IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
