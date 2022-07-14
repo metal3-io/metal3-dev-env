@@ -120,7 +120,7 @@ export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 
 export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
-export CAPM3_BASE_URL="${CAPM3_BASE_URL:-slintes/cluster-api-provider-metal3}"
+export CAPM3_BASE_URL="${CAPM3_BASE_URL:-Nordix/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3_LOCAL_IMAGE="${CAPM3PATH}"
 
@@ -133,7 +133,7 @@ elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-1.1}"
   IPAMBRANCH="${IPAMBRANCH:-release-1.1}"
 else
-  CAPM3BRANCH="${CAPM3BRANCH:-fix_rbac}"
+  CAPM3BRANCH="${CAPM3BRANCH:-m3r-delete-fix}"
   IPAMBRANCH="${IPAMBRANCH:-main}"
 fi
 
