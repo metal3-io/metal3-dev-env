@@ -6,6 +6,42 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 
+
+# Clone and checkout a repo
+#
+function clone_repo() {
+  local REPO_URL="$1"
+  local REPO_BRANCH="$2"
+  local REPO_PATH="$3"
+  local REPO_COMMIT="${4:-HEAD}"
+
+  if [[ -d "${REPO_PATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+    rm -rf "${REPO_PATH}"
+  fi
+  if [ ! -d "${REPO_PATH}" ] ; then
+    pushd "${M3PATH}"
+    git clone "${REPO_URL}" "${REPO_PATH}"
+    popd
+    pushd "${REPO_PATH}"
+    git checkout "${REPO_BRANCH}"
+    git checkout "${REPO_COMMIT}"
+    git pull -r || true
+    popd
+  fi
+}
+
+#
+# Clone all needed repositories
+#
+function clone_repos() {
+  mkdir -p "${M3PATH}"
+  clone_repo "${BMOREPO}" "${BMOBRANCH}" "${BMOPATH}" "${BMOCOMMIT}"
+  clone_repo "${CAPM3REPO}" "${CAPM3BRANCH}" "${CAPM3PATH}"
+  clone_repo "${IPAMREPO}" "${IPAMBRANCH}" "${IPAMPATH}"
+}
+
+clone_repos
+
 sudo modprobe -r -a kvm_intel kvm
 sudo modprobe kvm tdp_mmu=0
 sudo modprobe -a kvm kvm_intel
