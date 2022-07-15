@@ -57,7 +57,7 @@ inspection_test:
 healthcheck_test:
 	make -C ./tests/feature_tests/healthcheck/
 
-feature_tests: setup_env inspection_test remediation_test healthcheck_test cleanup_env pivoting_test node_reuse_test repivoting_test
+feature_tests: setup_env healthcheck_test cleanup_env pivoting_test node_reuse_test repivoting_test
 
 feature_tests_upgrade: setup_env_ug upgrade_test
 
