@@ -402,7 +402,9 @@
     failed_when: new_image_cp_nodes.stdout|int != 3
 
   - name: Untaint all CP nodes after upgrade of controlplane nodes
-    command: kubectl taint nodes --all node-role.kubernetes.io/master-
+    shell: |
+        kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+        kubectl taint nodes --all node-role.kubernetes.io/master-
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     ignore_errors: yes
@@ -425,6 +427,7 @@
       kind: Node
       label_selectors:
         - "!node-role.kubernetes.io/control-plane"
+        - "!node-role.kubernetes.io/master"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: worker_nodes
 
@@ -517,6 +520,7 @@
       kind: Node
       label_selectors:
         - "!node-role.kubernetes.io/control-plane"
+        - "!node-role.kubernetes.io/master"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     retries: 200
     delay: 20
