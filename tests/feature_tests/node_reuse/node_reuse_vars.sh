@@ -1,6 +1,11 @@
 #!/bin/bash
 
-export UPGRADED_K8S_VERSION="v1.24.1"
+if [[ "$CAPM3RELEASEBRANCH" == "release-0.5" ]];
+then
+  export UPGRADED_K8S_VERSION="v1.23.8"
+else
+  export UPGRADED_K8S_VERSION="v1.24.1"
+fi
 
 if [[ "${IMAGE_OS}" == "ubuntu" ]]; then
   export UPGRADED_IMAGE_NAME="UBUNTU_20.04_NODE_IMAGE_K8S_${UPGRADED_K8S_VERSION}.qcow2"
