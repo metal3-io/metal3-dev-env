@@ -3,14 +3,13 @@ set -eux
 
 # Folder created for specific capi release when running
 # ${CLUSTER_API_REPO}/cmd/clusterctl/hack/create-local-repository.py
-
-export CAPIRELEASE_HARDCODED="v1.1.99"
+export CAPIRELEASE_HARDCODED="v1.2.99"
 
 export CAPI_VERSION="${CAPI_VERSION:-v1alpha4}"
-export CAPI_REL_TO_VERSION="v1.1.5"
+export CAPI_REL_TO_VERSION="v1.2.1"
 
 export CAPM3_VERSION="${CAPM3_VERSION:-v1alpha5}"
-export CAPM3_REL_TO_VERSION="v1.1.2"
+export CAPM3_REL_TO_VERSION="v1.2.0-rc.1"
 export UPGRADED_CAPM3_VERSION="v1beta1"
 
 # Set the container tag for Ironic and BMO to start from.
