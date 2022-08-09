@@ -22,3 +22,5 @@ fi
 if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
   sudo su -l -c "minikube delete" "${USER}"
 fi
+
+rm -rf "${TEMP_KUSTOMIZATIONS}"

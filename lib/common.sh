@@ -163,6 +163,8 @@ WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
 NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/ironic_nodes.json"}
 NODES_PLATFORM=${NODES_PLATFORM:-"libvirt"}
 
+export TEMP_KUSTOMIZATIONS="${SCRIPTDIR}/config.tmp"
+
 # Metal3
 export NAMESPACE=${NAMESPACE:-"metal3"}
 export NUM_NODES=${NUM_NODES:-"2"}
