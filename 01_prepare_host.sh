@@ -92,7 +92,10 @@ if ! kubectl krew > /dev/null 2>&1; then
   tar zxvf "${KREW}.tar.gz" &&
   rm -f "${KREW}.tar.gz" &&
   ./"${KREW}" install krew
-  echo export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH" >> ~/.bashrc
+  # Add krew to PATH by appending this line to .bashrc
+  krew_path_bashrc="export PATH=${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+  # Add the line if it is not already there
+  grep -qxF "${krew_path_bashrc}" ~/.bashrc || echo "${krew_path_bashrc}" >> ~/.bashrc
 fi
 
 # Allow local non-root-user access to libvirt
