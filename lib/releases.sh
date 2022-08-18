@@ -8,7 +8,7 @@ function get_latest_release() {
     release="$(curl -H "Authorization: token ${GITHUB_TOKEN}" -sL "${1}")" || ( set -x && exit 1 )
   fi
   # This gets the latest release as vx.y.z , ignoring any version with a suffix starting with - , for example -rc0
-  release_tags_unsorted="$(echo "$release" | jq -r "[.[].tag_name | select( startswith(\"${2:-""}\")) | select(contains(\"-\")==false)]" \
+  release_tags_unsorted="$(echo "$release" | jq -r "[.[].tag_name | select( startswith(\"${2:-""}\"))]" \
     | cut -sf2 -d\"  | tr '.' ' ' )"
   if [[ $OS == ubuntu ]]; then
     release_tags_sorted="$(echo "$release_tags_unsorted" | sort -n +1 +2 )"
@@ -30,20 +30,19 @@ function get_latest_release() {
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}/releases}"
 CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
 
-# CAPI releases
-if [ "${CAPI_VERSION}" == "v1alpha4" ]; then
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.4.")}"
-else
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.1.")}"
-fi
-CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
-
-# CAPM3 releases
-if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+# CAPM3 and CAPI releases
+if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.5.")}"
-else
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.4.")}"
+elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.1.")}"
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.1.")}"
+else
+  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.2.")}"
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.2.")}"
 fi
+
+CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
 
 # On first iteration, jq might not be installed
 if [[ "$CAPIRELEASE" == "" ]]; then
