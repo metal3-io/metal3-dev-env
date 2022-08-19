@@ -1,7 +1,6 @@
 # See the OWNERS docs at https://go.k8s.io/owners
 
 approvers:
- - fmuyassarov
  - furkatgofurov7
  - kashifest
 
@@ -15,6 +14,7 @@ reviewers:
 emeritus_approvers:
  - maelk
  - hardys
+ - fmuyassarov
 
 emeritus_reviewers:
  - jan-est
