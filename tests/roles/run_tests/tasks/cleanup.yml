@@ -34,7 +34,7 @@
              (deprovision_cluster.resources | length == 0) or
              (deprovision_cluster.resources[0].status.phase | lower == "deleting"))
 
-  - name: Wait until "{{ NUM_NODES }}" bmhs become available again.
+  - name: Wait until "{{ NUM_NODES|int + NUM_REDFISHVMNODES|int }}" bmhs become available again.
     kubernetes.core.k8s_info:
       api_version: metal3.io/v1alpha1
       kind: BareMetalHost
@@ -46,7 +46,7 @@
       query: "[? (status.provisioning.state=='ready' || status.provisioning.state=='available')].status.provisioning.state"
     until: (deprovisioned_nodes is succeeded) and
            (deprovisioned_nodes.resources | length > 0) and
-           (deprovisioned_nodes.resources | json_query(query) | length == (NUM_NODES | int))
+           (deprovisioned_nodes.resources | json_query(query) | length == (NUM_NODES|int + NUM_REDFISHVMNODES|int))
 
   - name: Wait until no metal3machines are remaining
     kubernetes.core.k8s_info:
