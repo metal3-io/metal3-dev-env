@@ -56,13 +56,11 @@ fi
 if [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
   if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
-      sudo ifdown provisioning || true
-      sudo rm -f /etc/sysconfig/network-scripts/ifcfg-provisioning || true
+      sudo nmcli con delete provisioning
   fi
   # Leaving this around causes issues when the host is rebooted
   if [ "$MANAGE_BR_BRIDGE" == "y" ]; then
-      sudo ifdown baremetal || true
-      sudo rm -f /etc/sysconfig/network-scripts/ifcfg-baremetal || true
+      sudo nmcli con delete baremetal
   fi
 fi
 
