@@ -18,18 +18,17 @@
   {% for node in vm_nodes %}
 
     {% set vm_driver_tmp = vm_driver -%}
-    {# If vm_driver == mixed we alternate between ipmi and refish to test both #}
+    {# If vm_driver == mixed we alternate between ipmi, refish and refish-virtualmedia to test both #}
     {% if vm_driver == 'mixed' -%}
-      {# For live-iso setting one node to always use redfish-virtualmedia #}
-      {% if 'redfishvmnode' in node.name -%}
-        {% set vm_driver_tmp = 'redfish-virtualmedia' -%}
       {# For extraworker always use redfish #}
-      {% elif 'extraworker' in node.name -%}
+      {% if 'extraworker' in node.name -%}
         {% set vm_driver_tmp = 'redfish' -%}
-      {% elif loop.index is divisibleby 2 -%}
-        {% set vm_driver_tmp = 'redfish' -%}
-      {% else -%}
+      {% elif loop.index % 3 == 0 -%}
+        {% set vm_driver_tmp = 'redfish-virtualmedia' -%}
+      {% elif loop.index % 3 == 1 -%}
         {% set vm_driver_tmp = 'ipmi' -%}
+      {% else -%}
+        {% set vm_driver_tmp = 'redfish' -%}
       {% endif -%}
     {% endif -%}
 

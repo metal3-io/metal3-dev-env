@@ -12,17 +12,11 @@ default_disk: 50
 default_memory: 8192
 default_vcpu: 2
 num_nodes: 2
-num_redfishvmnodes: 0
 extradisks: false
 tpm_emulator: "{{ lookup('env', 'VM_TPM_EMULATOR')|default(false, true) }}"
 virtualbmc_base_port: 6230
 flavors:
   node:
-    memory: '{{node_memory|default(default_memory)}}'
-    disk: '{{node_disk|default(default_disk)}}'
-    vcpu: '{{node_vcpu|default(default_vcpu)}}'
-    extradisks: '{{extradisks|bool}}'
-  redfishvmnode:
     memory: '{{node_memory|default(default_memory)}}'
     disk: '{{node_disk|default(default_disk)}}'
     vcpu: '{{node_vcpu|default(default_vcpu)}}'

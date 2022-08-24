@@ -35,7 +35,6 @@ fi
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "working_dir=$WORKING_DIR" \
     -e "num_nodes=$NUM_NODES" \
-    -e "num_redfishvmnodes=$NUM_REDFISHVMNODES" \
     -e "extradisks=$VM_EXTRADISKS" \
     -e "virthost=$HOSTNAME" \
     -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
