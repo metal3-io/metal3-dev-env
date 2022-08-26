@@ -1,6 +1,7 @@
 # CentOS specific controlplane kubeadm config
 preKubeadmCommands:
   - systemctl restart NetworkManager.service
+  - nmcli connection delete "System eth0"
   - nmcli connection load /etc/NetworkManager/system-connections/eth0.nmconnection
   - nmcli connection up eth0
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
