@@ -217,41 +217,41 @@ EOF
   kustomize edit set image quay.io/metal3-io/ironic-ipa-downloader="${IPA_DOWNLOADER_LOCAL_IMAGE:-${IPA_DOWNLOADER_IMAGE}}"
   popd
 
+  # Based on IRONIC_TLS_SETUP, IRONIC_BASIC_AUTH, pick the proper components
+  # and edit the kustomization.
+  pushd "${TEMP_KUSTOMIZATIONS}/ironic"
+  if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
+    kustomize edit add component components/basic-auth
+  fi
+  if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
+    kustomize edit add component components/tls
+  fi
+  kustomize edit add component components/keepalived
+  popd
+
+  # Set correct repo and commit to use
+  sed "s#BMOREPO#${BMOREPO}#g" -i "${TEMP_KUSTOMIZATIONS}/ironic/kustomization.yaml"
+  sed "s#BMOCOMMIT#${BMOCOMMIT}#g" -i "${TEMP_KUSTOMIZATIONS}/ironic/kustomization.yaml"
+  sed "s#BMOREPO#${BMOREPO}#g" -i "${TEMP_KUSTOMIZATIONS}/ironic/components/tls/kustomization.yaml"
+  sed "s#BMOCOMMIT#${BMOCOMMIT}#g" -i "${TEMP_KUSTOMIZATIONS}/ironic/components/tls/kustomization.yaml"
+  # Set correct IPs for the certificates
+  sed -i "s/IRONIC_HOST_IP/${IRONIC_HOST_IP}/g; s/MARIADB_HOST_IP/${MARIADB_HOST_IP}/g" "${TEMP_KUSTOMIZATIONS}/ironic/components/tls/certificate.yaml"
+
+  # Generate credentials
+  envsubst < "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-auth-config-tpl" > \
+  "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-auth-config"
+  envsubst < "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-auth-config-tpl" > \
+  "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-auth-config"
+
+  echo "IRONIC_HTPASSWD=$(htpasswd -n -b -B "${IRONIC_USERNAME}" "${IRONIC_PASSWORD}")" > \
+  "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-htpasswd"
+  echo "INSPECTOR_HTPASSWD=$(htpasswd -n -b -B "${IRONIC_INSPECTOR_USERNAME}" \
+  "${IRONIC_INSPECTOR_PASSWORD}")" > "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-htpasswd"
+
   if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
     update_images
     ${RUN_LOCAL_IRONIC_SCRIPT}
   else
-    # Based on IRONIC_TLS_SETUP, IRONIC_BASIC_AUTH, pick the proper components
-    # and edit the kustomization.
-    pushd "${TEMP_KUSTOMIZATIONS}/ironic"
-    if [ "${IRONIC_BASIC_AUTH}" == "true" ]; then
-      kustomize edit add component components/basic-auth
-    fi
-    if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
-      kustomize edit add component components/tls
-    fi
-    kustomize edit add component components/keepalived
-    popd
-
-    # Set correct repo and commit to use
-    sed "s#BMOREPO#${BMOREPO}#g" -i "${TEMP_KUSTOMIZATIONS}/ironic/kustomization.yaml"
-    sed "s#BMOCOMMIT#${BMOCOMMIT}#g" -i "${TEMP_KUSTOMIZATIONS}/ironic/kustomization.yaml"
-    sed "s#BMOREPO#${BMOREPO}#g" -i "${TEMP_KUSTOMIZATIONS}/ironic/components/tls/kustomization.yaml"
-    sed "s#BMOCOMMIT#${BMOCOMMIT}#g" -i "${TEMP_KUSTOMIZATIONS}/ironic/components/tls/kustomization.yaml"
-    # Set correct IPs for the certificates
-    sed -i "s/IRONIC_HOST_IP/${IRONIC_HOST_IP}/g; s/MARIADB_HOST_IP/${MARIADB_HOST_IP}/g" "${TEMP_KUSTOMIZATIONS}/ironic/components/tls/certificate.yaml"
-
-    # Generate credentials
-    envsubst < "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-auth-config-tpl" > \
-    "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-auth-config"
-    envsubst < "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-auth-config-tpl" > \
-    "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-auth-config"
-
-    echo "IRONIC_HTPASSWD=$(htpasswd -n -b -B "${IRONIC_USERNAME}" "${IRONIC_PASSWORD}")" > \
-    "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-htpasswd"
-    echo "INSPECTOR_HTPASSWD=$(htpasswd -n -b -B "${IRONIC_INSPECTOR_USERNAME}" \
-    "${IRONIC_INSPECTOR_PASSWORD}")" > "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-htpasswd"
-
     kustomize build "${TEMP_KUSTOMIZATIONS}/ironic" | kubectl apply -f -
   fi
 }

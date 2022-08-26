@@ -3,7 +3,7 @@
   # Remove Ironic from target cluster
   - name: Remove Ironic from target cluster
     kubernetes.core.k8s:
-      name: "{{ NAMEPREFIX }}-ironic"
+      name: "ironic"
       kind: Deployment
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
@@ -16,13 +16,8 @@
     when: EPHEMERAL_CLUSTER == "kind"
 
   - name: Install Ironic in Source cluster (Ephemeral Cluster is minikube)
-    shell: "{{ BMOPATH }}/tools/deploy.sh false true {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
-    environment:
-      IRONIC_HOST: "{{ IRONIC_HOST }}"
-      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+    shell: kustomize build {{ TEMP_KUSTOMIZATIONS }}/ironic | kubectl apply -f -
     when: EPHEMERAL_CLUSTER == "minikube"
-    args:
-      chdir: "{{ BMOPATH }}"
 
   - name: Re-pivot everything back to source cluster
     shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"

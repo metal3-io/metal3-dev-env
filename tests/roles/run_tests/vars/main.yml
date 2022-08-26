@@ -6,6 +6,7 @@ IRONIC_NAMESPACE: "{{ lookup('env', 'IRONIC_NAMESPACE') | default('baremetal-ope
 NAMEPREFIX: "{{ lookup('env', 'NAMEPREFIX') | default('baremetal-operator', true) }}"
 CRS_PATH: "{{ metal3_dir }}/tests/roles/run_tests/templates"
 TEMP_GEN_DIR: "{{ metal3_dir }}/tests/roles/run_tests/files/manifests"
+TEMP_KUSTOMIZATIONS: "{{ lookup('env', 'TEMP_KUSTOMIZATIONS') }}"
 EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('kind', true) }}"
 CLUSTER_APIENDPOINT_HOST: "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
 CLUSTER_APIENDPOINT_PORT: "{{ lookup('env', 'CLUSTER_APIENDPOINT_PORT') | default(6443, true) }}"

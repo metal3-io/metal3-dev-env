@@ -60,7 +60,7 @@
 
   - name: Remove Ironic from source cluster (minikube cluster)
     kubernetes.core.k8s:
-      name: "{{ NAMEPREFIX }}-ironic"
+      name: "ironic"
       kind: Deployment
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
@@ -115,31 +115,19 @@
 
   # Install BMO
   - name: Install Baremetal Operator
-    shell: "{{ BMOPATH }}/tools/deploy.sh true false {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
-    environment:
-      IRONIC_HOST: "{{ IRONIC_HOST }}"
-      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
-    args:
-      chdir: "{{ BMOPATH }}"
+    shell: kustomize build {{ TEMP_KUSTOMIZATIONS }}/bmo | kubectl {{ KUBECTL_ARGS }} apply -f -
 
   # Install Ironic
   - name: Install Ironic
-    shell: "{{ BMOPATH }}/tools/deploy.sh false true {{ IRONIC_TLS_SETUP }} {{ IRONIC_BASIC_AUTH }} true"
-    environment:
-      IRONIC_HOST: "{{ IRONIC_HOST }}"
-      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
-    args:
-      chdir: "{{ BMOPATH }}"
+    shell: kustomize build {{ TEMP_KUSTOMIZATIONS }}/ironic | kubectl {{ KUBECTL_ARGS }} apply -f -
 
   - name: Label baremetalhost CRD in target cluster to pivot back.
-    shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
+    shell: "kubectl {{ KUBECTL_ARGS }} label crds baremetalhosts.metal3.io {{ item }} --overwrite "
     with_items:
       - clusterctl.cluster.x-k8s.io=""
 
   - name: Label hardwareData CRD in target cluster to pivot back.
-    shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds hardwaredata.metal3.io {{ item }} --overwrite "
+    shell: "kubectl {{ KUBECTL_ARGS }} label crds hardwaredata.metal3.io {{ item }} --overwrite "
     with_items:
        - clusterctl.cluster.x-k8s.io=""
        - clusterctl.cluster.x-k8s.io/move=""
