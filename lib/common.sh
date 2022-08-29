@@ -138,9 +138,10 @@ else
   IPAMBRANCH="${IPAMBRANCH:-main}"
 fi
 
+export IPAMBRANCH="lentzi90/ipaddress-finalizer"
 export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
-export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
-export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
+export IPAM_BASE_URL="Nordix/metal3-ipam"
+export IPAMREPO="https://github.com/${IPAM_BASE_URL}"
 
 IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
 
@@ -210,6 +211,8 @@ else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main"}
 fi
+
+IPAM_LOCAL_IMAGE=${IPAMPATH}
 
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
