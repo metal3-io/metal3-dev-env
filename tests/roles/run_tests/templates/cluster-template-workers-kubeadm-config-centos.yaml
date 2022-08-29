@@ -35,6 +35,8 @@ files:
       interface-name=eth0
       master={{ IRONIC_ENDPOINT_BRIDGE }}
       slave-type=bridge
+      autoconnect=yes
+      autoconnect-priority=999
   - path: /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
     owner: root:root
     permissions: '0600'
