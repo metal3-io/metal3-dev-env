@@ -341,6 +341,13 @@ function patch_clusterctl(){
   mkdir -p "${HOME}"/.cluster-api
   touch "${HOME}"/.cluster-api/clusterctl.yaml
 
+  ## Remove these lines
+  ## This is hard-coded until we fix the issue with v1.9.1
+  cat << EOF | sudo tee "${HOME}/.cluster-api/clusterctl.yaml"
+cert-manager:
+  version: "v1.9.1" 
+EOF
+
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
