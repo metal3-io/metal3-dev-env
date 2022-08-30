@@ -342,7 +342,7 @@ function patch_clusterctl(){
   touch "${HOME}"/.cluster-api/clusterctl.yaml
 
   ## Remove these lines
-  ## This is hard-coded until we fix the issue with v1.9.1
+  ## This is hard-coded until we use clusterctl with cert-manager v1.9.1
   cat << EOF | sudo tee "${HOME}/.cluster-api/clusterctl.yaml"
 cert-manager:
   version: "v1.9.1" 
