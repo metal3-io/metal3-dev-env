@@ -18,9 +18,11 @@
       mode: '0755'
 
   - name: Deploy clusterctl variables to clusterctl config
-    template:
-      src: clusterctl-vars.yaml
-      dest: "{{ HOME }}/.cluster-api/clusterctl.yaml"
+    ansible.builtin.blockinfile:
+      block: "{{lookup('ansible.builtin.template', '{{ CRS_PATH }}/clusterctl-vars.yaml')}}"
+      path: "{{ HOME }}/.cluster-api/clusterctl.yaml"
+      create: yes 
+      state: present
 
   - name: Generate clusterctl cluster template
     template:
