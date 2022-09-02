@@ -29,12 +29,13 @@
       namespace: "{{ NAMESPACE }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: saved_bmhs
-    retries: 200
-    delay: 20
+    retries: 2000
+    delay: 200
     until:
       - saved_bmhs is succeeded
       - saved_bmhs.resources | filter_provisioning("available,ready") | length == (NUMBER_OF_BMH_MD | int)
-
+  - pause:
+      minutes: 600
   - name: Get provisioned BMH names and UUIDs mapping before upgrade in KubeadmControlPlane node reuse test scenario.
     set_fact:
       bmh_before_upgrade_kcp: "{{ bmh_before_upgrade_kcp | default([]) + ['metal3/' + item.metadata.name + '=metal3://' + item.metadata.uid] }}"
