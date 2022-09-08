@@ -35,8 +35,8 @@ files:
       interface-name=eth0
       master={{ IRONIC_ENDPOINT_BRIDGE }}
       slave-type=bridge
-      autoconnect=yes
-      autoconnect-priority=999
+      autoconnect=true
+      autoconnect-priority=2
   - path: /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
     owner: root:root
     permissions: '0600'
@@ -45,6 +45,7 @@ files:
       id={{ IRONIC_ENDPOINT_BRIDGE }}
       type=bridge
       interface-name={{ IRONIC_ENDPOINT_BRIDGE }}
+      autoconnect-priority=1
 
       [bridge]
       stp=false
@@ -62,7 +63,7 @@ files:
     content: |
       [kubernetes]
       name=Kubernetes
-      baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      baseurl=https://pack1ges.cloud.google.com/yum/repos/kubernetes-el7-x86_64
       enabled=1
       gpgcheck=1
       repo_gpgcheck=0
