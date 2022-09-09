@@ -328,9 +328,9 @@
   - name: Download upgraded boot-disk image for deployment
     include_tasks: download_image.yml
     vars:
-      IMAGE_NAME: "UBUNTU_20.04_NODE_IMAGE_K8S_{{UPGRADED_K8S_VERSION}}.qcow2"
-      RAW_IMAGE_NAME: "UBUNTU_20.04_NODE_IMAGE_K8S_{{UPGRADED_K8S_VERSION}}-raw.img"
-      IMAGE_LOCATION: "https://artifactory.nordix.org/artifactory/metal3/images/k8s_{{UPGRADED_K8S_VERSION}}"
+      IMAGE_NAME: "MOHAMMED-3-UBUNTU_20.04_NODE_IMAGE_K8S_{{UPGRADED_K8S_VERSION}}.qcow2"
+      RAW_IMAGE_NAME: "MOHAMMED-3-UBUNTU_20.04_NODE_IMAGE_K8S_{{UPGRADED_K8S_VERSION}}-raw.img"
+      IMAGE_LOCATION: "https://artifactory.nordix.org/artifactory/metal3/images/temp"
       IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
       IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
 
@@ -352,7 +352,7 @@
       CLUSTER_UID: "{{ clusters.resources[0].metadata.uid }}"
       M3MT_NAME: "{{CLUSTER_NAME}}-new-controlplane-image"
       DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-controlplane-template"
-      RAW_IMAGE_NAME: "UBUNTU_20.04_NODE_IMAGE_K8S_{{UPGRADED_K8S_VERSION}}-raw.img"
+      RAW_IMAGE_NAME: "MOHAMMED-3-UBUNTU_20.04_NODE_IMAGE_K8S_{{UPGRADED_K8S_VERSION}}-raw.img"
       IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
       IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
       NODE_REUSE_STATUS: "false"
@@ -368,7 +368,7 @@
       CLUSTER_UID: "{{ clusters.resources[0].metadata.uid }}"
       M3MT_NAME: "{{CLUSTER_NAME}}-new-workers-image"
       DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-workers-template"
-      RAW_IMAGE_NAME: "UBUNTU_20.04_NODE_IMAGE_K8S_{{UPGRADED_K8S_VERSION}}-raw.img"
+      RAW_IMAGE_NAME: "MOHAMMED-3-UBUNTU_20.04_NODE_IMAGE_K8S_{{UPGRADED_K8S_VERSION}}-raw.img"
       IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
       IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
       NODE_REUSE_STATUS: "false"
