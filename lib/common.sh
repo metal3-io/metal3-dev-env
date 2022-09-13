@@ -149,7 +149,7 @@ CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-BMOBRANCH="${BMOBRANCH:-main}"
+BMOBRANCH="${BMOBRANCH:-${BMORELEASE}}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 BMOCOMMIT="${BMOCOMMIT:-HEAD}"
 
