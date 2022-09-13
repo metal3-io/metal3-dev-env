@@ -12,9 +12,7 @@ preKubeadmCommands:
   - mount /dev/vda1 {{ VM_EXTRADISKS_MOUNT_DIR }}
 {% endif %}
   - systemctl enable --now crio keepalived kubelet
-  - systemctl link /lib/systemd/system/monitor.keepalived.service
-  - systemctl enable monitor.keepalived.service
-  - systemctl start monitor.keepalived.service
+  - systemctl enable --now /lib/systemd/system/monitor.keepalived.service
 postKubeadmCommands:
   - mkdir -p /home/{{ IMAGE_USERNAME }}/.kube
   - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube
