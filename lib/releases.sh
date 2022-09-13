@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 function get_latest_release() {
   set +x
   if [ -z "${GITHUB_TOKEN:-}" ]; then
@@ -28,12 +26,12 @@ function get_latest_release() {
   echo "$release_tag"
 }
 
-# CAPM3 , CAPI and BMO release path
+# CAPM3, CAPI and BMO release path
 CAPM3RELEASEPATH="${CAPM3RELEASEPATH:-https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}/releases}"
 CAPIRELEASEPATH="${CAPIRELEASEPATH:-https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
-BMORELEASEPATH="${https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/baremetal-operator}/releases}"
+BMORELEASEPATH="${https://api.github.com/repos/${BMO_BASE_URL:-metal3-io/baremetal-operator}/releases}"
 
-# CAPM3 CAPI and BMO releases
+# CAPM3, CAPI and BMO releases
 if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.5.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.4.")}"
@@ -48,6 +46,7 @@ fi
 export BMORELEASE="${BMORELEASE:-$(get_latest_release "${BMORELEASEPATH}" "v0.1.")}"
 
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
+BMOBRANCH="${BMOBRANCH:-${BMORELEASE}}"
 
 # On first iteration, jq might not be installed
 if [[ "$CAPIRELEASE" == "" ]]; then
