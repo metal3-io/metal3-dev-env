@@ -96,7 +96,7 @@ FILESYSTEM=${FILESYSTEM:="/"}
 # CAPIPATH : Path to clone the Cluster API repository
 #
 # BMOREPO : Baremetal Operator repository URL
-# BMOBRANCH : Baremetal Operator repository branch to checkout
+# BMOBRANCH : Baremetal Operator repository branch to checkout (its set it lib/releases.sh)
 # CAPM3REPO : Cluster API Provider Metal3 repository URL
 # CAPM3BRANCH : Cluster API Provider Metal3 repository branch to checkout
 # FORCE_REPO_UPDATE : discard existing directories
@@ -149,7 +149,7 @@ CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-BMOBRANCH="${BMOBRANCH:-main}"
+export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 BMOCOMMIT="${BMOCOMMIT:-HEAD}"
 
