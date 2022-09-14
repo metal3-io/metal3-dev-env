@@ -6,10 +6,6 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 
-sudo modprobe -r -a kvm_intel kvm
-sudo modprobe kvm tdp_mmu=0
-sudo modprobe -a kvm kvm_intel
-
 if [[ $(id -u) == 0 ]]; then
   echo "Please run 'make' as a non-root user"
   exit 1
@@ -26,6 +22,11 @@ if [[ $OS == ubuntu ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
   elif [[ ${DISTRO} == "ubuntu22" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
+    # (workaround) disable tdp_mmu to avoid
+    # kernel crashes with  NULL pointer dereference
+    sudo modprobe -r -a kvm_intel kvm
+    sudo modprobe kvm tdp_mmu=0
+    sudo modprobe -a kvm kvm_intel
   fi
 elif [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo dnf upgrade -y
