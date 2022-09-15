@@ -46,7 +46,7 @@ fi
 export BMORELEASE="${BMORELEASE:-$(get_latest_release "${BMORELEASEPATH}" "v0.1.")}"
 
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
-BMOBRANCH="${BMOBRANCH:-${BMORELEASE}}"
+export BMOBRANCH="${BMOBRANCH:-${BMORELEASE}}"
 
 # On first iteration, jq might not be installed
 if [[ "$CAPIRELEASE" == "" ]]; then

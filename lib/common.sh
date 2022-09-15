@@ -150,6 +150,7 @@ CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
 BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
+export BMOBRANCH="${BMOBRANCH:-${BMORELEASE}}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 BMOCOMMIT="${BMOCOMMIT:-HEAD}"
 

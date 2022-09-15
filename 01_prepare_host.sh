@@ -3,6 +3,10 @@ set -xe
 
 # shellcheck disable=SC1091
 source lib/logging.sh
+
+# shellcheck disable=SC1091
+source lib/releases.sh
+
 # shellcheck disable=SC1091
 source lib/common.sh
 
@@ -79,9 +83,6 @@ if [[ ":$PATH:" != *":$GOBINARY:"* ]]; then
   # shellcheck disable=SC1090
   source ~/.bashrc
 fi
-
-# shellcheck disable=SC1091
-source lib/releases.sh
 
 ## Install krew
 if ! kubectl krew > /dev/null 2>&1; then
