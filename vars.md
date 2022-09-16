@@ -89,6 +89,23 @@ assured that they are persisted.
 | MARIADB_CAKEY_FILE | Path to the CA key of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.key |
 | MARIADB_CACERT_FILE | Path to the CA certificate of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.pem |
 
+## Local images
+
+Environment variables with `_LOCAL_IMAGE` in their name are used to specify either git repositories or directories that contain the code that is used to build the components locally e.g. `CAPM3_LOCAL_IMAGE`.
+
+Branches can be specified for the aforementioned repositories by following the same naming convention
+e.g. `CAPM3_LOCAL_IMAGE_BRANCH`.
+
+In case a git repository is specified instead of a local path the repository will be pulled and
+controlled by dev-env thus all manual changes done in the related directory will be disregarded by
+the build process.
+
+The intended use of git repository adresses for local image building is to stay synced with
+a branch of the component's upstream repository.
+
+In case there is a need to specify a directory that will keep local changes during the image building
+process just use local path instead of a git repository address.
+
 ## Additional networks
 
 By default two libvirt networks are created `baremetal` and `provisioning`

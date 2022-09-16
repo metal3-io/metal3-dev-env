@@ -223,14 +223,11 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   # Is it a git repo?
   if [[ "$IMAGE" =~ "://" ]] ; then
     REPOPATH=~/${IMAGE##*/}
-    # Clone to ~ if not there already
-    if [ -e "${REPOPATH}" ]; then
-       cd "${REPOPATH}" || exit
-    else
-      git clone "${IMAGE}" "${REPOPATH}"
-      cd "${REPOPATH}" || exit
-      [ "${BRANCH}" = "main" ] || git checkout "${BRANCH}"
-    fi
+    # Clone to ~
+    # Clean the directory if it already exists
+    rm --recursive --force "${REPOPATH}"
+    git clone --branch "${BRANCH}" "${IMAGE}" "${REPOPATH}"
+    cd "${REPOPATH}" || exit
   # Assume it is a path
   else
     cd "${IMAGE}" || exit
