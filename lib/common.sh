@@ -133,6 +133,9 @@ if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1al
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
   CAPM3BRANCH="${CAPM3BRANCH:-release-1.1}"
   IPAMBRANCH="${IPAMBRANCH:-release-1.1}"
+elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
+  CAPM3BRANCH="${CAPM3BRANCH:-release-1.2}"
+  IPAMBRANCH="${IPAMBRANCH:-release-1.2}"
 else
   CAPM3BRANCH="${CAPM3BRANCH:-main}"
   IPAMBRANCH="${IPAMBRANCH:-main}"
@@ -206,6 +209,9 @@ if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1al
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.1"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.1"}
+elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.2"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.2"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main"}

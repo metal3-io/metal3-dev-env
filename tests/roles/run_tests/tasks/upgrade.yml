@@ -201,7 +201,7 @@
       dest: "{{ overrides }}/infrastructure-metal3/{{ CAPM3_REL_TO_VERSION }}/metadata.yaml"
 
   - name: Perform upgrade on the target cluster
-    ansible.builtin.command: clusterctl upgrade apply --core capi-system/cluster-api:v1.2.1 --bootstrap capi-kubeadm-bootstrap-system/kubeadm:v1.2.1 --control-plane capi-kubeadm-control-plane-system/kubeadm:v1.2.1 --infrastructure capm3-system/metal3:v1.2.0-rc.1
+    ansible.builtin.command: clusterctl upgrade apply --contract v1beta1
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
@@ -217,7 +217,7 @@
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Perform upgrade on the source cluster
-    ansible.builtin.command: clusterctl upgrade apply --core capi-system/cluster-api:v1.2.1 --bootstrap capi-kubeadm-bootstrap-system/kubeadm:v1.2.1 --control-plane capi-kubeadm-control-plane-system/kubeadm:v1.2.1 --infrastructure capm3-system/metal3:v1.2.0-rc.1
+    ansible.builtin.command: clusterctl upgrade apply --contract v1beta1
 
   # TODO: Can we check this somehow instead of just waiting?
   # Relevant issue: https://github.com/kubernetes-sigs/cluster-api/issues/4474
