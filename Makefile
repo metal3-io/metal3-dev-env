@@ -21,7 +21,7 @@ host_cleanup:
 	./host_cleanup.sh
 
 test:
-	./tests/05_test.sh
+	./tests/test.sh
 
 lint:
 	./hack/shellcheck.sh
