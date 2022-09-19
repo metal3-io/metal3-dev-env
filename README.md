@@ -4,10 +4,10 @@ This repository includes scripts to set up a Metal³ development environment.
 
 ## Build Status
 
-[![Ubuntu daily main build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_main_integration_test_ubuntu&subject=Ubuntu%20daily%20main)](https://jenkins.nordix.org/view/Metal3/job/metal3_daily_main_integration_test_ubuntu/)
-[![CentOS daily main build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_main_integration_test_centos&subject=CentOS%20daily%20main)](https://jenkins.nordix.org/view/Metal3/job/metal3_daily_main_integration_test_centos/)
-[![Ubuntu daily release-0.5 build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_release-0-5_integration_test_ubuntu&subject=Ubuntu%20daily%20release-0.5)](https://jenkins.nordix.org/view/Metal3/job/metal3_daily_release-0-5_integration_test_ubuntu/)
-[![CentOS daily release-0.5 build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_release-0-5_integration_test_centos&subject=CentOS%20daily%20release-0.5)](https://jenkins.nordix.org/view/Metal3/job/metal3_daily_release-0-5_integration_test_centos/)
+[![Ubuntu Integration daily main build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_main_integration_test_ubuntu&subject=Ubuntu%20daily%20main)](https://jenkins.nordix.org/view/Metal3%20Periodic/job/metal3_daily_main_integration_test_ubuntu/)
+[![CentOS Integration daily main build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_main_integration_test_centos&subject=CentOS%20daily%20main)](https://jenkins.nordix.org/view/Metal3%20Periodic/job/metal3_daily_main_integration_test_centos/)
+[![Ubuntu Integration daily release-1.2 build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_release-1-2_integration_test_ubuntu&subject=Ubuntu%20daily%20release-1.2)](https://jenkins.nordix.org/view/Metal3%20Periodic/job/metal3_daily_release-1-2_integration_test_ubuntu/)
+[![CentOS Integration daily release-1.2 build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_release-1-2_integration_test_centos&subject=CentOS%20daily%20release-1.2)](https://jenkins.nordix.org/view/Metal3%20Periodic/job/metal3_daily_release-1-2_integration_test_centos/)
 
 ## Instructions
 
