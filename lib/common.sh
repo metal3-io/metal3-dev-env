@@ -254,7 +254,7 @@ export KUSTOMIZE_VERSION=${KUSTOMIZE_VERSION:-"v4.4.1"}
 export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.25.2"}
 
 # Kind, kind node image versions (if EPHEMERAL_CLUSTER=kind)
-export KIND_VERSION=${KIND_VERSION:-"v0.14.0"}
+export KIND_VERSION=${KIND_VERSION:-"v0.16.0"}
 if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
   export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.23.6"}
 else
