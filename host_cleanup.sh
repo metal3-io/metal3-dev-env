@@ -57,9 +57,10 @@ if [[ $OS == "centos" || $OS == "rhel" ]]; then
   if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
       sudo nmcli con delete provisioning
   fi
-  # Leaving this around causes issues when the host is rebooted
+  # Baremetal net should have been cleaned already at this stage, but we double
+  # check as leaving it around causes issues when the host is rebooted
   if [ "$MANAGE_BR_BRIDGE" == "y" ]; then
-      sudo nmcli con delete baremetal
+      sudo nmcli con delete baremetal || true
   fi
 fi
 
