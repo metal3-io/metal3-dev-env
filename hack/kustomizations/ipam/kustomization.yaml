@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+commonLabels:
+  cluster.x-k8s.io/provider: "infrastructure-metal3"
+
+resources:
+  - IPAMREPO/config/default?ref=IPAMCOMMIT
+  # - https://github.com/metal3-io/ip-address-manager/config/default?ref=main
+
+# images:
+#   - name: quay.io/metal3-io/ip-address-manager
+#     newName: IPAM_IMAGE
+#     newTag: latest

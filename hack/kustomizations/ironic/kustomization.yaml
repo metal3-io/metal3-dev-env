@@ -22,12 +22,12 @@ secretGenerator:
   name: mariadb-password
   type: Opaque
 
-images:
-- name: quay.io/metal3-io/ironic
-  newName: IRONIC_IMAGE
-- name: quay.io/metal3-io/ironic-ipa-downloader
-  newName: IPA_DOWNLOADER_IMAGE
-- name: quay.io/metal3-io/keepalived
-  newName: KEEPALIVED_IMAGE
-- name: quay.io/metal3-io/mariadb
-  newName: MARIADB_IMAGE
+# images:
+# - name: quay.io/metal3-io/ironic
+#   newName: IRONIC_IMAGE
+# - name: quay.io/metal3-io/ironic-ipa-downloader
+#   newName: IPA_DOWNLOADER_IMAGE
+# - name: quay.io/metal3-io/keepalived
+#   newName: KEEPALIVED_IMAGE
+# - name: quay.io/metal3-io/mariadb
+#   newName: MARIADB_IMAGE

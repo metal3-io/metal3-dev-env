@@ -1,13 +1,14 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  # Note: This includes IPAM!
-  - https://github.com/metal3-io/cluster-api-provider-metal3/config/default?ref=main
 
-images:
-  - name: quay.io/metal3-io/cluster-api-provider-metal3
-    newName: CAPM3_IMAGE
-    newTag: main
-  - name: quay.io/metal3-io/ip-address-manager
-    newName: IPAM_IMAGE
-    newTag: latest
+commonLabels:
+  cluster.x-k8s.io/provider: "infrastructure-metal3"
+
+resources:
+  - CAPM3REPO/config/default/capm3?ref=CAPM3COMMIT
+  # - https://github.com/metal3-io/cluster-api-provider-metal3/config/default/capm3?ref=main
+
+# images:
+#   - name: quay.io/metal3-io/cluster-api-provider-metal3
+#     newName: CAPM3_IMAGE
+#     newTag: main

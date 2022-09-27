@@ -156,15 +156,45 @@ EOF
 # Updates the environment variables to refer to the images
 # pushed to the local registry for caching.
 #
+# Example:
+#   ABC_IMAGE=quay.io/metal3/abc:vX.Y.Z
+#   would become
+#   ABC_IMAGE=$REGISTRY/localimages/abc:vX.Y.Z
+# Example with LOCAL_IMAGE:
+#   ABC_LOCAL_IMAGE=/path/to/abc
+#   would become
+#   ABC_LOCAL_IMAGE=$REGISTRY/localimages/abc
+#   ABC_IMAGE=$REGISTRY/localimages/abc
+#
 function update_images(){
   for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     IMAGE=${!IMAGE_VAR}
+    # Remove everything up until the last /
+    # E.g if ABC_LOCAL_IMAGE=/path/to/repo/image then
+    # IMAGE_NAME=image
     #shellcheck disable=SC2086
     IMAGE_NAME="${IMAGE##*/}"
+    # TODO: This is ugly
+    # We need to make sure that we actually have a tag, because otherwise
+    # kustomize set image will just use whatever the tag in upstream is.
+    # This breaks things because we of course push the image without explicit tag
+    # to the local registry, which makes it will have the latest tag...
+    if [[ ! "${IMAGE_NAME}" =~ ":" ]]; then
+      IMAGE_NAME="${IMAGE_NAME}:latest"
+    fi
+
     LOCAL_IMAGE="${REGISTRY}/localimages/$IMAGE_NAME"
+    # OLD_IMAGE_VAR=ABC_IMAGE
     OLD_IMAGE_VAR="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
+
+    # Export updated ABC_IMAGE
+    # ABC_IMAGE=REGISTRY/localimages/image
     eval "$OLD_IMAGE_VAR"="$LOCAL_IMAGE"
     export "${OLD_IMAGE_VAR?}"
+    # Export updated ABC_LOCAL_IMAGE
+    OLD_LOCAL_IMAGE_VAR="${IMAGE_VAR}"
+    eval "${OLD_LOCAL_IMAGE_VAR}"="${LOCAL_IMAGE}"
+    export "${OLD_LOCAL_IMAGE_VAR}"
   done
   # Assign images from local image registry after update image
   # This allows to use cached images for faster downloads
@@ -249,7 +279,6 @@ EOF
   "${IRONIC_INSPECTOR_PASSWORD}")" > "${TEMP_KUSTOMIZATIONS}/ironic/components/basic-auth/ironic-inspector-htpasswd"
 
   if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
-    update_images
     ${RUN_LOCAL_IRONIC_SCRIPT}
   else
     kustomize build "${TEMP_KUSTOMIZATIONS}/ironic" | kubectl apply -f -
@@ -297,104 +326,29 @@ function apply_bm_hosts() {
 # --------------------------
 
 #
-# Update the imports for the CAPM3 deployment files
-#
-function update_capm3_imports(){
-  pushd "${CAPM3PATH}"
-
-  # Modify the kustomization imports to use local BMO repo instead of Github Main
-  make hack/tools/bin/kustomize
-  ./hack/tools/bin/kustomize build "${IPAMPATH}/config/default" > config/ipam/metal3-ipam-components.yaml
-
-  sed -i -e "s#https://github.com/metal3-io/ip-address-manager/releases/download/v.*/ipam-components.yaml#metal3-ipam-components.yaml#" "config/ipam/kustomization.yaml"
-  popd
-}
-
-#
-# Update the CAPM3 and BMO manifests to use local images as defined in variables
-#
-function update_component_image(){
-  IMPORT=$1
-  ORIG_IMAGE=$2
-  # Split the image IMAGE_NAME AND IMAGE_TAG, if any tag exist
-  TMP_IMAGE="${ORIG_IMAGE##*/}"
-  TMP_IMAGE_NAME="${TMP_IMAGE%%:*}"
-  TMP_IMAGE_TAG="${TMP_IMAGE##*:}"
-  # Assign the image tag to latest if there is no tag in the image
-  if [ "${TMP_IMAGE_NAME}" == "${TMP_IMAGE_TAG}" ]; then
-    TMP_IMAGE_TAG="latest"
-  fi
-
-  # NOTE: It is assumed that we are already in the correct directory to run make
-  case "${IMPORT}" in
-    "BMO")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
-      make set-manifest-image-bmo
-      ;;
-    "CAPM3")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
-      make set-manifest-image
-      ;;
-    "IPAM")
-      export MANIFEST_IMG_IPAM="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
-      export MANIFEST_TAG_IPAM="$TMP_IMAGE_TAG"
-      make set-manifest-image-ipam
-      ;;
-    "Ironic")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
-      make set-manifest-image-ironic
-      ;;
-    "Mariadb")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
-      make set-manifest-image-mariadb
-      ;;
-    "Keepalived")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
-      make set-manifest-image-keepalived
-      ;;
-    "IPA-downloader")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
-      make set-manifest-image-ipa-downloader
-      ;;
-  esac
-}
-
-#
 # Update the clusterctl deployment files to use local repositories
 #
 function patch_clusterctl(){
-  pushd "${CAPM3PATH}"
   mkdir -p "${HOME}"/.cluster-api
   touch "${HOME}"/.cluster-api/clusterctl.yaml
-
-  # At this point the images variables have been updated with update_images
-  # Reflect the change in components files
-  if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
-    update_component_image CAPM3 "${CAPM3_LOCAL_IMAGE}"
-  else
-    update_component_image CAPM3 "${CAPM3_IMAGE}"
-  fi
-
-  if [ -n "${IPAM_LOCAL_IMAGE}" ]; then
-    update_component_image IPAM "${IPAM_LOCAL_IMAGE}"
-  else
-    update_component_image IPAM "${IPAM_IMAGE}"
-  fi
-
-  update_capm3_imports
-  make release-manifests
-
   rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
-  cp out/*.yaml "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
 
+  # Set correct repo and commit to use
+  sed "s#CAPM3REPO#${CAPM3REPO}#g" -i "${TEMP_KUSTOMIZATIONS}/capm3/kustomization.yaml"
+  sed "s#CAPM3COMMIT#${CAPM3BRANCH}#g" -i "${TEMP_KUSTOMIZATIONS}/capm3/kustomization.yaml"
+  sed "s#IPAMREPO#${IPAMREPO}#g" -i "${TEMP_KUSTOMIZATIONS}/ipam/kustomization.yaml"
+  sed "s#IPAMCOMMIT#${IPAMBRANCH}#g" -i "${TEMP_KUSTOMIZATIONS}/ipam/kustomization.yaml"
+  pushd "${TEMP_KUSTOMIZATIONS}/capm3"
+  kustomize edit set image quay.io/metal3-io/cluster-api-provider-metal3="${CAPM3_LOCAL_IMAGE:-${CAPM3_IMAGE}}"
   popd
+  pushd "${TEMP_KUSTOMIZATIONS}/ipam"
+  kustomize edit set image quay.io/metal3-io/ip-address-manager="${IPAM_LOCAL_IMAGE:-${IPAM_IMAGE}}"
+  popd
+
+  kustomize build "${TEMP_KUSTOMIZATIONS}/capm3" > "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"/infrastructure-components.yaml
+  echo "---" >> "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"/infrastructure-components.yaml
+  kustomize build "${TEMP_KUSTOMIZATIONS}/ipam" >> "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"/infrastructure-components.yaml
 }
 
 #
@@ -493,6 +447,7 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   start_management_cluster
   kubectl create namespace metal3
 
+  update_images
   patch_clusterctl
   launch_cluster_api_provider_metal3
   BMO_NAME_PREFIX="${NAMEPREFIX}"

@@ -17,7 +17,7 @@ configMapGenerator:
     envs:
       - ironic.env
 
-images:
-  - name: quay.io/metal3-io/baremetal-operator
-    newName: BAREMETAL_OPERATOR_IMAGE
-    newTag: bmo_tag
+# images:
+#   - name: quay.io/metal3-io/baremetal-operator
+#     newName: BAREMETAL_OPERATOR_IMAGE
+#     newTag: main
