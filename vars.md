@@ -18,11 +18,6 @@ assured that they are persisted.
 | PROVISIONING_IPV6 | Configure provisioning network for single-stack ipv6 | "true", "false" | false |
 | SSH_PUB_KEY | This SSH key will be automatically injected into the provisioned host by the clusterctl environment template files. | | ~/.ssh/id_rsa.pub |
 | CONTAINER_RUNTIME | Select the Container Runtime | "docker", "podman" | "docker" on ubuntu, "podman" otherwise |
-| BMOREPO | Set the Baremetal Operator repository to clone | | https://github.com/metal3-io/baremetal-operator.git |
-| BMOBRANCH | Set the Baremetal Operator branch to checkout | branch name or latest release tag | v0.1.0 |
-| CAPM3REPO | Set the Cluster Api Metal3 provider repository to clone | | https://github.com/metal3-io/cluster-api-provider-metal3.git |
-| CAPM3BRANCH | Set the Cluster Api Metal3 provider branch to checkout | | main |
-| FORCE_REPO_UPDATE | Force deletion of the BMO, CAPM3 and IPAM repositories before cloning them again | "true", "false" | "true" |
 | IPA_DOWNLOAD_ENABLED | Enables the use of the Ironic Python Agent Downloader container to download IPA archive| "true", "false | "true" |
 | USE_LOCAL_IPA | Enables the use of locally supplied IPA archive. This condition is handled by BMO and this has effect only when IPA_DOWNLOAD_ENABLED is "false", otherwise IPA_DOWNLOAD_ENABLED takes precedence. | "true", "false" | "false" |
 | LOCAL_IPA_PATH | This has effect only when USE_LOCAL_IPA is set to "true", points to the directory where the IPA archive is located. This variable is handled by BMO. | "arbitrary directory path" | "" |
@@ -88,6 +83,24 @@ assured that they are persisted.
 | MARIADB_CERT_FILE | Path to the cert of MariaDB | | /opt/metal3-dev-env/certs/mariadb.crt |
 | MARIADB_CAKEY_FILE | Path to the CA key of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.key |
 | MARIADB_CACERT_FILE | Path to the CA certificate of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.pem |
+| M3PATH | Path to clone the Metal3 Development Environment repository | | $HOME/go/src/github.com/metal3-io
+| BMOPATH | Path to clone the Bare Metal Operator repository | | $HOME/go/src/github.com/metal3-io/baremetal-operator
+| CAPM3PATH | Path to clone the Cluster API Provider Metal3 repository | | $HOME/go/src/github.com/metal3-io/cluster-api-provider-metal3
+| CAPIPATH | Path to clone the Cluster API repository | | $HOME/go/src/github.com/metal3-io/cluster-api
+| IPAMPATH | Path to clone IP Address Manager repository | | $HOME/go/src/github.com/metal3-io/ip-address-manager |
+| CAPIREPO | Cluster API git repository URL | | https://github.com/kubernetes-sigs/cluster-api |
+| CAPIBRANCH | Cluster API git repository branch to checkout | | main |
+| CAPICOMMIT | Cluster API git commit to checkout on CAPIBRANCH | | HEAD |
+| BMOREPO | Baremetal Operator git repository URL | | https://github.com/metal3-io/baremetal-operator.git |
+| BMOBRANCH | Baremetal Operator git repository branch to checkout (set in lib/releases.sh) | | main |
+| BMOCOMMIT | BMO git commit to checkout on BMOBRANCH | | HEAD |
+| CAPM3REPO | Cluster API Provider Metal3 git repository URL | | https://github.com/metal3-io/cluster-api-provider-metal3 |
+| CAPM3BRANCH | Cluster API Provider Metal3 git repository branch to checkout | | main |
+| CAPM3COMMIT | Cluster API Provicer Metal3 git commit to checkout on CAPM3BRANCH | | HEAD |
+| IPAMREPO | IP Address Manager git repository URL | | https://github.com/metal3-io/ip-address-manageri/ |
+| IPAMBRANCH | IP Address Manager git repository branch to checkout | | main |
+| IPAMCOMMIT | IP Address Manager git commit to checkout on IPAMBRANCH | | HEAD |
+| FORCE_REPO_UPDATE | discard existing directories | "true","false" | "true" |
 
 ## Local images
 

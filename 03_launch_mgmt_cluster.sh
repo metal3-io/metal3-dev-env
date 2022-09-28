@@ -22,45 +22,6 @@ source lib/ironic_tls_setup.sh
 # shellcheck disable=SC1091
 source lib/ironic_basic_auth.sh
 
-# -----------------------
-# Repositories management
-# -----------------------
-
-#
-# Clone and checkout a repo
-#
-function clone_repo() {
-  local REPO_URL="$1"
-  local REPO_BRANCH="$2"
-  local REPO_PATH="$3"
-  local REPO_COMMIT="${4:-HEAD}"
-
-  if [[ -d "${REPO_PATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
-    rm -rf "${REPO_PATH}"
-  fi
-  if [ ! -d "${REPO_PATH}" ] ; then
-    pushd "${M3PATH}"
-    git clone "${REPO_URL}" "${REPO_PATH}"
-    popd
-    pushd "${REPO_PATH}"
-    git checkout "${REPO_BRANCH}"
-    git checkout "${REPO_COMMIT}"
-    git pull -r || true
-    popd
-  fi
-}
-
-#
-# Clone all needed repositories
-#
-function clone_repos() {
-  mkdir -p "${M3PATH}"
-  clone_repo "${BMOREPO}" "${BMOBRANCH}" "${BMOPATH}" "${BMOCOMMIT}"
-  clone_repo "${CAPM3REPO}" "${CAPM3BRANCH}" "${CAPM3PATH}"
-  clone_repo "${IPAMREPO}" "${IPAMBRANCH}" "${IPAMPATH}"
-  clone_repo "${CAPIREPO}" "${CAPIBRANCH}" "${CAPIPATH}"
-}
-
 # ------------------------------------
 # BMO and Ironic deployment functions
 # ------------------------------------
@@ -450,8 +411,6 @@ function start_management_cluster () {
 # -----------------------------
 # Deploy the management cluster
 # -----------------------------
-
-clone_repos
 
 # Kill and remove the running ironic containers
 "$BMOPATH"/tools/remove_local_ironic.sh
