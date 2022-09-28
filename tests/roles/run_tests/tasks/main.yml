@@ -45,27 +45,13 @@
   include_tasks: move_back.yml
   when: v1aX_integration_test_action in repivot_actions
 
-- name: Deprovision worker nodes
-  kubernetes.core.k8s:
-    state: absent
-    src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_workers_{{ IMAGE_OS }}.yaml"
-    namespace: "{{ NAMESPACE }}"
-  ignore_errors: yes
-  when: v1aX_integration_test_action in deprovision_workers_actions
-
-- name: Deprovision control plane
-  kubernetes.core.k8s:
-    state: absent
-    src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_controlplane_{{ IMAGE_OS }}.yaml"
-    namespace: "{{ NAMESPACE }}"
-  ignore_errors: yes
-  when: v1aX_integration_test_action in deprovision_controlplane_actions
-
 - name: Deprovision cluster
   kubernetes.core.k8s:
     state: absent
-    src: "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_cluster_{{ IMAGE_OS }}.yaml"
+    api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+    kind: Cluster
     namespace: "{{ NAMESPACE }}"
+    name: "{{ CLUSTER_NAME }}"
   ignore_errors: yes
   when: v1aX_integration_test_action in deprovision_cluster_actions
 
@@ -81,7 +67,7 @@
         src: "{{ WORKING_DIR }}/bmhosts_crs.yaml"
         namespace: "{{ NAMESPACE }}"
       ignore_errors: yes
-  
+
     - name: Wait until no BareMetalHost is remaining
       kubernetes.core.k8s_info:
         api_version: metal3.io/v1alpha1
