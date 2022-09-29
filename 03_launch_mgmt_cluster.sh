@@ -115,7 +115,8 @@ EOF
   echo "${IRONIC_INSPECTOR_USERNAME}" > "${TEMP_KUSTOMIZATIONS}/bmo/components/basic-auth/ironic-inspector-username"
   echo "${IRONIC_INSPECTOR_PASSWORD}" > "${TEMP_KUSTOMIZATIONS}/bmo/components/basic-auth/ironic-inspector-password"
 
-  kustomize build "${TEMP_KUSTOMIZATIONS}/bmo" | kubectl apply -f -
+  kustomize build "${TEMP_KUSTOMIZATIONS}/bmo" > "${TEMP_KUSTOMIZATIONS}/bmo.yaml"
+  kubectl apply -f "${TEMP_KUSTOMIZATIONS}/bmo.yaml"
 
   pushd "${BMOPATH}"
   # If BMO should run locally, scale down the deployment and run BMO
@@ -281,7 +282,8 @@ EOF
   if [ "${EPHEMERAL_CLUSTER}" != "minikube" ]; then
     ${RUN_LOCAL_IRONIC_SCRIPT}
   else
-    kustomize build "${TEMP_KUSTOMIZATIONS}/ironic" | kubectl apply -f -
+    kustomize build "${TEMP_KUSTOMIZATIONS}/ironic" > "${TEMP_KUSTOMIZATIONS}/ironic.yaml"
+    kubectl apply -f "${TEMP_KUSTOMIZATIONS}/ironic.yaml"
   fi
 }
 
