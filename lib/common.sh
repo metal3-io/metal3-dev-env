@@ -136,43 +136,61 @@ export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH=${CAPM3RELEASEBRANCH:-main}
 
 if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
-  CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
-  IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
+  export CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
+  export IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
-  CAPM3BRANCH="${CAPM3BRANCH:-release-1.1}"
-  IPAMBRANCH="${IPAMBRANCH:-release-1.1}"
+  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.1}"
+  export IPAMBRANCH="${IPAMBRANCH:-release-1.1}"
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
-  CAPM3BRANCH="${CAPM3BRANCH:-release-1.2}"
-  IPAMBRANCH="${IPAMBRANCH:-release-1.2}"
+  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.2}"
+  export IPAMBRANCH="${IPAMBRANCH:-release-1.2}"
 else
-  CAPM3BRANCH="${CAPM3BRANCH:-main}"
-  IPAMBRANCH="${IPAMBRANCH:-main}"
+  export CAPM3BRANCH="${CAPM3BRANCH:-main}"
+  export IPAMBRANCH="${IPAMBRANCH:-main}"
 fi
 
 export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
 export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 
-IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
+export IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
 
-CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
-CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
-CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
+export CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
+export CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
+export CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
-BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
+export BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
-FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
-BMOCOMMIT="${BMOCOMMIT:-HEAD}"
-CAPM3COMMIT="${CAPM3COMMIT:-HEAD}"
-IPAMCOMMIT="${IPAMCOMMIT:-HEAD}"
-CAPICOMMIT="${CAPICOMMIT:-HEAD}"
+export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
+export BMOCOMMIT="${BMOCOMMIT:-HEAD}"
+export CAPM3COMMIT="${CAPM3COMMIT:-HEAD}"
+export IPAMCOMMIT="${IPAMCOMMIT:-HEAD}"
+export CAPICOMMIT="${CAPICOMMIT:-HEAD}"
 
-BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
-CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
+export BUILD_CAPM3_LOCALLY="${BUILD_CAPM3_LOCALLY=-false}"
+export BUILD_IPAM_LOCALLY="${BUILD_IPAM_LOCALLY=-false}"
+export BUILD_BMO_LOCALLY="${BUILD_BMO_LOCALLY=-false}"
+export BUILD_CAPI_LOCALLY="${BUILD_CAPI_LOCALLY=-false}"
 
-WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
-NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/ironic_nodes.json"}
-NODES_PLATFORM=${NODES_PLATFORM:-"libvirt"}
+if [ "${BUILD_CAPM3_LOCALLY}" == "true" ]; then
+  export CAPM3_LOCAL_IMAGE="${CAPM3PATH}"
+fi
+if [ "${BUILD_IPAM_LOCALLY}" == "true" ]; then
+  export IPAM_LOCAL_IMAGE="${IPAMPATH}"
+fi
+if [ "${BUILD_BMO_LOCALLY}" == "true" ]; then
+  export BMO_LOCAL_IMAGE="${BMOPATH}"
+fi
+if [ "${BUILD_CAPI_LOCALLY}" == "true" ]; then
+  export CAPI_LOCAL_IMAGE="${CAPIPATH}"
+fi
+
+export BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
+export CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
+
+export WORKING_DIR=${WORKING_DIR:-"/opt/metal3-dev-env"}
+export NODES_FILE=${NODES_FILE:-"${WORKING_DIR}/ironic_nodes.json"}
+export NODES_PLATFORM=${NODES_PLATFORM:-"libvirt"}
 
 # Metal3
 export NAMESPACE=${NAMESPACE:-"metal3"}
@@ -285,7 +303,7 @@ FAILS=0
 RESULT_STR=""
 
 # Avoid printing skipped Ansible tasks
-export ANSIBLE_DISPLAY_SKIPPED_HOSTS=no
+export ANSIBLE_DISPLAY_SKIPPED_HOSTS="no"
 
 # Sanity check for number of nodes
 if [ "${NUM_NODES}" -lt "$((NUM_OF_CONTROLPLANE_REPLICAS + NUM_OF_WORKER_REPLICAS))" ]; then

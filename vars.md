@@ -92,32 +92,27 @@ assured that they are persisted.
 | CAPIBRANCH | Cluster API git repository branch to checkout | | main |
 | CAPICOMMIT | Cluster API git commit to checkout on CAPIBRANCH | | HEAD |
 | BMOREPO | Baremetal Operator git repository URL | | https://github.com/metal3-io/baremetal-operator.git |
-| BMOBRANCH | Baremetal Operator git repository branch to checkout (set in lib/releases.sh) | | main |
+| BMOBRANCH | Baremetal Operator git repository branch to checkout | | main |
 | BMOCOMMIT | BMO git commit to checkout on BMOBRANCH | | HEAD |
 | CAPM3REPO | Cluster API Provider Metal3 git repository URL | | https://github.com/metal3-io/cluster-api-provider-metal3 |
 | CAPM3BRANCH | Cluster API Provider Metal3 git repository branch to checkout | | main |
-| CAPM3COMMIT | Cluster API Provicer Metal3 git commit to checkout on CAPM3BRANCH | | HEAD |
+| CAPM3COMMIT | Cluster API Provider Metal3 git commit to checkout on CAPM3BRANCH | | HEAD |
 | IPAMREPO | IP Address Manager git repository URL | | https://github.com/metal3-io/ip-address-manageri/ |
 | IPAMBRANCH | IP Address Manager git repository branch to checkout | | main |
 | IPAMCOMMIT | IP Address Manager git commit to checkout on IPAMBRANCH | | HEAD |
 | FORCE_REPO_UPDATE | discard existing directories | "true","false" | "true" |
+| BUILD_CAPM3_LOCALLY | build Cluster API Provider Metal3 based on CAPM3PATH | "true","false" | "false" |
+| BUILD_IPAM_LOCALLY | build IP Address Manager based on IPAMPATH | "true","false" | "false" |
+| BUILD_BMO_LOCALLY | build Baremetal Operator based on BMOPATH | "true","false" | "false" |
+| BUILD_CAPI_LOCALLY | build Cluster API based on CAPIPATH | "true","false" | "false" |
+
+**NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the `BRANCH` variables so make sure that
+RELEASE and BRANCH variables are not conflicting.
 
 ## Local images
 
-Environment variables with `_LOCAL_IMAGE` in their name are used to specify either git repositories or directories that contain the code that is used to build the components locally e.g. `CAPM3_LOCAL_IMAGE`.
-
-Branches can be specified for the aforementioned repositories by following the same naming convention
-e.g. `CAPM3_LOCAL_IMAGE_BRANCH`.
-
-In case a git repository is specified instead of a local path the repository will be pulled and
-controlled by dev-env thus all manual changes done in the related directory will be disregarded by
-the build process.
-
-The intended use of git repository adresses for local image building is to stay synced with
-a branch of the component's upstream repository.
-
-In case there is a need to specify a directory that will keep local changes during the image building
-process just use local path instead of a git repository address.
+Environment variables with `_LOCAL_IMAGE` in their name are used to specify directories that contain the code to build the
+components locally e.g. `CAPM3_LOCAL_IMAGE`.
 
 ## Additional networks
 
