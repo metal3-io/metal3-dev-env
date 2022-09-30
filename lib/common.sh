@@ -89,21 +89,29 @@ export SSH_PUB_KEY_CONTENT
 
 FILESYSTEM=${FILESYSTEM:="/"}
 
-# Environment variables
-# M3PATH : Path to clone the Metal3 Development Environment repository
-# BMOPATH : Path to clone the Bare Metal Operator repository
-# CAPM3PATH : Path to clone the Cluster API Provider Metal3 repository
-# CAPIPATH : Path to clone the Cluster API repository
-#
-# BMOREPO : Baremetal Operator repository URL
-# BMOBRANCH : Baremetal Operator repository branch to checkout (its set it lib/releases.sh)
-# CAPM3REPO : Cluster API Provider Metal3 repository URL
-# CAPM3BRANCH : Cluster API Provider Metal3 repository branch to checkout
-# FORCE_REPO_UPDATE : discard existing directories
-#
-# BMO_RUN_LOCAL : run the Baremetal Operator locally (not in Kubernetes cluster)
-# CAPM3_RUN_LOCAL : run the Cluster API Provider Metal3 locally
+# Reusable repository cloning function
+function clone_repo() {
+  local REPO_URL="$1"
+  local REPO_BRANCH="$2"
+  local REPO_PATH="$3"
+  local REPO_COMMIT="${4:-HEAD}"
 
+  if [[ -d "${REPO_PATH}" && "${FORCE_REPO_UPDATE}" == "true" ]]; then
+    rm -rf "${REPO_PATH}"
+  fi
+  if [ ! -d "${REPO_PATH}" ] ; then
+    pushd "${M3PATH}" || exit
+    git clone "${REPO_URL}" "${REPO_PATH}"
+    popd || exit
+    pushd "${REPO_PATH}" || exit
+    git checkout "${REPO_BRANCH}"
+    git checkout "${REPO_COMMIT}"
+    git pull -r || true
+    popd || exit
+  fi
+}
+
+# Configure common environment variables
 CAPM3_VERSION_LIST="v1alpha5 v1beta1"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
@@ -155,6 +163,9 @@ BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
 FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 BMOCOMMIT="${BMOCOMMIT:-HEAD}"
+CAPM3COMMIT="${CAPM3COMMIT:-HEAD}"
+IPAMCOMMIT="${IPAMCOMMIT:-HEAD}"
+CAPICOMMIT="${CAPICOMMIT:-HEAD}"
 
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
 CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
