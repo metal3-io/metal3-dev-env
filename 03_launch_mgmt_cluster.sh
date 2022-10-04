@@ -126,7 +126,7 @@ function launch_ironic() {
     # Currently we leave mariadb there even when using sqlite.
 
     # Update Configmap parameters with correct urls
-    cat << EOF | sudo tee "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
+    cat << EOF | sudo tee "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
 PROVISIONING_IP=${CLUSTER_PROVISIONING_IP}
 PROVISIONING_CIDR=${PROVISIONING_CIDR}
@@ -147,7 +147,7 @@ EOF
     echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
 
-  if [ "$NODES_PLATFORM" == "libvirt" ] ; then
+  if [[ "${NODES_PLATFORM}" == "libvirt" ]] ; then
     echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
 
@@ -160,7 +160,8 @@ EOF
   fi
 
   # Copy the generated configmap for ironic deployment
-  cp "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+  # We always use the keepalived component so this is where we put the configmap
+  cp "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/components/keepalived/ironic_bmo_configmap.env"
 
   # Update manifests to use the correct images.
   # Note: Even though the manifests are not used for local deployment we need
