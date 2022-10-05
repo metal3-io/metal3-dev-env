@@ -227,22 +227,8 @@ done
 
 # Support for building local images
 for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
-  BRANCH_IMAGE_VAR="${IMAGE_VAR}_BRANCH"
   IMAGE="${!IMAGE_VAR}"
-  BRANCH="${!BRANCH_IMAGE_VAR:-main}"
-
-  # Is it a git repo?
-  if [[ "$IMAGE" =~ "://" ]] ; then
-    REPOPATH=~/${IMAGE##*/}
-    # Clone to ~
-    # Clean the directory if it already exists
-    rm --recursive --force "${REPOPATH}"
-    git clone --branch "${BRANCH}" "${IMAGE}" "${REPOPATH}"
-    cd "${REPOPATH}" || exit
-  # Assume it is a path
-  else
-    cd "${IMAGE}" || exit
-  fi
+  cd "${IMAGE}" || exit
 
   #shellcheck disable=SC2086
   export $IMAGE_VAR="${IMAGE##*/}"
@@ -252,6 +238,12 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   # Support building ironic-image from source
   if [[ "${IMAGE}" =~ "ironic" ]] && [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
     sudo "${CONTAINER_RUNTIME}" build --build-arg INSTALL_TYPE=source -t "${!IMAGE_VAR}" . -f ./Dockerfile
+  elif [[ "${IMAGE}" =~ "cluster-api" ]]; then
+    CAPI_GO_VERSION=$(grep "GO_VERSION ?= [0-9].*" Makefile | sed -e 's/GO_VERSION ?= //g')
+    #shellcheck disable=SC2016
+    CAPI_BASEIMAGE=$(grep "GO_CONTAINER_IMAGE ?=" Makefile | sed -e 's/GO_CONTAINER_IMAGE ?= //g' -e 's/$(GO_VERSION)//g')
+    CAPI_TAGGED_BASE_IMAGE="$CAPI_BASEIMAGE$CAPI_GO_VERSION"
+    sudo DOCKER_BUILDKIT=1 "${CONTAINER_RUNTIME}" build --build-arg builder_image="$CAPI_TAGGED_BASE_IMAGE" --build-arg ARCH="amd64" -t "${!IMAGE_VAR}" . -f ./Dockerfile
   else
     sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f ./Dockerfile
   fi
