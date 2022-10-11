@@ -124,15 +124,20 @@ else
   exit 1
 fi
 
+# shellcheck disable=SC2034
+export IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
+export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
+
 export M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
 export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
-# shellcheck disable=SC2034
+export BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
+export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
+
 export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 
 export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
-
 export CAPM3RELEASEBRANCH=${CAPM3RELEASEBRANCH:-main}
 
 if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
@@ -153,24 +158,32 @@ export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
 export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 
-export IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
-
 export CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 export CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 export CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
-export BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
-export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 export BMOCOMMIT="${BMOCOMMIT:-HEAD}"
 export CAPM3COMMIT="${CAPM3COMMIT:-HEAD}"
 export IPAMCOMMIT="${IPAMCOMMIT:-HEAD}"
 export CAPICOMMIT="${CAPICOMMIT:-HEAD}"
 
-export BUILD_CAPM3_LOCALLY="${BUILD_CAPM3_LOCALLY=-false}"
-export BUILD_IPAM_LOCALLY="${BUILD_IPAM_LOCALLY=-false}"
-export BUILD_BMO_LOCALLY="${BUILD_BMO_LOCALLY=-false}"
-export BUILD_CAPI_LOCALLY="${BUILD_CAPI_LOCALLY=-false}"
+export IRONIC_IMAGE_PATH="${IRONIC_IMAGE_PATH:-/tmp/ironic-image}"
+export IRONIC_IMAGE_REPO="${IRONIC_IMAGE_REPO:-https://github.com/metal3-io/ironic-image.git}"
+export IRONIC_IMAGE_BRANCH="${IRONIC_IMAGE_BRANCH:-main}"
+export IRONIC_IMAGE_COMMIT="${IRONIC_IMAGE_COMMIT:-HEAD}"
+
+export BUILD_CAPM3_LOCALLY="${BUILD_CAPM3_LOCALLY:-false}"
+export BUILD_IPAM_LOCALLY="${BUILD_IPAM_LOCALLY:-false}"
+export BUILD_BMO_LOCALLY="${BUILD_BMO_LOCALLY:-false}"
+export BUILD_CAPI_LOCALLY="${BUILD_CAPI_LOCALLY:-false}"
+export BUILD_IRONIC_IMAGE_LOCALLY="${BUILD_IRONIC_IMAGE_LOCALLY:-false}"
+
+# If IRONIC_FROM_SOURCE has a "true" value that
+# automatically requires BUILD_IRONIC_IMAGE_LOCALLY to have "true" value too
+# but it is not the case the other way around
+if [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
+  export BUILD_IRONIC_IMAGE_LOCALLY="true"
+fi
 
 if [ "${BUILD_CAPM3_LOCALLY}" == "true" ]; then
   export CAPM3_LOCAL_IMAGE="${CAPM3PATH}"
@@ -183,6 +196,9 @@ if [ "${BUILD_BMO_LOCALLY}" == "true" ]; then
 fi
 if [ "${BUILD_CAPI_LOCALLY}" == "true" ]; then
   export CAPI_LOCAL_IMAGE="${CAPIPATH}"
+fi
+if [ "${BUILD_IRONIC_IMAGE_LOCALLY}" == "true" ]; then
+  export IRONIC_LOCAL_IMAGE="${IRONIC_IMAGE_PATH}"
 fi
 
 export BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
