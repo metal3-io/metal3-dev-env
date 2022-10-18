@@ -4,7 +4,7 @@ if [[ "$CAPM3RELEASEBRANCH" == "release-0.5" ]];
 then
   export UPGRADED_K8S_VERSION="v1.23.8"
 else
-  export UPGRADED_K8S_VERSION="v1.24.1"
+  export UPGRADED_K8S_VERSION="v1.25.2"
 fi
 
 if [[ "${IMAGE_OS}" == "ubuntu" ]]; then
