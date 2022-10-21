@@ -67,6 +67,33 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -i vm-setup/inventory.ini \
   -b vm-setup/install-package-playbook.yml
 
+# Workaround on centos network manager versions higher than 1.40.0-1.el9 are failing after creating a bridge e.g running:
+
+# tee -a /etc/NetworkManager/system-connections/provisioning-1.nmconnection <<EOF
+# [connection]
+# id=provisioning-1
+# type=bridge
+# interface-name=provisioning-1
+# [bridge]
+# stp=false
+# [ipv4]
+# address1=172.22.0.1/24
+# method=manual
+# [ipv6]
+# addr-gen-mode=eui64
+# method=disabled
+# EOF
+# chmod 600 /etc/NetworkManager/system-connections/provisioning-1.nmconnection
+# nmcli con load /etc/NetworkManager/system-connections/provisioning-1.nmconnection
+# nmcli con up provisioning-1
+
+# After those commands ssh connection will be lost
+# This workaround downgrade NetworkManager version to NetworkManager-1.40.0-1.el9
+if [[ $OS == "centos" || $OS == "rhel" ]]; then
+  sudo yum downgrade -y NetworkManager-1.40.0-1.el9
+  sudo systemctl restart NetworkManager
+fi
+
 # shellcheck disable=SC1091
 source lib/network.sh
 # shellcheck disable=SC1091
