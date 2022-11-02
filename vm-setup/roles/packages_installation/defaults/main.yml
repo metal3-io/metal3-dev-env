@@ -42,61 +42,61 @@ packages:
         - libvirt-daemon-system
         - libssl-dev
     pip3:
-     - python-apt
-     - kubernetes==17.17.0
-     - pyYAML
-     - virtualbmc
-     - lxml
-     - netaddr
-     - libvirt-python
-     - six
-     - docker-py
-     - jmespath
-     - passlib
+    - python-apt
+    - kubernetes==17.17.0
+    - pyYAML
+    - virtualbmc
+    - lxml
+    - netaddr
+    - libvirt-python
+    - six
+    - docker-py
+    - jmespath
+    - passlib
   centos:
     common:
       packages:
-         - curl
-         - dnsmasq
-         - edk2-ovmf
-         - NetworkManager
-         - nmap
-         - patch
-         - psmisc
-         - vim-enhanced
-         - wget
-         - bind-utils
-         - jq
-         - libguestfs-tools
-         - unzip
-         - genisoimage
-         - qemu-kvm
-         - libvirt
-         - libvirt-devel
-         - libvirt-daemon-kvm
-         - python3-libvirt
-         - libguestfs-tools
-         - python3-lxml
-         - polkit-pkla-compat
-         - python3-netaddr
-         - virt-install
-         - firewalld
-         - python3-six
-         - httpd-tools
-         - python3-bcrypt
+        - bind-utils
+        - curl
+        - dnsmasq
+        - edk2-ovmf
+        - firewalld
+        - genisoimage
+        - httpd-tools
+        - jq
+        - libguestfs-tools
+        - libguestfs-tools
+        - libvirt
+        - libvirt-daemon-kvm
+        - libvirt-devel
+        - NetworkManager
+        - nmap
+        - patch
+        - polkit-pkla-compat
+        - psmisc
+        - python3-bcrypt
+        - python3-libvirt
+        - python3-lxml
+        - python3-netaddr
+        - python3-passlib
+        - python3-six
+        - qemu-kvm
+        - unzip
+        - vim-enhanced
+        - virt-install
+        - wget
     el8:
       packages:
-         - redhat-lsb-core
-         - network-scripts
+        - network-scripts
+        - redhat-lsb-core
     el9:
       packages:
         - NetworkManager-initscripts-updown
         - python3-requests-oauthlib
     pip3:
+      - flask_oauthlib==0.9.6
       - jmespath
       - kubernetes==23.3.0
-      - passlib
-      - flask_oauthlib==0.9.6
 DAEMON_JSON_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/files"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') }}"
 OS_VERSION_ID: "{{ lookup('env', 'OS_VERSION_ID') }}"
