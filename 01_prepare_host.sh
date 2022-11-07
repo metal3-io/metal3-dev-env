@@ -239,14 +239,17 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
   pull_container_image_if_missing "$IMAGE"
  done
 
-if ${IPA_DOWNLOAD_ENABLED}; then
-    # Start image downloader container
-    #shellcheck disable=SC2086
-    sudo "${CONTAINER_RUNTIME}" run -d --net host --name ipa-downloader ${POD_NAME} \
-       -e IPA_BASEURI="$IPA_BASEURI" \
-       -v "$IRONIC_DATA_DIR":/shared "${IPA_DOWNLOADER_IMAGE}" /usr/local/bin/get-resource.sh
-
-    sudo "${CONTAINER_RUNTIME}" wait ipa-downloader
+if ${IPA_DOWNLOAD_ENABLED} || [ ! -f "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.kernel" ]; then
+    # Run image downloader container. The output is very verbose and not that interesting so we hide it.
+    for i in {1..5}; do
+        echo "Attempting to download IPA. $i/5"
+        #shellcheck disable=SC2086
+        sudo "${CONTAINER_RUNTIME}" run --rm --net host --name ipa-downloader ${POD_NAME} \
+          -e IPA_BASEURI="$IPA_BASEURI" \
+          -v "$IRONIC_DATA_DIR":/shared "${IPA_DOWNLOADER_IMAGE}" \
+          /bin/bash -c "/usr/local/bin/get-resource.sh &> /dev/null" && s=0 && break || s=$?
+    done
+    (exit $s)
 fi
 
 function configure_minikube() {
