@@ -13,7 +13,7 @@ fi
 
 if [[ $OS == ubuntu ]]; then
   sudo apt-get update
-  sudo apt -y install python3-pip jq curl wget
+  sudo apt -y install python3-pip jq curl wget pkg-config
 
   # Set update-alternatives to python3
   if [[ ${DISTRO} == "ubuntu18" ]]; then
@@ -44,7 +44,7 @@ elif [[ $OS == "centos" || $OS == "rhel" ]]; then
       exit 1
       ;;
   esac
-  sudo dnf -y install python3-pip jq curl wget
+  sudo dnf -y install python3-pip jq curl wget pkgconf-pkg-config
   sudo ln -s /usr/bin/python3 /usr/bin/python || true
 fi
 
