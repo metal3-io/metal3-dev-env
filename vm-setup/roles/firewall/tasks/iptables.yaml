@@ -8,6 +8,7 @@
 - name: "iptables: VBMC Ports"
   iptables:
     chain: INPUT
+    action: insert
     in_interface: "{{ baremetal_interface }}"
     protocol: udp
     match: udp
@@ -18,6 +19,7 @@
 - name: "iptables: sushy Port"
   iptables:
     chain: INPUT
+    action: insert
     in_interface: "{{ baremetal_interface }}"
     protocol: tcp
     match: tcp
@@ -36,19 +38,29 @@
 
 - name: "iptables: Ironic Ports"
   iptables:
-    chain: FORWARD
-    in_interface: "{{ provisioning_interface }}"
+    chain: "{{ item[0].chain }}"
+    action: insert
+    in_interface: "{{ item[0].interface }}"
     protocol: tcp
     match: tcp
-    destination_port: "{{ item }}"
+    destination_port: "{{ item[1] }}"
     jump: ACCEPT
     state: "{{ firewall_rule_state }}"
-  loop: "{{ ironic_ports }}"
+  vars:
+    interfaces:
+      - chain: INPUT
+        interface: "{{ provisioning_interface }}"
+      - chain: INPUT
+        interface: "{{ cluster_provisioning_interface }}"
+      - chain: FORWARD
+        interface: "{{ provisioning_interface }}"
+  loop: "{{ interfaces | product(ironic_ports) | list }}"
 
 - name: "iptables: Provisioning host ports"
   iptables:
     chain: INPUT
-    in_interface: "{{ provisioning_interface }}"
+    action: insert
+    in_interface: "{{ baremetal_interface }}"
     protocol: tcp
     match: tcp
     destination_port: "{{ item }}"
@@ -58,14 +70,23 @@
 
 - name: "iptables: PXE Ports"
   iptables:
-    chain: FORWARD
-    in_interface: "{{ provisioning_interface }}"
+    chain: "{{ item[0].chain }}"
+    action: insert
+    in_interface: "{{ item[0].interface }}"
     protocol: udp
     match: udp
-    destination_port: "{{ item }}"
+    destination_port: "{{ item[1] }}"
     jump: ACCEPT
     state: "{{ firewall_rule_state }}"
-  loop: "{{ pxe_udp_ports }}"
+  vars:
+    interfaces:
+      - chain: INPUT
+        interface: "{{ provisioning_interface }}"
+      - chain: INPUT
+        interface: "{{ cluster_provisioning_interface }}"
+      - chain: FORWARD
+        interface: "{{ provisioning_interface }}"
+  loop: "{{ interfaces | product(pxe_udp_ports) | list }}"
 
 - name: "iptables: Ironic Endpoint Keepalived"
   iptables:
@@ -76,12 +97,37 @@
     state: "{{ firewall_rule_state }}"
   loop: "{{ ironic_keepalived_proto }}"
 
-- name: "iptables: Allow access to baremetal network from kind"
-  iptables:
-    chain: FORWARD
-    action: insert
-    out_interface: "{{ baremetal_interface }}"
-    destination: "{{ external_subnet_v4 }}"
-    jump: ACCEPT
-    state: "{{ firewall_rule_state }}"
+- block:
+    - name: "iptables: Allow access to baremetal network from kind"
+      iptables:
+        chain: INPUT
+        action: insert
+        protocol: tcp
+        match: tcp
+        destination: "{{ external_subnet_v4 }}"
+        destination_port: "{{ item }}"
+        jump: ACCEPT
+        state: "{{ firewall_rule_state }}"
+      loop: "{{ provisioning_host_ports }}"
+
+    - name: "iptables: Allow access to provisioning network from kind"
+      iptables:
+        chain: INPUT
+        action: insert
+        protocol: tcp
+        match: tcp
+        destination: "{{ provisioning_subnet }}"
+        destination_port: "{{ item }}"
+        jump: ACCEPT
+        state: "{{ firewall_rule_state }}"
+      loop: "{{ ironic_ports }}"
+
+    - name: "iptables: Allow forwarding to baremetal network from kind"
+      iptables:
+        chain: FORWARD
+        action: insert
+        out_interface: "{{ baremetal_interface }}"
+        destination: "{{ external_subnet_v4 }}"
+        jump: ACCEPT
+        state: "{{ firewall_rule_state }}"
   when: (EPHEMERAL_CLUSTER == "kind")
