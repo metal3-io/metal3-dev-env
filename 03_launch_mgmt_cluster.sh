@@ -319,13 +319,6 @@ function patch_clusterctl(){
   mkdir -p "${HOME}"/.cluster-api
   touch "${HOME}"/.cluster-api/clusterctl.yaml
 
-## This is hard-coded until we use clusterctl (upcoming CAPI v1.3.0 minor release)
-## with cert-manager v1.10.0
-  cat << EOF | sudo tee "${HOME}/.cluster-api/clusterctl.yaml"
-cert-manager:
-  version: "v1.10.0"
-EOF
-
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
   if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
