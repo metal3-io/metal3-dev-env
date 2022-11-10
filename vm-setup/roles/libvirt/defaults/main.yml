@@ -9,7 +9,6 @@ vm_platform: libvirt
 # not require privileged access (but does require the setup performed by the
 # `environment/setup` role).
 libvirt_volume_pool: oooq_pool
-libvirt_domain_type: kvm
 libvirt_diskdev: sda
 libvirt_cdromdev: sdb
 libvirt_diskbus: scsi

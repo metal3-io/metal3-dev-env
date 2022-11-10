@@ -16,6 +16,7 @@ assured that they are persisted.
 | EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
 | EXTERNAL_SUBNET_V6 | When using IPv6 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv6 CIDR | fd55::/64 |
 | PROVISIONING_IPV6 | Configure provisioning network for single-stack ipv6 | "true", "false" | false |
+| PROVISIONING_NETWORK | Assign a subnet to the provisioning network. | IPv4 CIDR | 172.22.0.0/24 |
 | SSH_PUB_KEY | This SSH key will be automatically injected into the provisioned host by the clusterctl environment template files. | | ~/.ssh/id_rsa.pub |
 | CONTAINER_RUNTIME | Select the Container Runtime | "docker", "podman" | "docker" on ubuntu, "podman" otherwise |
 | IPA_DOWNLOAD_ENABLED | Enables the use of the Ironic Python Agent Downloader container to download IPA archive| "true", "false | "true" |

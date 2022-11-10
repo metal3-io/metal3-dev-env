@@ -92,6 +92,13 @@
           apt: name={{ item }} state=latest update_cache=yes
           loop: [ 'docker-ce', 'docker-ce-cli', 'containerd.io' ]
 
+        - name: Create docker configuration dir
+          file:
+            path: /etc/docker
+            state: directory
+            owner: root
+            group: root
+
         - name: Template daemon.json to /etc/docker/daemon.json
           template:
             src: "{{ DAEMON_JSON_PATH }}/daemon.json"

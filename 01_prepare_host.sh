@@ -16,7 +16,7 @@ if [[ $OS == ubuntu ]]; then
   # make the data retrival more reliable
   sudo sh -c ' echo "Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries '
   sudo apt-get update
-  sudo apt-get -y install python3-pip jq curl wget bash-completion
+  sudo apt-get -y install python3-pip jq curl wget pkg-config bash-completion
 
   # Set update-alternatives to python3
   if [[ ${DISTRO} == "ubuntu18" ]]; then
@@ -27,9 +27,16 @@ if [[ $OS == ubuntu ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
     # (workaround) disable tdp_mmu to avoid
     # kernel crashes with  NULL pointer dereference
-    sudo modprobe -r -a kvm_intel kvm
-    sudo modprobe kvm tdp_mmu=0
-    sudo modprobe -a kvm kvm_intel
+    # note(elfosardo): run this only if we have kvm support
+    if grep -q vmx /proc/cpuinfo; then
+      sudo modprobe -r -a kvm_intel kvm
+      sudo modprobe kvm tdp_mmu=0
+      sudo modprobe -a kvm kvm_intel
+    elif grep -q svm /proc/cpuinfo; then
+      sudo modprobe -r -a kvm_amd kvm
+      sudo modprobe kvm tdp_mmu=0
+      sudo modprobe -a kvm kvm_amd
+    fi
   fi
 elif [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo dnf upgrade -y
@@ -47,7 +54,7 @@ elif [[ $OS == "centos" || $OS == "rhel" ]]; then
       exit 1
       ;;
   esac
-  sudo dnf -y install python3-pip jq curl wget bash-completion
+  sudo dnf -y install python3-pip jq curl wget pkgconf-pkg-config bash-completion
   sudo ln -s /usr/bin/python3 /usr/bin/python || true
 fi
 
@@ -213,6 +220,12 @@ if [ ! -f "${IMAGE_NAME}" ] ; then
     fi
 fi
 popd
+
+# NOTE(elfosardo): workaround for https://github.com/moby/moby/issues/44970
+# should be fixed in docker-ce 23.0.2
+if [[ $OS == ubuntu ]]; then
+  sudo systemctl restart docker
+fi
 
 # Pulling all the images except any local image.
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
