@@ -342,6 +342,10 @@ if [ "${NUM_NODES}" -lt "$((CONTROL_PLANE_MACHINE_COUNT + WORKER_MACHINE_COUNT))
     exit 1
 fi
 
+# Set default libvirt_domain_type to kvm
+# Accepted values are kvm or qemu
+export LIBVIRT_DOMAIN_TYPE=${LIBVIRT_DOMAIN_TYPE:-kvm}
+
 # Verify requisites/permissions
 # Connect to system libvirt
 export LIBVIRT_DEFAULT_URI=qemu:///system

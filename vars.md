@@ -16,6 +16,7 @@ assured that they are persisted.
 | EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
 | EXTERNAL_SUBNET_V6 | When using IPv6 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv6 CIDR | fd55::/64 |
 | PROVISIONING_IPV6 | Configure provisioning network for single-stack ipv6 | "true", "false" | false |
+| PROVISIONING_NETWORK | Assign a subnet to the provisioning network. | IPv4 CIDR | 172.22.0.0/24 |
 | SSH_PUB_KEY | This SSH key will be automatically injected into the provisioned host by the clusterctl environment template files. | | ~/.ssh/id_rsa.pub |
 | CONTAINER_RUNTIME | Select the Container Runtime | "docker", "podman" | "docker" on ubuntu, "podman" otherwise |
 | IPA_DOWNLOAD_ENABLED | Enables the use of the Ironic Python Agent Downloader container to download IPA archive| "true", "false | "true" |
@@ -49,6 +50,7 @@ assured that they are persisted.
 | UPGRADED_K8S_VERSION | Upgraded Kubernetes version | "x.x.x" | "1.26.0" |
 | KUBERNETES_BINARIES_VERSION | Version of kubelet, kubeadm and kubectl | "x.x.x-xx" or "x.x.x" | same as KUBERNETES_VERSION |
 | KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.13.0" |
+| LIBVIRT_DOMAIN_TYPE | Which hypervisor to use for the virtual machines libvirt domain, default to kvm. It is possible to switch to qemu in case nested virtualization is not available, although it's considered experimental at this stage of development. | "kvm", "qemu" | "kvm" |
 | NUM_NODES | Set the number of virtual machines to be provisioned. This VMs will be further configured as controlplane or worker Nodes. Note that CONTROL_PLANE_MACHINE_COUNT and WORKER_MACHINE_COUNT should sum to this value. | | 2 |
 | CONTROL_PLANE_MACHINE_COUNT | Set the controlplane replica count in the target cluster. ||1|
 | WORKER_MACHINE_COUNT | Set the worker replica count in the target cluster. ||1|
