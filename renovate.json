@@ -50,7 +50,7 @@
       "matchPackageNames": [
         "golang"
       ],
-      "allowedVersions": "<=1.17"
+      "allowedVersions": "<=1.19"
     },
     {
       "matchPackageNames": [
