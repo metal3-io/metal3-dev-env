@@ -25,6 +25,7 @@ packages:
         - libpolkit-agent-1-0
         - libpolkit-gobject-1-0
         - apache2-utils
+        - netcat
     podman:
       packages:
         - apt-transport-https
