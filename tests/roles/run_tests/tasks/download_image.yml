@@ -17,8 +17,18 @@
               msg: "Local image {{ IMAGE_LOCATION }}/{{ IMAGE_NAME }} is not found, starting to download"
 
           - name: Verify specific image containing newer version of cloud-init is downloaded
-            shell: | 
-              wget -q "{{ IMAGE_LOCATION }}/{{ IMAGE_NAME }}" -O "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}" 
+            shell: |
+              for i in {1..4}; do
+                timeout 900 \
+                  wget -q "{{ IMAGE_LOCATION }}/{{ IMAGE_NAME }}" -O "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}"
+                excode=$?
+                if [[ $excode != 124 ]]; then
+                  exit $excode
+                fi
+              done
+              exit $excode
+            args:
+              executable: /bin/bash
 
           - name: Create raw image
             shell: |
