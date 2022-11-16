@@ -43,9 +43,10 @@ else
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.2.")}"
 fi
 
-# Remove the following line when CAPI release v1.3.0 is available
+# Remove the following lines when CAPI/CAPM3 v1.3.0 releases are available
 if [ "${CAPM3RELEASEBRANCH}" == "main" ]; then
  export CAPIRELEASE="v1.3.0-beta.1"
+ export CAPM3RELEASE="v1.3.0-beta.0"
 fi
 
 export BMORELEASE="${BMORELEASE:-$(get_latest_release "${BMORELEASEPATH}" "v0.1.")}"
