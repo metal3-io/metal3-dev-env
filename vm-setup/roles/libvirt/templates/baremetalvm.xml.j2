@@ -30,7 +30,11 @@
     <apic/>
     <pae/>
   </features>
+{% if libvirt_domain_type == 'qemu' %}
+  <cpu mode='host-model'/>
+{% else %}
   <cpu mode='host-passthrough'/>
+{% endif %}
   <clock offset='utc'/>
   <on_poweroff>destroy</on_poweroff>
   <on_reboot>restart</on_reboot>
