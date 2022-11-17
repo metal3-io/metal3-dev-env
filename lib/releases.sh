@@ -7,8 +7,8 @@ function get_latest_release() {
   else
     release="$(curl -H "Authorization: token ${GITHUB_TOKEN}" -sL "${1}")" || ( set -x && exit 1 )
   fi
-  # This gets the latest release as vx.y.z , ignoring any version with a suffix starting with - , for example -rc0
-  release_tags_unsorted="$(echo "$release" | jq -r "[.[].tag_name | select( startswith(\"${2:-""}\")) | select(contains(\"-\")==false)]" \
+  # This gets the latest release as vx.y.z or vx.y.z-rc.0, including any version with a suffix starting with - , for example -rc.0
+  release_tags_unsorted="$(echo "$release" | jq -r "[.[].tag_name | select( startswith(\"${2:-""}\"))]" \
     | cut -sf2 -d\"  | tr '.' ' ' )"
   if [[ $OS == ubuntu ]]; then
     release_tags_sorted="$(echo "$release_tags_unsorted" | sort -n +1 +2 )"
@@ -38,15 +38,12 @@ if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1al
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.1.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.1.")}"
-else
+elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.2.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.2.")}"
-fi
-
-# Remove the following lines when CAPI/CAPM3 v1.3.0 releases are available
-if [ "${CAPM3RELEASEBRANCH}" == "main" ]; then
- export CAPIRELEASE="v1.3.0-beta.1"
- export CAPM3RELEASE="v1.3.0-beta.0"
+else
+  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.3.")}"
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.3.")}"
 fi
 
 export BMORELEASE="${BMORELEASE:-$(get_latest_release "${BMORELEASEPATH}" "v0.1.")}"
