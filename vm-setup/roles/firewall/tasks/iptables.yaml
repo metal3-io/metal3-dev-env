@@ -122,6 +122,17 @@
         state: "{{ firewall_rule_state }}"
       loop: "{{ ironic_ports }}"
 
+    - name: "iptables: Allow access to Kubernetes API from kind"
+      iptables:
+        chain: INPUT
+        action: insert
+        protocol: tcp
+        match: tcp
+        destination: "{{ kind_subnet }}"
+        destination_port: "{{ cluster_api_port }}"
+        jump: ACCEPT
+        state: "{{ firewall_rule_state }}"
+
     - name: "iptables: Allow forwarding to baremetal network from kind"
       iptables:
         chain: FORWARD
