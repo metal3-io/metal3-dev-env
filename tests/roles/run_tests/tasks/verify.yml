@@ -19,14 +19,14 @@
       block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
 
   # Install Calico
-  - name: Download Calico v3.21.x manifests
+  - name: Download Calico v3.24.x manifests
     get_url:
-      url: "https://docs.projectcalico.org/archive/{{ CALICO_MINOR_RELEASE }}/manifests/calico.yaml"
+      url: "https://raw.githubusercontent.com/projectcalico/calico/{{ CALICO_MINOR_RELEASE }}/manifests/calico.yaml"
       dest: /tmp/
       mode: '664'
     register: calico_manifest
 
-  - name: Pin calico version to v3.21.0
+  - name: Pin calico version to v3.24.1
     ansible.builtin.replace:
       path: /tmp/calico.yaml
       regexp: 'image: docker.io/calico/(.+):v(.+)$'
