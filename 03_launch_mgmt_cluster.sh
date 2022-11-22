@@ -121,6 +121,10 @@ function update_images(){
 function launch_ironic() {
   pushd "${BMOPATH}"
 
+    # TODO(lentzi90): When the Ironic kustomizations support running without mariadb
+    # adapt this so that we run with/without mariadb based on IRONIC_USE_MARIADB.
+    # Currently we leave mariadb there even when using sqlite.
+
     # Update Configmap parameters with correct urls
     cat << EOF | sudo tee "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
@@ -136,6 +140,7 @@ CACHEURL=http://${PROVISIONING_URL_HOST}/images
 IRONIC_FAST_TRACK=true
 RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED}"
 IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
+IRONIC_USE_MARIADB=${IRONIC_USE_MARIADB:-false}
 EOF
 
   if [ -n "${DEPLOY_ISO_URL}" ]; then
