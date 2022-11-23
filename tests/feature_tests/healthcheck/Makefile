@@ -1,5 +1,5 @@
-export NUM_OF_CONTROLPLANE_REPLICAS := 3
-export NUM_OF_WORKER_REPLICAS := 1
+export CONTROL_PLANE_MACHINE_COUNT := 3
+export WORKER_MACHINE_COUNT := 1
 
 all: provision healthcheck deprovision 
 
