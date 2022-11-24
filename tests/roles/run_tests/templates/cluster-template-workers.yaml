@@ -8,7 +8,7 @@ metadata:
     nodepool: nodepool-0
 spec:
   clusterName: ${ CLUSTER_NAME }
-  replicas: ${ NUM_OF_WORKER_REPLICAS }
+  replicas: ${ WORKER_MACHINE_COUNT }
   selector:
     matchLabels:
       cluster.x-k8s.io/cluster-name: ${ CLUSTER_NAME }

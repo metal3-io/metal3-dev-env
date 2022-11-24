@@ -36,12 +36,12 @@
 #export SSH_PUB_KEY=~/.ssh/id_rsa.pub
 
 # Set the controlplane replica count
-#export NUM_OF_CONTROLPLANE_REPLICAS=1
+#export CONTROL_PLANE_MACHINE_COUNT=1
 
 #
 # This variable defines if controlplane should scale-in or scale-out during upgrade
 # The field values can be 0 or 1. Default is 1. When set to 1 controlplane scale-out
-# When set to 0 controlplane scale-in. In case of scale-in NUM_OF_CONTROLPLANE_REPLICAS must be >=3.
+# When set to 0 controlplane scale-in. In case of scale-in CONTROL_PLANE_MACHINE_COUNT must be >=3.
 #
 # In case of worker, this variable defines maximum number of machines that can be scheduled
 # above the desired number of machines. Value can be an absolute number (ex: 5) or a percentage

@@ -27,7 +27,7 @@
       CONTROLPLANE_VM_1: "{{ controlplanes[1][0] | replace('-','_') | replace('metal3/','') }}"
       CONTROLPLANE_VM_2: "{{ controlplanes[2][0] | replace('-','_') | replace('metal3/','') }}"
       WORKER_VM: "{{ workers[0] | replace('-','_') | replace('metal3/','') }}"
-      NUMBER_OF_BMH: "{{ NUM_OF_CONTROLPLANE_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
+      NUMBER_OF_BMH: "{{ CONTROL_PLANE_MACHINE_COUNT|int +  WORKER_MACHINE_COUNT|int }}"
 
   - name: Fetch the target cluster kubeconfig
     k8s_info:

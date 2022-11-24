@@ -1,7 +1,7 @@
 ---
   - name: Define number of BMH's
     set_fact:
-      NUMBER_OF_BMH: "{{ NUM_OF_CONTROLPLANE_REPLICAS|int +  NUM_OF_WORKER_REPLICAS|int }}"
+      NUMBER_OF_BMH: "{{ CONTROL_PLANE_MACHINE_COUNT|int +  WORKER_MACHINE_COUNT|int }}"
 
   - name: Wait until cluster becomes provisioned.
     k8s_info:

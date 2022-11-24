@@ -7,7 +7,7 @@ spec:
   rolloutStrategy:
     rollingUpdate:
       maxSurge: ${ MAX_SURGE_VALUE }
-  replicas: ${ NUM_OF_CONTROLPLANE_REPLICAS }
+  replicas: ${ CONTROL_PLANE_MACHINE_COUNT }
   version: ${ KUBERNETES_VERSION }
   machineTemplate:
     nodeDrainTimeout: ${ NODE_DRAIN_TIMEOUT }

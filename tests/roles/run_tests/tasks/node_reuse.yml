@@ -1,7 +1,7 @@
 ---
   - set_fact:
-      NUMBER_OF_BMH_KCP: "{{ NUM_OF_CONTROLPLANE_REPLICAS|int }}"
-      NUMBER_OF_BMH_MD: "{{ NUM_OF_WORKER_REPLICAS|int }}"
+      NUMBER_OF_BMH_KCP: "{{ CONTROL_PLANE_MACHINE_COUNT|int }}"
+      NUMBER_OF_BMH_MD: "{{ WORKER_MACHINE_COUNT|int }}"
 
   - name: Untaint all nodes.
     shell: |
