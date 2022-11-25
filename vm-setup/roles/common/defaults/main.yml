@@ -51,7 +51,24 @@ manage_baremetal: 'y'
 provisioning_network:
   - name: provisioning
     bridge: provisioning
-    forward_mode: bridge
+    forward_mode: nat
+    address_v4: "172.23.23.1"
+    netmask_v4: "255.255.255.0"
+    dhcp_range_v4:
+      - "172.23.23.20"
+      - "172.23.23.30"
+    # libvirt defaults to minutes as the unit
+    lease_expiry: 60
+    nat_port_range:
+      - 1024
+      - 65535
+    domain: "{{ cluster_domain }}"
+    dns:
+      hosts: "{{dns_extrahosts | default([])}}"
+      forwarders:
+        - domain: "apps.{{ cluster_domain }}"
+          addr: "127.0.0.1"
+      srvs: "{{dns_externalsrvs | default([])}}"
 external_network:
   - name: baremetal
     bridge: baremetal

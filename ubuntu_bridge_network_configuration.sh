@@ -16,7 +16,7 @@ if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
      # Create a veth iterface peer.
      sudo ip link add ironicendpoint type veth peer name ironic-peer
      # Create provisioning bridge.
-     sudo brctl addbr provisioning
+     # sudo brctl addbr provisioning this interface is already there as NATed iface
      # sudo ifconfig provisioning 172.22.0.1 netmask 255.255.255.0 up
      # Use ip command. ifconfig commands are deprecated now.
      sudo ip link set provisioning up
