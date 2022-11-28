@@ -19,7 +19,7 @@ export BAREMETAL_OPERATOR_TAG="capm3-v0.5.5"
 
 # Ubuntu is hard coded in the upgrade tests. Make sure we use it throughout.
 export IMAGE_OS="ubuntu"
-export FROM_K8S_VERSION="v1.23.8"
+export FROM_K8S_VERSION="v1.24.1"
 export KUBERNETES_VERSION=${FROM_K8S_VERSION}
 export UPGRADED_K8S_VERSION="v1.24.1"
 export MAX_SURGE_VALUE="0"
