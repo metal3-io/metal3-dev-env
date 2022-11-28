@@ -39,7 +39,7 @@ assured that they are persisted.
 | SUSHY_TOOLS_IMAGE | Container image for sushy-tools container | | "$CONTAINER_REGISTRY/metal3-io/sushy-tools" |
 | CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1alpha5", "v1beta1" | "v1beta1" |
 | CAPI_VERSION | Version of Cluster API | "v1alpha4", "v1beta1" | "v1beta1" |
-| CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "192.168.111.249" |
+| CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "${EXTERNAL_SUBNET_VX}.249" |
 | CLUSTER_APIENDPOINT_HOST | API endpoint host for target cluster | | $CLUSTER_APIENDPOINT_IP |
 | CLUSTER_APIENDPOINT_PORT | API endpoint port for target cluster | | "6443" |
 | CLUSTER_PROVISIONING_INTERFACE | Cluster provisioning Interface | "ironicendpoint" | "ironicendpoint" |
@@ -111,6 +111,8 @@ assured that they are persisted.
 | BUILD_CAPI_LOCALLY | build Cluster API based on CAPIPATH | "true","false" | "false" |
 | BUILD_IRONIC_IMAGE_LOCALLY | build the Metal3's ironic-image based on IRONIC_IMAGE_PATH | "true","false" | "false" |
 | IRONIC_FROM_SOURCE | installs ironic from source during container image building, if `true` then the `BUILD_IRONIC_IMAGE_LOCALLY` will be also set to `true` | "true","false" | "false" |
+| DHCP_HOSTS | A list of `;` separated dhcp-host directives for dnsmasq | e.g. `00:20:e0:3b:13:af;00:20:e0:3b:14:af` | |
+| DHCP_IGNORE | A set of tags on hosts to be ignored by dnsmasq | e.g. `tag:!known` | |
 
 **NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the `BRANCH` variables so make sure that
 RELEASE and BRANCH variables are not conflicting.

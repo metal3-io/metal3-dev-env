@@ -78,14 +78,6 @@ else
   export CLUSTER_URL_HOST="$CLUSTER_PROVISIONING_IP"
 fi
 
-# shellcheck disable=SC2153
-if [[ "$CLUSTER_APIENDPOINT_IP" == *":"* ]]; then
-  export CLUSTER_APIENDPOINT_HOST="[$CLUSTER_APIENDPOINT_IP]"
-else
-  export CLUSTER_APIENDPOINT_HOST="$CLUSTER_APIENDPOINT_IP"
-fi
-export CLUSTER_APIENDPOINT_PORT=${CLUSTER_APIENDPOINT_PORT:-"6443"}
-
 # Calculate DHCP range
 network_address dhcp_range_start "$PROVISIONING_NETWORK" 10
 network_address dhcp_range_end "$PROVISIONING_NETWORK" 100
@@ -117,6 +109,23 @@ else
     echo "Invalid value of IP_STACK: '${IP_STACK}'"
     exit 1
 fi
+
+if [[ -n "${CLUSTER_APIENDPOINT_IP:-}" ]]; then
+  # Accept user provided value if set
+  export CLUSTER_APIENDPOINT_IP
+elif [[ -n "${EXTERNAL_SUBNET_V4}" ]]; then
+  network_address CLUSTER_APIENDPOINT_IP "${EXTERNAL_SUBNET_V4}" 249
+else
+  network_address CLUSTER_APIENDPOINT_IP "${EXTERNAL_SUBNET_V6}" 249
+fi
+
+# shellcheck disable=SC2153
+if [[ "${CLUSTER_APIENDPOINT_IP}" == *":"* ]]; then
+  export CLUSTER_APIENDPOINT_HOST="[${CLUSTER_APIENDPOINT_IP}]"
+else
+  export CLUSTER_APIENDPOINT_HOST="${CLUSTER_APIENDPOINT_IP}"
+fi
+export CLUSTER_APIENDPOINT_PORT=${CLUSTER_APIENDPOINT_PORT:-"6443"}
 
 if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]] && [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
     network_address MINIKUBE_BMNET_V6_IP "${EXTERNAL_SUBNET_V6}" 9

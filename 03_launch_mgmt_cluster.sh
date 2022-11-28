@@ -139,15 +139,23 @@ IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
 EOF
 
   if [ -n "${DEPLOY_ISO_URL}" ]; then
-    echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
+    echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
 
   if [ "$NODES_PLATFORM" == "libvirt" ] ; then
-    echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"
+    echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
+  fi
+
+  if [ -n "${DHCP_IGNORE}" ]; then
+    echo "DHCP_IGNORE=${DHCP_IGNORE}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
+  fi
+
+  if [ -n "${DHCP_HOSTS}" ]; then
+    echo "DHCP_HOSTS=${DHCP_HOSTS}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
 
   # Copy the generated configmap for ironic deployment
-  cp "$IRONIC_DATA_DIR/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
+  cp "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
 
   # Update manifests to use the correct images.
   # Note: Even though the manifests are not used for local deployment we need
@@ -301,12 +309,12 @@ function patch_clusterctl(){
   pushd "${CAPM3PATH}"
   mkdir -p "${HOME}"/.cluster-api
   touch "${HOME}"/.cluster-api/clusterctl.yaml
-  
+
 ## This is hard-coded until we use clusterctl (upcoming CAPI v1.3.0 minor release)
 ## with cert-manager v1.10.0
   cat << EOF | sudo tee "${HOME}/.cluster-api/clusterctl.yaml"
 cert-manager:
-  version: "v1.10.0" 
+  version: "v1.10.0"
 EOF
 
   # At this point the images variables have been updated with update_images
