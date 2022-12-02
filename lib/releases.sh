@@ -8,14 +8,10 @@ function get_latest_release() {
     release="$(curl -H "Authorization: token ${GITHUB_TOKEN}" -sL "${1}")" || ( set -x && exit 1 )
   fi
   # This gets the latest release as vx.y.z or vx.y.z-rc.0, including any version with a suffix starting with - , for example -rc.0
-  release_tags_unsorted="$(echo "$release" | jq -r "[.[].tag_name | select( startswith(\"${2:-""}\"))]" \
-    | cut -sf2 -d\"  | tr '.' ' ' )"
-  if [[ $OS == ubuntu ]]; then
-    release_tags_sorted="$(echo "$release_tags_unsorted" | sort -n +1 +2 )"
-  else
-    release_tags_sorted="$(echo "$release_tags_unsorted" | sort -nk1 -nk2 -nk3 )"
-  fi
-  release_tag="$(echo "$release_tags_sorted" | tail -n 1 | tr ' ' '.')"
+  # The order is exactly as released in Github.
+  # Downside is that selecting official releases only isn't possible, while pre-release
+  # selection is possible given specific enough prefix, like v1.3.0-pre
+  release_tag="$(echo "$release" | jq -r "[.[].tag_name | select( startswith(\"${2:-}\"))] | .[0]")"
 
   if [[ "$release_tag" == "null" ]]; then
     set -x
