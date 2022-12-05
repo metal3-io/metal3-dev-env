@@ -78,38 +78,38 @@ When the test-framework is triggered with `/test-features-ubuntu` or
 `/test-features-centos`, it will:
 
 - setup metal3-dev-env
-  - run 01_\*, 02_\*, 03_\*, 04_\* scripts
+   - run 01_\*, 02_\*, 03_\*, 04_\* scripts
 - run remediation tests
-  - provision cluster and BMH
-  - run remediation tests
-  - deprovision cluster and BMH
+   - provision cluster and BMH
+   - run remediation tests
+   - deprovision cluster and BMH
 - run healthcheck tests
-  - provision cluster and BMH
-  - run healthcheck tests
-  - deprovision cluster and BMH
+   - provision cluster and BMH
+   - run healthcheck tests
+   - deprovision cluster and BMH
 - clean up the environment
-  - run `cleanup_env.sh`
+   - run `cleanup_env.sh`
 - run pivoting tests
-  - provision cluster and BMH
-  - run pivoting tests
+   - provision cluster and BMH
+   - run pivoting tests
 - run scale-in and node reuse tests
-  - run scale-in and node reuse tests for KubeadmControlPlane scenario
-  - run node reuse tests for MachineDeployment scenario
+   - run scale-in and node reuse tests for KubeadmControlPlane scenario
+   - run node reuse tests for MachineDeployment scenario
 - run repivoting tests
-  - run repivoting tests
-  - deprovision cluster and BMH
+   - run repivoting tests
+   - deprovision cluster and BMH
 - clean up the environment
-  - run `cleanup_env.sh`
+   - run `cleanup_env.sh`
 
 When the test-framework is triggered with `/test-upgrade-features`, it will:
 
 - setup metal3-dev-env
-  - run 01_\*, 02_\*, 03_\*, 04_\* scripts
+   - run 01_\*, 02_\*, 03_\*, 04_\* scripts
 - run upgrade tests
-  - provision cluster and BMH
-  - run upgrade tests
-  - deprovision cluster and BMH
-  - destroy the environment (i.e. run `make clean`)
+   - provision cluster and BMH
+   - run upgrade tests
+   - deprovision cluster and BMH
+   - destroy the environment (i.e. run `make clean`)
 
 ## Environment variables
 
