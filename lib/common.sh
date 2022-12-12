@@ -311,9 +311,9 @@ export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"${DOCKER_HUB_PROXY}/kindest/node:${KI
 # Older ubuntu version do no support 7.0.0 because of older python versions
 # Ansible 7.0.0 requires python 3.10+
 if [ "${DISTRO}" == "ubuntu22" ]; then
-    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"7.0.0"}
+    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"7.1.0"}
 else 
-    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"6.6.0"}
+    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"7.1.0"}
 fi
 
 # Test and verification related variables
