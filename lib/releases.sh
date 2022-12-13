@@ -42,7 +42,7 @@ else
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.3.")}"
 fi
 
-export BMORELEASE="${BMORELEASE:-$(get_latest_release "${BMORELEASEPATH}" "v0.1.")}"
+export BMORELEASE="${BMORELEASE:-$(get_latest_release "${BMORELEASEPATH}" "v0.2.")}"
 
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
 BMOBRANCH="${BMOBRANCH:-${BMORELEASE}}"
