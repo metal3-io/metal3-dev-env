@@ -249,7 +249,7 @@ if ${IPA_DOWNLOAD_ENABLED} || [ ! -f "${IRONIC_DATA_DIR}/html/images/ironic-pyth
           -v "$IRONIC_DATA_DIR":/shared "${IPA_DOWNLOADER_IMAGE}" \
           /bin/bash -c "/usr/local/bin/get-resource.sh &> /dev/null" && s=0 && break || s=$?
     done
-    (exit $s)
+    (exit "${s}")
 fi
 
 function configure_minikube() {
