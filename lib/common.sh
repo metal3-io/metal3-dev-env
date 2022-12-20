@@ -195,7 +195,7 @@ if [ "${BUILD_IPAM_LOCALLY}" == "true" ]; then
   export IPAM_LOCAL_IMAGE="${IPAMPATH}"
 fi
 if [ "${BUILD_BMO_LOCALLY}" == "true" ]; then
-  export BMO_LOCAL_IMAGE="${BMOPATH}"
+  export BAREMETAL_OPERATOR_LOCAL_IMAGE="${BMOPATH}"
 fi
 if [ "${BUILD_CAPI_LOCALLY}" == "true" ]; then
   export CAPI_LOCAL_IMAGE="${CAPIPATH}"
