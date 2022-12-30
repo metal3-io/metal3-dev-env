@@ -6,6 +6,10 @@ preKubeadmCommands:
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
   - nmcli connection up {{ IRONIC_ENDPOINT_BRIDGE }}
   - systemctl enable --now crio kubelet
+{% if EXTERNAL_VLAN_ID != "" %}
+  - nmcli connection load /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
+  - nmcli connection up /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
+{% endif %}
 files:
   - path: /usr/local/bin/retrieve.configuration.files.sh
     owner: root:root
@@ -76,3 +80,26 @@ files:
 
       [registries.insecure]
       registries = ['{{ REGISTRY }}']
+{% if EXTERNAL_VLAN_ID != "" %}
+  - path: /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
+    owner: root:root
+    permissions: '0600'
+    content: |
+      [connection]
+      id=Vlan eth0.{{ EXTERNAL_VLAN_ID }}
+      type=vlan
+      autoconnect-priority=999
+      interface-name=eth0.{{ EXTERNAL_VLAN_ID }}
+
+      [vlan]
+      flags=1
+      id=3
+      parent=eth0
+
+      [ipv4]
+      method=auto
+
+      [ipv6]
+      addr-gen-mode=eui64
+      method=ignore
+{% endif %}
