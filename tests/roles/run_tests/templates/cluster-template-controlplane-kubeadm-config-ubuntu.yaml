@@ -1,5 +1,6 @@
 # Ubuntu specific controlplane kubeadm config
 preKubeadmCommands:
+  - sed -i "s/MACAddressPolicy=persistent/MACAddressPolicy=none/g" /usr/lib/systemd/network/99-default.link
 {% if VM_EXTRADISKS == "true" %}
   - (echo n; echo p; echo 1; echo  ;echo  ;echo w) | fdisk /dev/vda
   - mkfs.{{ VM_EXTRADISKS_FILE_SYSTEM }} /dev/vda1
