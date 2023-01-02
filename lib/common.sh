@@ -319,7 +319,7 @@ export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"${DOCKER_HUB_PROXY}/kindest/node:${KI
 if [ "${DISTRO}" == "ubuntu22" ]; then
     export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"7.1.0"}
 else 
-    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"6.6.0"}
+    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"6.7.0"}
 fi
 
 # Test and verification related variables
