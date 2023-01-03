@@ -1,5 +1,6 @@
 # Ubuntu specific worker kubeadm config
 preKubeadmCommands:
+  - sed -i "s/MACAddressPolicy=persistent/MACAddressPolicy=none/g" /usr/lib/systemd/network/99-default.link
   - netplan apply
   - systemctl enable --now crio kubelet
 files:

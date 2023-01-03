@@ -416,7 +416,13 @@ function start_management_cluster () {
     launch_kind
   elif [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
     sudo systemctl restart libvirtd.service
-    sudo su -l -c 'minikube start' "${USER}"
+    while /bin/true; do
+        minikube_error=0
+        sudo su -l -c 'minikube start' "${USER}" || minikube_error=1
+        if [[ $minikube_error -eq 0 ]]; then
+          break
+        fi
+    done
     if [[ -n "${MINIKUBE_BMNET_V6_IP}" ]]; then
       sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
       sudo su -l -c "minikube ssh -- sudo ip addr add $MINIKUBE_BMNET_V6_IP/64 dev eth3" "${USER}"

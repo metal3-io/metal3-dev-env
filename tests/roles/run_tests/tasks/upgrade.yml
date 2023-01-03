@@ -328,7 +328,8 @@
   - name: Upgrade k8s version and boot-image
     include_tasks: "upgrade_k8s.yml"
     loop:
-      - "v1.24.1"
+      - "v1.24.9"
+      - "v1.25.2"
       - "{{ UPGRADED_K8S_VERSION }}"
 
 # Before pivoting back we must ensure all machines are provisioned and running.
