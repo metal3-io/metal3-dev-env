@@ -14,6 +14,19 @@ export IRONIC_HOST="${CLUSTER_URL_HOST}"
 export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
 export REPO_IMAGE_PREFIX="quay.io"
 
+declare -a BMO_IRONIC_ARGS
+# -k is for keepalived
+BMO_IRONIC_ARGS=(-k)
+if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
+  BMO_IRONIC_ARGS+=("-t")
+fi
+if [ "${IRONIC_BASIC_AUTH}" == "false" ]; then
+  BMO_IRONIC_ARGS+=("-n")
+fi
+if [ "${IRONIC_USE_MARIADB:-false}" == "true" ]; then
+  BMO_IRONIC_ARGS+=("-m")
+fi
+
 sudo mkdir -p "${IRONIC_DATA_DIR}"
 sudo chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
 
@@ -55,8 +68,8 @@ EOF
     echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${BMOPATH}/config/default/ironic.env"
   fi
 
-  # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
-  "${BMOPATH}/tools/deploy.sh" true false "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
+  # Deploy BMO using deploy.sh script
+  "${BMOPATH}/tools/deploy.sh" -b "${BMO_IRONIC_ARGS[@]}"
 
   # If BMO should run locally, scale down the deployment and run BMO
   if [ "${BMO_RUN_LOCAL}" == "true" ]; then
@@ -120,10 +133,6 @@ function update_images(){
 #
 function launch_ironic() {
   pushd "${BMOPATH}"
-
-    # TODO(lentzi90): When the Ironic kustomizations support running without mariadb
-    # adapt this so that we run with/without mariadb based on IRONIC_USE_MARIADB.
-    # Currently we leave mariadb there even when using sqlite.
 
     # Update Configmap parameters with correct urls
     cat << EOF | sudo tee "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
@@ -196,8 +205,7 @@ EOF
     ${RUN_LOCAL_IRONIC_SCRIPT}
   else
     # Deploy Ironic using deploy.sh script
-    # Deploy. Args: <deploy-BMO> <deploy-Ironic> <deploy-TLS> <deploy-Basic-Auth> <deploy-Keepalived>
-    "${BMOPATH}/tools/deploy.sh" false true "${IRONIC_TLS_SETUP}" "${IRONIC_BASIC_AUTH}" true
+    "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
   fi
   popd
 }

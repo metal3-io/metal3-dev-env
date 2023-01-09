@@ -277,7 +277,7 @@
         spec:
           template:
             spec:
-              containers: "{{ ironic_based_containers + mariadb_container }}"
+              containers: "{{ ironic_based_containers }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     vars:
       # Generate a list of name/image pairs from the ironic_image_containers.
@@ -290,10 +290,6 @@
         "{{ dict(ironic_image_containers |
               zip_longest([], fillvalue=CONTAINER_REGISTRY+'/metal3-io/ironic:'+IRONIC_IMAGE_TAG)) |
             dict2items(key_name='name', value_name='image') }}"
-      mariadb_container:
-      - name:  mariadb
-        image: "{{CONTAINER_REGISTRY+'/metal3-io/mariadb:'+MARIADB_IMAGE_TAG}}"
-
 
   - name: Wait for ironic update to rollout
     kubernetes.core.k8s_info:
@@ -337,4 +333,3 @@
     include_tasks: verify_resources_states.yml
     vars:
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-      

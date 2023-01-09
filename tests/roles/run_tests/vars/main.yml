@@ -80,14 +80,20 @@ IMAGE_FORMAT: "{{ lookup('env', 'IMAGE_FORMAT') | default('raw', true) }}"
 IMAGE_CHECKSUM_TYPE: "{{ lookup('env', 'IMAGE_CHECKSUM_TYPE') | default('md5', true) }}"
 IMAGE_CHECKSUM: "http://{{ PROVISIONING_IP }}/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
 
-# Environment variables to install Ironic with TLS and Basic Auth
+# Environment variables to install Ironic with TLS, Basic Auth and MariaDB
 GOPATH: "{{ lookup('env', 'GOPATH')}}"
 IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true) }}"
 IRONIC_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true) }}"
+IRONIC_USE_MARIADB: "{{ lookup('env', 'IRONIC_USE_MARIADB') | default('false', true) }}"
+
+# Args to pass to the deploy.sh script when deploying Ironic and BMO
+# [k]eepalived [t]ls [n]o basic auth or [m]ariadb
+BMO_IRONIC_ARGS: "-k {{ (IRONIC_TLS_SETUP == 'true') | ternary('-t', '') }}
+    {{ (IRONIC_BASIC_AUTH == 'true') | ternary('', '-n') }}
+    {{ (IRONIC_USE_MARIADB == 'true') | ternary('-m', '') }}"
 
 # Environment variables for upgrade workflow
 IRONIC_IMAGE_TAG: "main"
-MARIADB_IMAGE_TAG: "main"
 CONTAINER_REGISTRY: "{{ lookup('env', 'CONTAINER_REGISTRY') }}"
 NUM_IRONIC_IMAGES: 8
 CAPIRELEASE_HARDCODED: "{{ lookup('env', 'CAPIRELEASE_HARDCODED') }}"
