@@ -235,7 +235,7 @@
           replicas: 1
 
   - name: Wait until controlplane is scaled down and "{{ NUMBER_OF_BMH_KCP }}" BMHs' are available.
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | egrep -c '\b(available)|(ready)\b'
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -E -c '\b(available)|(ready)\b'
     environment:
       KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
     register: num_available_bmhs

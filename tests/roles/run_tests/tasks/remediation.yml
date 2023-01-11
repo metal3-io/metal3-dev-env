@@ -145,7 +145,7 @@
     # we use shell instead of k8s_info module here because the CP may not respond to requests
     # while it is scaling down - k8s_info has no request timeout, which can hang the build
   - name: Wait until KCP is scaled down and two hosts are available
-    shell: kubectl get bmh -n "{{ NAMESPACE }}" | egrep -c '\b(available)|(ready)\b'
+    shell: kubectl get bmh -n "{{ NAMESPACE }}" | grep -E -c '\b(available)|(ready)\b'
     retries: 200
     delay: 20
     register: available_bmhs
