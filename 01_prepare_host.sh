@@ -12,6 +12,9 @@ if [[ $(id -u) == 0 ]]; then
 fi
 
 if [[ $OS == ubuntu ]]; then
+  # Set apt retry limit to higher than default to
+  # make the data retrival more reliable
+  sudo sh -c ' echo "Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries '
   sudo apt-get update
   sudo apt -y install python3-pip jq curl wget
 
