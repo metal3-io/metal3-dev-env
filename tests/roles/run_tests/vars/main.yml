@@ -141,6 +141,10 @@ deprovision_cluster_actions:
     - "deprovision_cluster"
     - "feature_test_deprovisioning"
     - "upgrading"
+deprovision_controlplane_actions:
+    - "deprovision_controlplane"
+deprovision_workers_actions:
+    - "deprovision_worker"
 verify_actions:
     - "ci_test_provision"
     - "feature_test_provisioning"
