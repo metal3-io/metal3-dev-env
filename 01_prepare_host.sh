@@ -16,7 +16,7 @@ if [[ $OS == ubuntu ]]; then
   # make the data retrival more reliable
   sudo sh -c ' echo "Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries '
   sudo apt-get update
-  sudo apt -y install python3-pip jq curl wget
+  sudo apt-get -y install python3-pip jq curl wget bash-completion
 
   # Set update-alternatives to python3
   if [[ ${DISTRO} == "ubuntu18" ]]; then
@@ -47,7 +47,7 @@ elif [[ $OS == "centos" || $OS == "rhel" ]]; then
       exit 1
       ;;
   esac
-  sudo dnf -y install python3-pip jq curl wget
+  sudo dnf -y install python3-pip jq curl wget bash-completion
   sudo ln -s /usr/bin/python3 /usr/bin/python || true
 fi
 
@@ -150,6 +150,11 @@ if ! command -v kustomize 2>/dev/null ; then
     chmod +x kustomize
     sudo mv kustomize /usr/local/bin/.
     rm "kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+fi
+
+BASH_COMPLETION="/etc/bash_completion.d/kubectl"
+if [ ! -r "${BASH_COMPLETION}" ]; then
+  kubectl completion bash | sudo tee "${BASH_COMPLETION}"
 fi
 
 # Install clusterctl client
