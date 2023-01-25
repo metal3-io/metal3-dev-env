@@ -6,20 +6,6 @@
         name: "*"
         state: latest
 
-    - name: Fetch yarn gpg key
-      apt_key:
-        url: https://dl.yarnpkg.com/debian/pubkey.gpg
-        state: present
-
-    - name: Add yarn release key
-      lineinfile:
-        path: /etc/apt/sources.list.d/yarn.list
-        line: deb https://dl.yarnpkg.com/debian/ stable main
-        create: yes
-        owner: root
-        group: root
-        mode: '0644'
-
     - name: Add OS release key
       lineinfile:
         path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
