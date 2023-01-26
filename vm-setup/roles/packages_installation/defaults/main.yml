@@ -17,7 +17,6 @@ packages:
         - bridge-utils
         - jq
         - unzip
-        - yarn
         - genisoimage
         - qemu-kvm
         - libguestfs-tools
