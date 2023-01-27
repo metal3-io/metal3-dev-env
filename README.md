@@ -79,10 +79,16 @@ You can check a list of all the environment variables [here](vars.md)
 
 ### Deploy the metal3 Dev env
 
+Note: These scripts are invasive and will reconfigure part of the host OS
+in addition to package installation, and hence it is recommended to run dev-env
+in a VM. Please read the scripts to understand what they do before running them
+on your machine.
+
 ```sh
 ./01_prepare_host.sh
 ./02_configure_host.sh
 ./03_launch_mgmt_cluster.sh
+./04_verify.sh
 ```
 
 or
@@ -113,44 +119,15 @@ kubectl delete cluster "${CLUSTER_NAME:-"test1"}" -n metal3
 
 ### Deploying with Tilt
 
-It is possible to use Tilt to run the CAPI, BMO and CAPM3 components. For this, run:
+It is possible to use Tilt to run the CAPI, BMO, CAPM3 and IPAM components. Tilt
+ephemeral cluster will utilize Kind and Docker, so it requires an Ubuntu host.
+For this, run:
 
 ```sh
+export IMAGE_OS=ubuntu
 export EPHEMERAL_CLUSTER="tilt"
 make
 ```
-
-Then clone the Cluster API Provider Metal3 repository, and follow the
-[instructions](https://github.com/metal3-io/cluster-api-provider-metal3/blob/main/docs/dev-setup.md#tilt-development-environment).
-That will mostly be the three following blocks of commands.
-
-```sh
-source lib/common.sh
-source lib/network.sh
-source lib/images.sh
-```
-
-and go to the CAPM3 repository and run
-
-```sh
-make tilt-settings
-```
-
-Please refer to the CAPM3 instructions to include BMO and IPAM. Then run :
-
-```sh
-make tilt-up
-```
-
-Once the cluster is running, you can create the BareMetalHosts :
-
-```sh
-kubectl create namespace metal3
-kubectl apply -f examples/metal3crds/metal3.io_baremetalhosts.yaml
-kubectl apply -n metal3 -f /opt/metal3-dev-env/bmhosts_crs.yaml
-```
-
-Afterwards, you can deploy a target cluster.
 
 If you are running tilt on a remote machine, you can forward the web interface
 by adding the following parameter to the ssh command `-L 10350:127.0.0.1:10350`
