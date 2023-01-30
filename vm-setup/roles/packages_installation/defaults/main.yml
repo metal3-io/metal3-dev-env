@@ -42,7 +42,7 @@ packages:
         - libssl-dev
     pip3:
     - python-apt
-    - kubernetes==17.17.0
+    - kubernetes==25.3.0
     - pyYAML
     - virtualbmc
     - lxml
@@ -95,7 +95,7 @@ packages:
     pip3:
       - flask_oauthlib==0.9.6
       - jmespath
-      - kubernetes==23.3.0
+      - kubernetes==25.3.0
 DAEMON_JSON_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/files"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') }}"
 OS_VERSION_ID: "{{ lookup('env', 'OS_VERSION_ID') }}"
