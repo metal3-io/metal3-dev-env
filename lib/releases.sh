@@ -24,7 +24,7 @@ function get_latest_release() {
 
 # CAPM3, CAPI and BMO release path
 CAPM3RELEASEPATH="{https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}/releases}"
-CAPIRELEASEPATH="{https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
+CAPIRELEASEPATH="{https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases?per_page=100}"
 BMORELEASEPATH="{https://api.github.com/repos/${BMO_BASE_URL:-metal3-io/baremetal-operator}/releases}"
 
 # CAPM3, CAPI and BMO releases
