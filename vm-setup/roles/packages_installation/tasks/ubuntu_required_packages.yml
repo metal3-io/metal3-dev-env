@@ -6,21 +6,31 @@
         name: "*"
         state: latest
 
-    - name: Add OS release key
+    # TODO: (Sunnatillo) Remove this task after fully removing apt-key
+    - name: Remove OS old repository (without gpg key file location) 
+      apt_repository:
+        repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+        state: absent
+
+    - name: Fetch OS release key
+      get_url:
+        url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/Release.key"
+        dest: /usr/share/keyrings/libcontainers-archive-keyring.asc
+        mode: '0644'
+        force: true
+
+    - name: Dearmor Release key
+      shell: | 
+        cat /usr/share/keyrings/libcontainers-archive-keyring.asc | sudo gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg --yes
+    
+    - name: Add OS repository
       lineinfile:
         path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-        line: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+        line: "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
         create: yes
         owner: root
         group: root
         mode: '0644'
-      when: ansible_distribution_version != "22.04"
-
-    - name: Fetch OS release key
-      apt_key:
-        url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/Release.key"
-        state: present
-      when: ansible_distribution_version != "22.04"
 
     - name: Update all packages to their latest version
       apt:
@@ -46,13 +56,31 @@
     - name: Install docker
       block:
         - name: Add Docker’s GPG key
-          apt_key:
+          get_url:
             url: https://download.docker.com/linux/ubuntu/gpg
-            state: present
+            dest: /etc/apt/keyrings/docker.asc
+            mode: '0644'
+            force: true
+          
+        - name: Dearmor GPG key
+          shell: | 
+            cat /etc/apt/keyrings/docker.asc | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
+                
+        # TODO: (Sunnatillo) Remove this task after fully removing apt-key
+        - name: Remove Docker old repository (without gpg key file location) 
+          apt_repository:
+            repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            state: absent
+
+        # TODO: (Sunnatillo) Remove this task after fully removing apt-key
+        - name: Remove Docker old repository (without gpg key file location) 
+          apt_repository:
+            repo: "deb  https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            state: absent
 
         - name: Add Docker Repository
           apt_repository:
-            repo: "deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
             state: present
 
         - name: Update all packages to their latest version
