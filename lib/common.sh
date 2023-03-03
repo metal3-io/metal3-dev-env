@@ -151,7 +151,7 @@ elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
   export IPAMBRANCH="${IPAMBRANCH:-release-1.2}"
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.3}"
-  export IPAMBRANCH="${IPAMBRANCH:-release-1.3}"  
+  export IPAMBRANCH="${IPAMBRANCH:-release-1.3}"
 else
   export CAPM3BRANCH="${CAPM3BRANCH:-main}"
   export IPAMBRANCH="${IPAMBRANCH:-main}"
@@ -262,7 +262,7 @@ elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.2"}
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.3"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.3"}  
+  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.3"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main"}
@@ -315,10 +315,13 @@ export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"${DOCKER_HUB_PROXY}/kindest/node:${KI
 
 # Ansible version
 # Older ubuntu version do no support 7.0.0 because of older python versions
+# Ubuntu 18/Centos8 have 4.10.0 as latest ansible
 # Ansible 7.0.0 requires python 3.10+
-if [ "${DISTRO}" == "ubuntu22" ]; then
+if [ "${DISTRO}" = "ubuntu22" ]; then
     export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"7.1.0"}
-else 
+elif [ "${DISTRO}" = "ubuntu18" ] || [ "${DISTRO}" = "centos8" ]; then
+    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"4.10.0"}
+else
     export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"6.7.0"}
 fi
 
