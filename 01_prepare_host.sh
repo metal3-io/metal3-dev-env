@@ -19,9 +19,7 @@ if [[ $OS == ubuntu ]]; then
   sudo apt-get -y install python3-pip jq curl wget bash-completion
 
   # Set update-alternatives to python3
-  if [[ ${DISTRO} == "ubuntu18" ]]; then
-    sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
-  elif [[ ${DISTRO} == "ubuntu20" ]]; then
+  if [[ ${DISTRO} == "ubuntu20" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
   elif [[ ${DISTRO} == "ubuntu22" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
@@ -218,7 +216,7 @@ popd
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
   IMAGE="${!IMAGE_VAR}"
   pull_container_image_if_missing "$IMAGE"
- done
+done
 
 if ${IPA_DOWNLOAD_ENABLED} || [ ! -f "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.kernel" ]; then
     # Run image downloader container. The output is very verbose and not that interesting so we hide it.

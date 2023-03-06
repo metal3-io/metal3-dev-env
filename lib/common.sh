@@ -55,11 +55,11 @@ source /etc/os-release
 export DISTRO="${ID}${VERSION_ID%.*}"
 export OS="${ID}"
 export OS_VERSION_ID=$VERSION_ID
-export SUPPORTED_DISTROS=(centos8 centos9 rhel8 rhel9 ubuntu18 ubuntu20 ubuntu22)
+export SUPPORTED_DISTROS=(centos9 ubuntu20 ubuntu22)
 
-if [[ ! "${SUPPORTED_DISTROS[*]}" =~ $DISTRO ]]; then
-   echo "Supported OS distros for the host are: CentOS Stream 8/9 or RHEL8/9 or Ubuntu20.04 or Ubuntu 22.04"
-   exit 1
+if [[ ! "${SUPPORTED_DISTROS[*]}" =~ ${DISTRO} ]]; then
+  echo "Supported OS distros for the host are: CentOS Stream 9, or Ubuntu 20.04/22.04"
+  exit 1
 fi
 
 # Container runtime
@@ -151,7 +151,7 @@ elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
   export IPAMBRANCH="${IPAMBRANCH:-release-1.2}"
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.3}"
-  export IPAMBRANCH="${IPAMBRANCH:-release-1.3}"  
+  export IPAMBRANCH="${IPAMBRANCH:-release-1.3}"
 else
   export CAPM3BRANCH="${CAPM3BRANCH:-main}"
   export IPAMBRANCH="${IPAMBRANCH:-main}"
@@ -262,7 +262,7 @@ elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.2"}
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.3"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.3"}  
+  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.3"}
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main"}
@@ -318,7 +318,7 @@ export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"${DOCKER_HUB_PROXY}/kindest/node:${KI
 # Ansible 7.0.0 requires python 3.10+
 if [ "${DISTRO}" == "ubuntu22" ]; then
     export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"7.1.0"}
-else 
+else
     export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"6.7.0"}
 fi
 

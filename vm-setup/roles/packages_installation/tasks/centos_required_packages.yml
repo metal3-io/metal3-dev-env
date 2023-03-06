@@ -1,7 +1,7 @@
-# Perform CentOS/RHEL8 related configurations
+# Perform CentOS related configurations
 - name: Fail if CONTAINER_RUNTIME is not set to podman
   fail:
-    msg: Only Podman is supported in CentOS/RHEL8
+    msg: Only Podman is supported in CentOS
   when: CONTAINER_RUNTIME != "podman"
 
 - name: Enable SELinux
@@ -26,8 +26,8 @@
   become: yes
 
 - name: Install podman
-  dnf: 
+  dnf:
     name: podman
     state: present
   become: yes
-  when: CONTAINER_RUNTIME == "podman" 
+  when: CONTAINER_RUNTIME == "podman"

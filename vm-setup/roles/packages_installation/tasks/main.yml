@@ -6,11 +6,6 @@
       package:
         name: "{{ packages.ubuntu.common.packages}}"
         state: present
-    - name: Install packages using standard package manager for Ubuntu 18.04
-      when: ansible_distribution_version == "18.04"
-      package:
-        name: "{{ packages.ubuntu.bionic.packages}}"
-        state: present
     - name: Install packages using standard package manager for Ubuntu 20.04 or Ubuntu 22.04
       when: ansible_distribution_version == "20.04" or ansible_distribution_version == "22.04"
       package:
@@ -46,23 +41,18 @@
   become: yes
   when: ansible_facts['distribution'] == "Ubuntu"
 
-- name: Install packages on CentOS/RHEL8
+- name: Install packages on CentOS
   block:
-    - name: Install packages on CentOS/RHEL
+    - name: Install packages on CentOS
       package:
           name: "{{ packages.centos.common.packages }}"
           state: present
-    - name: Install packages on CentOS8/RHEL8
-      package:
-          name: "{{ packages.centos.el8.packages }}"
-          state: present
-      when: ansible_distribution_version == "8"
-    - name: Install packages on CentOS9/RHEL9
+    - name: Install packages on CentOS9
       package:
           name: "{{ packages.centos.el9.packages }}"
           state: present
       when: ansible_distribution_version == "9"
-    - name: Perform CentOS/RHEL8 required configurations
+    - name: Perform CentOS required configurations
       include_tasks: centos_required_packages.yml
     - name: Install packages using pip3
       pip:

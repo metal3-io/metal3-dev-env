@@ -1,7 +1,5 @@
 # Create a libvirt volume pool.  This is where we'll be creating
 # images for the VMs
-# Note: the virt_pool module is not working properly on rhel-7.2
-# https://bugs.launchpad.net/tripleo-quickstart/+bug/1597905
 - name: ensure libvirt volume path exists
   become: true
   file:

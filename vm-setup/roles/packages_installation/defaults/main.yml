@@ -30,11 +30,6 @@ packages:
         - ca-certificates
         - gnupg-agent
         - software-properties-common
-    bionic:
-      packages:
-        - libvirt-bin
-        - libpolkit-backend-1-0
-        - libssl1.0-dev
     focal_jammy:
       packages:
         - libvirt-daemon
@@ -84,10 +79,6 @@ packages:
         - vim-enhanced
         - virt-install
         - wget
-    el8:
-      packages:
-        - network-scripts
-        - redhat-lsb-core
     el9:
       packages:
         - NetworkManager-initscripts-updown
