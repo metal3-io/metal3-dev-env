@@ -1,7 +1,4 @@
 ---
-name: Bug report
-about: Describe the  problem you are experiencing
-
 |     name      |                  about                     |
 | ------------- | ------------------------------------------ |
 |   Bug report  | Describe the  problem you are experiencing |
