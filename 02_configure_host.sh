@@ -27,8 +27,8 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "libvirt_secure_boot=$LIBVIRT_SECURE_BOOT" \
     -e "libvirt_domain_type=$LIBVIRT_DOMAIN_TYPE" \
     -e "default_memory=$DEFAULT_HOSTS_MEMORY" \
-    -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
-    -e "provisioning_url_host=$PROVISIONING_URL_HOST" \
+    -e "manage_external=$MANAGE_EXT_BRIDGE" \
+    -e "provisioning_url_host=$BARE_METAL_PROVISIONER_URL_HOST" \
     -e "nodes_file=$NODES_FILE" \
     -e "node_hostname_format=$NODE_HOSTNAME_FORMAT" \
     -i vm-setup/inventory.ini \
@@ -60,7 +60,7 @@ else
       # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
       # the IP address here
       if [ ! -e /etc/NetworkManager/system-connections/provisioning.nmconnection ] ; then
-        if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
+        if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" = "true" ]]; then
           sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
 [connection]
 id=provisioning
@@ -75,7 +75,7 @@ method=disabled
 
 [ipv6]
 addr-gen-mode=eui64
-address1=$PROVISIONING_IP/$PROVISIONING_CIDR
+address1=$BARE_METAL_PROVISIONER_IP/$BARE_METAL_PROVISIONER_CIDR
 method=manual
 EOF
         else
@@ -89,7 +89,7 @@ interface-name=provisioning
 stp=false
 
 [ipv4]
-address1=$PROVISIONING_IP/$PROVISIONING_CIDR
+address1=$BARE_METAL_PROVISIONER_IP/$BARE_METAL_PROVISIONER_CIDR
 method=manual
 
 [ipv6]
@@ -119,12 +119,12 @@ EOF
 
 
   if [ "$MANAGE_INT_BRIDGE" == "y" ]; then
-      if [[ "$(nmcli con show)" != *"baremetal"* ]]; then
-          sudo tee /etc/NetworkManager/system-connections/baremetal.nmconnection <<EOF
+      if [[ "$(nmcli con show)" != *"external"* ]]; then
+          sudo tee /etc/NetworkManager/system-connections/external.nmconnection <<EOF
 [connection]
-id=baremetal
+id=external
 type=bridge
-interface-name=baremetal
+interface-name=external
 autoconnect=true
 
 [bridge]
@@ -134,11 +134,11 @@ stp=false
 addr-gen-mode=stable-privacy
 method=ignore
 EOF
-          sudo chmod 600 /etc/NetworkManager/system-connections/baremetal.nmconnection
-          sudo nmcli con load /etc/NetworkManager/system-connections/baremetal.nmconnection
+          sudo chmod 600 /etc/NetworkManager/system-connections/external.nmconnection
+          sudo nmcli con load /etc/NetworkManager/system-connections/external.nmconnection
       fi
   fi
-      sudo nmcli connection up baremetal
+      sudo nmcli connection up external
 
       # Add the internal interface to it if requests, this may also be the interface providing
       # external access so we need to make sure we maintain dhcp config if its available
@@ -155,16 +155,16 @@ EOF
           sudo chmod 600 /etc/NetworkManager/system-connections/"$INT_IF".nmconnection
           sudo nmcli con load /etc/NetworkManager/system-connections/"$INT_IF".nmconnection
           if sudo nmap --script broadcast-dhcp-discover -e "$INT_IF" | grep "IP Offered" ; then
-              sudo nmcli connection modify baremetal ipv4.method auto
+              sudo nmcli connection modify external ipv4.method auto
           fi
           sudo nmcli connection up "$INT_IF"
       fi
   fi
 
   # Restart the libvirt network so it applies an ip to the bridge
-  if [ "$MANAGE_BR_BRIDGE" == "y" ] ; then
-      sudo virsh net-destroy baremetal
-      sudo virsh net-start baremetal
+  if [ "$MANAGE_EXT_BRIDGE" == "y" ] ; then
+      sudo virsh net-destroy external
+      sudo virsh net-start external
       if [ "$INT_IF" ]; then #Need to bring UP the NIC after destroying the libvirt network
           sudo nmcli connection up "$INT_IF"
       fi
@@ -172,7 +172,6 @@ EOF
 fi
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
-    -e "provisioning_subnet=${PROVISIONING_NETWORK}" \
     -e "use_firewalld=${USE_FIREWALLD}" \
     -i vm-setup/inventory.ini \
     -b vm-setup/firewall.yml
@@ -180,13 +179,13 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
 # FIXME(stbenjam): ansbile firewalld module doesn't seem to be doing the right thing
 if [ "$USE_FIREWALLD" == "True" ]; then
   sudo firewall-cmd --zone=libvirt --change-interface=provisioning
-  sudo firewall-cmd --zone=libvirt --change-interface=baremetal
+  sudo firewall-cmd --zone=libvirt --change-interface=external
 fi
 
 # Need to route traffic from the provisioning host.
 if [ "$EXT_IF" ]; then
   sudo iptables -t nat -A POSTROUTING --out-interface "$EXT_IF" -j MASQUERADE
-  sudo iptables -A FORWARD --in-interface baremetal -j ACCEPT
+  sudo iptables -A FORWARD --in-interface external -j ACCEPT
 fi
 
 # Local registry for images

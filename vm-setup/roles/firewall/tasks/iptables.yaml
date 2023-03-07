@@ -9,7 +9,7 @@
   iptables:
     chain: INPUT
     action: insert
-    in_interface: "{{ baremetal_interface }}"
+    in_interface: "{{ external_interface }}"
     protocol: udp
     match: udp
     destination_port: "{{ vbmc_port_range }}"
@@ -20,7 +20,7 @@
   iptables:
     chain: INPUT
     action: insert
-    in_interface: "{{ baremetal_interface }}"
+    in_interface: "{{ external_interface }}"
     protocol: tcp
     match: tcp
     destination_port: "{{ sushy_port }}"
@@ -51,7 +51,7 @@
       - chain: INPUT
         interface: "{{ provisioning_interface }}"
       - chain: INPUT
-        interface: "{{ cluster_provisioning_interface }}"
+        interface: "{{ bare_metal_provisioner_interface }}"
       - chain: FORWARD
         interface: "{{ provisioning_interface }}"
   loop: "{{ interfaces | product(ironic_ports) | list }}"
@@ -60,13 +60,13 @@
   iptables:
     chain: INPUT
     action: insert
-    in_interface: "{{ baremetal_interface }}"
+    in_interface: "{{ external_interface}}"
     protocol: tcp
     match: tcp
     destination_port: "{{ item }}"
     jump: ACCEPT
     state: "{{ firewall_rule_state }}"
-  loop: "{{ provisioning_host_ports }}"
+  loop: "{{ vm_host_ports }}"
 
 - name: "iptables: PXE Ports"
   iptables:
@@ -83,7 +83,7 @@
       - chain: INPUT
         interface: "{{ provisioning_interface }}"
       - chain: INPUT
-        interface: "{{ cluster_provisioning_interface }}"
+        interface: "{{ bare_metal_provisioner_interface }}"
       - chain: FORWARD
         interface: "{{ provisioning_interface }}"
   loop: "{{ interfaces | product(pxe_udp_ports) | list }}"
@@ -98,7 +98,7 @@
   loop: "{{ ironic_keepalived_proto }}"
 
 - block:
-    - name: "iptables: Allow access to baremetal network from kind"
+    - name: "iptables: Allow access to external network from kind"
       iptables:
         chain: INPUT
         action: insert
@@ -108,15 +108,15 @@
         destination_port: "{{ item }}"
         jump: ACCEPT
         state: "{{ firewall_rule_state }}"
-      loop: "{{ provisioning_host_ports }}"
+      loop: "{{ vm_host_ports }}"
 
-    - name: "iptables: Allow access to provisioning network from kind"
+    - name: "iptables: Allow access to bare metal provisioner network from kind"
       iptables:
         chain: INPUT
         action: insert
         protocol: tcp
         match: tcp
-        destination: "{{ provisioning_subnet }}"
+        destination: "{{ provisioning_subnet_v4 }}"
         destination_port: "{{ item }}"
         jump: ACCEPT
         state: "{{ firewall_rule_state }}"
@@ -137,7 +137,7 @@
       iptables:
         chain: FORWARD
         action: insert
-        out_interface: "{{ baremetal_interface }}"
+        out_interface: "{{ external_interface }}"
         destination: "{{ external_subnet_v4 }}"
         jump: ACCEPT
         state: "{{ firewall_rule_state }}"

@@ -32,14 +32,14 @@ if [ "${CAPM3_RUN_LOCAL}" = true ]; then
 fi
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
-  -e "working_dir=$WORKING_DIR" \
-  -e "num_nodes=$NUM_NODES" \
-  -e "extradisks=$VM_EXTRADISKS" \
-  -e "virthost=$HOSTNAME" \
-  -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
-  -e "nodes_file=$NODES_FILE" \
-  -i vm-setup/inventory.ini \
-  -b -v vm-setup/teardown-playbook.yml
+    -e "working_dir=$WORKING_DIR" \
+    -e "num_nodes=$NUM_NODES" \
+    -e "extradisks=$VM_EXTRADISKS" \
+    -e "virthost=$HOSTNAME" \
+    -e "manage_external=$MANAGE_EXT_BRIDGE" \
+    -e "nodes_file=$NODES_FILE" \
+    -i vm-setup/inventory.ini \
+    -b -v vm-setup/teardown-playbook.yml
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "use_firewalld=${USE_FIREWALLD}" \
@@ -53,10 +53,10 @@ if [[ $OS == "centos" || $OS == "rhel" ]]; then
   if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
     sudo nmcli con delete provisioning
   fi
-  # Baremetal net should have been cleaned already at this stage, but we double
+  # External net should have been cleaned already at this stage, but we double
   # check as leaving it around causes issues when the host is rebooted
-  if [ "$MANAGE_BR_BRIDGE" == "y" ]; then
-    sudo nmcli con delete baremetal || true
+  if [ "${MANAGE_EXT_BRIDGE}" == "y" ]; then
+    sudo nmcli con delete external || true
   fi
 fi
 

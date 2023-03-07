@@ -10,10 +10,10 @@ clouds:
 {% endif %}
 {% if env.IRONIC_TLS_SETUP | lower == "true" %}
     cacert: /etc/openstack/ironic-ca.crt
-    baremetal_endpoint_override: https://{{ env.CLUSTER_URL_HOST }}:{{ env.IRONIC_API_PORT }}
-    baremetal_introspection_endpoint_override: https://{{ env.CLUSTER_URL_HOST }}:{{ env.IRONIC_INSPECTOR_PORT }}
+    baremetal_endpoint_override: https://{{ env.CLUSTER_BARE_METAL_PROVISIONER_HOST }}:{{ env.IRONIC_API_PORT }}
+    baremetal_introspection_endpoint_override: https://{{ env.CLUSTER_BARE_METAL_PROVISIONER_HOST }}:{{ env.IRONIC_INSPECTOR_PORT }}
     verify: false
 {% else %}
-    baremetal_endpoint_override: http://{{ env.CLUSTER_URL_HOST }}:{{ env.IRONIC_API_PORT }}
-    baremetal_introspection_endpoint_override: http://{{ env.CLUSTER_URL_HOST }}:{{ env.IRONIC_INSPECTOR_PORT }}
+    baremetal_endpoint_override: http://{{ env.CLUSTER_BARE_METAL_PROVISIONER_HOST }}:{{ env.IRONIC_API_PORT }}
+    baremetal_introspection_endpoint_override: http://{{ env.CLUSTER_BARE_METAL_PROVISIONER_HOST }}:{{ env.IRONIC_INSPECTOR_PORT }}
 {% endif %}

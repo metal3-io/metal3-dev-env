@@ -11,12 +11,12 @@ assured that they are persisted.
 | :------ | :------- | :--------------- | :-------- |
 | MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1|
 | EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
-| IP_STACK | Choose whether the "baremetal" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. <br/> Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
-| EXTERNAL_VLAN_ID | If the "baremetal" network is tagged, this is the VLAN id for the network, set on the network interface for the bare metal hosts. | "" or 1-4096 | "" |
-| EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
-| EXTERNAL_SUBNET_V6 | When using IPv6 stack, this is the subnet used on the "baremetal" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv6 CIDR | fd55::/64 |
-| PROVISIONING_IPV6 | Configure provisioning network for single-stack ipv6 | "true", "false" | false |
-| PROVISIONING_NETWORK | Assign a subnet to the provisioning network. | IPv4 CIDR | 172.22.0.0/24 |
+| IP_STACK | Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. <br/> Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
+| EXTERNAL_VLAN_ID | If the "external" network is tagged, this is the VLAN id for the network, set on the network interface for the bare metal hosts. | "" or 1-4096 | "" |
+| EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "external" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
+| EXTERNAL_SUBNET_V6 | When using IPv6 stack, this is the subnet used on the "external" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv6 CIDR | fd55::/64 |
+| BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY | Configure provisioning network for single-stack ipv6 | "true", "false" | false |
+| BARE_METAL_PROVISIONER_NETWORK | Assign a subnet to the provisioner network. If ironic is the provisioner then the Ironic API's will be accessible in this network. | IPv4 CIDR | 172.22.0.0/24 |
 | SSH_PUB_KEY | This SSH key will be automatically injected into the provisioned host by the clusterctl environment template files. | | ~/.ssh/id_rsa.pub |
 | CONTAINER_RUNTIME | Select the Container Runtime | "docker", "podman" | "docker" on ubuntu, "podman" otherwise |
 | IPA_DOWNLOAD_ENABLED | Enables the use of the Ironic Python Agent Downloader container to download IPA archive| "true", "false | "true" |
@@ -43,7 +43,7 @@ assured that they are persisted.
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "${EXTERNAL_SUBNET_VX}.249" |
 | CLUSTER_APIENDPOINT_HOST | API endpoint host for target cluster | | $CLUSTER_APIENDPOINT_IP |
 | CLUSTER_APIENDPOINT_PORT | API endpoint port for target cluster | | "6443" |
-| CLUSTER_PROVISIONING_INTERFACE | Cluster provisioning Interface | "ironicendpoint" | "ironicendpoint" |
+| BARE_METAL_PROVISIONER_INTERFACE | Cluster provisioning Interface | "ironicendpoint" | "ironicendpoint" |
 | POD_CIDR | Pod CIDR | "x.x.x.x/x" | "192.168.0.0/18" |
 | NODE_HOSTNAME_FORMAT | Node hostname format. This is a format string that must contain exactly one %d format field that will be replaced with an integer representing the number of the node. | "node-%d" |
 | KUBERNETES_VERSION | Kubernetes version | "x.x.x" | "1.26.0" |
@@ -127,7 +127,7 @@ components locally e.g. `CAPM3_LOCAL_IMAGE`.
 
 ## Additional networks
 
-By default two libvirt networks are created `baremetal` and `provisioning`
+By default two libvirt networks are created `external` and `provisioning`
 but in some circumstances it can be useful to define additional secondary
 networks.
 

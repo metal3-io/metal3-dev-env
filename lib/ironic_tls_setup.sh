@@ -6,7 +6,7 @@ if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
     mkdir -p "${WORKING_DIR}/certs"
     pushd "${WORKING_DIR}/certs" || exit
 
-    export IRONIC_BASE_URL="https://${CLUSTER_URL_HOST}"
+    export IRONIC_BASE_URL="https://${CLUSTER_BARE_METAL_PROVISIONER_HOST}"
 
     export IRONIC_CACERT_FILE="${IRONIC_CACERT_FILE:-"${WORKING_DIR}/certs/ironic-ca.pem"}"
     export IRONIC_CAKEY_FILE="${IRONIC_CAKEY_FILE:-"${WORKING_DIR}/certs/ironic-ca.key"}"
@@ -84,7 +84,7 @@ if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
     popd || exit
     unset IRONIC_NO_CA_CERT
 else
-    export IRONIC_BASE_URL="http://${CLUSTER_URL_HOST}"
+    export IRONIC_BASE_URL="http://${CLUSTER_BARE_METAL_PROVISIONER_HOST}"
     export IRONIC_NO_CA_CERT="true"
 
     # Unset all TLS related variables to prevent a TLS deployment
