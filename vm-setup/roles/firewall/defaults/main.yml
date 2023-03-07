@@ -1,9 +1,9 @@
 use_firewalld: true
-baremetal_interface: baremetal
+external_interface: external
 provisioning_interface: provisioning
-cluster_provisioning_interface: "{{ lookup('env', 'CLUSTER_PROVISIONING_INTERFACE') | default('ironicendpoint', true) }}"
+bare_metal_provisioner_interface: "{{ lookup('env', 'BARE_METAL_PROVISIONER_INTERFACE') | default('ironicendpoint', true) }}"
 external_subnet_v4: "{{ lookup('env', 'EXTERNAL_SUBNET_V4') | default('192.168.111.0/24', true) }}"
-provisioning_subnet: "{{ lookup('env', 'PROVISIONING_NETWORK') | default('172.22.0.0/24', true) }}"
+provisioning_subnet_v4: "{{ lookup('env', 'PROVISIONING_SUBNET_V4') | default('172.22.0.0/24', true) }}"
 kind_subnet: '172.18.0.0/24'
 registry_port: "{{ lookup('env', 'REGISTRY_PORT') | default('5000', true) }}"
 http_port: "{{ lookup('env', 'HTTP_PORT') | default('6180', true) }}"
@@ -20,7 +20,7 @@ ironic_ports:
   - "{{ ironic_api_port }}"
   - "9999"
   - "80"
-provisioning_host_ports:
+vm_host_ports:
   # Caching HTTP Server
   - "80"
   # Container image registry

@@ -38,8 +38,8 @@ ADDN_DNS=${ADDN_DNS:-}
 EXT_IF=${EXT_IF:-}
 # Provisioning interface
 PRO_IF=${PRO_IF:-}
-# Does libvirt manage the baremetal bridge (including DNS and DHCP)
-MANAGE_BR_BRIDGE=${MANAGE_BR_BRIDGE:-y}
+# Does libvirt manage the external bridge (including DNS and DHCP)
+MANAGE_EXT_BRIDGE=${MANAGE_EXT_BRIDGE:-y}
 # Only manage bridges if is set
 MANAGE_PRO_BRIDGE=${MANAGE_PRO_BRIDGE:-y}
 MANAGE_INT_BRIDGE=${MANAGE_INT_BRIDGE:-y}
@@ -195,7 +195,7 @@ if [ "${BUILD_IPAM_LOCALLY}" == "true" ]; then
   export IPAM_LOCAL_IMAGE="${IPAMPATH}"
 fi
 if [ "${BUILD_BMO_LOCALLY}" == "true" ]; then
-  export BAREMETAL_OPERATOR_LOCAL_IMAGE="${BMOPATH}"
+  export BARE_METAL_OPERATOR_LOCAL_IMAGE="${BMOPATH}"
 fi
 if [ "${BUILD_CAPI_LOCALLY}" == "true" ]; then
   export CAPI_LOCAL_IMAGE="${CAPIPATH}"
@@ -222,7 +222,7 @@ export VM_EXTRADISKS_MOUNT_DIR=${VM_EXTRADISKS_MOUNT_DIR:-"/mnt/disk2"}
 export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}
 export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-"1"}"
 export IRONIC_TAG="${IRONIC_TAG:-latest}"
-export BAREMETAL_OPERATOR_TAG="${BAREMETAL_OPERATOR_TAG:-latest}"
+export BARE_METAL_OPERATOR_TAG="${BARE_METAL_OPERATOR_TAG:-latest}"
 
 # Docker Hub proxy registry (or docker.io if no proxy)
 export DOCKER_HUB_PROXY=${DOCKER_HUB_PROXY:-"docker.io"}
@@ -272,7 +272,7 @@ fi
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
 
 # Baremetal operator image
-export BAREMETAL_OPERATOR_IMAGE=${BAREMETAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:${BAREMETAL_OPERATOR_TAG}"}
+export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:${BARE_METAL_OPERATOR_TAG}"}
 
 # Config for OpenStack CLI
 export OPENSTACK_CONFIG=$HOME/.config/openstack/clouds.yaml

@@ -168,8 +168,8 @@ need to use the following instructions:
 source lib/common.sh
 source lib/network.sh
 
-export IRONIC_HOST="${CLUSTER_URL_HOST}"
-export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
+export IRONIC_HOST="${CLUSTER_BARE_METAL_PROVISIONER_HOST}"
+export IRONIC_HOST_IP="${CLUSTER_BARE_METAL_PROVISIONER_IP}"
 
 source lib/ironic_tls_setup.sh
 source lib/ironic_basic_auth.sh

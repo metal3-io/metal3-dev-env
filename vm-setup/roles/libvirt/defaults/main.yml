@@ -1,7 +1,7 @@
 # When libvirt_action==teardown we destroy the existing configuration
 libvirt_action: setup
 
-# For some baremetal testing we set this to "baremetal" so that only the
+# For some external testing we set this to "external" so that only the
 # libvirt networking is configured, not the nodes
 vm_platform: libvirt
 

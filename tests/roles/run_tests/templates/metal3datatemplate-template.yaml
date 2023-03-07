@@ -40,25 +40,25 @@ spec:
     networks:
 {% if IP_STACK == 'v4' or IP_STACK == 'v4v6' %}
       ipv4:
-        - id: baremetalv4
+        - id: externalv4
           link: "{% if EXTERNAL_VLAN_ID == "" %}{{ bmh_nic_names[1] }}{% else %}vlan{{ EXTERNAL_VLAN_ID }}{% endif %}"
-          ipAddressFromIPPool: baremetalv4-pool
+          ipAddressFromIPPool: externalv4-pool
           routes:
             - network: 0.0.0.0
               prefix: 0
               gateway:
-                fromIPPool: baremetalv4-pool
+                fromIPPool: externalv4-pool
 {% endif %}
 {% if IP_STACK == 'v6' or IP_STACK == 'v4v6'%}
       ipv6:
-        - id: baremetalv6
+        - id: externalv6
           link: "{% if EXTERNAL_VLAN_ID == "" %}{{ bmh_nic_names[1] }}{% else %}vlan{{ EXTERNAL_VLAN_ID }}{% endif %}"
-          ipAddressFromIPPool: baremetalv6-pool
+          ipAddressFromIPPool: externalv6-pool
           routes:
             - network: 0::0
               prefix: 0
               gateway:
-                fromIPPool: baremetalv6-pool
+                fromIPPool: externalv6-pool
 {% endif %}
     services:
       dns:

@@ -24,8 +24,8 @@ else
 fi
 
 # Image url and checksum
-export IMAGE_URL=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}
-export IMAGE_CHECKSUM=http://$PROVISIONING_URL_HOST/images/${IMAGE_NAME}.md5sum
+export IMAGE_URL="http://$BARE_METAL_PROVISIONER_URL_HOST/images/${IMAGE_NAME}"
+export IMAGE_CHECKSUM=http://$BARE_METAL_PROVISIONER_URL_HOST/images/${IMAGE_NAME}.md5sum
 
 # Target node username
 export IMAGE_USERNAME=${IMAGE_USERNAME:-metal3}
@@ -35,5 +35,5 @@ IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
 export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
 
 # variables used for template parametrization in CAPM3
-export IMAGE_RAW_URL=http://$PROVISIONING_URL_HOST/images/${IMAGE_RAW_NAME}
-export IMAGE_RAW_CHECKSUM=http://$PROVISIONING_URL_HOST/images/${IMAGE_RAW_NAME}.md5sum
+export IMAGE_RAW_URL="http://$BARE_METAL_PROVISIONER_URL_HOST/images/${IMAGE_RAW_NAME}"
+export IMAGE_RAW_CHECKSUM="http://$BARE_METAL_PROVISIONER_URL_HOST/images/${IMAGE_RAW_NAME}.md5sum"
