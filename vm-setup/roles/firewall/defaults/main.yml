@@ -15,6 +15,7 @@ cluster_api_port: "{{ lookup('env', 'CLUSTER_APIENDPOINT_PORT') | default('6443'
 firewall_rule_state: present
 ironic_ports:
   - "{{ http_port }}"
+  - "443"
   - "{{ ironic_inspector_port }}"
   - "{{ ironic_api_port }}"
   - "9999"
@@ -26,6 +27,7 @@ provisioning_host_ports:
   - "{{ registry_port }}"
   # DNS for registry naming resolution
   - "53"
+  - "443"
 pxe_udp_ports:
   # Multicast DNS
   - "5353"
@@ -42,4 +44,3 @@ ironic_keepalived_proto:
   - "icmp"
 
 EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('kind', true)}}"
-
