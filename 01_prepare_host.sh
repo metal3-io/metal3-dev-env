@@ -70,7 +70,7 @@ source lib/network.sh
 ansible-galaxy install -r vm-setup/requirements.yml
 
 # Install required packages
-ANSIBLE_FORCE_COLOR=true ansible-playbook \
+ANSIBLE_FORCE_COLOR=true ansible-playbook -vvv \
   -e "working_dir=$WORKING_DIR" \
   -e "metal3_dir=$SCRIPTDIR" \
   -e "virthost=$HOSTNAME" \

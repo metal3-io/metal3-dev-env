@@ -17,7 +17,7 @@ if sudo [ ! -f /root/.ssh/id_rsa_virt_power ]; then
   sudo cat /root/.ssh/id_rsa_virt_power.pub | sudo tee -a /root/.ssh/authorized_keys
 fi
 
-ANSIBLE_FORCE_COLOR=true ansible-playbook \
+ANSIBLE_FORCE_COLOR=true ansible-playbook -vvv \
     -e "working_dir=$WORKING_DIR" \
     -e "num_nodes=$NUM_NODES" \
     -e "extradisks=$VM_EXTRADISKS" \
@@ -170,7 +170,7 @@ EOF
   fi
 fi
 
-ANSIBLE_FORCE_COLOR=true ansible-playbook \
+ANSIBLE_FORCE_COLOR=true ansible-playbook -vvv \
     -e "{use_firewalld: $USE_FIREWALLD}" \
     -e "external_subnet_v4: ${EXTERNAL_SUBNET_V4}" \
     -e "provisioning_subnet: ${PROVISIONING_NETWORK}" \
