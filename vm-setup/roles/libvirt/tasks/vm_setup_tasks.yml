@@ -16,9 +16,9 @@
       become: true
       register: virt_result
 
-    - name: Default to qemu if inside a VM
+    - name: Default to kvm if inside a VM
       set_fact:
-        libvirt_domain_type: qemu
+        libvirt_domain_type: kvm
       when: virt_result is succeeded
 
     - name: Default to kvm if a VM is not detected
