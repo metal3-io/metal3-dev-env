@@ -38,8 +38,8 @@
       namespace: "{{ NAMESPACE }}"
       kubeconfig: "{{ kubeconfig }}"
     register: m3m
-    retries: 30
-    delay: 20
+    retries: 60
+    delay: 10
     vars:
       # Note: the 'ready' field is a boolean (not a string)
       query: "[? status.ready]"

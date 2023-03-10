@@ -3,6 +3,10 @@
 - set_fact:
     generate_vm_nodes: "{{vm_nodes is not defined}}"
 
+- name: "Show network_mode data for debugging (common role)"
+  debug:
+    var: networks_nat_only
+
 - name: Set an empty default for vm_nodes if not already defined
   set_fact:
     vm_nodes: []
@@ -32,9 +36,9 @@
 
 - name: "Append extra networks when EXTRA_NETWORK_NAMES is configured"
   set_fact:
-    networks: "{{ networks + extra_networks}}"
+    networks: "{{ networks + extra_networks }}"
   when: generate_extra_networks
 
-- name: "Show networks data for debugging"
+- name: "Show networks data for debugging (common role)"
   debug:
     var: networks

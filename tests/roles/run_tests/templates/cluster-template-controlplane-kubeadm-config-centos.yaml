@@ -1,18 +1,19 @@
 # CentOS specific controlplane kubeadm config
 preKubeadmCommands:
   - systemctl restart NetworkManager.service
-  - nmcli connection load /etc/NetworkManager/system-connections/eth0.nmconnection
-  - nmcli connection up eth0
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
   - nmcli connection up {{ IRONIC_ENDPOINT_BRIDGE }}
+  - nmcli connection load /etc/NetworkManager/system-connections/eth0.nmconnection
+  - nmcli connection up eth0
 {% if VM_EXTRADISKS == "true" %}
   - (echo n; echo p; echo 1; echo  ;echo  ;echo w) | fdisk /dev/vda
   - mkfs.{{ VM_EXTRADISKS_FILE_SYSTEM }} /dev/vda1
   - mkdir {{ VM_EXTRADISKS_MOUNT_DIR }}
   - mount /dev/vda1 {{ VM_EXTRADISKS_MOUNT_DIR }}
 {% endif %}
-  - systemctl enable --now crio keepalived kubelet
-  - systemctl enable --now /lib/systemd/system/monitor.keepalived.service
+  - systemctl enable --now keepalived
+  - sleep 60
+  - systemctl enable --now crio kubelet
 {% if EXTERNAL_VLAN_ID != "" %}
   - nmcli connection load /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
   - nmcli connection up /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
@@ -41,38 +42,6 @@ files:
         else
           cat "$tmpfile"| sed '$d' > "$dst";
         fi
-  - path: /usr/local/bin/monitor.keepalived.sh
-    owner: root:root
-    permissions: '0755'
-    content: |
-        #!/bin/bash
-        while :; do
-          curl -sk https://127.0.0.1:{{ CLUSTER_APIENDPOINT_PORT }}/healthz 1>&2 > /dev/null
-          isOk=$?
-          isActive=$(systemctl show -p ActiveState keepalived.service | cut -d'=' -f2)
-          if [ $isOk == "0" ] &&  [ $isActive != "active" ]; then
-            logger 'API server is healthy, however keepalived is not running, starting keepalived'
-            echo 'API server is healthy, however keepalived is not running, starting keepalived'
-            sudo systemctl start keepalived.service
-          elif [ $isOk != "0" ] &&  [ $isActive == "active" ]; then
-            logger 'API server is not healthy, however keepalived running, stopping keepalived'
-            echo 'API server is not healthy, however keepalived running, stopping keepalived'
-            sudo systemctl stop keepalived.service
-          fi
-          sleep 5
-        done
-  - path: /lib/systemd/system/monitor.keepalived.service
-    owner: root:root
-    content: |
-      [Unit]
-      Description=Monitors keepalived adjusts status with that of API server
-      After=syslog.target network-online.target
-      [Service]
-      Type=simple
-      Restart=always
-      ExecStart=/usr/local/bin/monitor.keepalived.sh
-      [Install]
-      WantedBy=multi-user.target
   - path: /etc/keepalived/keepalived.conf
     content: |
       ! Configuration File for keepalived
@@ -106,24 +75,22 @@ files:
       interface-name=eth0
       master={{ IRONIC_ENDPOINT_BRIDGE }}
       slave-type=bridge
-      autoconnect=yes
-      autoconnect-priority=999
   - path: /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
     owner: root:root
     permissions: '0600'
     content: |
       [connection]
       id={{ IRONIC_ENDPOINT_BRIDGE }}
-      type=bridge
       interface-name={{ IRONIC_ENDPOINT_BRIDGE }}
-
+      type=bridge
+      autoconnect=yes
+      autoconnect-priority=1
       [bridge]
+      interface-name={{ IRONIC_ENDPOINT_BRIDGE }}
       stp=false
-
       [ipv4]
       address1={{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
       method=manual
-
       [ipv6]
       addr-gen-mode=eui64
       method=ignore

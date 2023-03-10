@@ -29,6 +29,9 @@ function prefixlen() {
   export "${resultvar?}"
 }
 
+# Option to enable or disable fully NATed network topology
+export ENABLE_NATED_PROVISIONING_NETWORK="${ENABLE_NATED_PROVISIONING_NETWORK:-false}"
+
 # Provisioning Interface
 export BARE_METAL_PROVISIONER_INTERFACE="${BARE_METAL_PROVISIONER_INTERFACE:-ironicendpoint}"
 
@@ -99,14 +102,20 @@ fi
 
 export IP_STACK=${IP_STACK:-"v4"}
 if [[ "${IP_STACK}" == "v4" ]]; then
-    export EXTERNAL_SUBNET_V4=${EXTERNAL_SUBNET_V4:-"192.168.111.0/24"}
+    export EXTERNAL_SUBNET_V4="${EXTERNAL_SUBNET_V4:-192.168.111.0/24}"
     export EXTERNAL_SUBNET_V6=""
+    export PROVISIONING_SUBNET_V4="${PROVISIONING_SUBNET_V4:-172.23.23.0/24}"
+    export PROVISIONING_SUBNET_V6=""
 elif [[ "${IP_STACK}" == "v6" ]]; then
     export EXTERNAL_SUBNET_V4=""
-    export EXTERNAL_SUBNET_V6=${EXTERNAL_SUBNET_V6:-"fd55::/64"}
+    export EXTERNAL_SUBNET_V6="${EXTERNAL_SUBNET_V6:-fd55::/64}"
+    export PROVISIONING_SUBNET_V4=""
+    export PROVISIONING_SUBNET_V6="${PROVISIONING_SUBNET_V6:-fd56::/64}"
 elif [[ "${IP_STACK}" == "v4v6" ]]; then
-    export EXTERNAL_SUBNET_V4=${EXTERNAL_SUBNET_V4:-"192.168.111.0/24"}
-    export EXTERNAL_SUBNET_V6=${EXTERNAL_SUBNET_V6:-"fd55::/64"}
+    export EXTERNAL_SUBNET_V4="${EXTERNAL_SUBNET_V4:-192.168.111.0/24}"
+    export EXTERNAL_SUBNET_V6="${EXTERNAL_SUBNET_V6:-fd55::/64}"
+    export PROVISIONING_SUBNET_V4="${PROVISIONING_SUBNET_V4:-172.23.23.0/24}"
+    export PROVISIONING_SUBNET_V6="${PROVISIONING_SUBNET_V6:-fd56::/64}"
 else
     echo "Invalid value of IP_STACK: '${IP_STACK}'"
     exit 1
@@ -131,6 +140,11 @@ export CLUSTER_APIENDPOINT_PORT=${CLUSTER_APIENDPOINT_PORT:-"6443"}
 
 if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]] && [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
     network_address MINIKUBE_BMNET_V6_IP "${EXTERNAL_SUBNET_V6}" 9
+fi
+
+if [[ -n "${PROVISIONING_SUBNET_V4}" ]]; then
+    network_address PROVISIONING_DHCP_V4_START "${PROVISIONING_SUBNET_V4}" 1
+    network_address PROVISIONING_DHCP_V4_END "${PROVISIONING_SUBNET_V4}" 99
 fi
 
 if [[ -n "${EXTERNAL_SUBNET_V4}" ]]; then

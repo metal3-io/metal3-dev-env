@@ -1,10 +1,10 @@
 # CentOS specific worker kubeadm config
 preKubeadmCommands:
   - systemctl restart NetworkManager.service
-  - nmcli connection load /etc/NetworkManager/system-connections/eth0.nmconnection
-  - nmcli connection up eth0
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
   - nmcli connection up {{ IRONIC_ENDPOINT_BRIDGE }}
+  - nmcli connection load /etc/NetworkManager/system-connections/eth0.nmconnection
+  - nmcli connection up eth0
   - systemctl enable --now crio kubelet
 {% if EXTERNAL_VLAN_ID != "" %}
   - nmcli connection load /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection

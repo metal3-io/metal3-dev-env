@@ -32,6 +32,13 @@ external_dhcp_v4_end: "{{ lookup('env', 'EXTERNAL_DHCP_V4_END')|default('', true
 external_dhcp_v6_start: "{{ lookup('env', 'EXTERNAL_DHCP_V6_START')|default('', true) }}"
 external_dhcp_v6_end: "{{ lookup('env', 'EXTERNAL_DHCP_V6_END')|default('', true) }}"
 
+provisioning_network_cidr_v4: "{{ lookup('env', 'PROVISIONING_SUBNET_V4')|default('', true) }}"
+provisioning_network_cidr_v6: "{{ lookup('env', 'PROVISIONING_SUBNET_V6')|default('', true) }}"
+provisioning_dhcp_v4_start: "{{ lookup('env', 'PROVISIONING_DHCP_V4_START')|default('', true) }}"
+provisioning_dhcp_v4_end: "{{ lookup('env', 'PROVISIONING_DHCP_V4_END')|default('', true) }}"
+provisioning_dhcp_v6_start: "{{ lookup('env', 'PROVISIONING_DHCP_V6_START')|default('', true) }}"
+provisioning_dhcp_v6_end: "{{ lookup('env', 'PROVISIONING_DHCP_V6_END')|default('', true) }}"
+
 # Set this to `false` if you don't want your vms
 # to have a VNC console available.
 enable_vnc_console: true
@@ -47,7 +54,27 @@ ssh_user: root
 # the vm nodes in the order in which they are defined with the following caveats:
 #   *  The first bridge network defined will be used for pxe booting
 manage_external: 'y'
-provisioning_network:
+provisioning_network_nat:
+  - name: provisioning
+    bridge: provisioning
+    forward_mode: nat
+    address_v4: "{{ provisioning_network_cidr_v4|nthhost(1)|default('', true) }}"
+    netmask_v4: "{{ provisioning_network_cidr_v4|ipaddr('netmask') }}"
+    dhcp_range_v4:
+      - "{{ provisioning_dhcp_v4_start }}"
+      - "{{ provisioning_dhcp_v4_end }}"
+    # libvirt defaults to minutes as the unit
+    lease_expiry: 60
+    nat_port_range:
+      - 1024
+      - 65535
+    domain: "{{ cluster_domain }}"
+    dns:
+      hosts: "{{dns_extrahosts | default([])}}"
+      forwarders:
+        - domain: "apps.{{ cluster_domain }}"
+          addr: "127.0.0.1"
+provisioning_network_bridge:
   - name: provisioning
     bridge: provisioning
     forward_mode: bridge
@@ -79,4 +106,11 @@ external_network:
           addr: "{% if external_network_cidr_v4|ipv4 != False %}127.0.0.1{% else %}::1{% endif %}"
       srvs: "{{dns_externalsrvs | default([])}}"
 
-networks: "{{ provisioning_network + external_network }}"
+# Provisioning network is bridged and external network is nated
+networks_mixed: "{{ provisioning_network_bridge + external_network }}"
+# Both networks are nated
+networks_nated: "{{ provisioning_network_nat + external_network }}"
+# Enable only nated networks
+networks_nat_only: "{{ lookup('env', 'ENABLE_NATED_PROVISIONING_NETWORK') | bool }}"
+# Placeholder for the eventually selected network composition
+networks: "{{ networks_nated if networks_nat_only else networks_mixed }}"
