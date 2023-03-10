@@ -13,6 +13,9 @@ fetch_manifests:
 pivoting:
 	./pivot.sh
 
+fetch_target_logs:
+	./../../scripts/fetch_target_logs.sh
+
 repivoting:
 	./repivot.sh
 
