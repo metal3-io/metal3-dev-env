@@ -75,6 +75,17 @@ And the following environment variables need to be set for **Flatcar**:
 export IMAGE_OS=flatcar
 ```
 
+By default the virtualization hypervisor used is kvm. To be able to use it
+the nested virtualization needs to be enabled in the host. In case kvm or
+nested virtualization are not available it is possible to switch to qemu,
+although at this moment there are limitations in the execution and it is
+considered as experimental configuration.
+To switch to the qemu hypervisor apply the following setting:
+
+```sh
+export LIBVIRT_DOMAIN_TYPE=qemu
+```
+
 You can check a list of all the environment variables [here](vars.md)
 
 ### Deploy the metal3 Dev env

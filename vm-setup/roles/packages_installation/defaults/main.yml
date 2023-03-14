@@ -24,6 +24,7 @@ packages:
         - libpolkit-agent-1-0
         - libpolkit-gobject-1-0
         - apache2-utils
+        - netcat
     podman:
       packages:
         - apt-transport-https
@@ -38,6 +39,9 @@ packages:
         - python3-bcrypt
     focal_jammy:
       packages:
+        - apparmor
+        - apparmor-profiles-extra
+        - apparmor-utils
         - libvirt-daemon
         - libvirt-daemon-system
         - libssl-dev

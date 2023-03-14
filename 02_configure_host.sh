@@ -25,6 +25,7 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "platform=$NODES_PLATFORM" \
     -e "libvirt_firmware=$LIBVIRT_FIRMWARE" \
     -e "libvirt_secure_boot=$LIBVIRT_SECURE_BOOT" \
+    -e "libvirt_domain_type=$LIBVIRT_DOMAIN_TYPE" \
     -e "default_memory=$DEFAULT_HOSTS_MEMORY" \
     -e "manage_baremetal=$MANAGE_BR_BRIDGE" \
     -e "provisioning_url_host=$PROVISIONING_URL_HOST" \
@@ -173,6 +174,7 @@ fi
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -e "{use_firewalld: $USE_FIREWALLD}" \
     -e "external_subnet_v4: ${EXTERNAL_SUBNET_V4}" \
+    -e "provisioning_subnet: ${PROVISIONING_NETWORK}" \
     -i vm-setup/inventory.ini \
     -b vm-setup/firewall.yml
 

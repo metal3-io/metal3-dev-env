@@ -9,6 +9,24 @@
     state: directory
     mode: 0755
 
+- block:
+    - name: Detect virtualization if libvirt_domain_type is not provided
+      command: systemd-detect-virt
+      ignore_errors: true
+      become: true
+      register: virt_result
+
+    - name: Default to qemu if inside a VM
+      set_fact:
+        libvirt_domain_type: qemu
+      when: virt_result is succeeded
+
+    - name: Default to kvm if a VM is not detected
+      set_fact:
+        libvirt_domain_type: kvm
+      when: virt_result is failed
+  when: libvirt_domain_type is undefined
+
 - name: Check volume pool
   command: >
     virsh pool-uuid "{{ libvirt_volume_pool }}"
