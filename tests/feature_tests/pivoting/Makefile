@@ -5,22 +5,22 @@ export WORKER_MACHINE_COUNT := 1
 all: provision fetch_manifests pivoting
 
 provision:
-	./../feature_test_provisioning.sh
+	$(M3PATH)/tests/feature_tests/feature_test_provisioning.sh
 
 fetch_manifests:
-	./../../scripts/fetch_manifests.sh
+	$(M3PATH)/tests/scripts/fetch_manifests.sh
 
 pivoting:
 	./pivot.sh
 
 fetch_target_logs:
-	./../../scripts/fetch_target_logs.sh
+	$(M3PATH)/tests/scripts/fetch_target_logs.sh
 
 repivoting:
 	./repivot.sh
 
 deprovision:
-	./../feature_test_deprovisioning.sh
+	$(M3PATH)/tests/feature_tests/feature_test_deprovisioning.sh
 
 upgrading:
 	./upgrade.sh
