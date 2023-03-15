@@ -361,9 +361,9 @@ if ! sudo -n uptime &> /dev/null ; then
 fi
 
 # Use firewalld on CentOS/RHEL, iptables everywhere else
-export USE_FIREWALLD=False
+export USE_FIREWALLD=false
 if [[ $DISTRO == "rhel"* || $DISTRO == "centos"* ]]; then
-  export USE_FIREWALLD=True
+  export USE_FIREWALLD=true
 fi
 
 # Check d_type support

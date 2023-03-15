@@ -3,11 +3,12 @@
   args:
     apply:
       become: true
-  when: use_firewalld
+  when: use_firewalld | bool
+
 
 - name: "iptables"
   include_tasks: iptables.yaml
   args:
     apply:
       become: true
-  when: not use_firewalld
+  when: not use_firewalld | bool
