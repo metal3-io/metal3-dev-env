@@ -11,6 +11,12 @@ export ACTION="ci_test_provision"
 
 "${METAL3_DIR}"/tests/run.sh
 
+"${METAL3_DIR}"/tests/scripts/fetch_target_logs.sh
+
+export ACTION="repivoting"
+
+"${METAL3_DIR}"/tests/run.sh
+
 # wait until status of Metal3Machine is rebuilt
 while [ -z "${status}" ]
 do
