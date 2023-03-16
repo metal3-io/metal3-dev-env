@@ -3,8 +3,9 @@
   args:
     apply:
       become: true
+  vars:
+    firewalld_rule_state: "{{ 'enabled' if firewall_rule_state == 'present' else 'disabled' }}"
   when: use_firewalld | bool
-
 
 - name: "iptables"
   include_tasks: iptables.yaml
