@@ -92,61 +92,29 @@ BMO_IRONIC_ARGS: "-k {{ (IRONIC_TLS_SETUP == 'true') | ternary('-t', '') }}
     {{ (IRONIC_BASIC_AUTH == 'true') | ternary('', '-n') }}
     {{ (IRONIC_USE_MARIADB == 'true') | ternary('-m', '') }}"
 
-# Environment variables for upgrade workflow
-IRONIC_IMAGE_TAG: "main"
-CONTAINER_REGISTRY: "{{ lookup('env', 'CONTAINER_REGISTRY') }}"
-NUM_IRONIC_IMAGES: 8
-CAPIRELEASE_HARDCODED: "{{ lookup('env', 'CAPIRELEASE_HARDCODED') }}"
-M3PATH: "{{ lookup('env', 'M3PATH') }}"
-CAPM3PATH: "{{M3PATH}}/cluster-api-provider-metal3"
-IPAMPATH: "{{ lookup('env', 'IPAMPATH') }}"
-
-CAPM3_REL_TO_VERSION: "{{ lookup('env', 'CAPM3_REL_TO_VERSION') }}"
-CAPI_REL_TO_VERSION: "{{ lookup('env', 'CAPI_REL_TO_VERSION') }}"
-UPGRADED_CAPM3_VERSION: "{{ lookup('env', 'UPGRADED_CAPM3_VERSION') }}"
-
-capm3_version_to_branch:
-  v1alpha5: release-0.5
-  v1beta1: main
-capm3_version_to_capi_version:
-  v1alpha5: v1alpha4
-  v1beta1: v1beta1
-
-upgraded_capm3_image: "{{ CONTAINER_REGISTRY }}/metal3-io/cluster-api-provider-metal3"
-upgraded_capm3_tag: main
-upgraded_ipam_image: "{{ CONTAINER_REGISTRY }}/metal3-io/ip-address-manager"
-upgraded_ipam_tag: main
-upgraded_capm3_branch: "{{ capm3_version_to_branch[UPGRADED_CAPM3_VERSION] }}"
-upgraded_capi_version: "{{ capm3_version_to_capi_version[UPGRADED_CAPM3_VERSION] }}"
-
 provision_cluster_actions:
     - "ci_test_provision"
     - "provision_cluster"
     - "feature_test_provisioning"
-    - "upgrading"
 provision_controlplane_actions:
     - "ci_test_provision"
     - "provision_controlplane"
     - "feature_test_provisioning"
-    - "upgrading"
 provision_workers_actions:
     - "ci_test_provision"
     - "provision_worker"
     - "feature_test_provisioning"
-    - "upgrading"
 provision_actions:
     - "ci_test_provision"
     - "provision_cluster"
     - "provision_controlplane"
     - "provision_worker"
     - "feature_test_provisioning"
-    - "upgrading"
     - "generate_template"
 deprovision_cluster_actions:
     - "ci_test_deprovision"
     - "deprovision_cluster"
     - "feature_test_deprovisioning"
-    - "upgrading"
 deprovision_controlplane_actions:
     - "deprovision_controlplane"
 deprovision_workers_actions:
@@ -155,19 +123,15 @@ verify_actions:
     - "ci_test_provision"
     - "feature_test_provisioning"
     - "pivoting"
-    - "upgrading"
     - "healthcheck"
 pivot_actions:
     - "ci_test_provision"
     - "pivoting"
-    - "upgrading"
 repivot_actions:
     - "repivoting"
-    - "upgrading"
 cleanup_actions:
     - "ci_test_deprovision"
     - "feature_test_deprovisioning"
-    - "upgrading"
 image_download_actions:
     - "ci_test_provision"
     - "provision_controlplane"

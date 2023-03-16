@@ -21,6 +21,3 @@ repivoting:
 
 deprovision:
 	$(M3PATH)/tests/feature_tests/feature_test_deprovisioning.sh
-
-upgrading:
-	./upgrade.sh

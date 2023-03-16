@@ -37,10 +37,6 @@
   include_tasks: move.yml
   when: v1aX_integration_test_action in pivot_actions
 
-- name: Upgrade cluster
-  include_tasks: upgrade.yml
-  when: v1aX_integration_test_action == "upgrading"
-
 - name: repivot
   include_tasks: move_back.yml
   when: v1aX_integration_test_action in repivot_actions
