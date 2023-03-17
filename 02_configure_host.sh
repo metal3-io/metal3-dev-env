@@ -172,9 +172,8 @@ EOF
 fi
 
 ANSIBLE_FORCE_COLOR=true ansible-playbook \
-    -e "{use_firewalld: $USE_FIREWALLD}" \
-    -e "external_subnet_v4: ${EXTERNAL_SUBNET_V4}" \
-    -e "provisioning_subnet: ${PROVISIONING_NETWORK}" \
+    -e "provisioning_subnet=${PROVISIONING_NETWORK}" \
+    -e "use_firewalld=${USE_FIREWALLD}" \
     -i vm-setup/inventory.ini \
     -b vm-setup/firewall.yml
 

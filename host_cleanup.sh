@@ -42,14 +42,11 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
     -i vm-setup/inventory.ini \
     -b -v vm-setup/teardown-playbook.yml
 
-if [ "$USE_FIREWALLD" == "False" ]; then
- ANSIBLE_FORCE_COLOR=true ansible-playbook \
-    -e "{use_firewalld: $USE_FIREWALLD}" \
-    -e "external_subnet_v4: ${EXTERNAL_SUBNET_V4}" \
+ANSIBLE_FORCE_COLOR=true ansible-playbook \
+    -e "use_firewalld=${USE_FIREWALLD}" \
     -e "firewall_rule_state=absent" \
     -i vm-setup/inventory.ini \
     -b -v vm-setup/firewall.yml
-fi
 
 # There was a bug in this file, it may need to be recreated.
 if [[ $OS == "centos" || $OS == "rhel" ]]; then
