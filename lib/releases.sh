@@ -58,9 +58,14 @@ elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.2.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.2.")}"
-else
+elif [ "${CAPM3RELEASEBRANCH}" = "release-1.3" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.3.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.3.")}"
+else
+  ## Hardcoding this until we have a 1.4.x release in CAPM3. 
+  ## Clusterctl will use local override.
+  export CAPM3RELEASE="v1.4.0"
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.4.")}"
 fi
 
 export BMORELEASE="${BMORELEASE:-$(get_latest_release "${BMORELEASEPATH}" "v0.2.")}"
