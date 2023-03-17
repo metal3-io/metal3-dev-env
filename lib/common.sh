@@ -335,6 +335,11 @@ RESULT_STR=""
 # Avoid printing skipped Ansible tasks
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS="no"
 
+# Set Ansible verbosity.
+# For more info please see:
+# https://docs.ansible.com/ansible/latest/reference_appendices/config.html#envvar-ANSIBLE_VERBOSITY
+export ANSIBLE_VERBOSITY=${ANSIBLE_VERBOSITY:-0}
+
 # Sanity check for number of nodes
 if [ "${NUM_NODES}" -lt "$((CONTROL_PLANE_MACHINE_COUNT + WORKER_MACHINE_COUNT))" ]; then
     echo "Failed with incorrect number of nodes"
