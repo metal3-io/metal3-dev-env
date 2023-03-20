@@ -8,7 +8,7 @@
     zone: libvirt
     interface: "{{ item }}"
     permanent: yes
-    state: enabled
+    state: "{{ firewalld_rule_state }}"
     immediate: yes
   loop:
     - "{{ provisioning_interface }}"
@@ -20,7 +20,7 @@
     zone: libvirt
     port: "{{ item }}/tcp"
     permanent: yes
-    state: enabled
+    state: "{{ firewalld_rule_state }}"
     immediate: yes
   loop: "{{ provisioning_host_ports }}"
 
@@ -29,7 +29,7 @@
     zone: libvirt
     port: "{{ item }}/tcp"
     permanent: yes
-    state: enabled
+    state: "{{ firewalld_rule_state }}"
     immediate: yes
   loop: "{{ ironic_ports }}"
 
@@ -38,7 +38,7 @@
     zone: libvirt
     port: "{{ item }}/udp"
     permanent: yes
-    state: enabled
+    state: "{{ firewalld_rule_state }}"
     immediate: yes
   loop: "{{ pxe_udp_ports }}"
 
@@ -47,7 +47,7 @@
     zone: libvirt
     port: "{{ vbmc_port_range | regex_replace(':', '-') }}/udp"
     permanent: yes
-    state: enabled
+    state: "{{ firewalld_rule_state }}"
     immediate: yes
 
 - name: "firewalld: sushy Port"
@@ -55,5 +55,5 @@
     zone: libvirt
     port: "{{ sushy_port }}/tcp"
     permanent: yes
-    state: enabled
+    state: "{{ firewalld_rule_state }}"
     immediate: yes
