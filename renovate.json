@@ -54,12 +54,6 @@
     },
     {
       "matchPackageNames": [
-        "kubernetes/kubernetes"
-      ],
-      "allowedVersions": "<=1.26"
-    },
-    {
-      "matchPackageNames": [
         "kindest/node"
       ],
       "allowedVersions": "<=1.26"
@@ -78,16 +72,6 @@
   "includeForks": false,
   "stabilityDays": 5,
   "regexManagers": [
-    {
-      "fileMatch": [
-        "^lib/common.sh$"
-      ],
-      "matchStrings": [
-        "KUBERNETES_VERSION:-\"(?<currentValue>.*?)\"}"
-      ],
-      "depNameTemplate": "kubernetes/kubernetes",
-      "datasourceTemplate": "github-releases"
-    },
     {
       "fileMatch": [
         "^lib/common.sh$"
@@ -140,7 +124,8 @@
     "Rozzii",
     "smoshiur1237",
     "Sunnatillo",
-    "adilGhaffarDev"
+    "adilGhaffarDev",
+    "tuminoid"
   ],
   "reviewersSampleSize": 2
 }
