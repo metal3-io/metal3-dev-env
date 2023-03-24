@@ -65,11 +65,7 @@ spec:
           name: "{{ '{{ ds.meta_data.name }}' }}"
           kubeletExtraArgs:
             node-labels: "metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}"
-{% if CAPM3_VERSION == "v1alpha5" %}
-            provider-id: "metal3://{{ '{{ ds.meta_data.uuid }}' }}"
-{% else %}
             provider-id: "metal3://{{ '{{ ds.meta_data.providerid }}' }}"
-{% endif %}
             feature-gates: "AllAlpha=false"
             container-runtime: "remote"
             cgroup-driver: "systemd"

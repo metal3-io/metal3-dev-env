@@ -112,12 +112,10 @@ function clone_repo() {
 }
 
 # Configure common environment variables
-CAPM3_VERSION_LIST="v1alpha5 v1beta1"
+CAPM3_VERSION_LIST="v1beta1"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
-if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
-  export CAPI_VERSION="v1alpha4"
-elif [ "${CAPM3_VERSION}" == "v1beta1" ]; then
+if [[ "${CAPM3_VERSION}" == "v1beta1" ]]; then
   export CAPI_VERSION="v1beta1"
 else
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
@@ -140,16 +138,16 @@ export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH=${CAPM3RELEASEBRANCH:-main}
 
-if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [[ "${CAPM3RELEASEBRANCH}" == "release-0.5" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
   export IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
-elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
+elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.1}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.1}"
-elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
+elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.2}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.2}"
-elif [ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]; then
+elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.3}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.3}"
 else
@@ -188,19 +186,19 @@ if [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
   export BUILD_IRONIC_IMAGE_LOCALLY="true"
 fi
 
-if [ "${BUILD_CAPM3_LOCALLY}" == "true" ]; then
+if [[ "${BUILD_CAPM3_LOCALLY}" == "true" ]]; then
   export CAPM3_LOCAL_IMAGE="${CAPM3PATH}"
 fi
-if [ "${BUILD_IPAM_LOCALLY}" == "true" ]; then
+if [[ "${BUILD_IPAM_LOCALLY}" == "true" ]]; then
   export IPAM_LOCAL_IMAGE="${IPAMPATH}"
 fi
-if [ "${BUILD_BMO_LOCALLY}" == "true" ]; then
-  export BARE_METAL_OPERATOR_LOCAL_IMAGE="${BMOPATH}"
+if [[ "${BUILD_BMO_LOCALLY}" == "true" ]]; then
+  export BAREMETAL_OPERATOR_LOCAL_IMAGE="${BMOPATH}"
 fi
-if [ "${BUILD_CAPI_LOCALLY}" == "true" ]; then
+if [[ "${BUILD_CAPI_LOCALLY}" == "true" ]]; then
   export CAPI_LOCAL_IMAGE="${CAPIPATH}"
 fi
-if [ "${BUILD_IRONIC_IMAGE_LOCALLY}" == "true" ]; then
+if [[ "${BUILD_IRONIC_IMAGE_LOCALLY}" == "true" ]]; then
   export IRONIC_LOCAL_IMAGE="${IRONIC_IMAGE_PATH}"
 fi
 
@@ -251,16 +249,16 @@ export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
 export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
 
 # CAPM3 and IPAM controller images
-if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [[ "${CAPM3RELEASEBRANCH}" == "release-0.5" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-0.5"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-0.1"}
-elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
+elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.1"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.1"}
-elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
+elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.2"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.2"}
-elif [ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]; then
+elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.3"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.3"}
 else
@@ -284,14 +282,10 @@ export DEFAULT_HOSTS_MEMORY=${DEFAULT_HOSTS_MEMORY:-4096}
 export CLUSTER_NAME=${CLUSTER_NAME:-"test1"}
 export KUBERNETES_VERSION=${KUBERNETES_VERSION:-"v1.26.0"}
 export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
-if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
-  export KUBERNETES_BINARIES_CONFIG_VERSION=${KUBERNETES_BINARIES_CONFIG_VERSION:-"v0.13.0"}
-else
-  export KUBERNETES_BINARIES_CONFIG_VERSION=${KUBERNETES_BINARIES_CONFIG_VERSION:-"v0.14.0"}
-fi
+export KUBERNETES_BINARIES_CONFIG_VERSION=${KUBERNETES_BINARIES_CONFIG_VERSION:-"v0.14.0"}
 
 # Ephemeral Cluster
-if [ "${CONTAINER_RUNTIME}" == "docker" ]; then
+if [[ "${CONTAINER_RUNTIME}" == "docker" ]]; then
   export EPHEMERAL_CLUSTER=${EPHEMERAL_CLUSTER:-"kind"}
 else
   export EPHEMERAL_CLUSTER="minikube"
@@ -305,11 +299,7 @@ export MINIKUBE_VERSION=${MINIKUBE_VERSION:-"v1.28.0"}
 
 # Kind, kind node image versions (if EPHEMERAL_CLUSTER=kind)
 export KIND_VERSION=${KIND_VERSION:-"v0.17.0"}
-if [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
-  export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.23.6"}
-else
-  export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.26.0"}
-fi
+export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.26.0"}
 
 export KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-"${DOCKER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}"}
 
@@ -349,7 +339,7 @@ export LIBVIRT_DOMAIN_TYPE=${LIBVIRT_DOMAIN_TYPE:-kvm}
 # Verify requisites/permissions
 # Connect to system libvirt
 export LIBVIRT_DEFAULT_URI=qemu:///system
-if [ "$USER" != "root" ] && [ "${XDG_RUNTIME_DIR:-}" == "/run/user/0" ] ; then
+if [[ "$USER" != "root" ]] && [[ "${XDG_RUNTIME_DIR:-}" == "/run/user/0" ]] ; then
     echo "Please use a non-root user, WITH a login shell (e.g. su - USER)"
     exit 1
 fi
@@ -522,7 +512,7 @@ differs(){
 #
 function pull_container_image_if_missing() {
   local IMAGE="$1"
-  if [ "${CONTAINER_RUNTIME}" == "docker" ]; then
+  if [[ "${CONTAINER_RUNTIME}" == "docker" ]]; then
     if [[ -z $(sudo "${CONTAINER_RUNTIME}" image ls "$IMAGE" | tail -n +2) ]]; then
       sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
     fi
