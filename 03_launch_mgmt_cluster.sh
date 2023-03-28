@@ -49,7 +49,7 @@ function launch_baremetal_operator() {
 
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   # Update container images to use local ones
-  if [ -n "${BARE_METAL_OPERATOR_LOCAL_IMAGE}" ]; then
+  if [ -n "${BARE_METAL_OPERATOR_LOCAL_IMAGE:-}" ]; then
     update_component_image BMO "${BARE_METAL_OPERATOR_LOCAL_IMAGE}"
   else
     update_component_image BMO "${BARE_METAL_OPERATOR_IMAGE}"
@@ -160,11 +160,11 @@ EOF
     echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
 
-  if [ -n "${DHCP_IGNORE}" ]; then
+  if [ -n "${DHCP_IGNORE:-}" ]; then
     echo "DHCP_IGNORE=${DHCP_IGNORE}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
 
-  if [ -n "${DHCP_HOSTS}" ]; then
+  if [ -n "${DHCP_HOSTS:-}" ]; then
     echo "DHCP_HOSTS=${DHCP_HOSTS}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
 
@@ -179,22 +179,22 @@ EOF
   # Note: Even though the manifests are not used for local deployment we need
   # to do this since Ironic will no longer run locally after pivot.
   # The workload cluster will use these images after pivoting.
-  if [ -n "${IRONIC_LOCAL_IMAGE}" ]; then
+  if [ -n "${IRONIC_LOCAL_IMAGE:-}" ]; then
     update_component_image Ironic "${IRONIC_LOCAL_IMAGE}"
   else
     update_component_image Ironic "${IRONIC_IMAGE}"
   fi
-  if [ -n "${MARIADB_LOCAL_IMAGE}" ]; then
+  if [ -n "${MARIADB_LOCAL_IMAGE:-}" ]; then
     update_component_image Mariadb "${MARIADB_LOCAL_IMAGE}"
   else
     update_component_image Mariadb "${MARIADB_IMAGE}"
   fi
-  if [ -n "${IRONIC_KEEPALIVED_LOCAL_IMAGE}" ]; then
+  if [ -n "${IRONIC_KEEPALIVED_LOCAL_IMAGE:-}" ]; then
     update_component_image Keepalived "${IRONIC_KEEPALIVED_LOCAL_IMAGE}"
   else
     update_component_image Keepalived "${IRONIC_KEEPALIVED_IMAGE}"
   fi
-  if [ -n "${IPA_DOWNLOADER_LOCAL_IMAGE}" ]; then
+  if [ -n "${IPA_DOWNLOADER_LOCAL_IMAGE:-}" ]; then
     update_component_image IPA-downloader "${IPA_DOWNLOADER_LOCAL_IMAGE}"
   else
     update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
@@ -239,7 +239,7 @@ function apply_bm_hosts() {
   if [[ -n "$(list_nodes)" ]]; then
     echo "bmhosts_crs.yaml is applying"
     while ! kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n "$NAMESPACE" &>/dev/null; do
-	    sleep 3
+      sleep 3
     done
     echo "bmhosts_crs.yaml is successfully applied"
   fi
@@ -329,13 +329,13 @@ function patch_clusterctl(){
 
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
-  if [ -n "${CAPM3_LOCAL_IMAGE}" ]; then
+  if [ -n "${CAPM3_LOCAL_IMAGE:-}" ]; then
     update_component_image CAPM3 "${CAPM3_LOCAL_IMAGE}"
   else
     update_component_image CAPM3 "${CAPM3_IMAGE}"
   fi
 
-  if [ -n "${IPAM_LOCAL_IMAGE}" ]; then
+  if [ -n "${IPAM_LOCAL_IMAGE:-}" ]; then
     update_component_image IPAM "${IPAM_LOCAL_IMAGE}"
   else
     update_component_image IPAM "${IPAM_IMAGE}"
@@ -424,11 +424,11 @@ function start_management_cluster () {
           break
         fi
     done
-    if [[ -n "${MINIKUBE_BMNET_V6_IP}" ]]; then
+    if [[ -n "${MINIKUBE_BMNET_V6_IP:-}" ]]; then
       sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
       sudo su -l -c "minikube ssh -- sudo ip addr add $MINIKUBE_BMNET_V6_IP/64 dev eth3" "${USER}"
     fi
-    if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" == "true" ]]; then
+    if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" == "true" ]]; then
       sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"$CLUSTER_BARE_METAL_PROVISIONER_IP/$BARE_METAL_PROVISIONER_CIDR"' dev eth2"' "${USER}"
     else
       sudo su -l -c "minikube ssh sudo brctl addbr $BARE_METAL_PROVISIONER_INTERFACE" "${USER}"

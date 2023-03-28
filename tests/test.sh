@@ -18,7 +18,7 @@ export ACTION="repivoting"
 "${METAL3_DIR}"/tests/run.sh
 
 # wait until status of Metal3Machine is rebuilt
-while [ -z "${status}" ]
+while [[ -z "${status:-}" ]]
 do
     status=$(kubectl get m3m -n "${NAMESPACE}" -o=jsonpath="{.items[*]['status.ready']}")
     sleep 1s
