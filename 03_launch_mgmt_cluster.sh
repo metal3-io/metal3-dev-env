@@ -10,8 +10,8 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
-export IRONIC_HOST="${CLUSTER_URL_HOST}"
-export IRONIC_HOST_IP="${CLUSTER_PROVISIONING_IP}"
+export IRONIC_HOST="${CLUSTER_BARE_METAL_PROVISIONER_HOST}"
+export IRONIC_HOST_IP="${CLUSTER_BARE_METAL_PROVISIONER_IP}"
 export REPO_IMAGE_PREFIX="quay.io"
 
 declare -a BMO_IRONIC_ARGS
@@ -49,10 +49,10 @@ function launch_baremetal_operator() {
 
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   # Update container images to use local ones
-  if [ -n "${BAREMETAL_OPERATOR_LOCAL_IMAGE}" ]; then
-    update_component_image BMO "${BAREMETAL_OPERATOR_LOCAL_IMAGE}"
+  if [ -n "${BARE_METAL_OPERATOR_LOCAL_IMAGE}" ]; then
+    update_component_image BMO "${BARE_METAL_OPERATOR_LOCAL_IMAGE}"
   else
-    update_component_image BMO "${BAREMETAL_OPERATOR_IMAGE}"
+    update_component_image BMO "${BARE_METAL_OPERATOR_IMAGE}"
   fi
 fi
 
@@ -137,15 +137,15 @@ function launch_ironic() {
     # Update Configmap parameters with correct urls
     cat << EOF | sudo tee "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
-PROVISIONING_IP=${CLUSTER_PROVISIONING_IP}
-PROVISIONING_CIDR=${PROVISIONING_CIDR}
-PROVISIONING_INTERFACE=${CLUSTER_PROVISIONING_INTERFACE}
+PROVISIONING_IP=${CLUSTER_BARE_METAL_PROVISIONER_IP}
+PROVISIONING_CIDR=${BARE_METAL_PROVISIONER_CIDR}
+PROVISIONING_INTERFACE=${BARE_METAL_PROVISIONER_INTERFACE}
 DHCP_RANGE=${CLUSTER_DHCP_RANGE}
 DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
 DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
 IRONIC_ENDPOINT=${IRONIC_URL}
 IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
-CACHEURL=http://${PROVISIONING_URL_HOST}/images
+CACHEURL=http://${BARE_METAL_PROVISIONER_URL_HOST}/images
 IRONIC_FAST_TRACK=true
 RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED}"
 IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
@@ -428,13 +428,13 @@ function start_management_cluster () {
       sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
       sudo su -l -c "minikube ssh -- sudo ip addr add $MINIKUBE_BMNET_V6_IP/64 dev eth3" "${USER}"
     fi
-    if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
-      sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"$CLUSTER_PROVISIONING_IP/$PROVISIONING_CIDR"' dev eth2"' "${USER}"
+    if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" == "true" ]]; then
+      sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"$CLUSTER_BARE_METAL_PROVISIONER_IP/$BARE_METAL_PROVISIONER_CIDR"' dev eth2"' "${USER}"
     else
-      sudo su -l -c "minikube ssh sudo brctl addbr $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
-      sudo su -l -c "minikube ssh sudo ip link set $CLUSTER_PROVISIONING_INTERFACE up" "${USER}"
-      sudo su -l -c "minikube ssh sudo brctl addif $CLUSTER_PROVISIONING_INTERFACE eth2" "${USER}"
-      sudo su -l -c "minikube ssh sudo ip addr add $INITIAL_IRONICBRIDGE_IP/$PROVISIONING_CIDR dev $CLUSTER_PROVISIONING_INTERFACE" "${USER}"
+      sudo su -l -c "minikube ssh sudo brctl addbr $BARE_METAL_PROVISIONER_INTERFACE" "${USER}"
+      sudo su -l -c "minikube ssh sudo ip link set $BARE_METAL_PROVISIONER_INTERFACE up" "${USER}"
+      sudo su -l -c "minikube ssh sudo brctl addif $BARE_METAL_PROVISIONER_INTERFACE eth2" "${USER}"
+      sudo su -l -c "minikube ssh sudo ip addr add $INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP/$BARE_METAL_PROVISIONER_CIDR dev $BARE_METAL_PROVISIONER_INTERFACE" "${USER}"
     fi
   fi
 }

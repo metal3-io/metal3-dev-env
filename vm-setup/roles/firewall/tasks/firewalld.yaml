@@ -12,8 +12,8 @@
     immediate: yes
   loop:
     - "{{ provisioning_interface }}"
-    - "{{ baremetal_interface }}"
-    - "{{ cluster_provisioning_interface }}"
+    - "{{ bare_metal_provisioner_interface }}"
+    - "{{ external_interface }}"
 
 - name: "firewalld: Provisioning host ports"
   ansible.posix.firewalld:
@@ -22,7 +22,7 @@
     permanent: yes
     state: "{{ firewalld_rule_state }}"
     immediate: yes
-  loop: "{{ provisioning_host_ports }}"
+  loop: "{{ vm_host_ports }}"
 
 - name: "firewalld: Ironic Ports"
   ansible.posix.firewalld:

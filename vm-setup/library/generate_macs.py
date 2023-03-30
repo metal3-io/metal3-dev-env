@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# generate_baremetal_macs method ripped from
+# generate_vm_interface_macs method ripped from
 # openstack/tripleo-incubator/scripts/configure-vm
 
 import math
@@ -24,14 +24,14 @@ module: generate_macs
 version_added: "2.0"
 short_description: Generate a list of Ethernet MAC addresses
 description:
-   - Generate a list of Ethernet MAC addresses suitable for baremetal testing.
+   - Generate a list of Ethernet MAC addresses suitable for external testing.
 '''
 
 MAX_NUM_MACS = math.trunc(0xff / 2)
 
 
-def generate_baremetal_macs(nodes, networks):
-    """Generate an Ethernet MAC address suitable for baremetal testing."""
+def generate_vm_interface_macs(nodes, networks):
+    """Generate an Ethernet MAC address suitable for VM testing."""
     # NOTE(dprince): We generate our own bare metal MAC address's here
     # instead of relying on libvirt so that we can ensure the
     # locally administered bit is set low. (The libvirt default is
@@ -81,7 +81,7 @@ def main():
             networks=dict(required=True, type='list')
         )
     )
-    result = generate_baremetal_macs(module.params["nodes"],
+    result = generate_vm_interface_macs(module.params["nodes"],
                                      module.params["networks"])
     module.exit_json(**result)
 

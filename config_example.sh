@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Choose whether the "baremetal" libvirt network will use IPv4, IPv6, or IPv4+IPv6.
+# Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6.
 # This network is the primary network interface for the virtual bare metal hosts.
 #
 # Note that this only sets up the underlying network, and fully provisioning IPv6
@@ -15,7 +15,7 @@
 #export IP_STACK=v4
 
 #
-# This is the subnet used on the "baremetal" libvirt network, created as the
+# This is the subnet used on the "external" libvirt network, created as the
 # primary network interface for the virtual bare metal hosts.
 #
 # V4 default of 192.168.111.0/24 set in lib/network.sh
@@ -141,7 +141,7 @@
 #export KUBERNETES_BINARIES_CONFIG_VERSION="v0.14.0"
 
 # Configure provisioning network for single-stack ipv6
-#export PROVISIONING_IPV6=false
+#export BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY=false
 
 # Image OS (can be "Cirros", "Ubuntu", "Centos", overriden by IMAGE_* if set)
 # Default: Centos
@@ -179,7 +179,7 @@
 #export CLUSTER_APIENDPOINT_IP="192.168.111.249"
 
 # Cluster provisioning Interface
-#export CLUSTER_PROVISIONING_INTERFACE="ironicendpoint"
+#export BARE_METAL_PROVISIONER_INTERFACE="ironicendpoint"
 
 # POD CIDR
 #export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"}

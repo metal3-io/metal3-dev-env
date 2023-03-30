@@ -25,13 +25,12 @@ flavors:
 # An optional prefix for node names
 ironic_prefix: ""
 
-baremetal_network_cidr_v4: "{{ lookup('env', 'EXTERNAL_SUBNET_V4')|default('', true) }}"
-baremetal_network_cidr_v6: "{{ lookup('env', 'EXTERNAL_SUBNET_V6')|default('', true) }}"
-virsh_dhcp_v4_start: "{{ lookup('env', 'VIRSH_DHCP_V4_START')|default('', true) }}"
-virsh_dhcp_v4_end: "{{ lookup('env', 'VIRSH_DHCP_V4_END')|default('', true) }}"
-virsh_dhcp_v6_start: "{{ lookup('env', 'VIRSH_DHCP_V6_START')|default('', true) }}"
-virsh_dhcp_v6_end: "{{ lookup('env', 'VIRSH_DHCP_V6_END')|default('', true) }}"
-
+external_network_cidr_v4: "{{ lookup('env', 'EXTERNAL_SUBNET_V4')|default('', true) }}"
+external_network_cidr_v6: "{{ lookup('env', 'EXTERNAL_SUBNET_V6')|default('', true) }}"
+external_dhcp_v4_start: "{{ lookup('env', 'EXTERNAL_DHCP_V4_START')|default('', true) }}"
+external_dhcp_v4_end: "{{ lookup('env', 'EXTERNAL_DHCP_V4_END')|default('', true) }}"
+external_dhcp_v6_start: "{{ lookup('env', 'EXTERNAL_DHCP_V6_START')|default('', true) }}"
+external_dhcp_v6_end: "{{ lookup('env', 'EXTERNAL_DHCP_V6_END')|default('', true) }}"
 
 # Set this to `false` if you don't want your vms
 # to have a VNC console available.
@@ -47,25 +46,25 @@ ssh_user: root
 # Describe our virtual networks.  These networks will be attached to
 # the vm nodes in the order in which they are defined with the following caveats:
 #   *  The first bridge network defined will be used for pxe booting
-manage_baremetal: 'y'
+manage_external: 'y'
 provisioning_network:
   - name: provisioning
     bridge: provisioning
     forward_mode: bridge
 external_network:
-  - name: baremetal
-    bridge: baremetal
-    forward_mode: "{% if manage_baremetal == 'y' %}nat{% else %}bridge{% endif %}"
-    address_v4: "{{ baremetal_network_cidr_v4|nthhost(1)|default('', true) }}"
-    netmask_v4: "{{ baremetal_network_cidr_v4|ipaddr('netmask') }}"
+  - name: external
+    bridge: external
+    forward_mode: "{% if manage_external == 'y' %}nat{% else %}bridge{% endif %}"
+    address_v4: "{{ external_network_cidr_v4|nthhost(1)|default('', true) }}"
+    netmask_v4: "{{ external_network_cidr_v4|ipaddr('netmask') }}"
     dhcp_range_v4:
-      - "{{ virsh_dhcp_v4_start }}"
-      - "{{ virsh_dhcp_v4_end }}"
-    address_v6: "{{ baremetal_network_cidr_v6|nthhost(1)|default('', true) }}"
-    prefix_v6: "{{ baremetal_network_cidr_v6|ipaddr('prefix') }}"
+      - "{{ external_dhcp_v4_start }}"
+      - "{{ external_dhcp_v4_end }}"
+    address_v6: "{{ external_network_cidr_v6|nthhost(1)|default('', true) }}"
+    prefix_v6: "{{ external_network_cidr_v6|ipaddr('prefix') }}"
     dhcp_range_v6:
-      - "{{ virsh_dhcp_v6_start }}"
-      - "{{ virsh_dhcp_v6_end }}"
+      - "{{ external_dhcp_v6_start }}"
+      - "{{ external_dhcp_v6_end }}"
     # libvirt defaults to minutes as the unit
     lease_expiry: 60
     nat_port_range:
@@ -77,7 +76,7 @@ external_network:
       forwarders:
         # Use 127.0.0.1 unless only IPv6 is enabled
         - domain: "apps.{{ cluster_domain }}"
-          addr: "{% if baremetal_network_cidr_v4|ipv4 != False %}127.0.0.1{% else %}::1{% endif %}"
+          addr: "{% if external_network_cidr_v4|ipv4 != False %}127.0.0.1{% else %}::1{% endif %}"
       srvs: "{{dns_externalsrvs | default([])}}"
 
 networks: "{{ provisioning_network + external_network }}"

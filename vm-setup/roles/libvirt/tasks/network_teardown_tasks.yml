@@ -17,10 +17,10 @@
 # TODO: Replace with ansible community.general.nmcli?
 - name: Delete bridges and veth interfaces on Ubuntu
   shell: |
-     sudo ip link set baremetal down
+     sudo ip link set external down
      sudo ip link set provisioning down
      sudo ip link set ironicendpoint down
-     brctl delbr baremetal || true
+     brctl delbr external || true
      brctl delbr provisioning || true
      sudo ip link del ironicendpoint || true
 

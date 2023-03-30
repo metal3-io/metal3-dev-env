@@ -290,9 +290,9 @@ function init_minikube() {
           --type network --config
     fi
 
-    if ! echo "$MINIKUBE_IFACES" | grep -w baremetal  > /dev/null ; then
+    if ! echo "$MINIKUBE_IFACES" | grep -w external  > /dev/null ; then
       sudo virsh attach-interface --domain minikube \
-          --model virtio --source baremetal \
+          --model virtio --source external \
           --type network --config
     fi
 }
