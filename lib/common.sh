@@ -194,11 +194,6 @@ if [[ "${BUILD_IPAM_LOCALLY}" == "true" ]]; then
 fi
 if [ "${BUILD_BMO_LOCALLY}" == "true" ]; then
   export BARE_METAL_OPERATOR_LOCAL_IMAGE="${BMOPATH}"
-  pushd "${BMOPATH}" || exit
-  echo "For building BMO locally BMOBRANCH should be pointing to the local branch not main/BMORELEASE tag. Overriding BMOBRANCH with local branch."
-  BMOBRANCH="$(git symbolic-ref --short HEAD)"
-  export BMOBRANCH
-  popd || exit
 fi
 if [[ "${BUILD_CAPI_LOCALLY}" == "true" ]]; then
   export CAPI_LOCAL_IMAGE="${CAPIPATH}"
