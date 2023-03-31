@@ -182,7 +182,8 @@ export BUILD_IRONIC_IMAGE_LOCALLY="${BUILD_IRONIC_IMAGE_LOCALLY:-false}"
 # If IRONIC_FROM_SOURCE has a "true" value that
 # automatically requires BUILD_IRONIC_IMAGE_LOCALLY to have "true" value too
 # but it is not the case the other way around
-if [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
+export IRONIC_FROM_SOURCE="${IRONIC_FROM_SOURCE:-false}"
+if [[ $IRONIC_FROM_SOURCE == "true" ]]; then
   export BUILD_IRONIC_IMAGE_LOCALLY="true"
 fi
 
