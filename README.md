@@ -174,3 +174,15 @@ information, regarding the TLS setup and running ironic locally please refer to
 these documents:
 [TLS](https://github.com/metal3-io/cluster-api-provider-metal3/blob/main/docs/getting-started.md)
 , [Run local ironic](https://github.com/metal3-io/baremetal-operator/blob/main/docs/dev-setup.md).
+
+### Test Matrix
+
+The following table describes which branches are tested for different test triggers:
+
+<!-- markdownlint-disable -->
+| test suffix | CAPM3 branch | IPAM branch  | BMO branch/tag  | Keepalived tag |
+| ----------- | ------------ | -----------  | --------------- | -------------- |
+| main        | main         | main         | main            | latest         |
+| release-1-3 | release-1.3  | release-1.3  | v0.2.0          | v0.2.0         |
+| release-1-2 | release-1.2  | release-1.2  | v0.1.2          | v0.1.2         |
+| release-1-1 | release-1.1  | release-1.1  | v0.1.1          | v0.1.1         |

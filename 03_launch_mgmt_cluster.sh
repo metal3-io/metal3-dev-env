@@ -169,7 +169,7 @@ EOF
   fi
 
   # Copy the generated configmap for ironic deployment
-  if [[ ${BMOBRANCH} == "v0.1.2"  ]]; then # BMORELEASE until v0.1.2 used the old path TODO(mboukhalfa) can be removed after new bmo release
+  if [[ ${BMOBRANCH} == "v0.1.2" ]] || [[ ${BMOBRANCH} == "v0.1.1" ]]; then # BMORELEASE until v0.1.2 used the old path TODO(mboukhalfa) can be removed after new bmo release
     cp "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env" "${BMOPATH}/ironic-deployment/keepalived/ironic_bmo_configmap.env"
   else
     cp "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/components/keepalived/ironic_bmo_configmap.env"

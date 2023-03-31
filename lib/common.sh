@@ -192,8 +192,13 @@ fi
 if [[ "${BUILD_IPAM_LOCALLY}" == "true" ]]; then
   export IPAM_LOCAL_IMAGE="${IPAMPATH}"
 fi
-if [[ "${BUILD_BMO_LOCALLY}" == "true" ]]; then
-  export BAREMETAL_OPERATOR_LOCAL_IMAGE="${BMOPATH}"
+if [ "${BUILD_BMO_LOCALLY}" == "true" ]; then
+  export BARE_METAL_OPERATOR_LOCAL_IMAGE="${BMOPATH}"
+  pushd "${BMOPATH}" || exit
+  echo "For building BMO locally BMOBRANCH should be pointing to the local branch not main/BMORELEASE tag. Overriding BMOBRANCH with local branch."
+  BMOBRANCH="$(git symbolic-ref --short HEAD)"
+  export BMOBRANCH
+  popd || exit
 fi
 if [[ "${BUILD_CAPI_LOCALLY}" == "true" ]]; then
   export CAPI_LOCAL_IMAGE="${CAPIPATH}"
@@ -221,6 +226,7 @@ export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}
 export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-"1"}"
 export IRONIC_TAG="${IRONIC_TAG:-latest}"
 export BARE_METAL_OPERATOR_TAG="${BARE_METAL_OPERATOR_TAG:-latest}"
+export KEEPALIVED_TAG="${KEEPALIVED_TAG:-latest}"
 
 # Docker Hub proxy registry (or docker.io if no proxy)
 export DOCKER_HUB_PROXY=${DOCKER_HUB_PROXY:-"docker.io"}
@@ -244,7 +250,6 @@ export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"${CONTAINER_REGISTRY}/metal3-
 export MARIADB_IMAGE=${MARIADB_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/mariadb"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
-export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived"}
 export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
 export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
 
@@ -255,16 +260,29 @@ if [[ "${CAPM3RELEASEBRANCH}" == "release-0.5" ]]; then
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.1"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.1"}
-elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]]; then
+  export BARE_METAL_OPERATOR_TAG="v0.1.1"
+  export KEEPALIVED_TAG="v0.1.1"
+  export BMORELEASE="v0.1.1"
+elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.2"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.2"}
-elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]]; then
+  export BARE_METAL_OPERATOR_TAG="v0.1.2"
+  export KEEPALIVED_TAG="v0.1.2"
+  export BMORELEASE="v0.1.2"
+elif [ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.3"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.3"}
+  export BARE_METAL_OPERATOR_TAG="v0.2.0"
+  export KEEPALIVED_TAG="v0.2.0"
+  export BMORELEASE="v0.2.0"
 else
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main"}
+  export BMOBRANCH="main"
 fi
+
+
+export IRONIC_KEEPALIVED_IMAGE="${IRONIC_KEEPALIVED_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/keepalived:${KEEPALIVED_TAG}}"
 
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
