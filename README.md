@@ -17,9 +17,9 @@ Instructions can be found here: <https://metal3.io/try-it.html>
 
 ## Quickstart
 
-Versions v1alpha5 or v1beta1 are later referred as **v1alphaX**/**v1betaX**.
+Version v1beta1 is later referred as **v1betaX**.
 
-The v1alphaX or v1betaX deployment can be done with Ubuntu 18.04, 20.04, 22.04 or
+The v1betaX deployment can be done with Ubuntu 18.04, 20.04, 22.04 or
 Centos 9 Stream target host images. By default, for Ubuntu based target hosts
 we are using Ubuntu 22.04
 
@@ -42,15 +42,6 @@ The Minikube machine is deployed with 4GB of RAM, and 2 vCPUs, and the target
 hosts with 4 vCPUs and 4GB of RAM.
 
 ### Environment variables
-
-Select:
-
-```sh
-export CAPM3_VERSION=v1alpha5
-export CAPI_VERSION=v1alpha4
-```
-
-or
 
 ```sh
 export CAPM3_VERSION=v1beta1

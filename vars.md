@@ -38,8 +38,8 @@ assured that they are persisted.
 | IRONIC_IMAGE | Container image for local ironic services | | "$CONTAINER_REGISTRY/metal3-io/ironic" |
 | VBMC_IMAGE | Container image for vbmc container | | "$CONTAINER_REGISTRY/metal3-io/vbmc" |
 | SUSHY_TOOLS_IMAGE | Container image for sushy-tools container | | "$CONTAINER_REGISTRY/metal3-io/sushy-tools" |
-| CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1alpha5", "v1beta1" | "v1beta1" |
-| CAPI_VERSION | Version of Cluster API | "v1alpha4", "v1beta1" | "v1beta1" |
+| CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1beta1" | "v1beta1" |
+| CAPI_VERSION | Version of Cluster API | "v1beta1" | "v1beta1" |
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "${EXTERNAL_SUBNET_VX}.249" |
 | CLUSTER_APIENDPOINT_HOST | API endpoint host for target cluster | | $CLUSTER_APIENDPOINT_IP |
 | CLUSTER_APIENDPOINT_PORT | API endpoint port for target cluster | | "6443" |

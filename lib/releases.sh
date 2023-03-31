@@ -49,7 +49,7 @@ CAPIRELEASEPATH="{https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/
 BMORELEASEPATH="{https://api.github.com/repos/${BMO_BASE_URL:-metal3-io/baremetal-operator}/releases}"
 
 # CAPM3, CAPI and BMO releases
-if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ] || [ "${CAPM3_VERSION}" == "v1alpha5" ]; then
+if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v0.5.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v0.4.")}"
 elif [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then

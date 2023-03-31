@@ -234,7 +234,7 @@ for name in ${LIST_OF_CRDS[@]}; do
 done
 echo ""
 
-# Verify v1alpha5 and v1beta1 Operators, Deployments, Replicasets
+# Verify v1beta1 Operators, Deployments, Replicasets
 iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
 iterate check_k8s_rs "${EXPTD_RS}"
 
