@@ -103,16 +103,21 @@ assured that they are persisted.
 | IPAMREPO | IP Address Manager git repository URL | | https://github.com/metal3-io/ip-address-manageri/ |
 | IPAMBRANCH | IP Address Manager git repository branch to checkout | | main |
 | IPAMCOMMIT | IP Address Manager git commit to checkout on IPAMBRANCH | | HEAD |
-|IRONIC_IMAGE_PATH | Path to clone the Metal3's ironic-image Git repository to | | /tmp/ironic-image  |
-|IRONIC_IMAGE_REPO | Metal3's ironic-image Git repository address | | https://github.com/metal3-io/ironic-image.git |
-|IRONIC_IMAGE_BRANCH | Metal3's ironic-image Git repository branch | | main |
-|IRONIC_IMAGE_COMMIT | Metal3's ironic-image | | HEAD |
+| IRONIC_IMAGE_PATH | Path to clone the Metal3's ironic-image Git repository to | | /tmp/ironic-image  |
+| IRONIC_IMAGE_REPO | Metal3's ironic-image Git repository address | | https://github.com/metal3-io/ironic-image.git |
+| IRONIC_IMAGE_BRANCH | Metal3's ironic-image Git repository branch | | main |
+| IRONIC_IMAGE_COMMIT | Metal3's ironic-image | | HEAD |
+| MARIADB_IMAGE_PATH | Path to clone the mariadb-image Git repository to | | /tmp/mariadb-image  |
+| MARIADB_IMAGE_REPO | mariadb-image Git repository address | | https://github.com/metal3-io/mariadb-image.git |
+| MARIADB_IMAGE_BRANCH | mariadb-mage branch to checkout | | main |
+| MARIADB_IMAGE_COMMIT | mariadb-image commit to checkout | | HEAD |
 | FORCE_REPO_UPDATE | discard existing directories | "true","false" | "true" |
 | BUILD_CAPM3_LOCALLY | build Cluster API Provider Metal3 based on CAPM3PATH | "true","false" | "false" |
 | BUILD_IPAM_LOCALLY | build IP Address Manager based on IPAMPATH | "true","false" | "false" |
 | BUILD_BMO_LOCALLY | build Baremetal Operator based on BMOPATH | "true","false" | "false" |
 | BUILD_CAPI_LOCALLY | build Cluster API based on CAPIPATH | "true","false" | "false" |
 | BUILD_IRONIC_IMAGE_LOCALLY | build the Metal3's ironic-image based on IRONIC_IMAGE_PATH | "true","false" | "false" |
+| BUILD_MARIADB_IMAGE_LOCALLY | build the MariaDB container image based on MARIADB_IMAGE_PATH | "true", "false" | "false" |
 | IRONIC_FROM_SOURCE | installs ironic from source during container image building, if `true` then the `BUILD_IRONIC_IMAGE_LOCALLY` will be also set to `true` | "true","false" | "false" |
 | DHCP_HOSTS | A list of `;` separated dhcp-host directives for dnsmasq | e.g. `00:20:e0:3b:13:af;00:20:e0:3b:14:af` | |
 | DHCP_IGNORE | A set of tags on hosts to be ignored by dnsmasq | e.g. `tag:!known` | |

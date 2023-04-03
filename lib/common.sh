@@ -173,11 +173,17 @@ export IRONIC_IMAGE_REPO="${IRONIC_IMAGE_REPO:-https://github.com/metal3-io/iron
 export IRONIC_IMAGE_BRANCH="${IRONIC_IMAGE_BRANCH:-main}"
 export IRONIC_IMAGE_COMMIT="${IRONIC_IMAGE_COMMIT:-HEAD}"
 
+export MARIADB_IMAGE_PATH="${MARIADB_IMAGE_PATH:-/tmp/mariadb-image}"
+export MARIADB_IMAGE_REPO="${MARIADB_IMAGE_REPO:-https://github.com/metal3-io/mariadb-image.git}"
+export MARIADB_IMAGE_BRANCH="${MARIADB_IMAGE_BRANCH:-main}"
+export MARIADB_IMAGE_COMMIT="${MARIADB_IMAGE_COMMIT:-HEAD}"
+
 export BUILD_CAPM3_LOCALLY="${BUILD_CAPM3_LOCALLY:-false}"
 export BUILD_IPAM_LOCALLY="${BUILD_IPAM_LOCALLY:-false}"
 export BUILD_BMO_LOCALLY="${BUILD_BMO_LOCALLY:-false}"
 export BUILD_CAPI_LOCALLY="${BUILD_CAPI_LOCALLY:-false}"
 export BUILD_IRONIC_IMAGE_LOCALLY="${BUILD_IRONIC_IMAGE_LOCALLY:-false}"
+export BUILD_MARIADB_IMAGE_LOCALLY="${BUILD_MARIADB_IMAGE_LOCALLY:-false}"
 
 # If IRONIC_FROM_SOURCE has a "true" value that
 # automatically requires BUILD_IRONIC_IMAGE_LOCALLY to have "true" value too
@@ -201,6 +207,9 @@ fi
 if [[ "${BUILD_IRONIC_IMAGE_LOCALLY}" == "true" ]]; then
   export IRONIC_LOCAL_IMAGE="${IRONIC_IMAGE_PATH}"
 fi
+if [[ "${BUILD_MARIADB_IMAGE_LOCALLY}" == "true" ]]; then
+  export MARIADB_LOCAL_IMAGE="${MARIADB_IMAGE_PATH}"
+fi
 
 export BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
 export CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
@@ -222,6 +231,7 @@ export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-"1"}"
 export IRONIC_TAG="${IRONIC_TAG:-latest}"
 export BARE_METAL_OPERATOR_TAG="${BARE_METAL_OPERATOR_TAG:-latest}"
 export KEEPALIVED_TAG="${KEEPALIVED_TAG:-latest}"
+export MARIADB_TAG="${MARIADB_TAG:-latest}"
 
 # Docker Hub proxy registry (or docker.io if no proxy)
 export DOCKER_HUB_PROXY=${DOCKER_HUB_PROXY:-"docker.io"}
@@ -242,7 +252,6 @@ export IRONIC_BASIC_AUTH=${IRONIC_BASIC_AUTH:-"true"}
 export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-ipa-downloader"}
 export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:${IRONIC_TAG}"}
 export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-client"}
-export MARIADB_IMAGE=${MARIADB_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/mariadb"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 export IRONIC_NAMESPACE=${IRONIC_NAMESPACE:-"baremetal-operator-system"}
@@ -278,6 +287,7 @@ fi
 
 
 export IRONIC_KEEPALIVED_IMAGE="${IRONIC_KEEPALIVED_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/keepalived:${KEEPALIVED_TAG}}"
+export MARIADB_IMAGE="${MARIADB_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/mariadb:${MARIADB_TAG}}"
 
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED=${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}
