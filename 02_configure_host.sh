@@ -245,7 +245,16 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
 
   # Support building ironic-image from source
   if [[ "${IMAGE}" =~ "ironic" ]] && [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
-    sudo "${CONTAINER_RUNTIME}" build --build-arg INSTALL_TYPE=source -t "${!IMAGE_VAR}:latest" -t "${!IMAGE_VAR}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
+    # NOTE(rpittau): to customize the source origin we need to copy the source code we
+    # want to use into the sources directory under the ironic-image repository.
+    for CODE_SOURCE_VAR in $(env | grep -E '^IRONIC_SOURCE=|^IRONIC_INSPECTOR_SOURCE=|^SUSHY_SOURCE=' | grep -o "^[^=]*"); do
+      CODE_SOURCE="${!CODE_SOURCE_VAR}"
+      SOURCE_DIR_DEST="${CODE_SOURCE##*/}"
+      cp -a "$CODE_SOURCE" "./sources/${SOURCE_DIR_DEST}"
+      CUSTOM_SOURCE_ARGS+="--build-arg ${CODE_SOURCE_VAR}=${SOURCE_DIR_DEST} "
+    done
+    #shellcheck disable=SC2086
+    sudo "${CONTAINER_RUNTIME}" build --build-arg INSTALL_TYPE=source ${CUSTOM_SOURCE_ARGS:-} -t "${!IMAGE_VAR}:latest" -t "${!IMAGE_VAR}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
   elif [[ "${IMAGE}" =~ "cluster-api" ]]; then
     CAPI_GO_VERSION=$(grep "GO_VERSION ?= [0-9].*" Makefile | sed -e 's/GO_VERSION ?= //g')
     #shellcheck disable=SC2016

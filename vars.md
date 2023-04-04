@@ -119,6 +119,9 @@ assured that they are persisted.
 | BUILD_IRONIC_IMAGE_LOCALLY | build the Metal3's ironic-image based on IRONIC_IMAGE_PATH | "true","false" | "false" |
 | BUILD_MARIADB_IMAGE_LOCALLY | build the MariaDB container image based on MARIADB_IMAGE_PATH | "true", "false" | "false" |
 | IRONIC_FROM_SOURCE | installs ironic from source during container image building, if `true` then the `BUILD_IRONIC_IMAGE_LOCALLY` will be also set to `true` | "true","false" | "false" |
+| IRONIC_SOURCE | absolute path of the ironic source code used to build the ironic services in the ironic container image | | |
+| IRONIC_INSPECTOR_SOURCE | absolute path of the ironic-inspector source code used to build the ironic-inspector services in the ironic container image | | |
+| SUSHY_SOURCE | absolute path of the sushy source code used to build the sushy library in the ironic container image | | |
 | DHCP_HOSTS | A list of `;` separated dhcp-host directives for dnsmasq | e.g. `00:20:e0:3b:13:af;00:20:e0:3b:14:af` | |
 | DHCP_IGNORE | A set of tags on hosts to be ignored by dnsmasq | e.g. `tag:!known` | |
 
