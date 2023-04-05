@@ -11,7 +11,7 @@ source "${METAL3_DEV_ENV_DIR}/lib/logging.sh"
 source "${METAL3_DEV_ENV_DIR}/lib/common.sh"
 
 eval "$(go env)"
-export GOPATH
+export GOPATH="${GOPATH:-/home/$(whoami)/go}"
 
 # Environment variables
 # M3PATH : Path to clone the Metal3 Development Environment repository
