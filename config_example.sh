@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# THIS IS FOR TESTING ONLY
+
+export BUILD_BMO_LOCALLY=true
+export BMOREPO="https://github.com/Nordix/baremetal-operator"
+export BMOBRANCH="tuomo/bmo-nonroot-take2"
+
+export IRONIC_USE_MARIADB=true
+export BUILD_MARIADB_IMAGE_LOCALLY=true
+# export MARIADB_IMAGE_REPO="https://github.com/Nordix/mariadb-image"
+# export MARIADB_IMAGE_BRANCH="tuomo/mariadb-nonroot"
+
+export BUILD_IRONIC_LOCALLY=true
+export IRONIC_IMAGE_REPO="https://github.com/metal3-io/ironic-image"
+export IRONIC_IMAGE_BRANCH="main"
+
+export IRONIC_KEEPALIVED_LOCAL_IMAGE="${HOME}"/go/src/github.com/metal3-io/baremetal-operator/resources/keepalived-docker
+
 #
 # Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6.
 # This network is the primary network interface for the virtual bare metal hosts.
