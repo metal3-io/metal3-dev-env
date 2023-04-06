@@ -237,8 +237,8 @@ if [[ "${IPA_DOWNLOAD_ENABLED}" = "true" ]] || [[ ! -r "${IRONIC_DATA_DIR}/html/
     for i in {1..5}; do
         echo "Attempting to download IPA. $i/5"
         #shellcheck disable=SC2086
-        sudo "${CONTAINER_RUNTIME}" run --rm --net host --name ipa-downloader "${POD_NAME}" \
-          -e "IPA_BASEURI=${IPA_BASEURI}" \
+        sudo "${CONTAINER_RUNTIME}" run --rm --net host --name ipa-downloader ${POD_NAME} \
+          -e "IPA_BASEURI=${IPA_BASEURI:-}" \
           -v "${IRONIC_DATA_DIR}:/shared" "${IPA_DOWNLOADER_IMAGE}" \
           /bin/bash -c "/usr/local/bin/get-resource.sh &> /dev/null" && s=0 && break || s=$?
     done
