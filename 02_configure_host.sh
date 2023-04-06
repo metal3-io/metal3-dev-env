@@ -250,7 +250,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     for CODE_SOURCE_VAR in $(env | grep -E '^IRONIC_SOURCE=|^IRONIC_INSPECTOR_SOURCE=|^SUSHY_SOURCE=' | grep -o "^[^=]*"); do
       CODE_SOURCE="${!CODE_SOURCE_VAR}"
       SOURCE_DIR_DEST="${CODE_SOURCE##*/}"
-      cp -a "$CODE_SOURCE" "./sources/${SOURCE_DIR_DEST}"
+      cp -a "${CODE_SOURCE}" "./sources/${SOURCE_DIR_DEST}"
       CUSTOM_SOURCE_ARGS+="--build-arg ${CODE_SOURCE_VAR}=${SOURCE_DIR_DEST} "
     done
     #shellcheck disable=SC2086
