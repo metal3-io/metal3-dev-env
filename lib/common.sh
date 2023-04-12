@@ -268,24 +268,24 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.1" ]]; then
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.1"}
   export BARE_METAL_OPERATOR_TAG="v0.1.1"
   export KEEPALIVED_TAG="v0.1.1"
-  export BMORELEASE="v0.1.1"
+  export BMOBRANCH="${BMOBRANCH:-v0.1.1}"
 elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.2" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.2"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.2"}
   export BARE_METAL_OPERATOR_TAG="v0.1.2"
   export KEEPALIVED_TAG="v0.1.2"
-  export BMORELEASE="v0.1.2"
+  export BMOBRANCH="${BMOBRANCH:-v0.1.2}"
 elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.3" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.3"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.3"}
   export BARE_METAL_OPERATOR_TAG="v0.2.0"
   export KEEPALIVED_TAG="v0.2.0"
-  export BMORELEASE="v0.2.0"
+  export BMOBRANCH="${BMOBRANCH:-v0.2.0}"
 else
   export CAPM3_IMAGE="${CAPM3_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main}"
   export IPAM_IMAGE="${IPAM_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main}"
+  export BMOBRANCH="${BMOBRANCH:-main}"
 fi
-
 
 export IRONIC_KEEPALIVED_IMAGE="${IRONIC_KEEPALIVED_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/keepalived:${KEEPALIVED_TAG}}"
 export MARIADB_IMAGE="${MARIADB_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/mariadb:${MARIADB_TAG}}"

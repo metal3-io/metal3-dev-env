@@ -46,7 +46,6 @@ function get_latest_release() {
 # CAPM3, CAPI and BMO release path
 CAPM3RELEASEPATH="{https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}/releases}"
 CAPIRELEASEPATH="{https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
-BMORELEASEPATH="{https://api.github.com/repos/${BMO_BASE_URL:-metal3-io/baremetal-operator}/releases}"
 
 # CAPM3, CAPI and BMO releases
 if [ "${CAPM3RELEASEBRANCH}" == "release-0.5" ]; then
@@ -68,10 +67,7 @@ else
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.4.")}"
 fi
 
-export BMORELEASE="${BMORELEASE:-$(get_latest_release "${BMORELEASEPATH}" "v0.2.")}"
-
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
-BMOBRANCH="${BMOBRANCH:-${BMORELEASE}}"
 
 # On first iteration, jq might not be installed
 if [[ "$CAPIRELEASE" == "" ]]; then
@@ -80,8 +76,4 @@ fi
 
 if [[ "$CAPM3RELEASE" == "" ]]; then
   command -v jq &>/dev/null && echo "Failed to fetch CAPM3 release from Github" && exit 1
-fi
-
-if [[ "$BMORELEASE" == "" ]]; then
-  command -v jq &>/dev/null && echo "Failed to fetch BMO release from Github" && exit 1
 fi
