@@ -54,6 +54,11 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   else
     update_component_image BMO "${BARE_METAL_OPERATOR_IMAGE}"
   fi
+  if [ -n "${IRONIC_KEEPALIVED_LOCAL_IMAGE:-}" ]; then
+    update_component_image Keepalived "${IRONIC_KEEPALIVED_LOCAL_IMAGE}"
+  else
+    update_component_image Keepalived "${IRONIC_KEEPALIVED_IMAGE}"
+  fi
 fi
 
   # Update Configmap parameters with correct urls
