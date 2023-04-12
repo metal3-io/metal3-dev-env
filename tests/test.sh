@@ -11,6 +11,12 @@ export ACTION="ci_test_provision"
 
 "${METAL3_DIR}"/tests/run.sh
 
+"${METAL3_DIR}"/tests/scripts/fetch_manifests.sh
+
+export ACTION="pivoting"
+
+"${METAL3_DIR}"/tests/run.sh
+
 "${METAL3_DIR}"/tests/scripts/fetch_target_logs.sh
 
 export ACTION="repivoting"
@@ -23,8 +29,6 @@ do
     status=$(kubectl get m3m -n "${NAMESPACE}" -o=jsonpath="{.items[*]['status.ready']}")
     sleep 1s
 done
-
-"${METAL3_DIR}"/tests/scripts/fetch_manifests.sh
 
 kubectl get secrets "${CLUSTER_NAME}-kubeconfig" -n "${NAMESPACE}" -o json | jq -r '.data.value'| base64 -d > "/tmp/kubeconfig-${CLUSTER_NAME}.yaml"
 NUM_DEPLOYED_NODES="$(kubectl get nodes --kubeconfig "/tmp/kubeconfig-${CLUSTER_NAME}.yaml" | grep -c -w Ready)"

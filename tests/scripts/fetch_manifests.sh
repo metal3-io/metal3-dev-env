@@ -1,7 +1,8 @@
 #!/bin/bash
 
 set -x
-mkdir -p /tmp/manifests
+DIR_NAME="/tmp/manifests/bootstrap"
+mkdir -p "${DIR_NAME}"
 
 manifests=(
   bmh
@@ -28,10 +29,12 @@ manifests=(
   m3datatemplate
 )
 
-for kind in "${manifests[@]}"; do
-  mkdir -p /tmp/manifests/"$kind"
-  for name in $(kubectl get -n metal3 -o name "$kind" || true)
-  do
-    kubectl get -n metal3 -o yaml "$name" | tee /tmp/manifests/"$kind"/"$(basename "$name")".yaml || true
+NAMESPACES="$(kubectl get namespace -o jsonpath='{.items[*].metadata.name}')"
+for NAMESPACE in ${NAMESPACES}; do
+  for kind in "${manifests[@]}"; do
+    mkdir -p "${DIR_NAME}/${kind}"
+    for name in $(kubectl get -n "${NAMESPACE}" -o name "${kind}" || true); do
+      kubectl get -n "${NAMESPACE}" -o yaml "${name}" | tee "${DIR_NAME}/${kind}/$(basename "${name}").yaml" || true
+    done
   done
 done
