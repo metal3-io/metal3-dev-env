@@ -125,7 +125,6 @@ verify_actions:
     - "pivoting"
     - "healthcheck"
 pivot_actions:
-    - "ci_test_provision"
     - "pivoting"
 repivot_actions:
     - "repivoting"
