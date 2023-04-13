@@ -65,6 +65,13 @@
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
     when: EPHEMERAL_CLUSTER == "minikube"
+  
+  - name: Remove BMO deployment from source cluster
+    kubernetes.core.k8s:
+      name: "{{ NAMEPREFIX }}"
+      kind: Deployment
+      state: absent
+      namespace: "{{ IRONIC_NAMESPACE }}"
 
   - name: Label baremetalhost CRD to pivot.
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
