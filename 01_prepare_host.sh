@@ -78,8 +78,6 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -b vm-setup/install-package-playbook.yml
 
 # shellcheck disable=SC1091
-source lib/network.sh
-# shellcheck disable=SC1091
 source lib/images.sh
 
 # Add usr/local/go/bin to the PATH environment variable
