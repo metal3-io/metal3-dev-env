@@ -229,7 +229,7 @@ fi
 # Pulling all the images except any local image.
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
   IMAGE="${!IMAGE_VAR}"
-  pull_container_image_if_missing "${IMAGE}"
+  sudo "${CONTAINER_RUNTIME}" pull "${IMAGE}"
  done
 
 if [[ "${IPA_DOWNLOAD_ENABLED}" = "true" ]] || [[ ! -r "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.kernel" ]]; then
