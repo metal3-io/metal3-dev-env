@@ -527,27 +527,6 @@ differs(){
   return ${RET_CODE}
 }
 
-# If a given container with tag doesn't exist locally, pull it.
-# Otherwise, do nothing.
-# Helps conserve number of API calls to DockerHub to avoid hitting rate limit.
-#
-# Inputs:
-# - Full name of a Docker/podman/crictl image including tag
-#
-pull_container_image_if_missing() {
-  local IMAGE="$1"
-  if [[ "${CONTAINER_RUNTIME}" = "docker" ]]; then
-    if [[ -z $(sudo "${CONTAINER_RUNTIME}" image ls "$IMAGE" | tail -n +2) ]]; then
-      sudo "${CONTAINER_RUNTIME}" pull "$IMAGE"
-    fi
-  else
-    if ! sudo "${CONTAINER_RUNTIME}" image exists "${IMAGE}"; then
-      sudo "${CONTAINER_RUNTIME}" pull "${IMAGE}"
-    fi
-  fi
-}
-
-
 #
 # Kill and remove the infra containers
 #
