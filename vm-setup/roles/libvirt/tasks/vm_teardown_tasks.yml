@@ -97,3 +97,6 @@
       file:
         path: "{{ nodes_file }}"
         state: absent
+
+    - name: Remove any leftover ISO images
+      command: find /var/lib/libvirt/images/ -type f -name 'boot-*-iso-*' -delete
