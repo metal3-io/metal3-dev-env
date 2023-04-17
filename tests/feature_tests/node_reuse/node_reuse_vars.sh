@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export UPGRADED_K8S_VERSION="v1.26.0"
+export UPGRADED_K8S_VERSION="v1.26.4"
 
 if [[ "${IMAGE_OS}" == "ubuntu" ]]; then
   export UPGRADED_IMAGE_NAME="UBUNTU_22.04_NODE_IMAGE_K8S_${UPGRADED_K8S_VERSION}.qcow2"
