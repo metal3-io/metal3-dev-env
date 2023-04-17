@@ -139,10 +139,7 @@ export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
 
-if [[ "${CAPM3RELEASEBRANCH}" == "release-0.5" ]]; then
-  export CAPM3BRANCH="${CAPM3BRANCH:-release-0.5}"
-  export IPAMBRANCH="${IPAMBRANCH:-release-0.1}"
-elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.1}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.1}"
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]]; then
@@ -260,10 +257,7 @@ export IRONIC_NAMESPACE="${IRONIC_NAMESPACE:-baremetal-operator-system}"
 export NAMEPREFIX="${NAMEPREFIX:-baremetal-operator}"
 
 # CAPM3 and IPAM controller images
-if [[ "${CAPM3RELEASEBRANCH}" = "release-0.5" ]]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-0.5"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-0.1"}
-elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.1" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" = "release-1.1" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.1"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.1"}
   export BARE_METAL_OPERATOR_TAG="v0.1.1"
