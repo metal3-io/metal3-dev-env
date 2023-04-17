@@ -1,46 +1,63 @@
 #!/bin/bash
 
 function get_latest_release() {
-  # get last page
-  if [ -z "${GITHUB_TOKEN:-}" ]; then
-    last_page="$(curl -s -I "${1}" | grep '^link:' | sed -e 's/^link:.*page=//g' -e 's/>.*$//g')"
-  else
-    last_page="$(curl -s -I "${1}" -H "Authorization: token $GITHUB_TOKEN" | grep '^link:' | sed -e 's/^link:.*page=//g' -e 's/>.*$//g')"
-  fi
-  # default last page to 1
-  last_page="${last_page:-1}"
+  
+  # fail when release_path is not passed
+  local release_path="${1:?no release path is given}"
+  
+  # set url to get 100 releases from first page
+  local url="${release_path}?per_page=100&page=1"
+
+  # fail when release is not passed
+  local release="${2:?no release given}"
 
   set +x
 
-  for current_page in $(seq 1 "$last_page"); do
+  if  [ -z "${GITHUB_TOKEN:-}" ]; then
+    response=$(curl -si "${url}")
+  else
+    response=$(curl -si "${url}" -H "Authorization: token ${GITHUB_TOKEN}")
+  fi
 
-    url="${1}?page=${current_page}"
+  # Divide response to headers and body
+  response_headers=$(echo "${response}" | awk 'BEGIN {RS="\r\n\r\n"} NR==1 {print}')
+  response_body=$(echo "${response}" | awk 'BEGIN {RS="\r\n\r\n"} NR==2 {print}')
+  
+  # get the last page of releases from headers
+  last_page=$(echo "${response_headers}" | grep '^link:' | sed -e 's/^link:.*page=//g' -e 's/>.*$//g')
 
-    if [ -z "${GITHUB_TOKEN:-}" ]; then
-      release="$(curl -sL "${url}")" || { set -x && exit 1; }
-    else
-      release="$(curl -H "Authorization: token ${GITHUB_TOKEN}" -sL "${url}")" || { set -x && exit 1; }
-    fi
-
-    # This gets the latest release as vx.y.z or vx.y.z-rc.0, including any version with a suffix starting with - , for example -rc.0
-    # The order is exactly as released in Github.
-    # Downside is that selecting official releases only isn't possible, while pre-release
-    # selection is possible given specific enough prefix, like v1.3.0-pre
-    release_tag="$(echo "${release}" | jq -r "[.[].tag_name | select( startswith(\"${2:-}\"))] | .[0]")"
-    # if release tag found
-    if [[ "${release_tag}" != "null" ]]; then
-      break
-    fi
-
-  done
+  # This gets the latest release as vx.y.z or vx.y.z-rc.0, including any version with a suffix starting with - , for example -rc.0
+  # The order is exactly as released in Github.
+  # Downside is that selecting official releases only isn't possible, while pre-release
+  # selection is possible given specific enough prefix, like v1.3.0-pre
+  release_tag=$(echo "${response_body}" | jq ".[].name" -r | grep -E "${release}" -m 1)
+  
+  # If release_tag is not found in the first page(100 releases), this condition checks from second to last_page
+  # until release_tag is found
+  if [ -z "${release_tag}" ]; then
+    for current_page in $(seq 2 "${last_page}"); do
+        url="${release_path}?per_page=100&page=${current_page}"
+            if [ -z "${GITHUB_TOKEN:-}" ]; then
+                release_tag=$(curl -sL "${url}" | jq ".[].name" -r | grep -E "${release}" -m 1)
+            else
+                release_tag=$(curl -sL "${url}" -H "Authorization: token ${GITHUB_TOKEN}" | jq ".[].name" -r | grep -E "${release}" -m 1)
+            fi
+            # if release_tag found break the loop
+            if [ -n "${release_tag}" ]; then
+                break
+            fi
+    done
+  fi 
 
   set -x
-  # if not found
-  if [[ "${release_tag}" == "null" ]]; then
+
+  # if release_tag is not found
+  if [ -z "${release_tag}" ]; then
+    echo "Error: release is not found from ${release_path}"
     exit 1
+  else 
+    echo "${release_tag}"
   fi
-  # shellcheck disable=SC2005
-  echo "${release_tag}"
 }
 
 # CAPM3, CAPI and BMO release path
