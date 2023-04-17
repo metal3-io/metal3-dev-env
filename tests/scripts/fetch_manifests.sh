@@ -1,8 +1,16 @@
 #!/bin/bash
 
 set -x
-DIR_NAME="/tmp/manifests/bootstrap"
-mkdir -p "${DIR_NAME}"
+
+DIR_NAME="/tmp/manifests/bootstrap-before-pivot"
+
+# Check if manifest directory exists
+if [ -d "${DIR_NAME}" ]; then
+  DIR_NAME="/tmp/manifests/bootstrap-after-repivot"
+  mkdir -p "${DIR_NAME}"
+else
+  mkdir -p "${DIR_NAME}"
+fi
 
 manifests=(
   bmh

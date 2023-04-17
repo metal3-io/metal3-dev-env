@@ -41,6 +41,7 @@ pivoting_test:
 repivoting_test:
 	make -C ./tests/feature_tests/pivoting/ fetch_target_logs
 	make -C ./tests/feature_tests/pivoting/ repivoting
+	make -C ./tests/feature_tests/pivoting/ fetch_manifests
 	make -C ./tests//feature_tests/pivoting/ deprovision
 
 remediation_test:
