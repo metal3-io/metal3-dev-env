@@ -18,6 +18,8 @@ export ACTION="pivoting"
 "${METAL3_DIR}"/tests/run.sh
 
 "${METAL3_DIR}"/tests/scripts/fetch_target_logs.sh
+# Manifest collection after pivot
+"${METAL3_DIR}"/tests/scripts/fetch_manifests.sh
 
 export ACTION="repivoting"
 
