@@ -138,7 +138,7 @@
 
 # Version of kubelet, kubeadm and kubectl binaries
 #export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
-#export KUBERNETES_BINARIES_CONFIG_VERSION="v0.14.0"
+#export KUBERNETES_BINARIES_CONFIG_VERSION="v0.15.1"
 
 # Configure provisioning network for single-stack ipv6
 #export BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY=false
