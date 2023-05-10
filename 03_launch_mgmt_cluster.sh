@@ -463,7 +463,7 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   launch_ironic
 
   if [[ "${BMO_RUN_LOCAL}" != true ]]; then
-    if ! kubectl rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout=5m; then
+    if ! kubectl rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout="${BMO_ROLLOUT_WAIT}"m; then
       echo "baremetal-operator-controller-manager deployment can not be rollout"
       exit 1
     fi
