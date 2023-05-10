@@ -9,6 +9,77 @@ source lib/common.sh
 source lib/network.sh
 # shellcheck disable=SC1091
 source lib/releases.sh
+# pre-pull node and container images
+# shellcheck disable=SC1091
+source lib/image_prepull.sh
+
+if [[ "${IPA_DOWNLOAD_ENABLED}" = "true" ]] || [[ ! -r "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.kernel" ]]; then
+    # Run image downloader container. The output is very verbose and not that interesting so we hide it.
+    for i in {1..5}; do
+        echo "Attempting to download IPA. $i/5"
+        #shellcheck disable=SC2086
+        sudo "${CONTAINER_RUNTIME}" run --rm --net host --name ipa-downloader ${POD_NAME} \
+          -e "IPA_BASEURI=${IPA_BASEURI:-}" \
+          -v "${IRONIC_DATA_DIR}:/shared" "${IPA_DOWNLOADER_IMAGE}" \
+          /bin/bash -c "/usr/local/bin/get-resource.sh &> /dev/null" && s=0 && break || s=$?
+    done
+    (exit "${s}")
+fi
+
+configure_minikube() {
+    minikube config set driver kvm2
+    minikube config set memory 4096
+}
+
+#
+# Create Minikube VM and add correct interfaces
+#
+init_minikube() {
+    #If the vm exists, it has already been initialized
+    if [[ ! "$(sudo virsh list --name --all)" =~ .*(minikube).* ]]; then
+      # Loop to ignore minikube issues
+      while /bin/true; do
+        minikube_error=0
+        # Restart libvirtd.service as suggested here
+        # https://github.com/kubernetes/minikube/issues/3566
+        sudo systemctl restart libvirtd.service
+        configure_minikube
+        #NOTE(elfosardo): workaround for https://bugzilla.redhat.com/show_bug.cgi?id=2057769
+        sudo mkdir -p "/etc/qemu/firmware"
+        sudo touch "/etc/qemu/firmware/50-edk2-ovmf-amdsev.json"
+        sudo su -l -c "minikube start --insecure-registry ${REGISTRY}"  "${USER}" || minikube_error=1
+        if [[ ${minikube_error} -eq 0 ]]; then
+          break
+        fi
+        sudo su -l -c 'minikube delete --all --purge' "${USER}"
+        # NOTE (Mohammed): workaround for https://github.com/kubernetes/minikube/issues/9878
+        sudo ip link delete virbr0
+      done
+      sudo su -l -c "minikube stop" "${USER}"
+    fi
+
+    MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"
+
+    # The interface doesn't appear in the minikube VM with --live,
+    # so just attach it before next boot. As long as the
+    # 02_configure_host.sh script does not run, the provisioning network does
+    # not exist. Attempting to start Minikube will fail until it is created.
+    if ! echo "${MINIKUBE_IFACES}" | grep -w -q provisioning ; then
+      sudo virsh attach-interface --domain minikube \
+          --model virtio --source provisioning \
+          --type network --config
+    fi
+
+    if ! echo "${MINIKUBE_IFACES}" | grep -w -q external ; then
+      sudo virsh attach-interface --domain minikube \
+          --model virtio --source external \
+          --type network --config
+    fi
+}
+
+if [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then
+  init_minikube
+fi
 
 # Root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
