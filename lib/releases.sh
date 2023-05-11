@@ -61,7 +61,10 @@ elif [ "${CAPM3RELEASEBRANCH}" = "release-1.4" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.4.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.4.")}"
 else
-  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.4.")}"
+  # We need to fix this to a non-existent CAPM3 release version to make sure
+  # the local override created for main branch is not conflicting with existing
+  # release tag. 
+  export CAPM3RELEASE="v1.4.99"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.4.")}"
 fi
 
