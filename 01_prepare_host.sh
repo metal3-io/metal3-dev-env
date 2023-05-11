@@ -193,8 +193,8 @@ esac
 
 mkdir -p "${IRONIC_IMAGE_DIR}"
 pushd "${IRONIC_IMAGE_DIR}"
-
-if [[ ! -f "${IMAGE_NAME}" ]] ; then
+# Downloading image if it does not exist locally
+if [[ ! -f "${IMAGE_NAME}" ]]; then
     wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
     IMAGE_SUFFIX="${IMAGE_NAME##*.}"
     if [[ "${IMAGE_SUFFIX}" = "xz" ]] ; then
@@ -213,7 +213,13 @@ if [[ ! -f "${IMAGE_NAME}" ]] ; then
     fi
     if [[ "${IMAGE_SUFFIX}" != "iso" ]] ; then
         qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
-        md5sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.md5sum"
+    fi
+fi
+# Generating image checksum if right checksum does not exist locally
+if [[ ! -f "${IMAGE_RAW_NAME}.${IMAGE_RAW_CHECKSUM##*.}" ]]; then
+    IMAGE_SUFFIX="${IMAGE_NAME##*.}"
+    if [[ "${IMAGE_SUFFIX}" != "iso" ]] ; then
+        sha256sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.sha256sum"
     fi
 fi
 popd
