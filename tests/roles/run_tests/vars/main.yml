@@ -77,7 +77,7 @@ RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_22.04_NODE
 IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifactory.nordix.org/artifactory/metal3/images/k8s_{{KUBERNETES_VERSION}}', true) }}"
 IMAGE_URL: "http://{{ BARE_METAL_PROVISIONER_IP }}/images/{{ RAW_IMAGE_NAME }}"
 IMAGE_FORMAT: "{{ lookup('env', 'IMAGE_FORMAT') | default('raw', true) }}"
-IMAGE_CHECKSUM_TYPE: "{{ lookup('env', 'IMAGE_CHECKSUM_TYPE') | default('md5', true) }}"
+IMAGE_CHECKSUM_TYPE: "{{ lookup('env', 'IMAGE_CHECKSUM_TYPE') | default('sha256', true) }}"
 IMAGE_CHECKSUM: "http://{{ BARE_METAL_PROVISIONER_IP }}/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
 
 # Environment variables to install Ironic with TLS, Basic Auth and MariaDB
