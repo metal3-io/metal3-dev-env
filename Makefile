@@ -1,5 +1,7 @@
 all: install_requirements configure_host launch_mgmt_cluster verify
 
+ci_run: configure_host launch_mgmt_cluster verify
+
 install_requirements:
 	./01_prepare_host.sh
 
@@ -59,4 +61,4 @@ healthcheck_test:
 
 feature_tests: setup_env inspection_test remediation_test healthcheck_test cleanup_env pivoting_test node_reuse_test repivoting_test
 
-.PHONY: all install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint
+.PHONY: all ci_run install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint

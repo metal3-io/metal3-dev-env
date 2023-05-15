@@ -77,9 +77,6 @@ ANSIBLE_FORCE_COLOR=true ansible-playbook \
   -i vm-setup/inventory.ini \
   -b vm-setup/install-package-playbook.yml
 
-# shellcheck disable=SC1091
-source lib/images.sh
-
 # Add usr/local/go/bin to the PATH environment variable
 GOBINARY="${GOBINARY:-/usr/local/go/bin}"
 if [[ ! "${PATH}" =~ .*(:|^)(${GOBINARY})(:|$).* ]]; then
@@ -92,7 +89,7 @@ source lib/releases.sh
 
 ## Install krew
 if ! kubectl krew > /dev/null 2>&1; then
-  cd "$(mktemp -d)" &&
+  pushd "$(mktemp -d)" &&
   KERNEL_OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
   ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
   KREW="krew-${KERNEL_OS}_${ARCH}" &&
@@ -104,6 +101,7 @@ if ! kubectl krew > /dev/null 2>&1; then
   krew_path_bashrc="export PATH=${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
   # Add the line if it is not already there
   grep -qxF "${krew_path_bashrc}" ~/.bashrc || echo "${krew_path_bashrc}" >> ~/.bashrc
+  popd
 fi
 
 # Allow local non-root-user access to libvirt
@@ -190,116 +188,6 @@ podman)
   ;;
 esac
 
-
-mkdir -p "${IRONIC_IMAGE_DIR}"
-pushd "${IRONIC_IMAGE_DIR}"
-# Downloading image if it does not exist locally
-if [[ ! -f "${IMAGE_NAME}" ]]; then
-    wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
-    IMAGE_SUFFIX="${IMAGE_NAME##*.}"
-    if [[ "${IMAGE_SUFFIX}" = "xz" ]] ; then
-      unxz -v "${IMAGE_NAME}"
-      IMAGE_NAME="$(basename "${IMAGE_NAME}" .xz)"
-      export IMAGE_NAME
-      IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
-      export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
-    fi
-    if [[ "${IMAGE_SUFFIX}" = "bz2" ]] ; then
-        bunzip2 "${IMAGE_NAME}"
-        IMAGE_NAME="$(basename "${IMAGE_NAME}" .bz2)"
-        export IMAGE_NAME
-        IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
-        export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
-    fi
-    if [[ "${IMAGE_SUFFIX}" != "iso" ]] ; then
-        qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
-    fi
-fi
-# Generating image checksum if right checksum does not exist locally
-if [[ ! -f "${IMAGE_RAW_NAME}.${IMAGE_RAW_CHECKSUM##*.}" ]]; then
-    IMAGE_SUFFIX="${IMAGE_NAME##*.}"
-    if [[ "${IMAGE_SUFFIX}" != "iso" ]] ; then
-        sha256sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.sha256sum"
-    fi
-fi
-popd
-
-# NOTE(elfosardo): workaround for https://github.com/moby/moby/issues/44970
-# should be fixed in docker-ce 23.0.2
-if [[ "${OS}" = "ubuntu" ]]; then
-  sudo systemctl restart docker
-fi
-
-# Pulling all the images except any local image.
-for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
-  IMAGE="${!IMAGE_VAR}"
-  sudo "${CONTAINER_RUNTIME}" pull "${IMAGE}"
- done
-
-if [[ "${IPA_DOWNLOAD_ENABLED}" = "true" ]] || [[ ! -r "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.kernel" ]]; then
-    # Run image downloader container. The output is very verbose and not that interesting so we hide it.
-    for i in {1..5}; do
-        echo "Attempting to download IPA. $i/5"
-        #shellcheck disable=SC2086
-        sudo "${CONTAINER_RUNTIME}" run --rm --net host --name ipa-downloader ${POD_NAME} \
-          -e "IPA_BASEURI=${IPA_BASEURI:-}" \
-          -v "${IRONIC_DATA_DIR}:/shared" "${IPA_DOWNLOADER_IMAGE}" \
-          /bin/bash -c "/usr/local/bin/get-resource.sh &> /dev/null" && s=0 && break || s=$?
-    done
-    (exit "${s}")
-fi
-
-configure_minikube() {
-    minikube config set driver kvm2
-    minikube config set memory 4096
-}
-
-#
-# Create Minikube VM and add correct interfaces
-#
-init_minikube() {
-    #If the vm exists, it has already been initialized
-    if [[ ! "$(sudo virsh list --name --all)" =~ .*(minikube).* ]]; then
-      # Loop to ignore minikube issues
-      while /bin/true; do
-        minikube_error=0
-        # Restart libvirtd.service as suggested here
-        # https://github.com/kubernetes/minikube/issues/3566
-        sudo systemctl restart libvirtd.service
-        configure_minikube
-        #NOTE(elfosardo): workaround for https://bugzilla.redhat.com/show_bug.cgi?id=2057769
-        sudo mkdir -p "/etc/qemu/firmware"
-        sudo touch "/etc/qemu/firmware/50-edk2-ovmf-amdsev.json"
-        sudo su -l -c "minikube start --insecure-registry ${REGISTRY}"  "${USER}" || minikube_error=1
-        if [[ ${minikube_error} -eq 0 ]]; then
-          break
-        fi
-        sudo su -l -c 'minikube delete --all --purge' "${USER}"
-        # NOTE (Mohammed): workaround for https://github.com/kubernetes/minikube/issues/9878
-        sudo ip link delete virbr0
-      done
-      sudo su -l -c "minikube stop" "${USER}"
-    fi
-
-    MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"
-
-    # The interface doesn't appear in the minikube VM with --live,
-    # so just attach it before next boot. As long as the
-    # 02_configure_host.sh script does not run, the provisioning network does
-    # not exist. Attempting to start Minikube will fail until it is created.
-    if ! echo "${MINIKUBE_IFACES}" | grep -w -q provisioning ; then
-      sudo virsh attach-interface --domain minikube \
-          --model virtio --source provisioning \
-          --type network --config
-    fi
-
-    if ! echo "${MINIKUBE_IFACES}" | grep -w -q external ; then
-      sudo virsh attach-interface --domain minikube \
-          --model virtio --source external \
-          --type network --config
-    fi
-}
-
-if [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then
-  init_minikube
-fi
+# pre-pull node and container images
+# shellcheck disable=SC1091
+source lib/image_prepull.sh
