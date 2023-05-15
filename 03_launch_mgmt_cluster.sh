@@ -140,6 +140,9 @@ function launch_ironic() {
   pushd "${BMOPATH}"
 
     # Update Configmap parameters with correct urls
+    # Variable names inserted into the configmap might have different
+    # naming conventions than the dev-env e.g. PROVISIONING_IP and CIDR are
+    # called PROVISIONER_IP and CIDR in dev-env
     cat << EOF | sudo tee "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
 PROVISIONING_IP=${CLUSTER_BARE_METAL_PROVISIONER_IP}
