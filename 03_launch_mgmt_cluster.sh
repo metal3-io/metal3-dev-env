@@ -359,6 +359,20 @@ function patch_clusterctl(){
   popd
 }
 
+# Install clusterctl client
+install_clusterctl() {
+  wget --no-verbose -O clusterctl "https://github.com/kubernetes-sigs/cluster-api/releases/download/${CAPIRELEASE}/clusterctl-linux-amd64"
+  chmod +x ./clusterctl
+  sudo mv ./clusterctl /usr/local/bin/
+}
+
+if ! [[ -x "$(command -v clusterctl)" ]]; then
+  install_clusterctl
+elif [[ "$(clusterctl version | grep -o -P '(?<=GitVersion:").*?(?=",)')" != "${CAPIRELEASE}" ]]; then
+  sudo rm /usr/local/bin/clusterctl
+  install_clusterctl
+fi
+
 #
 # Launch the cluster-api provider metal3.
 #
