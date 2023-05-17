@@ -29,11 +29,18 @@ if [[ ! -f "${IMAGE_NAME}" ]]; then
         qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
     fi
 fi
-# Generating image checksum if right checksum does not exist locally
+# Generating image checksum if right checksum does not exist locally, valid checksums are md5sum, sha256sum and sha512sum
 if [[ ! -f "${IMAGE_RAW_NAME}.${IMAGE_RAW_CHECKSUM##*.}" ]]; then
     IMAGE_SUFFIX="${IMAGE_NAME##*.}"
     if [[ "${IMAGE_SUFFIX}" != "iso" ]]; then
-        sha256sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.sha256sum"
+        CHECKSUM_SUFFIX="${IMAGE_RAW_CHECKSUM##*.}"
+        if [[ "${CHECKSUM_SUFFIX}" != "md5sum" ]]; then
+            md5sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.md5sum"
+        elif [[ "${CHECKSUM_SUFFIX}" != "sha512sum" ]]; then
+            sha512sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.sha512sum"
+        else [[ "${CHECKSUM_SUFFIX}" != "sha256sum" ]]; then
+            sha256sum "${IMAGE_RAW_NAME}" | awk '{print $1}' > "${IMAGE_RAW_NAME}.sha256sum"
+        fi
     fi
 fi
 popd
