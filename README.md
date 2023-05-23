@@ -188,4 +188,3 @@ The following table describes which branches are tested for different test trigg
 | release-1-4 | release-1.4  | release-1.4  | v0.3.0          | v0.3.0         |
 | release-1-3 | release-1.3  | release-1.3  | v0.2.0          | v0.2.0         |
 | release-1-2 | release-1.2  | release-1.2  | v0.1.2          | v0.1.2         |
-| release-1-1 | release-1.1  | release-1.1  | v0.1.1          | v0.1.1         |

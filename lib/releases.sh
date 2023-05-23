@@ -65,10 +65,7 @@ CAPM3RELEASEPATH="{https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/clus
 CAPIRELEASEPATH="{https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
 
 # CAPM3, CAPI and BMO releases
-if [ "${CAPM3RELEASEBRANCH}" == "release-1.1" ]; then
-  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.1.")}"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.1.")}"
-elif [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
+if [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.2.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.2.")}"
 elif [ "${CAPM3RELEASEBRANCH}" = "release-1.3" ]; then
