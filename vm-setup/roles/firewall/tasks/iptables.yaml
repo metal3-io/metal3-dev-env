@@ -116,7 +116,7 @@
         action: insert
         protocol: tcp
         match: tcp
-        destination: "{{ provisioning_subnet_v4 }}"
+        destination: "{{ bare_metal_provisioner_subnet_v4 }}"
         destination_port: "{{ item }}"
         jump: ACCEPT
         state: "{{ firewall_rule_state }}"
