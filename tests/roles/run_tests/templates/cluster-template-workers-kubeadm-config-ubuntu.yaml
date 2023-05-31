@@ -2,7 +2,9 @@
 preKubeadmCommands:
   - sed -i "s/MACAddressPolicy=persistent/MACAddressPolicy=none/g" /usr/lib/systemd/network/99-default.link
   - netplan apply
-  - systemctl enable --now crio kubelet
+  - systemctl enable --now crio
+  - sleep 30
+  - systemctl enable -now kubelet
 files:
   - path : /etc/netplan/52-ironicendpoint.yaml
     owner: root:root
