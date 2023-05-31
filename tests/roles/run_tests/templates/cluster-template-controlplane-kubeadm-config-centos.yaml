@@ -11,9 +11,12 @@ preKubeadmCommands:
   - mkdir {{ VM_EXTRADISKS_MOUNT_DIR }}
   - mount /dev/vda1 {{ VM_EXTRADISKS_MOUNT_DIR }}
 {% endif %}
+  - rm /etc/cni/net.d/*
   - systemctl enable --now keepalived
-  - sleep 60
-  - systemctl enable --now crio kubelet
+  - sleep 30
+  - systemctl enable --now crio
+  - sleep 30
+  - systemctl enable -now kubelet
 {% if EXTERNAL_VLAN_ID != "" %}
   - nmcli connection load /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
   - nmcli connection up /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
@@ -54,6 +57,15 @@ files:
           smtp_server localhost
           smtp_connect_timeout 30
       }
+
+      script k8s_api_check {
+          script "curl -sk https://127.0.0.1:6443/healthz"
+          interval 5
+          timeout 5
+          rise 3
+          fall 3
+      }
+
       vrrp_instance VI_1 {
           state MASTER
           interface {% if EXTERNAL_VLAN_ID == "" %}eth1{% else %}eth0.{{ EXTERNAL_VLAN_ID }}{% endif %}
@@ -63,6 +75,9 @@ files:
           advert_int 1
           virtual_ipaddress {
               {{ CLUSTER_APIENDPOINT_HOST }}
+          }
+          track_script {
+              k8s_api_check
           }
       }
   - path: /etc/NetworkManager/system-connections/eth0.nmconnection
