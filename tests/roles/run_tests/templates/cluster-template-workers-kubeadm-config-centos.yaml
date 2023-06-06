@@ -7,8 +7,9 @@ preKubeadmCommands:
   - nmcli connection load /etc/NetworkManager/system-connections/eth0.nmconnection
   - nmcli connection up eth0
   - systemctl enable --now crio
-  - sleep 30
-  - systemctl enable -now kubelet
+  - sleep 15
+  - systemctl enable --now kubelet
+  - sleep 15
 {% if EXTERNAL_VLAN_ID != "" %}
   - nmcli connection load /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
   - nmcli connection up /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
