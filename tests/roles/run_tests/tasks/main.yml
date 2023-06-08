@@ -71,27 +71,6 @@
   include_tasks: cleanup.yml
   when: v1aX_integration_test_action in cleanup_actions
 
-- name: Delete BareMetalHosts
-  block:
-    - name: Delete BareMetalHosts CRs
-      kubernetes.core.k8s:
-        state: absent
-        src: "{{ WORKING_DIR }}/bmhosts_crs.yaml"
-        namespace: "{{ NAMESPACE }}"
-      ignore_errors: yes
-
-    - name: Wait until no BareMetalHost is remaining
-      kubernetes.core.k8s_info:
-        api_version: metal3.io/v1alpha1
-        kind: BareMetalHost
-        namespace: "{{ NAMESPACE }}"
-      register: dedeleted_baremetalhost
-      retries: 100
-      delay: 3
-      until: (dedeleted_baremetalhost is succeeded) and
-            (dedeleted_baremetalhost.resources | length ==  0)
-  when: v1aX_integration_test_action == "ci_test_deprovision"
-
 - name: Node remediation
   include_tasks: remediation.yml
   when: v1aX_integration_test_action == "remediation"
