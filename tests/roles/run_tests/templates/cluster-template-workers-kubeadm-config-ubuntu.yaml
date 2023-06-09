@@ -4,7 +4,8 @@ preKubeadmCommands:
   - netplan apply
   - systemctl enable --now crio
   - sleep 30
-  - systemctl enable -now kubelet
+  - systemctl enable --now kubelet
+  - sleep 120
 files:
   - path : /etc/netplan/52-ironicendpoint.yaml
     owner: root:root
