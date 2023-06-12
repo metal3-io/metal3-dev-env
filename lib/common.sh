@@ -326,7 +326,7 @@ export KIND_NODE_IMAGE="${KIND_NODE_IMAGE:-${DOCKER_HUB_PROXY}/kindest/node:${KI
 # Ubuntu 18/Centos8 have 4.10.0 as latest ansible
 # Ansible 7.0.0 requires python 3.10+
 if [[ "${DISTRO}" = "ubuntu22" ]]; then
-    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"7.6.0"}
+    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"8.0.0"}
 elif [[ "${DISTRO}" = "ubuntu18" ]] || [[ "${DISTRO}" = "centos8" ]]; then
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-4.10.0}"
 else
