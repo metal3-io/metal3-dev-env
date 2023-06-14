@@ -55,6 +55,11 @@
 
     - name: Install docker
       block:
+        - name: Create /etc/apt/keyrings folder
+          file:
+            path: /etc/apt/keyrings
+            state: directory
+
         - name: Add Docker’s GPG key
           get_url:
             url: https://download.docker.com/linux/ubuntu/gpg
