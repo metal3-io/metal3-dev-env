@@ -360,6 +360,9 @@ function patch_clusterctl(){
 }
 
 # Install clusterctl client
+# TODO: use download_and_verify_clusterctl
+# Currently we just download latest CAPIRELEASE version, which means we don't know
+# the expected SHA, and can't pin it
 install_clusterctl() {
   wget --no-verbose -O clusterctl "https://github.com/kubernetes-sigs/cluster-api/releases/download/${CAPIRELEASE}/clusterctl-linux-amd64"
   chmod +x ./clusterctl
