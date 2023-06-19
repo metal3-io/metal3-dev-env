@@ -5,6 +5,15 @@ set -eux
 source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
+# shellcheck disable=SC1091
+source lib/releases.sh
+# shellcheck disable=SC1091
+source lib/download.sh
+# NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
+# because there are some vars exported in network.sh and used by
+# install-package-playbook.yml.
+# shellcheck disable=SC1091
+source lib/network.sh
 
 if [[ "$(id -u)" -eq 0 ]]; then
   echo "Please run 'make' as a non-root user"
@@ -58,13 +67,9 @@ elif [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
   sudo ln -s /usr/bin/python3 /usr/bin/python || true
 fi
 
+# TODO: since ansible 8.0.0, pinning by digest is PITA, due additional ansible
+# dependencies, which would need to be pinned as well, so it is skipped for now
 sudo python -m pip install ansible=="${ANSIBLE_VERSION}"
-
-# NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
-# because there are some vars exported in network.sh and used by
-# install-package-playbook.yml.
-# shellcheck disable=SC1091
-source lib/network.sh
 
 # Install requirements
 ansible-galaxy install -r vm-setup/requirements.yml
@@ -84,24 +89,10 @@ if [[ ! "${PATH}" =~ .*(:|^)(${GOBINARY})(:|$).* ]]; then
   export PATH=${PATH}:${GOBINARY}
 fi
 
-# shellcheck disable=SC1091
-source lib/releases.sh
 
 ## Install krew
 if ! kubectl krew > /dev/null 2>&1; then
-  pushd "$(mktemp -d)" &&
-  KERNEL_OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-  KREW="krew-${KERNEL_OS}_${ARCH}" &&
-  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
-  tar zxvf "${KREW}.tar.gz" &&
-  rm -f "${KREW}.tar.gz" &&
-  ./"${KREW}" install krew
-  # Add krew to PATH by appending this line to .bashrc
-  krew_path_bashrc="export PATH=${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-  # Add the line if it is not already there
-  grep -qxF "${krew_path_bashrc}" ~/.bashrc || echo "${krew_path_bashrc}" >> ~/.bashrc
-  popd
+  download_and_install_krew
 fi
 
 # Allow local non-root-user access to libvirt
@@ -112,46 +103,29 @@ if ! id "${USER}" | grep -q libvirt; then
 fi
 
 if [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then
-  if ! command -v minikube &>/dev/null || [ "$(minikube version --short)" != "${MINIKUBE_VERSION}" ]; then
-      wget --no-verbose -O minikube "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-amd64"
-      chmod +x minikube
-      sudo mv minikube /usr/local/bin/
+  if ! command -v minikube &>/dev/null || [[ "$(minikube version --short)" != "${MINIKUBE_VERSION}" ]]; then
+    download_and_install_minikube
   fi
 
   if ! command -v docker-machine-driver-kvm2 &>/dev/null ; then
-      wget --no-verbose -O docker-machine-driver-kvm2 "https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/docker-machine-driver-kvm2"
-      chmod +x docker-machine-driver-kvm2
-      sudo mv "docker-machine-driver-kvm2" "/usr/local/bin/"
+    download_and_install_kvm2_driver
   fi
 # Install Kind for both Kind and tilt
 else
   if ! command -v kind &>/dev/null || [[ "v$(kind version -q)" != "${KIND_VERSION}" ]]; then
-      wget --no-verbose -O "./kind" "https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-$(uname)-amd64"
-      chmod +x ./kind
-      sudo mv kind "/usr/local/bin/"
+    download_and_install_kind
   fi
   if [[ "${EPHEMERAL_CLUSTER}" = "tilt" ]]; then
-    curl -fsSL "https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh" | bash
+    download_and_install_tilt
   fi
 fi
 
-KUBECTL_LATEST=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
-KUBECTL_LOCAL=$(kubectl version --client -o json | jq -r '.clientVersion.gitVersion' 2> /dev/null)
-KUBECTL_PATH=$(whereis -b kubectl | cut -d ":" -f2 | awk '{print $1}')
-
-if [ "${KUBECTL_LOCAL}" != "${KUBECTL_LATEST}" ]; then
-    wget --no-verbose -O kubectl "https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_LATEST}/bin/linux/amd64/kubectl"
-    chmod +x kubectl
-    KUBECTL_PATH="${KUBECTL_PATH:-/usr/local/bin/kubectl}"
-    sudo mv kubectl "${KUBECTL_PATH}"
+if ! command -v kubectl &>/dev/null; then
+  download_and_install_kubectl
 fi
 
-if ! command -v kustomize &>/dev/null ; then
-    wget --no-verbose "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
-    tar -xzvf "kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
-    chmod +x kustomize
-    sudo mv kustomize /usr/local/bin/
-    rm "kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+if ! command -v kustomize &>/dev/null; then
+  download_and_install_kustomize
 fi
 
 BASH_COMPLETION="/etc/bash_completion.d/kubectl"
@@ -164,14 +138,16 @@ remove_ironic_containers
 
 # Clean-up existing pod, if podman
 case "${CONTAINER_RUNTIME}" in
-podman)
-  for pod in ironic-pod infra-pod; do
-    if  sudo "${CONTAINER_RUNTIME}" pod exists "${pod}" ; then
-        sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
-    fi
-    sudo "${CONTAINER_RUNTIME}" pod create -n "${pod}"
-  done
-  ;;
+  podman)
+    for pod in ironic-pod infra-pod; do
+      if  sudo "${CONTAINER_RUNTIME}" pod exists "${pod}" ; then
+          sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
+      fi
+      sudo "${CONTAINER_RUNTIME}" pod create -n "${pod}"
+    done
+    ;;
+  *)
+    ;;
 esac
 
 # pre-pull node and container images

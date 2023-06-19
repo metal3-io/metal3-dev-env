@@ -59,8 +59,8 @@ export OS_VERSION_ID="${VERSION_ID}"
 export SUPPORTED_DISTROS=(centos8 centos9 rhel8 rhel9 ubuntu18 ubuntu20 ubuntu22)
 
 if [[ ! "${SUPPORTED_DISTROS[*]}" =~ ${DISTRO} ]]; then
-   echo "Supported OS distros for the host are: CentOS Stream 8/9 or RHEL8/9 or Ubuntu20.04 or Ubuntu 22.04"
-   exit 1
+  echo "Supported OS distros for the host are: CentOS Stream 8/9 or RHEL8/9 or Ubuntu20.04 or Ubuntu 22.04"
+  exit 1
 fi
 
 # Container runtime
@@ -309,24 +309,41 @@ else
   export EPHEMERAL_CLUSTER="minikube"
 fi
 
+# Kubectl version
+export KUBECTL_VERSION="${KUBECTL_VERSION:-${KUBERNETES_BINARIES_VERSION}}"
+export KUBECTL_SHA256="7fe3a762d926fb068bae32c399880e946e8caf3d903078bea9b169dcd5c17f6d"
+
+# Krew version
+export KREW_VERSION="${KREW_VERSION:-v0.4.3}"
+export KREW_SHA256="5df32eaa0e888a2566439c4ccb2ef3a3e6e89522f2f2126030171e2585585e4f"
+
 # Kustomize version
 export KUSTOMIZE_VERSION="${KUSTOMIZE_VERSION:-v4.4.1}"
+export KUSTOMIZE_SHA256="2d5927efec40ba32a121c49f6df9955b8b8a296ef1dec4515a46fc84df158798"
 
 # Minikube version (if EPHEMERAL_CLUSTER=minikube)
 export MINIKUBE_VERSION="${MINIKUBE_VERSION:-v1.30.1}"
+export MINIKUBE_SHA256="e53d9e8c31f4c5f683182f5323d3527aa0725f713945c6d081cf71aa548ab388"
+export MINIKUBE_DRIVER_SHA256="293833bb1dda970ca167fc2c8e80207f1a6782db374ed5e4b2a959a2f6783e5e"
 
 # Kind, kind node image versions (if EPHEMERAL_CLUSTER=kind)
 export KIND_VERSION=${KIND_VERSION:-"v0.19.0"}
-export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.27.1"}
+export KIND_SHA256="b543dca8440de4273be19ad818dcdfcf12ad1f767c962242fcccdb383dff893b"
 
+export KIND_NODE_IMAGE_VERSION=${KIND_NODE_IMAGE_VERSION:-"v1.27.1"}
 export KIND_NODE_IMAGE="${KIND_NODE_IMAGE:-${DOCKER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}}"
+
+# Tilt
+export TILT_VERSION="${TILT_VERSION:-v0.32.3}"
+export TILT_SHA256="b30ebbba68d4fd04f8afa11efc439515241dbcc2582eac2ced3e9fad09ce8318"
 
 # Ansible version
 # Older ubuntu version do no support 7.0.0 because of older python versions
 # Ubuntu 18/Centos8 have 4.10.0 as latest ansible
-# Ansible 7.0.0 requires python 3.10+
+# Ansible 7.0.0 or newer requires python 3.10+
+# TODO: Ansible pinning
 if [[ "${DISTRO}" = "ubuntu22" ]]; then
-    export ANSIBLE_VERSION=${ANSIBLE_VERSION:-"8.0.0"}
+    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-8.0.0}"
 elif [[ "${DISTRO}" = "ubuntu18" ]] || [[ "${DISTRO}" = "centos8" ]]; then
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-4.10.0}"
 else

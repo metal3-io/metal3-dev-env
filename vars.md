@@ -154,3 +154,9 @@ export NMSTATE1_NETWORK_SUBNET_V6='fd2e:6f44:5dd8:ca56::/120'
 export NMSTATE2_NETWORK_SUBNET_V4='192.168.222.0/24'
 export NMSTATE2_NETWORK_SUBNET_V6='fd2e:6f44:5dd8:cc56::/120'
 ```
+
+## Pinned binaries and packages
+
+By default, we pin downloaded binaries and packages with SHA256 digests.
+For testing purposes, verification of the digests will be skipped if
+`INSECURE_SKIP_DOWNLOAD_VERIFICATION` is set to `true`.
