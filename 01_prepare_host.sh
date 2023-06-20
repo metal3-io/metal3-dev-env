@@ -5,15 +5,6 @@ set -eux
 source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
-# shellcheck disable=SC1091
-source lib/releases.sh
-# shellcheck disable=SC1091
-source lib/download.sh
-# NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
-# because there are some vars exported in network.sh and used by
-# install-package-playbook.yml.
-# shellcheck disable=SC1091
-source lib/network.sh
 
 if [[ "$(id -u)" -eq 0 ]]; then
   echo "Please run 'make' as a non-root user"
@@ -66,6 +57,18 @@ elif [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
   sudo dnf -y install python3-pip jq curl wget pkgconf-pkg-config bash-completion
   sudo ln -s /usr/bin/python3 /usr/bin/python || true
 fi
+
+# NOTE(tuminoid) lib/releases.sh must be after the jq and python installation
+# TODO: fix all of the lib/ scripts not to actually run code, but only define functions
+# shellcheck disable=SC1091
+source lib/releases.sh
+# shellcheck disable=SC1091
+source lib/download.sh
+# NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
+# because there are some vars exported in network.sh and used by
+# install-package-playbook.yml.
+# shellcheck disable=SC1091
+source lib/network.sh
 
 # TODO: since ansible 8.0.0, pinning by digest is PITA, due additional ansible
 # dependencies, which would need to be pinned as well, so it is skipped for now
