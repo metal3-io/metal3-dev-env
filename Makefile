@@ -28,37 +28,4 @@ test:
 lint:
 	./hack/shellcheck.sh
 
-setup_env:
-	./tests/feature_tests/setup_env.sh
-
-setup_env_ug:
-	./tests/feature_tests/setup_env.sh "ug"
-
-cleanup_env:
-	./tests/feature_tests/cleanup_env.sh
-
-pivoting_test:
-	make -C ./tests/feature_tests/pivoting/
-
-repivoting_test:
-	make -C ./tests/feature_tests/pivoting/ fetch_target_logs
-	make -C ./tests/feature_tests/pivoting/ fetch_manifests
-	make -C ./tests/feature_tests/pivoting/ repivoting
-	make -C ./tests/feature_tests/pivoting/ fetch_manifests
-	make -C ./tests//feature_tests/pivoting/ deprovision
-
-remediation_test:
-	make -C ./tests/feature_tests/remediation/
-
-node_reuse_test:
-	make -C ./tests/feature_tests/node_reuse/
-
-inspection_test:
-	./tests/feature_tests/inspection_test.sh
-
-healthcheck_test:
-	make -C ./tests/feature_tests/healthcheck/
-
-feature_tests: setup_env inspection_test remediation_test healthcheck_test cleanup_env pivoting_test node_reuse_test repivoting_test
-
 .PHONY: all ci_run install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint

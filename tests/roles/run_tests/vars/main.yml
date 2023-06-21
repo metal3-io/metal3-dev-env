@@ -95,47 +95,35 @@ BMO_IRONIC_ARGS: "-k {{ (IRONIC_TLS_SETUP == 'true') | ternary('-t', '') }}
 provision_cluster_actions:
     - "ci_test_provision"
     - "provision_cluster"
-    - "feature_test_provisioning"
 provision_controlplane_actions:
     - "ci_test_provision"
     - "provision_controlplane"
-    - "feature_test_provisioning"
 provision_workers_actions:
     - "ci_test_provision"
     - "provision_worker"
-    - "feature_test_provisioning"
 provision_actions:
     - "ci_test_provision"
     - "provision_cluster"
     - "provision_controlplane"
     - "provision_worker"
-    - "feature_test_provisioning"
     - "generate_template"
 deprovision_cluster_actions:
     - "ci_test_deprovision"
     - "deprovision_cluster"
-    - "feature_test_deprovisioning"
 deprovision_controlplane_actions:
     - "deprovision_controlplane"
 deprovision_workers_actions:
     - "deprovision_worker"
 verify_actions:
     - "ci_test_provision"
-    - "feature_test_provisioning"
     - "pivoting"
-    - "healthcheck"
 pivot_actions:
     - "pivoting"
 repivot_actions:
     - "repivoting"
 cleanup_actions:
     - "ci_test_deprovision"
-    - "feature_test_deprovisioning"
 image_download_actions:
     - "ci_test_provision"
     - "provision_controlplane"
     - "provision_worker"
-inspection_action:
-    - "inspection"
-healthcheck_action:
-    - "healthcheck"
