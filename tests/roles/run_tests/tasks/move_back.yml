@@ -9,6 +9,16 @@
       namespace: "{{ IRONIC_NAMESPACE }}"
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
+  # Install BMO in Source cluster
+  - name: Install Baremetal Operator in Source cluster
+    shell: "{{ BMOPATH }}/tools/deploy.sh -b  {{ BMO_IRONIC_ARGS }}"
+    environment:
+      IRONIC_HOST: "{{ IRONIC_HOST }}"
+      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+    args:
+      chdir: "{{ BMOPATH }}"    
+
   - name: Install Ironic in Source cluster (Ephemeral Cluster is kind)
     shell: "{{ BMOPATH }}/tools/run_local_ironic.sh"
     environment:
