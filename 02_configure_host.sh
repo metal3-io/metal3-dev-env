@@ -13,17 +13,14 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/image_prepull.sh
 
-if [[ "${IPA_DOWNLOAD_ENABLED}" = "true" ]] || [[ ! -r "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.kernel" ]]; then
-    # Run image downloader container. The output is very verbose and not that interesting so we hide it.
-    for i in {1..5}; do
-        echo "Attempting to download IPA. $i/5"
-        #shellcheck disable=SC2086
-        sudo "${CONTAINER_RUNTIME}" run --rm --net host --name ipa-downloader ${POD_NAME} \
-          -e "IPA_BASEURI=${IPA_BASEURI:-}" \
-          -v "${IRONIC_DATA_DIR}:/shared" "${IPA_DOWNLOADER_IMAGE}" \
-          /bin/bash -c "/usr/local/bin/get-resource.sh &> /dev/null" && s=0 && break || s=$?
-    done
-    (exit "${s}")
+# Clean, copy and extract local IPA
+if [[ "${USE_LOCAL_IPA}" = "true" ]]; then
+  sudo rm -f  "${IRONIC_DATA_DIR}/html/images/ironic-python-agent*"
+  sudo cp "${LOCAL_IPA_PATH}/ironic-python-agent.tar" "${IRONIC_DATA_DIR}/html/images"
+  sudo tar --extract --file "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.tar" \
+    --directory "${IRONIC_DATA_DIR}/html/images"
+  # avoid duplicating the same process in BMO run_local script
+  export USE_LOCAL_IPA="false"
 fi
 
 configure_minikube() {
@@ -169,7 +166,7 @@ method=manual
 addr-gen-mode=eui64
 method=disabled
 EOF
-     	  fi
+        fi
         sudo chmod 600 /etc/NetworkManager/system-connections/provisioning.nmconnection
         sudo nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
       fi
@@ -273,35 +270,49 @@ elif [[ "$reg_state" != "running" ]]; then
 fi
 sleep 5
 
+detect_mismatch() {
+  local LOCAL_IMAGE="$1"
+  local REPO_PATH="$2"
+  if [[ -z "${LOCAL_IMAGE}" ]] || [[ "${LOCAL_IMAGE}" == "${REPO_PATH}" ]]; then
+    echo "Local image: ${LOCAL_IMAGE} and repo path: ${REPO_PATH} are matching!"
+  else
+    echo "There is a mismatch between BMO_LOCAL_IMAGE:${LOCAL_IMAGE} and BMO_IMAGE_PATH:${REPO_PATH}"
+    echo "The mismatch could cause difficulty to debug errors, PLEASE FIX!"
+    exit 1
+  fi
 
+}
 # Clone all needed repositories (CAPI, CAPM3, BMO, IPAM)
+# The repos cloned under M3PATH has two functions, building images and
+# providing manifest generation functionality
 mkdir -p "${M3PATH}"
+# When building local images make sure FORCE_REPO_UPDATE is set to 'false'
+# otherwise clone_repo will overwrite the content of whatever is at the end
+# of the path
+detect_mismatch "${BMO_LOCAL_IMAGE:-}" "${BMOPATH}"
 clone_repo "${BMOREPO}" "${BMOBRANCH}" "${BMOPATH}" "${BMOCOMMIT}"
+
+detect_mismatch "${CAPM3_LOCAL_IMAGE:-}" "${CAPM3PATH}"
 clone_repo "${CAPM3REPO}" "${CAPM3BRANCH}" "${CAPM3PATH}" "${CAPM3COMMIT}"
+
+detect_mismatch "${IPAM_LOCAL_IMAGE:-}" "${IPAMPATH}"
 clone_repo "${IPAMREPO}" "${IPAMBRANCH}" "${IPAMPATH}" "${IPAMCOMMIT}"
+
+detect_mismatch "${CAPI_LOCAL_IMAGE:-}" "${CAPIPATH}"
 clone_repo "${CAPIREPO}" "${CAPIBRANCH}" "${CAPIPATH}" "${CAPICOMMIT}"
-if [[ "${BUILD_MARIADB_IMAGE_LOCALLY:-}" == "true" ]]; then
+
+# MariaDB and Ironic source is not needed unless the images are built locally
+# If the repo path does not match with the IMAGE location that means the image
+# is built from a repo that is not under dev-env's control thus there is no
+# need to clone the repo.
+# There is no need to keep the PATH and the IMAGE vars in sync as there
+# is no other use of the path variable than cloning
+if [[ "${MARIADB_LOCAL_IMAGE:-}" == "${MARIADB_IMAGE_PATH}" ]]; then
   clone_repo "${MARIADB_IMAGE_REPO}" "${MARIADB_IMAGE_BRANCH}" "${MARIADB_IMAGE_PATH}" "${MARIADB_IMAGE_COMMIT}"
 fi
-if [[ ${IRONIC_FROM_SOURCE:-} == "true" || ${BUILD_IRONIC_IMAGE_LOCALLY:-} == "true" ]]; then
-    clone_repo "${IRONIC_IMAGE_REPO}" "${IRONIC_IMAGE_BRANCH}" "${IRONIC_IMAGE_PATH}" "${IRONIC_IMAGE_COMMIT}"
+if [[ "${IRONIC_LOCAL_IMAGE:-}" == "${IRONIC_IMAGE_PATH}" ]]; then
+  clone_repo "${IRONIC_IMAGE_REPO}" "${IRONIC_IMAGE_BRANCH}" "${IRONIC_IMAGE_PATH}" "${IRONIC_IMAGE_COMMIT}"
 fi
-
-# Pushing images to local registry
-for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
-  IMAGE="${!IMAGE_VAR}"
-  #shellcheck disable=SC2086
-  IMAGE_NAME="${IMAGE##*/}"
-  #shellcheck disable=SC2086
-  LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME}"
-  sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
-
-  if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
-  else
-    sudo "${CONTAINER_RUNTIME}" push "${LOCAL_IMAGE}"
-  fi
-done
 
 # Support for building local images
 for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
@@ -323,6 +334,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
     for CODE_SOURCE_VAR in $(env | grep -E '^IRONIC_SOURCE=|^IRONIC_INSPECTOR_SOURCE=|^SUSHY_SOURCE=' | grep -o "^[^=]*"); do
       CODE_SOURCE="${!CODE_SOURCE_VAR}"
       SOURCE_DIR_DEST="${CODE_SOURCE##*/}"
+      rm -rf "./sources/${SOURCE_DIR_DEST}"
       cp -a "${CODE_SOURCE}" "./sources/${SOURCE_DIR_DEST}"
       CUSTOM_SOURCE_ARGS+="--build-arg ${CODE_SOURCE_VAR}=${SOURCE_DIR_DEST} "
     done
@@ -347,11 +359,39 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
   fi
 done
 
-IRONIC_IMAGE=${IRONIC_LOCAL_IMAGE:-$IRONIC_IMAGE}
+# unset all *_IMAGE env vars that have a *_LOCAL_IMAGE counterpart to avoid
+# tagging and pushing upstream images thus avoid creating duplicates
+for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
+  NO_LOCAL_NAME="${IMAGE_VAR%_LOCAL_IMAGE}_IMAGE"
+  unset -v "${NO_LOCAL_NAME}"
+done
+
+# IRONIC_IMAGE is also used in this script so when it is built locally and
+# consequently unset, it has to be redefined for local use
+if [[ ${BUILD_IRONIC_IMAGE_LOCALLY:-} == "true" ]] || [[ -n ${IRONIC_LOCAL_IMAGE:-} ]]; then
+  IRONIC_IMAGE="${REGISTRY}/localimages/$(basename "${IRONIC_LOCAL_IMAGE}")"
+fi
 VBMC_IMAGE=${VBMC_LOCAL_IMAGE:-$VBMC_IMAGE}
 SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_LOCAL_IMAGE:-$SUSHY_TOOLS_IMAGE}
 
-# Start httpd container
+# Pushing images to local registry
+for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
+  IMAGE="${!IMAGE_VAR}"
+  #shellcheck disable=SC2086
+  IMAGE_NAME="${IMAGE##*/}"
+  #shellcheck disable=SC2086
+  LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME}"
+  sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
+
+  if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
+    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
+  else
+    sudo "${CONTAINER_RUNTIME}" push "${LOCAL_IMAGE}"
+  fi
+done
+
+# Start httpd-infra container
+
 if [[ $OS == ubuntu ]]; then
   #shellcheck disable=SC2086
   sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra ${POD_NAME_INFRA} \
@@ -360,8 +400,7 @@ if [[ $OS == ubuntu ]]; then
 else
   #shellcheck disable=SC2086
   sudo "${CONTAINER_RUNTIME}" run -d --net host --name httpd-infra ${POD_NAME_INFRA} \
-      -v "$IRONIC_DATA_DIR":/shared --entrypoint /bin/runhttpd \
-      "${IRONIC_IMAGE}"
+      -v "${IRONIC_DATA_DIR}":/shared --entrypoint /bin/runhttpd "${IRONIC_IMAGE}"
 fi
 
 # Start vbmc and sushy containers

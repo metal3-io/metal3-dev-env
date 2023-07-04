@@ -124,7 +124,12 @@ else
 fi
 
 # shellcheck disable=SC2034
-export IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-false}"
+# USE_LOCAL_IPA and IPA_DOWNLOAD_ENABLED also have effect on BMO repo
+export USE_LOCAL_IPA="${USE_LOCAL_IPA:-false}"
+if [[ "${USE_LOCAL_IPA}" == "true" ]]; then
+    export IPA_DOWNLOAD_ENABLED="false"
+fi
+export IPA_DOWNLOAD_ENABLED="${IPA_DOWNLOAD_ENABLED:-true}"
 export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 
 export M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
@@ -204,7 +209,7 @@ if [[ "${BUILD_CAPI_LOCALLY}" == "true" ]]; then
   export CAPI_LOCAL_IMAGE="${CAPIPATH}"
 fi
 if [[ "${BUILD_IRONIC_IMAGE_LOCALLY}" == "true" ]]; then
-  export IRONIC_LOCAL_IMAGE="${IRONIC_IMAGE_PATH}"
+  export IRONIC_LOCAL_IMAGE="${IRONIC_LOCAL_IMAGE:-${IRONIC_IMAGE_PATH}}"
 fi
 if [[ "${BUILD_MARIADB_IMAGE_LOCALLY}" == "true" ]]; then
   export MARIADB_LOCAL_IMAGE="${MARIADB_IMAGE_PATH}"

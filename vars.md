@@ -130,6 +130,12 @@ assured that they are persisted.
 **NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the `BRANCH` variables so make sure that
 RELEASE and BRANCH variables are not conflicting.
 
+## Local IPA
+
+The use of local IPA enabled via `USE_LOCAL_IPA` is only supported on
+Ubuntu host when `EPHEMERAL_CLUSTER` is `kind` cluster and Ironic is
+directly deployed to  the OCI runtime (no K8s pod)
+
 ## Local images
 
 Environment variables with `_LOCAL_IMAGE` in their name are used to specify directories that contain the code to build the
