@@ -23,6 +23,10 @@ if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
     export MARIADB_CERT_FILE="${MARIADB_CERT_FILE:-"${WORKING_DIR}/certs/mariadb.crt"}"
     export MARIADB_KEY_FILE="${MARIADB_KEY_FILE:-"${WORKING_DIR}/certs/mariadb.key"}"
 
+    export IPXE_CACERT_FILE="${IPXE_CACERT_FILE:-"${WORKING_DIR}/certs/ipxe-ca.pem"}"
+    export IPXE_CAKEY_FILE="${IPXE_CAKEY_FILE:-"${WORKING_DIR}/certs/ipxe-ca.key"}"
+    export IPXE_CERT_FILE="${IPXE_CERT_FILE:-"${WORKING_DIR}/certs/ipxe.crt"}"
+    export IPXE_KEY_FILE="${IPXE_KEY_FILE:-"${WORKING_DIR}/certs/ipxe.key"}"
 
     # Generate CA Key files
     if [ ! -f "${IRONIC_CAKEY_FILE}" ]; then
@@ -33,6 +37,9 @@ if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
     fi
     if [ ! -f "${MARIADB_CAKEY_FILE}" ]; then
         openssl genrsa -out "${MARIADB_CAKEY_FILE}" 2048
+    fi
+    if [ ! -f "${IPXE_CAKEY_FILE}" ]; then
+        openssl genrsa -out "${IPXE_CAKEY_FILE}" 2048
     fi
 
     # Generate CA cert files
@@ -45,6 +52,9 @@ if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
     if [ ! -f "${MARIADB_CACERT_FILE}" ]; then
         openssl req -x509 -new -nodes -key "${MARIADB_CAKEY_FILE}" -sha256 -days 1825 -out "${MARIADB_CACERT_FILE}" -subj /CN="mariadb CA"/
     fi
+    if [ ! -f "${IPXE_CACERT_FILE}" ]; then
+        openssl req -x509 -new -nodes -key "${IPXE_CAKEY_FILE}" -sha256 -days 1825 -out "${IPXE_CACERT_FILE}" -subj /CN="ipxe CA"/
+    fi
 
     # Generate Key files
     if [ ! -f "${IRONIC_KEY_FILE}" ]; then
@@ -55,6 +65,9 @@ if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
     fi
     if [ ! -f "${MARIADB_KEY_FILE}" ]; then
         openssl genrsa -out "${MARIADB_KEY_FILE}" 2048
+    fi
+    if [ ! -f "${IPXE_KEY_FILE}" ]; then
+        openssl genrsa -out "${IPXE_KEY_FILE}" 2048
     fi
 
     # Generate CSR and certificate files
@@ -70,6 +83,10 @@ if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
     if [ ! -f "${MARIADB_CERT_FILE}" ]; then
         openssl req -new -key "${MARIADB_KEY_FILE}" -out /tmp/mariadb.csr -subj /CN="${MARIADB_HOST}"/
         openssl x509 -req -in /tmp/mariadb.csr -CA "${MARIADB_CACERT_FILE}" -CAkey "${MARIADB_CAKEY_FILE}" -CAcreateserial -out "${MARIADB_CERT_FILE}" -days 825 -sha256 -extfile <(printf "subjectAltName=IP:%s" "${MARIADB_HOST_IP}")
+    fi
+    if [ ! -f "${IPXE_CERT_FILE}" ]; then
+        openssl req -new -key "${IPXE_KEY_FILE}" -out /tmp/ipxe.csr -subj /CN="${IRONIC_HOST}"/
+        openssl x509 -req -in /tmp/ipxe.csr -CA "${IPXE_CACERT_FILE}" -CAkey "${IPXE_CAKEY_FILE}" -CAcreateserial -out "${IPXE_CERT_FILE}" -days 825 -sha256 -extfile <(printf "subjectAltName=IP:%s" "${IRONIC_HOST_IP}")
     fi
 
     #Populate the CA certificate B64 variable
@@ -98,4 +115,7 @@ else
     unset MARIADB_CACERT_FILE
     unset MARIADB_CERT_FILE
     unset MARIADB_KEY_FILE
+    unset IPXE_CACERT_FILE
+    unset IPXE_CERT_FILE
+    unset IPXE_KEY_FILE
 fi
