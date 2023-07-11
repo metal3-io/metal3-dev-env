@@ -53,7 +53,9 @@ init_minikube() {
         fi
         sudo su -l -c 'minikube delete --all --purge' "${USER}"
         # NOTE (Mohammed): workaround for https://github.com/kubernetes/minikube/issues/9878
-        sudo ip link delete virbr0
+        if ip link show virbr0 > /dev/null 2>&1; then
+          sudo ip link delete virbr0
+        fi
       done
       sudo su -l -c "minikube stop" "${USER}"
     fi
