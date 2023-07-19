@@ -24,7 +24,9 @@ if [ "${IRONIC_BASIC_AUTH}" == "false" ]; then
   BMO_IRONIC_ARGS+=("-n")
 fi
 if [ "${IRONIC_USE_MARIADB:-true}" == "true" ]; then
-  BMO_IRONIC_ARGS+=("-m")
+  if [[ "${CAPM3BRANCH}" != "release-1.3" ]] && [[ "${CAPM3BRANCH}" != "release-1.2" ]]; then
+    BMO_IRONIC_ARGS+=("-m")
+  fi
 fi
 
 sudo mkdir -p "${IRONIC_DATA_DIR}"
@@ -138,7 +140,11 @@ function update_images(){
 #
 function launch_ironic() {
   pushd "${BMOPATH}"
-
+    if [[ "${CAPM3BRANCH}" != "release-1.3" ]] && [[ "${CAPM3BRANCH}" != "release-1.2" ]]; then
+      export IRONIC_USE_MARIADB="true"
+    else
+      export IRONIC_USE_MARIADB="false"
+  fi
     # Update Configmap parameters with correct urls
     # Variable names inserted into the configmap might have different
     # naming conventions than the dev-env e.g. PROVISIONING_IP and CIDR are
