@@ -21,7 +21,12 @@ function get_latest_release() {
 
   # Divide response to headers and body
   response_headers=$(echo "${response}" | awk 'BEGIN {RS="\r\n\r\n"} NR==1 {print}')
-  response_body=$(echo "${response}" | awk 'BEGIN {RS="\r\n\r\n"} NR==2 {print}')
+  if ! echo "${response_headers}" | grep -q 'Connection established'; then
+    response_body=$(echo "${response}" | awk 'BEGIN {RS="\r\n\r\n"} NR==2 {print}')
+  else
+    response_headers=$(echo "${response}" | awk 'BEGIN {RS="\r\n\r\n"} NR==2 {print}')
+    response_body=$(echo "${response}" | awk 'BEGIN {RS="\r\n\r\n"} NR==3 {print}')
+  fi
   
   # get the last page of releases from headers
   last_page=$(echo "${response_headers}" | grep '^link:' | sed -e 's/^link:.*page=//g' -e 's/>.*$//g')
