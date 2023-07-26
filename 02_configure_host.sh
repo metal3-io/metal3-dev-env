@@ -21,7 +21,7 @@ if [[ "${IPA_DOWNLOAD_ENABLED}" = "true" ]] || [[ ! -r "${IRONIC_DATA_DIR}/html/
         sudo "${CONTAINER_RUNTIME}" run --rm --net host --name ipa-downloader ${POD_NAME} \
           -e "IPA_BASEURI=${IPA_BASEURI:-}" \
           -v "${IRONIC_DATA_DIR}:/shared" "${IPA_DOWNLOADER_IMAGE}" \
-          /bin/bash -c "/usr/local/bin/get-resource.sh &> /dev/null" && s=0 && break || s=$?
+          /bin/bash -c "http_proxy=${http_proxy:-} https_proxy=${https_proxy:-} /usr/local/bin/get-resource.sh &> /dev/null" && s=0 && break || s=$?
     done
     (exit "${s}")
 fi
