@@ -20,5 +20,9 @@ if [ "${EPHEMERAL_CLUSTER}" == "kind" ] ||  [ "${EPHEMERAL_CLUSTER}" == "tilt" ]
 fi
 
 if [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
+  # TODO: remove this line once minikube delete hanging issue is resolved.
+  # The issue started with minikube version v1.31.1 and is tracked here
+  # https://github.com/metal3-io/metal3-dev-env/issues/1264
+  sudo systemctl restart libvirtd.service
   sudo su -l -c "minikube delete" "${USER}"
 fi
