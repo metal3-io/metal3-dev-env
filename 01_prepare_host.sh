@@ -108,6 +108,7 @@ fi
 if [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then
   if ! command -v minikube &>/dev/null || [[ "$(minikube version --short)" != "${MINIKUBE_VERSION}" ]]; then
     download_and_install_minikube
+    download_and_install_kvm2_driver
   fi
 
   if ! command -v docker-machine-driver-kvm2 &>/dev/null ; then
