@@ -126,6 +126,7 @@ assured that they are persisted.
 | DHCP_HOSTS | A list of `;` separated dhcp-host directives for dnsmasq | e.g. `00:20:e0:3b:13:af;00:20:e0:3b:14:af` | |
 | DHCP_IGNORE | A set of tags on hosts to be ignored by dnsmasq | e.g. `tag:!known` | |
 | ENABLE_NATED_PROVISIONING_NETWORK | A single boolean to configure whether provisioner and provisioning networks are in separate subnets and there is NAT betweend them or not | "true","false" | "false" |
+| CAPI_CONFIG_FOLDER | Cluster API config folder path  | `$HOME/.cluster-api/`, `$XDG_CONFIG_HOME/cluster-api`, `$HOME/.config/cluster-api` | `$HOME/.config/cluster-api` |
 
 **NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the `BRANCH` variables so make sure that
 RELEASE and BRANCH variables are not conflicting.
