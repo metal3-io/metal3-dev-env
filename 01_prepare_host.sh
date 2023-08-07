@@ -16,7 +16,7 @@ if [[ "${OS}" = "ubuntu" ]]; then
   # make the data retrival more reliable
   sudo sh -c ' echo "Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries '
   sudo apt-get update
-  sudo apt-get -y install python3-pip jq curl wget pkg-config bash-completion
+  sudo apt-get -y install python3-pip python3-dev jq curl wget pkg-config bash-completion
 
   # Set update-alternatives to python3
   if [[ "${DISTRO}" = "ubuntu18" ]]; then
