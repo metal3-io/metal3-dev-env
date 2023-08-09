@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   setup:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     permissions:
       actions: read
       contents: read
@@ -29,7 +29,7 @@ jobs:
   lint:
     needs: [ setup ]
     name: Kubesec
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     permissions:
       actions: read
       contents: read
