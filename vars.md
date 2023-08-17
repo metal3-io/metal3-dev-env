@@ -59,7 +59,7 @@ assured that they are persisted.
 | VM_EXTRADISKS_FILE_SYSTEM | Create file system to the extra disk. | "ext4", "xfs" | "ext4" |
 | VM_EXTRADISKS_MOUNT_DIR | Mount the extra disk to a directory on a host. | | "/mnt/disk2" |
 | VM_TPM_EMULATOR | Add TPM2.0 emulator to VMs. | "true", "false" | "false" |
-| DEFAULT_HOSTS_MEMORY | Set the default memory size in MB for the virtual machines provisioned. | | 4096 |
+| TARGET_NODE_MEMORY | Set the default memory size in MB for the virtual machines provisioned. | | 4096 |
 | CLUSTER_NAME | Set the name of the target cluster | | test1 |
 | IRONIC_TLS_SETUP | Enable TLS for Ironic and inspector | "true", "false" | "true" |
 | IRONIC_BASIC_AUTH | Enable HTTP basic authentication for Ironic and inspector | "true", "false" | "true" |

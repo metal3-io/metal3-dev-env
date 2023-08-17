@@ -63,7 +63,7 @@ WORKING_DIR: "{{ lookup('env', 'WORKING_DIR') | default('/opt/metal3-dev-env', t
 # Environment variables for deployment. IMAGE_OS can be centos or ubuntu, change accordingly to your needs.
 IMAGE_OS: "{{ lookup('env', 'IMAGE_OS') | default('centos', true) }}"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') | default('podman', true) }}"
-DEFAULT_HOSTS_MEMORY: "{{ lookup('env', 'DEFAULT_HOSTS_MEMORY') | default('4096', true) }}"
+TARGET_NODE_MEMORY: "{{ lookup('env', 'TARGET_NODE_MEMORY') | default('4096', true) }}"
 CAPI_VERSION: "{{ lookup('env', 'CAPI_VERSION') | default('v1beta1', true) }}"
 CAPM3_VERSION: "{{ lookup('env', 'CAPM3_VERSION') | default('v1beta1', true) }}"
 IRONIC_IMAGE_DIR: "{{ lookup('env', 'IRONIC_IMAGE_DIR') | default('/opt/metal3-dev-env/ironic/html/images') }}"
