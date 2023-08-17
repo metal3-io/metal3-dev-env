@@ -7,6 +7,7 @@ NAMEPREFIX: "{{ lookup('env', 'NAMEPREFIX') | default('baremetal-operator', true
 CRS_PATH: "{{ metal3_dir }}/tests/roles/run_tests/templates"
 TEMP_GEN_DIR: "{{ metal3_dir }}/tests/roles/run_tests/files/manifests"
 EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('kind', true) }}"
+CAPI_CONFIG_FOLDER: "{{ lookup('env', 'CAPI_CONFIG_FOLDER') | default('$HOME/.config/cluster-api', true) }}"
 CLUSTER_APIENDPOINT_HOST: "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
 CLUSTER_APIENDPOINT_PORT: "{{ lookup('env', 'CLUSTER_APIENDPOINT_PORT') | default(6443, true) }}"
 CLUSTER_APIENDPOINT_IP: "{{ lookup('env', 'CLUSTER_APIENDPOINT_IP') }}"

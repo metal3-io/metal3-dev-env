@@ -331,9 +331,10 @@ function update_component_image(){
 # Update the clusterctl deployment files to use local repositories
 #
 function patch_clusterctl(){
+
   pushd "${CAPM3PATH}"
-  mkdir -p "${HOME}"/.cluster-api
-  touch "${HOME}"/.cluster-api/clusterctl.yaml
+  mkdir -p "${CAPI_CONFIG_FOLDER}"
+  touch "${CAPI_CONFIG_FOLDER}"/clusterctl.yaml
 
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
@@ -352,10 +353,9 @@ function patch_clusterctl(){
   update_capm3_imports
   make release-manifests
 
-  rm -rf "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
-  mkdir -p "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
-  cp out/*.yaml "${HOME}"/.cluster-api/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
-
+  rm -rf "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  mkdir -p "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+ cp out/*.yaml "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   popd
 }
 

@@ -83,8 +83,8 @@ else
   # We need to fix this to a non-existent CAPM3 release version to make sure
   # the local override created for main branch is not conflicting with existing
   # release tag. 
-  export CAPM3RELEASE="v1.4.99"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.4.")}"
+  export CAPM3RELEASE="v1.5.99"
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
 fi
 
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
@@ -96,4 +96,21 @@ fi
 
 if [[ "$CAPM3RELEASE" == "" ]]; then
   command -v jq &>/dev/null && echo "Failed to fetch CAPM3 release from Github" && exit 1
+fi
+
+# Set CAPI_CONFIG_FOLDER variable according to CAPIRELEASE minor version
+  # Starting from CAPI v1.5.0 version cluster-api config folder location has changed
+  # to XDG_CONFIG_HOME folder.
+  # Following code defines the cluster-api config folder location according to CAPI
+  # release version
+
+version_string="${CAPIRELEASE#v}"
+IFS='.' read -r _ minor _ <<< "$version_string"
+
+if [ "$minor" -lt 5 ]; then
+  export CAPI_CONFIG_FOLDER="${HOME}/.cluster-api"
+else
+  # Default CAPI_CONFIG_FOLDER to $HOME/.config folder if XDG_CONFIG_HOME not set
+  CONFIG_FOLDER="${XDG_CONFIG_HOME:-$HOME/.config}"
+  export CAPI_CONFIG_FOLDER="${CONFIG_FOLDER}/cluster-api"
 fi
