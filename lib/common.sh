@@ -126,6 +126,7 @@ fi
 # shellcheck disable=SC2034
 # USE_LOCAL_IPA and IPA_DOWNLOAD_ENABLED also have effect on BMO repo
 export USE_LOCAL_IPA="${USE_LOCAL_IPA:-false}"
+export LOCAL_IPA_PATH="${LOCAL_IPA_PATH:-/tmp/dib}"
 if [[ "${USE_LOCAL_IPA}" == "true" ]]; then
     export IPA_DOWNLOAD_ENABLED="false"
 fi
