@@ -70,19 +70,19 @@ CAPM3RELEASEPATH="{https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/clus
 CAPIRELEASEPATH="{https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
 
 # CAPM3, CAPI and BMO releases
-if [ "${CAPM3RELEASEBRANCH}" == "release-1.2" ]; then
-  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.2.")}"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.2.")}"
-elif [ "${CAPM3RELEASEBRANCH}" = "release-1.3" ]; then
+if [ "${CAPM3RELEASEBRANCH}" = "release-1.3" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.3.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.3.")}"
 elif [ "${CAPM3RELEASEBRANCH}" = "release-1.4" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.4.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.4.")}"
+elif [ "${CAPM3RELEASEBRANCH}" = "release-1.5" ]; then
+  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.5.")}"
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
 else
   # We need to fix this to a non-existent CAPM3 release version to make sure
   # the local override created for main branch is not conflicting with existing
-  # release tag. 
+  # release tag.
   export CAPM3RELEASE="v1.5.99"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
 fi
