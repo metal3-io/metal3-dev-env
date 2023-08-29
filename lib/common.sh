@@ -315,9 +315,9 @@ else
   export EPHEMERAL_CLUSTER="minikube"
 fi
 
-# Kubectl version
+# Kubectl version (do not forget to update KUBECTL_SHA256 when changing KUBERNETES_VERSION!)
 export KUBECTL_VERSION="${KUBECTL_VERSION:-${KUBERNETES_BINARIES_VERSION}}"
-export KUBECTL_SHA256="4685bfcf732260f72fce58379e812e091557ef1dfc1bc8084226c7891dd6028f"
+export KUBECTL_SHA256="e7a7d6f9d06fab38b4128785aa80f65c54f6675a0d2abef655259ddd852274e1"
 
 # Krew version
 export KREW_VERSION="${KREW_VERSION:-v0.4.3}"
