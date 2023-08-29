@@ -50,19 +50,19 @@
       "matchPackageNames": [
         "golang"
       ],
-      "allowedVersions": "<=1.19"
+      "allowedVersions": "<=1.20"
     },
     {
       "matchPackageNames": [
         "kindest/node"
       ],
-      "allowedVersions": "<=1.27"
+      "allowedVersions": "<=1.28"
     },
     {
       "matchPackageNames": [
         "kubernetes-sigs/cri-tools"
       ],
-      "allowedVersions": "<=1.27"
+      "allowedVersions": "<=1.28"
     }
   ],
   "prHourlyLimit": 5,
