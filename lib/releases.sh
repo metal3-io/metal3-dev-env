@@ -1,10 +1,10 @@
 #!/bin/bash
 
 function get_latest_release() {
-  
+
   # fail when release_path is not passed
   local release_path="${1:?no release path is given}"
-  
+
   # set url to get 100 releases from first page
   local url="${release_path}?per_page=100&page=1"
 
@@ -27,7 +27,7 @@ function get_latest_release() {
     response_headers=$(echo "${response}" | awk 'BEGIN {RS="\r\n\r\n"} NR==2 {print}')
     response_body=$(echo "${response}" | awk 'BEGIN {RS="\r\n\r\n"} NR==3 {print}')
   fi
-  
+
   # get the last page of releases from headers
   last_page=$(echo "${response_headers}" | grep '^link:' | sed -e 's/^link:.*page=//g' -e 's/>.*$//g')
 
@@ -36,7 +36,7 @@ function get_latest_release() {
   # Downside is that selecting official releases only isn't possible, while pre-release
   # selection is possible given specific enough prefix, like v1.3.0-pre
   release_tag=$(echo "${response_body}" | jq ".[].name" -r | grep -E "${release}" -m 1)
-  
+
   # If release_tag is not found in the first page(100 releases), this condition checks from second to last_page
   # until release_tag is found
   if [ -z "${release_tag}" ]; then
@@ -52,7 +52,7 @@ function get_latest_release() {
                 break
             fi
     done
-  fi 
+  fi
 
   set -x
 
@@ -60,7 +60,7 @@ function get_latest_release() {
   if [ -z "${release_tag}" ]; then
     echo "Error: release is not found from ${release_path}"
     exit 1
-  else 
+  else
     echo "${release_tag}"
   fi
 }
@@ -77,7 +77,9 @@ elif [ "${CAPM3RELEASEBRANCH}" = "release-1.4" ]; then
   export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.4.")}"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.4.")}"
 elif [ "${CAPM3RELEASEBRANCH}" = "release-1.5" ]; then
-  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.5.")}"
+  # export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.5.")}"
+  # e2e has changed during 1.5 development, so it expects a 99
+  export CAPM3RELEASE="v1.5.99"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
 else
   # We need to fix this to a non-existent CAPM3 release version to make sure
