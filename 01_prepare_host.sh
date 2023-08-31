@@ -124,7 +124,7 @@ else
   fi
 fi
 
-if ! command -v kubectl &>/dev/null; then
+if ! command -v kubectl &>/dev/null || [[ "$(kubectl version --client -o json|jq -r '.clientVersion.gitVersion')" != "${KUBECTL_VERSION}" ]]; then
   download_and_install_kubectl
 fi
 
