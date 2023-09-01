@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 #
-# utils to download and verify binary downloads in shell scripts
+# Utils to download and verify binary downloads in shell scripts
 #
-# this expects lib/common.sh to be sourced
+# This expects lib/common.sh to be sourced where the variables are defined
 
 # set to true for testing without having to also change digests
 INSECURE_SKIP_DOWNLOAD_VERIFICATION="${INSECURE_SKIP_DOWNLOAD_VERIFICATION:-false}"
+SKIP_INSTALLATION="${SKIP_INSTALLATION:-false}"
 
-# pip can't take hashes on the command line, so we need to create
+# Pip can't take hashes on the command line, so we need to create
 # temporary rqeuirements file with the hash and then clean it up
+# NOTE: does not obey SKIP_INSTALLATION
 pip_install_with_hash()
 {
     local pkg_and_version="${1:?package==version missing}"
@@ -25,8 +27,9 @@ pip_install_with_hash()
     fi
 }
 
-# download an url and verify the downloaded object has the same sha as
-# supplied in the function call
+# Download an url and verify the downloaded object has the same sha as
+# supplied in the function call. If SKIP_INSTALLATION is not false,
+# just prints out the sha and deletes the download
 wget_and_verify()
 {
     local url="${1:?url missing}"
@@ -40,10 +43,17 @@ wget_and_verify()
         "${url}"
     )
 
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        args+=(--quiet)
+    fi
     wget "${args[@]}"
 
     checksum="$(sha256sum "${target}" | awk '{print $1;}')"
-    if [[ "${checksum}" != "${sha256}" ]]; then
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        echo "info: sha256(${target/*\/}): ${checksum}"
+        rm -f "${target?:}"
+
+    elif [[ "${checksum}" != "${sha256}" ]]; then
         if [[ "${INSECURE_SKIP_DOWNLOAD_VERIFICATION}" == "true" ]]; then
             echo >&2 "warning: ${url} binary checksum '${checksum}' differs from expected checksum '${sha256}'"
         else
@@ -59,13 +69,17 @@ download_and_install_krew()
 {
     local tmp_dir
     tmp_dir="$(mktemp -d)"
-    pushd "${tmp_dir}" || return 1
 
     KERNEL_OS="$(uname | tr '[:upper:]' '[:lower:]')"
     ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')"
     KREW="krew-${KERNEL_OS}_${ARCH}"
     KREW_URL="https://github.com/kubernetes-sigs/krew/releases/download/${KREW_VERSION}/${KREW}.tar.gz"
-    wget_and_verify "${KREW_URL}" "${KREW_SHA256}" "${KREW}.tar.gz"
+    wget_and_verify "${KREW_URL}" "${KREW_SHA256}" "${tmp_dir}/${KREW}.tar.gz"
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        return 0
+    fi
+
+    pushd "${tmp_dir}" || return 1
     tar zxvf "${KREW}.tar.gz"
     rm -f "${KREW}.tar.gz"
     ./"${KREW}" install krew
@@ -82,6 +96,10 @@ download_and_install_minikube()
     MINIKUBE_BINARY="minikube"
 
     wget_and_verify "${MINIKUBE_URL}" "${MINIKUBE_SHA256}" "${MINIKUBE_BINARY}"
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        return 0
+    fi
+
     chmod +x "${MINIKUBE_BINARY}"
     sudo mv "${MINIKUBE_BINARY}" /usr/local/bin/
 }
@@ -92,6 +110,10 @@ download_and_install_kvm2_driver()
     DRIVER_BINARY="docker-machine-driver-kvm2"
 
     wget_and_verify "${DRIVER_URL}" "${MINIKUBE_DRIVER_SHA256}" "${DRIVER_BINARY}"
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        return 0
+    fi
+
     chmod +x "${DRIVER_BINARY}"
     sudo mv "${DRIVER_BINARY}" /usr/local/bin/
 }
@@ -102,6 +124,10 @@ download_and_install_kind()
     KIND_BINARY="kind"
 
     wget_and_verify "${KIND_URL}" "${KIND_SHA256}" "${KIND_BINARY}"
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        return 0
+    fi
+
     chmod +x "${KIND_BINARY}"
     sudo mv "${KIND_BINARY}" /usr/local/bin/
 }
@@ -112,6 +138,10 @@ download_and_install_tilt()
     TILT_SCRIPT="install.sh"
 
     wget_and_verify "${TILT_URL}" "${TILT_SHA256}" "${TILT_SCRIPT}"
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        return 0
+    fi
+
     bash "${TILT_SCRIPT}"
     rm "${TILT_SCRIPT}"
 }
@@ -128,6 +158,10 @@ download_and_install_kubectl()
     KUBECTL_URL="https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
 
     wget_and_verify "${KUBECTL_URL}" "${KUBECTL_SHA256}" "kubectl"
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        return 0
+    fi
+
     chmod +x kubectl
     sudo mv kubectl "${KUBECTL_PATH}"
 }
@@ -138,6 +172,10 @@ download_and_install_kustomize()
     KUSTOMIZE_BINARY="kustomize"
 
     wget_and_verify "${KUSTOMIZE_URL}" "${KUSTOMIZE_SHA256}" "${KUSTOMIZE_BINARY}.tar.gz"
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        return 0
+    fi
+
     tar -xzvf "${KUSTOMIZE_BINARY}.tar.gz"
     rm "${KUSTOMIZE_BINARY}.tar.gz"
     chmod +x "${KUSTOMIZE_BINARY}"
@@ -153,6 +191,29 @@ download_and_install_clusterctl()
     CLUSTERCTL_BINARY="clusterctl"
 
     wget_and_verify "${CLUSTERCTL_URL}" "${CLUSTERCTL_SHA256}" "${CLUSTERCTL_BINARY}"
+    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
+        return 0
+    fi
+
     chmod +x "${CLUSTERCTL_BINARY}"
     sudo mv "${CLUSTERCTL_BINARY}" /usr/local/bin/
+}
+
+# Run this helper function called by hack/print_checksums.sh
+# 1. update the versions in lib/common.sh
+# 2. run ./hack/print_checksums.sh
+# 3. update shas in lib/common.sh
+_download_and_print_checksums()
+{
+    # shellcheck disable=SC2034
+    SKIP_INSTALLATION=true
+
+    # download_and_install_clusterctl
+    download_and_install_kind
+    download_and_install_krew
+    download_and_install_kubectl
+    download_and_install_kustomize
+    download_and_install_kvm2_driver
+    download_and_install_minikube
+    download_and_install_tilt
 }
