@@ -173,8 +173,8 @@ export IPAMCOMMIT="${IPAMCOMMIT:-HEAD}"
 export CAPICOMMIT="${CAPICOMMIT:-HEAD}"
 
 export IRONIC_IMAGE_PATH="${IRONIC_IMAGE_PATH:-/tmp/ironic-image}"
-export IRONIC_IMAGE_REPO="${IRONIC_IMAGE_REPO:-https://github.com/metal3-io/ironic-image.git}"
-export IRONIC_IMAGE_BRANCH="${IRONIC_IMAGE_BRANCH:-main}"
+export IRONIC_IMAGE_REPO="${IRONIC_IMAGE_REPO:-https://github.com/dtantsur/ironic-image.git}"
+export IRONIC_IMAGE_BRANCH="${IRONIC_IMAGE_BRANCH:-test}"
 export IRONIC_IMAGE_COMMIT="${IRONIC_IMAGE_COMMIT:-HEAD}"
 
 export MARIADB_IMAGE_PATH="${MARIADB_IMAGE_PATH:-/tmp/mariadb-image}"
@@ -186,13 +186,13 @@ export BUILD_CAPM3_LOCALLY="${BUILD_CAPM3_LOCALLY:-false}"
 export BUILD_IPAM_LOCALLY="${BUILD_IPAM_LOCALLY:-false}"
 export BUILD_BMO_LOCALLY="${BUILD_BMO_LOCALLY:-false}"
 export BUILD_CAPI_LOCALLY="${BUILD_CAPI_LOCALLY:-false}"
-export BUILD_IRONIC_IMAGE_LOCALLY="${BUILD_IRONIC_IMAGE_LOCALLY:-false}"
+export BUILD_IRONIC_IMAGE_LOCALLY="${BUILD_IRONIC_IMAGE_LOCALLY:-true}"
 export BUILD_MARIADB_IMAGE_LOCALLY="${BUILD_MARIADB_IMAGE_LOCALLY:-false}"
 
 # If IRONIC_FROM_SOURCE has a "true" value that
 # automatically requires BUILD_IRONIC_IMAGE_LOCALLY to have "true" value too
 # but it is not the case the other way around
-export IRONIC_FROM_SOURCE="${IRONIC_FROM_SOURCE:-false}"
+export IRONIC_FROM_SOURCE="${IRONIC_FROM_SOURCE:-true}"
 if [[ $IRONIC_FROM_SOURCE == "true" ]]; then
   export BUILD_IRONIC_IMAGE_LOCALLY="true"
 fi
