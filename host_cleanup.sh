@@ -71,3 +71,7 @@ if [[ -n "${XDG_CONFIG_HOME}" ]]; then
 else
     rm -rf "${HOME}"/.config/cluster-api
 fi
+
+# clean metal3 related files from /opt folder
+sudo rm -rf /opt/metal3/
+sudo rm -rf /opt/metal3-dev-env/
