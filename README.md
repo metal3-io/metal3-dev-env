@@ -15,7 +15,7 @@ This repository includes scripts to set up a Metal³ development environment.
 
 ## Instructions
 
-Instructions can be found here: <https://metal3.io/try-it.html>
+Instructions can be found here: <https://book.metal3.io/developer_environment/tryit>
 
 ## Quickstart
 
