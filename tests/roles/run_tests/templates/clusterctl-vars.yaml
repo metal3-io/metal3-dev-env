@@ -1,5 +1,5 @@
 # Cluster API variables used for generating templates
-# For deployment to ~/.cluster-api/
+# For deployment to ~/.config/cluster-api/
 ## Note these settings are overridden by environment variables.
 
 # Cluster settings

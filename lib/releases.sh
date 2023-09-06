@@ -104,6 +104,10 @@ fi
   # Following code defines the cluster-api config folder location according to CAPI
   # release version
 
+# TODO(Sunnatillo): Following condition should be removed when CAPM3 v1.4 reaches EOL
+# NOTE(Sunnatillo): When CAPM3 v1.4 reaches EOL CAPI_CONFIG_FOLDER variable can be removed
+# for the sake of reducing variables
+
 version_string="${CAPIRELEASE#v}"
 IFS='.' read -r _ minor _ <<< "$version_string"
 

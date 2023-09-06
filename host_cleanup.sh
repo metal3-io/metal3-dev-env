@@ -63,4 +63,11 @@ fi
 # Clean up any serial logs
 sudo rm -rf /var/log/libvirt/qemu/*serial0.log*
 
+# TODO(Sunnatillo): Remove first line after deprication of camp3 v1.4
 rm -rf "${HOME}"/.cluster-api
+
+if [[ -n "${XDG_CONFIG_HOME}" ]]; then
+    rm -rf "${XDG_CONFIG_HOME}"/cluster-api
+else
+    rm -rf "${HOME}"/.config/cluster-api
+fi
