@@ -63,7 +63,7 @@ spec:
     services:
       dns:
 {% if IP_STACK == 'v4' or IP_STACK == 'v4v6' %}
-        - 8.8.8.8
+        - 1.0.0.1
 {% endif %}
 {% if IP_STACK == 'v6' or IP_STACK == 'v4v6' %}
         - 2001:4860:4860::8888
