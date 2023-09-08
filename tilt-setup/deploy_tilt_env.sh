@@ -27,7 +27,7 @@ make kind-reset
 kind create cluster --name capm3 --image="${KIND_NODE_IMAGE}"
 kubectl create namespace "${NAMESPACE}"
 kubectl create namespace "${IRONIC_NAMESPACE}"
-mkdir -p "${HOME}/.cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}"
+mkdir -p "${HOME}/.config/cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}"
 make tilt-up &
 # wait for cert-manager to be ready
 sleep 120
