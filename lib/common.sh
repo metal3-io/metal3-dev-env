@@ -144,6 +144,7 @@ export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
+export BMORELEASEBRANCH="${BMORELEASEBRANCH:-main}"
 
 if [[ "${CAPM3RELEASEBRANCH}" == "release-1.3" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.3}"
@@ -268,23 +269,23 @@ if [[ "${CAPM3RELEASEBRANCH}" = "release-1.3" ]]; then
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.3"}
   export BARE_METAL_OPERATOR_TAG="v0.2.0"
   export KEEPALIVED_TAG="v0.2.0"
-  export BMOBRANCH="${BMOBRANCH:-v0.2.0}"
+  export BMOBRANCH="${BMORELEASEBRANCH:-v0.2.0}"
 elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.4" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.4"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.4"}
   export BARE_METAL_OPERATOR_TAG="v0.3.0"
   export KEEPALIVED_TAG="v0.3.0"
-  export BMOBRANCH="${BMOBRANCH:-v0.3.0}"
+  export BMOBRANCH="${BMORELEASEBRANCH:-v0.3.0}"
 elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.5" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.5"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.5"}
   export BARE_METAL_OPERATOR_TAG="v0.4.0"
   export KEEPALIVED_TAG="v0.4.0"
-  export BMOBRANCH="${BMOBRANCH:-v0.4.0}"
+  export BMOBRANCH="${BMORELEASEBRANCH:-release-0.4}"
 else
   export CAPM3_IMAGE="${CAPM3_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main}"
   export IPAM_IMAGE="${IPAM_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main}"
-  export BMOBRANCH="${BMOBRANCH:-main}"
+  export BMOBRANCH="${BMORELEASEBRANCH:-main}"
 fi
 
 export IRONIC_KEEPALIVED_IMAGE="${IRONIC_KEEPALIVED_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/keepalived:${KEEPALIVED_TAG}}"
