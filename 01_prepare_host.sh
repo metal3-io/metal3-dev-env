@@ -25,18 +25,6 @@ if [[ "${OS}" = "ubuntu" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
   elif [[ "${DISTRO}" = "ubuntu22" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
-    # (workaround) disable tdp_mmu to avoid
-    # kernel crashes with  NULL pointer dereference
-    # note(elfosardo): run this only if we have kvm support
-    if grep -q vmx /proc/cpuinfo; then
-      sudo modprobe -r -a kvm_intel kvm
-      sudo modprobe kvm tdp_mmu=0
-      sudo modprobe -a kvm kvm_intel
-    elif grep -q svm /proc/cpuinfo; then
-      sudo modprobe -r -a kvm_amd kvm
-      sudo modprobe kvm tdp_mmu=0
-      sudo modprobe -a kvm kvm_amd
-    fi
   fi
 elif [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
   sudo dnf upgrade -y

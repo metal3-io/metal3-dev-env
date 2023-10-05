@@ -13,6 +13,18 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/image_prepull.sh
 
+# (workaround) disable tdp_mmu to avoid
+# kernel crashes with  NULL pointer dereference
+# note(elfosardo): run this only if we have kvm support
+if grep -q vmx /proc/cpuinfo; then
+  sudo modprobe -r -a kvm_intel kvm
+  sudo modprobe kvm tdp_mmu=0
+  sudo modprobe -a kvm kvm_intel
+elif grep -q svm /proc/cpuinfo; then
+  sudo modprobe -r -a kvm_amd kvm
+  sudo modprobe kvm tdp_mmu=0
+  sudo modprobe -a kvm kvm_amd
+fi
 # Clean, copy and extract local IPA
 if [[ "${USE_LOCAL_IPA}" = "true" ]]; then
   sudo rm -f  "${IRONIC_DATA_DIR}/html/images/ironic-python-agent*"
