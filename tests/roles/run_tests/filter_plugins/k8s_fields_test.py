@@ -1,5 +1,8 @@
 import unittest
-from k8s_fields import k8s_backup
+try:
+    from k8s_fields import k8s_backup
+except ImportError:
+    from .k8s_fields import k8s_backup
 
 
 class K8sFieldsTestCase(unittest.TestCase):
