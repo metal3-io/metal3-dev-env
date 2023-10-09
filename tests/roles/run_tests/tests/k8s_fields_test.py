@@ -1,5 +1,5 @@
 import unittest
-from k8s_fields import k8s_backup
+from filter_plugins.k8s_fields import k8s_backup
 
 
 class K8sFieldsTestCase(unittest.TestCase):
