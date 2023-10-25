@@ -39,6 +39,7 @@ function get_latest_release() {
   
   # If release_tag is not found in the first page(100 releases), this condition checks from second to last_page
   # until release_tag is found
+  
   if [ -z "${release_tag}" ]; then
     for current_page in $(seq 2 "${last_page}"); do
         url="${release_path}?per_page=100&page=${current_page}"
@@ -66,25 +67,31 @@ function get_latest_release() {
 }
 
 # CAPM3, CAPI and BMO release path
-CAPM3RELEASEPATH="{https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}/releases}"
-CAPIRELEASEPATH="{https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
+# CAPM3RELEASEPATH="{https://api.github.com/repos/${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}/releases}"
+# CAPIRELEASEPATH="{https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
 
 # CAPM3, CAPI and BMO releases
 if [ "${CAPM3RELEASEBRANCH}" = "release-1.3" ]; then
-  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.3.")}"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.3.")}"
+  # export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.3.")}"
+  # export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.3.")}"
+  export CAPM3RELEASE="${CAPM3RELEASE:-"v1.3.5"}"
+  export CAPIRELEASE="${CAPIRELEASE:-"v1.3.10"}"
 elif [ "${CAPM3RELEASEBRANCH}" = "release-1.4" ]; then
-  export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.4.")}"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.4.")}"
+  # export CAPM3RELEASE="${CAPM3RELEASE:-$(get_latest_release "${CAPM3RELEASEPATH}" "v1.4.")}"
+  # export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.4.")}"
+  export CAPM3RELEASE="${CAPM3RELEASE:-"v1.4.5"}"
+  export CAPIRELEASE="${CAPIRELEASE:-"v1.4.8"}"
 elif [ "${CAPM3RELEASEBRANCH}" = "release-1.5" ]; then
   # 1.5.99 points to the head of the release-1.5 branch. Local override for CAPM3 is created for this version.
   export CAPM3RELEASE="v1.5.99"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
+  # export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
+  export CAPIRELEASE="v1.5.3"
 else
   # 1.5.99 points to the head of the main branch as well. Local override for CAPM3 is created for this version.
   # We should change it to v1.6.99 when we point main branch towards CAI v1.6 contract soon. 
   export CAPM3RELEASE="v1.5.99"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
+  # export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
+  export CAPIRELEASE="v1.5.3"
 fi
 
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
