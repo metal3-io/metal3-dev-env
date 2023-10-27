@@ -186,5 +186,5 @@ The following table describes which branches are tested for different test trigg
 | ----------- | ------------ | -----------  | --------------- | -------------- |
 | main        | main         | main         | main            | latest         |
 | release-1-5 | release-1.5  | release-1.5  | release-0.4     | v0.4.0         |
-| release-1-4 | release-1.4  | release-1.4  | v0.3.1          | v0.3.1         |
+| release-1-4 | release-1.4  | release-1.4  | release-0.3     | v0.3.1         |
 | release-1-3 | release-1.3  | release-1.3  | v0.2.0          | v0.2.0         |
