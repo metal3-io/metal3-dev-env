@@ -1,6 +1,46 @@
-- name: Start libvirtd
+---
+- name: Start and enable libvirtd service
+  when:
+    - not (ansible_facts['distribution'] in ['CentOS', 'RedHat'] and
+           ansible_facts['distribution_major_version'] >= '9')
   service:
     name: "{{ libvirtd_service }}"
     state: started
     enabled: true
   become: true
+
+- name: Ensure socket services are enabled on newer distros
+  when:
+    - ansible_facts['distribution'] in ['CentOS', 'RedHat']
+    - ansible_facts['distribution_major_version'] >= '9'
+  become: true
+  vars:
+    _services:
+      - qemu
+      - network
+      - nodedev
+      - nwfilter
+      - secret
+      - storage
+      - interface
+  block:
+    - name: Ensure libvirt modular sockets are enabled and started
+      ansible.builtin.service:
+        name: "virt{{ item }}d.socket"
+        state: started
+        enabled: true
+      loop: "{{ _services }}"
+
+    - name: Ensure libvirt modular ro sockets are enabled and started
+      ansible.builtin.service:
+        name: "virt{{ item }}d-ro.socket"
+        state: started
+        enabled: true
+      loop: "{{ _services }}"
+
+    - name: Ensure libvirt modular admin sockets are enabled and started
+      ansible.builtin.service:
+        name: "virt{{ item }}d-admin.socket"
+        state: started
+        enabled: true
+      loop: "{{ _services }}"

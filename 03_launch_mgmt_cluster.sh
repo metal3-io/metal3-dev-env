@@ -437,7 +437,9 @@ function start_management_cluster () {
   if [ "${EPHEMERAL_CLUSTER}" == "kind" ]; then
     launch_kind
   elif [ "${EPHEMERAL_CLUSTER}" == "minikube" ]; then
-    sudo systemctl restart libvirtd.service
+    # This method, defined in lib/common.sh, will either ensure sockets are up'n'running
+    # for CS9 and RHEL9, or restart the libvirtd.service for other DISTRO
+    manage_libvirtd
     while /bin/true; do
         minikube_error=0
         sudo su -l -c 'minikube start' "${USER}" || minikube_error=1
