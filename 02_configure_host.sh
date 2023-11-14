@@ -49,9 +49,9 @@ init_minikube() {
       # Loop to ignore minikube issues
       while /bin/true; do
         minikube_error=0
-        # Restart libvirtd.service as suggested here
-        # https://github.com/kubernetes/minikube/issues/3566
-        sudo systemctl restart libvirtd.service
+        # This method, defined in lib/common.sh, will either ensure sockets are up'n'running
+        # for CS9 and RHEL9, or restart the libvirtd.service for other DISTRO
+        manage_libvirtd
         configure_minikube
         #NOTE(elfosardo): workaround for https://bugzilla.redhat.com/show_bug.cgi?id=2057769
         sudo mkdir -p "/etc/qemu/firmware"

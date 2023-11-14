@@ -87,10 +87,9 @@ if ! kubectl krew > /dev/null 2>&1; then
 fi
 
 # Allow local non-root-user access to libvirt
-# Restart libvirtd service to get the new group membership loaded
 if ! id "${USER}" | grep -q libvirt; then
   sudo usermod -a -G "libvirt" "${USER}"
-  sudo systemctl restart libvirtd
+  gpasswd -a "${USER}" libvirt
 fi
 
 if [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then

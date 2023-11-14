@@ -559,3 +559,21 @@ remove_ironic_containers() {
     fi
   done
 }
+
+#
+# Manage libvirtd services based on OS
+#
+manage_libvirtd() {
+  case ${DISTRO} in
+      centos9|rhel9)
+          for i in qemu network nodedev nwfilter secret storage interface; do
+              sudo systemctl enable --now virt${i}d.socket
+              sudo systemctl enable --now virt${i}d-ro.socket
+              sudo systemctl enable --now virt${i}d-admin.socket
+          done
+          ;;
+      *)
+          sudo systemctl restart libvirtd.service
+        ;;
+esac
+}
