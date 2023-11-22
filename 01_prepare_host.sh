@@ -89,7 +89,6 @@ fi
 # Allow local non-root-user access to libvirt
 if ! id "${USER}" | grep -q libvirt; then
   sudo usermod -a -G "libvirt" "${USER}"
-  sudo gpasswd -a "${USER}" libvirt
 fi
 
 if [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then
