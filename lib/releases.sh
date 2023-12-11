@@ -83,8 +83,8 @@ elif [ "${CAPM3RELEASEBRANCH}" = "release-1.5" ]; then
 else
   # 1.5.99 points to the head of the main branch as well. Local override for CAPM3 is created for this version.
   # We should change it to v1.6.99 when we point main branch towards CAI v1.6 contract soon. 
-  export CAPM3RELEASE="v1.5.99"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
+  export CAPM3RELEASE="v1.6.99"
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.6.")}"
 fi
 
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"

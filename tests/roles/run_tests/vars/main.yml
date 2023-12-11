@@ -87,6 +87,12 @@ IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true) 
 IRONIC_BASIC_AUTH: "{{ lookup('env', 'IRONIC_BASIC_AUTH') | default('true', true) }}"
 IRONIC_USE_MARIADB: "{{ lookup('env', 'IRONIC_USE_MARIADB') | default('false', true) }}"
 
+# Metrics
+CAPM3_DIAGNOSTICS_ADDRESS: "localhost:8080"
+CAPM3_INSECURE_DIAGNOSTICS: "true"
+IPAM_DIAGNOSTICS_ADDRESS: "localhost:8080"
+IPAM_INSECURE_DIAGNOSTICS: "true"
+
 # Args to pass to the deploy.sh script when deploying Ironic and BMO
 # [k]eepalived [t]ls [n]o basic auth or [m]ariadb
 BMO_IRONIC_ARGS: "-k {{ (IRONIC_TLS_SETUP == 'true') | ternary('-t', '') }}
