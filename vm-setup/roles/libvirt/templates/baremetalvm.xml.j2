@@ -9,11 +9,15 @@
   <os>
     <type arch='{{ libvirt_arch }}' machine='q35'>hvm</type>
 {% if libvirt_firmware  == 'uefi' %}
-     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
 {% if libvirt_secure_boot|bool %}
+     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_VARS.secboot.fd</loader>
      <nvram template="/usr/share/OVMF/OVMF_VARS.secboot.fd">/var/lib/libvirt/qemu/nvram/{{ item.name }}.fd</nvram>
+{% elif host_os == 'centos' or host_os == 'rhel' %}
+     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_VARS.fd</loader>
+     <nvram template="/usr/share/OVMF/OVMF_VARS.fd">/var/lib/libvirt/qemu/nvram/{{ item.name }}.fd</nvram>
 {% else %}
-     <nvram>/var/lib/libvirt/qemu/nvram/{{ item.name }}.fd</nvram>
+     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
+     <nvram template="/usr/share/OVMF/OVMF_CODE.fd">/var/lib/libvirt/qemu/nvram/{{ item.name }}.fd</nvram>
 {% endif %}
 {% endif %}
     <boot dev='network'/>
@@ -21,9 +25,9 @@
     <bios useserial='yes' rebootTimeout='10000'/>
   </os>
 {% else %}
-<os firmware='efi'>
-  <type arch='aarch64' machine='virt-rhel8.2.0'>hvm</type>
-</os>
+  <os firmware='efi'>
+    <type arch='aarch64' machine='virt-rhel8.2.0'>hvm</type>
+  </os>
 {% endif %}
 
   <features>
