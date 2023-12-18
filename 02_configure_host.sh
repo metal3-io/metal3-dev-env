@@ -382,6 +382,7 @@ done
 # consequently unset, it has to be redefined for local use
 if [[ ${BUILD_IRONIC_IMAGE_LOCALLY:-} == "true" ]] || [[ -n ${IRONIC_LOCAL_IMAGE:-} ]]; then
   IRONIC_IMAGE="${REGISTRY}/localimages/$(basename "${IRONIC_LOCAL_IMAGE}")"
+  export IRONIC_IMAGE="${IRONIC_IMAGE}"
 fi
 VBMC_IMAGE=${VBMC_LOCAL_IMAGE:-$VBMC_IMAGE}
 SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_LOCAL_IMAGE:-$SUSHY_TOOLS_IMAGE}
