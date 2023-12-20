@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -xe
+set -eux
 
 # shellcheck disable=SC1091
 source lib/logging.sh
@@ -12,6 +12,9 @@ source lib/releases.sh
 # pre-pull node and container images
 # shellcheck disable=SC1091
 source lib/image_prepull.sh
+
+# cleanup ci config file if it exists from earlier run
+rm -f "${CI_CONFIG_FILE}"
 
 # (workaround) disable tdp_mmu to avoid
 # kernel crashes with  NULL pointer dereference
@@ -188,7 +191,7 @@ EOF
         sudo nmcli con up provisioning
 
         # Need to pass the provision interface for bare metal
-        if [[ "${PRO_IF}" ]]; then
+        if [[ -n "${PRO_IF}" ]]; then
             sudo tee -a /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection <<EOF
 [connection]
 id=${PRO_IF}
@@ -226,7 +229,7 @@ EOF
 
         # Add the internal interface to it if requests, this may also be the interface providing
         # external access so we need to make sure we maintain dhcp config if its available
-        if [[ "${INT_IF}" ]]; then
+        if [[ -n "${INT_IF}" ]]; then
             sudo tee /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection <<EOF
 [connection]
 id=${INT_IF}
@@ -249,7 +252,7 @@ EOF
     if [[ "${MANAGE_EXT_BRIDGE}" == "y" ]]; then
         sudo virsh net-destroy external
         sudo virsh net-start external
-        if [[ "${INT_IF}" ]]; then
+        if [[ -n "${INT_IF}" ]]; then
             # Need to bring UP the NIC after destroying the libvirt network
             sudo nmcli connection up "${INT_IF}"
         fi
@@ -268,7 +271,7 @@ if [[ "${USE_FIREWALLD}" == "True" ]]; then
 fi
 
 # Need to route traffic from the provisioning host.
-if [[ "${EXT_IF}" ]]; then
+if [[ -n "${EXT_IF}" ]]; then
     sudo iptables -t nat -A POSTROUTING --out-interface "${EXT_IF}" -j MASQUERADE
     sudo iptables -A FORWARD --in-interface external -j ACCEPT
 fi
@@ -332,19 +335,20 @@ if [[ "${IRONIC_LOCAL_IMAGE:-}" == "${IRONIC_IMAGE_PATH}" ]]; then
 fi
 
 # Support for building local images
-for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
-    IMAGE="${!IMAGE_VAR}"
-    cd "${IMAGE}" || exit
+for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
+    IMAGE_REPO_PATH="${!IMAGE_VAR}"
+    cd "${IMAGE_REPO_PATH}" || exit
 
-    export "${IMAGE_VAR}"="${IMAGE##*/}"
-    export "${IMAGE_VAR}"="${REGISTRY}/localimages/${!IMAGE_VAR}"
+    IMAGE_DIR_NAME=$(basename "${IMAGE_REPO_PATH}")
+    IMAGE_URL="${REGISTRY}/localimages/${IMAGE_DIR_NAME}"
+    export "${IMAGE_VAR}"="${IMAGE_URL}"
 
     IMAGE_GIT_HASH="$(git rev-parse --short HEAD || echo "nogit")"
     # [year]_[day]_[hour][minute]
     IMAGE_DATE="$(date -u +%y_%j_%H%M)"
 
     # Support building ironic-image from source
-    if [[ "${IMAGE}" =~ "ironic" ]] && [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
+    if [[ "${IMAGE_DIR_NAME}" == "ironic-image" ]] && [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
         # NOTE(rpittau): to customize the source origin we need to copy the source code we
         # want to use into the sources directory under the ironic-image repository.
         for CODE_SOURCE_VAR in $(env | grep -E '^IRONIC_SOURCE=|^IRONIC_INSPECTOR_SOURCE=|^SUSHY_SOURCE=' | grep -o "^[^=]*"); do
@@ -357,28 +361,35 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
 
         # shellcheck disable=SC2086
         sudo "${CONTAINER_RUNTIME}" build --build-arg INSTALL_TYPE=source ${CUSTOM_SOURCE_ARGS:-} \
-            -t "${!IMAGE_VAR}:latest" -t "${!IMAGE_VAR}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
+            -t "${IMAGE_URL}:latest" -t "${IMAGE_URL}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
 
     # TODO: Do we want to support CAPI in dev-env? CI just pulls it anyways ...
-    elif [[ "${IMAGE}" =~ "cluster-api" ]]; then
+    elif [[ "${IMAGE_DIR_NAME}" == "cluster-api" ]]; then
         CAPI_GO_VERSION=$(grep "GO_VERSION ?= [0-9].*" Makefile | sed -e 's/GO_VERSION ?= //g')
         # shellcheck disable=SC2016
         CAPI_BASEIMAGE=$(grep "GO_CONTAINER_IMAGE ?=" Makefile | sed -e 's/GO_CONTAINER_IMAGE ?= //g' -e 's/$(GO_VERSION)//g')
         CAPI_TAGGED_BASE_IMAGE="${CAPI_BASEIMAGE}${CAPI_GO_VERSION}"
         sudo DOCKER_BUILDKIT=1 "${CONTAINER_RUNTIME}" build \
             --build-arg builder_image="${CAPI_TAGGED_BASE_IMAGE}" --build-arg ARCH="amd64" \
-            -t "${!IMAGE_VAR}:latest" -t "${!IMAGE_VAR}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
+            -t "${IMAGE_URL}:latest" -t "${IMAGE_URL}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
 
     else
-        sudo "${CONTAINER_RUNTIME}" build -t "${!IMAGE_VAR}" . -f ./Dockerfile
+        sudo "${CONTAINER_RUNTIME}" build -t "${IMAGE_URL}" . -f ./Dockerfile
     fi
 
     cd - || exit
     if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-        sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${!IMAGE_VAR}"
+        sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${IMAGE_URL}"
     else
-        sudo "${CONTAINER_RUNTIME}" push "${!IMAGE_VAR}"
+        sudo "${CONTAINER_RUNTIME}" push "${IMAGE_URL}"
     fi
+
+    # store the locally built images to config, so they're passed to "make test"
+    # and used in pivoting tests etc. Exports from environment are lost between
+    # make && make test as make isolates the env
+    cat <<EOF >>"${CI_CONFIG_FILE}"
+export ${IMAGE_VAR/_LOCAL_IMAGE/_IMAGE}="${IMAGE_URL}"
+EOF
 done
 
 # unset all *_IMAGE env vars that have a *_LOCAL_IMAGE counterpart to avoid
@@ -392,6 +403,7 @@ done
 # consequently unset, it has to be redefined for local use
 if [[ "${BUILD_IRONIC_IMAGE_LOCALLY:-}" == "true" ]] || [[ -n "${IRONIC_LOCAL_IMAGE:-}" ]]; then
     IRONIC_IMAGE="${REGISTRY}/localimages/$(basename "${IRONIC_LOCAL_IMAGE}")"
+    export IRONIC_IMAGE
 fi
 VBMC_IMAGE=${VBMC_LOCAL_IMAGE:-${VBMC_IMAGE}}
 SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_LOCAL_IMAGE:-${SUSHY_TOOLS_IMAGE}}

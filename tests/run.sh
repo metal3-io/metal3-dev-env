@@ -1,5 +1,6 @@
-#!/bin/bash
-set -xe
+#!/usr/bin/env bash
+
+set -eux
 
 METAL3_DIR="$(dirname "$(readlink -f "${0}")")/.."
 
@@ -19,6 +20,11 @@ source "${METAL3_DIR}/lib/images.sh"
 source "${METAL3_DIR}/lib/ironic_tls_setup.sh"
 # shellcheck disable=SC1090,SC1091
 source "${METAL3_DIR}/lib/ironic_basic_auth.sh"
+
+if [[ -r "${CI_CONFIG_FILE}" ]]; then
+   # shellcheck disable=SC1090,SC1091
+   . "${CI_CONFIG_FILE}"
+fi
 
 # Disable SSH strong authentication
 export ANSIBLE_HOST_KEY_CHECKING=False
