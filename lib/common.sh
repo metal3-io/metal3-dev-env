@@ -30,6 +30,10 @@ fi
 # shellcheck disable=SC1090
 source "${CONFIG}"
 
+# CI config file for passing variables between make and make test
+# used in 02 script and in run.sh
+export CI_CONFIG_FILE="${TMP_DIR:-/tmp}/config_ci.sh"
+
 # Set variables
 export MARIADB_HOST="mariaDB"
 export MARIADB_HOST_IP="127.0.0.1"
