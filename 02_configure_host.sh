@@ -348,7 +348,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
     IMAGE_DATE="$(date -u +%y_%j_%H%M)"
 
     # Support building ironic-image from source
-    if [[ "${IMAGE_DIR_NAME}" == "ironic-image" ]] && [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
+    if [[ "${IMAGE_VAR/_LOCAL_IMAGE}" == "IRONIC" ]] && [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
         # NOTE(rpittau): to customize the source origin we need to copy the source code we
         # want to use into the sources directory under the ironic-image repository.
         for CODE_SOURCE_VAR in $(env | grep -E '^IRONIC_SOURCE=|^IRONIC_INSPECTOR_SOURCE=|^SUSHY_SOURCE=' | grep -o "^[^=]*"); do
@@ -364,7 +364,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
             -t "${IMAGE_URL}:latest" -t "${IMAGE_URL}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
 
     # TODO: Do we want to support CAPI in dev-env? CI just pulls it anyways ...
-    elif [[ "${IMAGE_DIR_NAME}" == "cluster-api" ]]; then
+    elif [[ "${IMAGE_VAR/_LOCAL_IMAGE}" == "CAPI" ]]; then
         CAPI_GO_VERSION=$(grep "GO_VERSION ?= [0-9].*" Makefile | sed -e 's/GO_VERSION ?= //g')
         # shellcheck disable=SC2016
         CAPI_BASEIMAGE=$(grep "GO_CONTAINER_IMAGE ?=" Makefile | sed -e 's/GO_CONTAINER_IMAGE ?= //g' -e 's/$(GO_VERSION)//g')
