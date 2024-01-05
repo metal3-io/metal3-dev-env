@@ -1,0 +1,98 @@
+---
+  - name: Wait until cluster becomes provisioned.
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: Cluster
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "{{ HOME }}/.kube/config"
+    register: cluster
+    retries: 100
+    delay: 20
+    until: (cluster is succeeded) and
+           (cluster.resources | length > 0) and
+           (cluster.resources[0].status.phase | default("none") | lower == "provisioned")
+
+  - name: Fetch target cluster kubeconfig
+    k8s_info:
+      api_version: v1
+      kind: Secret
+      name: "{{ CLUSTER_NAME }}-kubeconfig"
+      namespace: "{{ NAMESPACE }}"
+    register: kubeconfig_secret
+    retries: 100
+    delay: 20
+    until: (kubeconfig_secret is succeeded) and
+           (kubeconfig_secret.resources | length > 0)
+
+  - name: Store target cluster kubeconfig
+    blockinfile:
+      path: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+      create: yes
+      block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
+
+  - name: Wait until "{{ CONTROL_PLANE_MACHINE_COUNT }}" machines become running.
+    k8s_info:
+      api_version: cluster.x-k8s.io/{{ CAPI_VERSION }}
+      kind: Machine
+      namespace: "{{ NAMESPACE }}"
+      kubeconfig: "{{ HOME }}/.kube/config"
+    register: machines
+    retries: 150
+    delay: 20
+    vars:
+      query: "[? status.phase=='running' || status.phase=='Running']"
+    until: (machines is succeeded) and
+           (machines.resources | length > 0) and
+           (machines.resources | json_query(query) | length == (CONTROL_PLANE_MACHINE_COUNT | int))
+
+  # Install Calico
+  - name: Download Calico v3.25.x manifests
+    get_url:
+      url: "https://raw.githubusercontent.com/projectcalico/calico/{{ CALICO_MINOR_RELEASE }}/manifests/calico.yaml"
+      dest: /tmp/
+      mode: '664'
+    register: calico_manifest
+
+  - name: Pin calico version to v3.25.1
+    ansible.builtin.replace:
+      path: /tmp/calico.yaml
+      regexp: 'image: docker.io/calico/(.+):v(.+)$'
+      replace: 'image: {{ DOCKER_HUB_PROXY }}/calico/\1:{{ CALICO_PATCH_RELEASE }}'
+
+  - name: Replace the POD_CIDR in calico config
+    replace:
+      path: /tmp/calico.yaml
+      regexp: "192.168.0.0/16"
+      replace: "{{ POD_CIDR }}"
+    register: updated_manifest
+
+  - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
+    blockinfile:
+      path: /tmp/calico.yaml
+      insertafter: "{{ POD_CIDR }}"
+      block: |
+          # for indentation
+                      - name: IP_AUTODETECTION_METHOD
+                        value: "cidr={{ EXTERNAL_SUBNET_V4_HOST }}/{{ EXTERNAL_SUBNET_V4_PREFIX }}"
+
+  - name: Apply Calico manifest
+    kubernetes.core.k8s:
+      state: present
+      src: "/tmp/calico.yaml"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    register: install_cni
+
+  - name: Wait (maximum 10 mins) until Calico pods start running
+    kubernetes.core.k8s_info:
+      api_version: v1
+      kind: Pod
+      namespace: kube-system
+      kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+      field_selectors:
+        - status.phase!=Running
+    retries: 60
+    delay: 10
+    register: calico_pods
+    until: (calico_pods is succeeded) and
+           (calico_pods.resources | length == 0)
+    ignore_errors: true

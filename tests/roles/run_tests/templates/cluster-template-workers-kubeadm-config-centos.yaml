@@ -1,5 +1,5 @@
 # CentOS specific worker kubeadm config
-preKubeadmCommands:
+preK3sCommands:
   - rm /etc/cni/net.d/*
   - systemctl restart NetworkManager.service
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
@@ -10,10 +10,17 @@ preKubeadmCommands:
   - nmcli connection load /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
   - nmcli connection up /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
 {% endif %}
-  - systemctl enable --now crio
-  - sleep 30
-  - systemctl enable --now kubelet
-  - sleep 120
+  - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent" sh -s -
+  - useradd -m metal3
+  - echo 'metal3:password' | chpasswd
+  - usermod -aG sudo metal3
+  - echo 'metal3 ALL=(ALL) NOPASSWD:ALL' | EDITOR='tee -a' visudo
+  - mkdir /home/metal3/.ssh
+  - chown metal3:metal3 /home/metal3/.ssh
+  - chmod 700 /home/metal3/.ssh
+  - echo {{ SSH_PUB_KEY_CONTENT }} > /home/metal3/.ssh/authorized_keys
+  - chown metal3:metal3 /home/metal3/.ssh/authorized_keys
+  - chmod 600 /home/metal3/.ssh/authorized_keys
 files:
   - path: /usr/local/bin/retrieve.configuration.files.sh
     owner: root:root

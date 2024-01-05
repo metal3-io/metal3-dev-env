@@ -14,7 +14,7 @@ spec:
     kind: Metal3Cluster
     name: ${ CLUSTER_NAME }
   controlPlaneRef:
-    kind: KubeadmControlPlane
+    kind: KThreesControlPlane
     apiVersion: controlplane.cluster.x-k8s.io/{{ CAPI_VERSION }}
     name: ${ CLUSTER_NAME }
 ---

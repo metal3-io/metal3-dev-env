@@ -104,7 +104,7 @@
       kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
   - name: Initialize Provider component in target cluster
-    shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
+    shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap k3s --control-plane k3s --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
 
   # Check for cert-manager pods on the target cluster
   - name: Check if cert-manager  pods in running state

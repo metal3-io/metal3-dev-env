@@ -376,11 +376,16 @@ fi
 # Launch the cluster-api provider metal3.
 #
 function launch_cluster_api_provider_metal3() {
+  pushd template
+  mkdir -p ${HOME}/.config/cluster-api
+  cat clusterctl.yaml | envsubst > ${HOME}/.config/cluster-api/clusterctl.yaml
+  popd
+
   pushd "${CAPM3PATH}"
 
     # shellcheck disable=SC2153
-  clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
-    --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
+  clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap k3s \
+    --control-plane k3s --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
 
   if [ "${CAPM3_RUN_LOCAL}" == true ]; then
     touch capm3.out.log
