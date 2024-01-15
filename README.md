@@ -12,8 +12,6 @@ This repository includes scripts to set up a Metal³ development environment.
 [![CentOS Integration daily release-1.5 build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_release-1-5_integration_test_centos&subject=CentOS%20daily%20release-1.5)](https://jenkins.nordix.org/view/Metal3%20Periodic/job/metal3_daily_release-1-5_integration_test_centos/)
 [![Ubuntu Integration daily release-1.4 build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_release-1-4_integration_test_ubuntu&subject=Ubuntu%20daily%20release-1.4)](https://jenkins.nordix.org/view/Metal3%20Periodic/job/metal3_daily_release-1-4_integration_test_ubuntu/)
 [![CentOS Integration daily release-1.4 build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_release-1-4_integration_test_centos&subject=CentOS%20daily%20release-1.4)](https://jenkins.nordix.org/view/Metal3%20Periodic/job/metal3_daily_release-1-4_integration_test_centos/)
-[![Ubuntu Integration daily release-1.3 build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_release-1-3_integration_test_ubuntu&subject=Ubuntu%20daily%20release-1.3)](https://jenkins.nordix.org/view/Metal3%20Periodic/job/metal3_daily_release-1-3_integration_test_ubuntu/)
-[![CentOS Integration daily release-1.3 build status](https://jenkins.nordix.org/buildStatus/icon?job=metal3_daily_release-1-3_integration_test_centos&subject=CentOS%20daily%20release-1.3)](https://jenkins.nordix.org/view/Metal3%20Periodic/job/metal3_daily_release-1-3_integration_test_centos/)
 
 ## Instructions
 
@@ -183,10 +181,13 @@ these documents:
 
 The following table describes which branches are tested for different test triggers:
 
+<!-- markdownlint-disable MD013 -->
+
 | test suffix | CAPM3 branch | IPAM branch  | BMO branch/tag  | Keepalived tag | Ironic tag |
 | ----------- | ------------ | -----------  | --------------- | -------------- | ---------- |
 | main        | main         | main         | main            | latest         | latest     |
 | release-1-6 | release-1.6  | release-1.6  | release-0.5     | v0.5.0         | v23.1.0    |
 | release-1-5 | release-1.5  | release-1.5  | release-0.4     | v0.4.1         | v23.1.0    |
 | release-1-4 | release-1.4  | release-1.4  | release-0.3     | v0.3.1         | v23.1.0    |
-| release-1-3 | release-1.3  | release-1.3  | v0.2.0          | v0.2.0         | v23.1.0    |
+
+<!-- markdownlint-enable MD013 -->
