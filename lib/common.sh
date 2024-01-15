@@ -251,7 +251,7 @@ export DOCKER_REGISTRY_IMAGE="${DOCKER_REGISTRY_IMAGE:-${DOCKER_HUB_PROXY}/libra
 # Registry to pull metal3 container images from
 export CONTAINER_REGISTRY="${CONTAINER_REGISTRY:-quay.io}"
 
-# VBMC and Redfish images
+# BMC emulator images
 export VBMC_IMAGE="${VBMC_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/vbmc}"
 export SUSHY_TOOLS_IMAGE="${SUSHY_TOOLS_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/sushy-tools}"
 
@@ -283,6 +283,9 @@ else
   export BMOBRANCH="${BMORELEASEBRANCH:-main}"
 fi
 
+# IPXE support image
+export IPXE_BUILDER_IMAGE="${IPXE_BUILDER_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/ipxe-builder}"
+
 # Ironic vars
 export IRONIC_TLS_SETUP=${IRONIC_TLS_SETUP:-"true"}
 export IRONIC_BASIC_AUTH=${IRONIC_BASIC_AUTH:-"true"}
@@ -293,6 +296,14 @@ export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 export IRONIC_NAMESPACE="${IRONIC_NAMESPACE:-baremetal-operator-system}"
 export NAMEPREFIX="${NAMEPREFIX:-baremetal-operator}"
+
+# iPXE vars of ironic-image
+export BUILD_IPXE="${BUILD_IPXE:-false}"
+export IPXE_ENABLE_TLS="${IPXE_ENABLE_TLS:-false}"
+export IPXE_ENABLE_IPV6="${IPXE_ENABLE_IPV6:-false}"
+export IPXE_RELEASE_BRANCH="${IPXE_RELEASE_BRANCH:-v1.21.1}"
+export IPXE_SOURCE_FORCE_UPDATE="${IPXE_SOURCE_FORCE_UPDATE:-false}"
+export IPXE_SOURCE_DIR="${IRONIC_DATA_DIR}/ipxe-source"
 
 export IRONIC_KEEPALIVED_IMAGE="${IRONIC_KEEPALIVED_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/keepalived:${KEEPALIVED_TAG}}"
 export MARIADB_IMAGE="${MARIADB_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/mariadb:${MARIADB_TAG}}"
@@ -557,7 +568,7 @@ differs(){
 #
 remove_ironic_containers() {
   #shellcheck disable=SC2015
-  for name in ipa-downloader vbmc sushy-tools httpd-infra; do
+  for name in ipa-downloader vbmc sushy-tools httpd-infra ipxe-builder; do
     if sudo "${CONTAINER_RUNTIME}" ps | grep -w -q "${name}$"; then
         sudo "${CONTAINER_RUNTIME}" kill "${name}" || true
     fi

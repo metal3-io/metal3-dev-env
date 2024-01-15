@@ -42,7 +42,7 @@ source lib/ironic_basic_auth.sh
 #
 # Create the BMO deployment (not used for CAPM3 v1a4 since BMO is bundeled there)
 #
-function launch_baremetal_operator() {
+launch_baremetal_operator() {
   pushd "${BMOPATH}"
 
   # Deploy BMO using deploy.sh script
@@ -462,6 +462,46 @@ function start_management_cluster () {
   fi
 }
 
+build_ipxe_firmware () {
+# Build iPXE firmware during deployment (only available on ubuntu)
+    # vars with CENV_ARG postfix are container environment variable arguments
+    # and only used to pass the env var to the containers
+    IPXE_BUILDER_IMAGE="${REGISTRY}/localimages/ipxe-builder:latest"
+    export IPXE_ENABLE_TLS_CENV_ARG="IPXE_ENABLE_TLS='false'"
+    export IPXE_ENABLE_IPV6_CENV_ARG="IPXE_ENABLE_IPV6='false'"
+    declare -a CERTS_MOUNTS=()
+    if [[ "${BUILD_IPXE}" != "true" ]]; then
+        return 0
+    fi
+    if [[ ! -r "${IPXE_SOURCE_DIR}" ]]; then
+        git clone --depth 1 --branch "${IPXE_RELEASE_BRANCH}" \
+            "https://github.com/ipxe/ipxe.git" "${IPXE_SOURCE_DIR}"
+        chmod -R 777 "${IPXE_SOURCE_DIR}"
+    elif [[ "${IPXE_SOURCE_FORCE_UPDATE}" = "true" ]]; then
+        rm -rf "/tmp/ipxe-source"
+        #shellcheck disable=SC2086
+        git clone --depth 1 --branch "${IPXE_RELEASE_BRANCH}" \
+            "https://github.com/ipxe/ipxe.git" "/tmp/ipxe-source"
+        rm -rf "${IPXE_SOURCE_DIR}"
+        mv "/tmp/ipxe-source" "${IPXE_SOURCE_DIR}"
+        rm -rf "/tmp/ipxe-source"
+    fi
+    if [[ "${IPXE_ENABLE_TLS}" = "true" ]]; then
+        export IPXE_ENABLE_TLS_CENV_ARG="IPXE_ENABLE_TLS=true"
+        CERTS_MOUNTS+=("-v ${IPXE_CACERT_FILE}:/certs/ca/ipxe/tls.crt")
+        CERTS_MOUNTS+=("-v ${IPXE_CERT_FILE}:/certs/ipxe/tls.crt")
+        CERTS_MOUNTS+=("-v ${IPXE_KEY_FILE}:/certs/ipxe/tls.key ")
+    fi
+    if [[ "${IPXE_ENABLE_IPV6}" = "true" ]]; then
+        export IPXE_ENABLE_IPV6_CENV_ARG="IPXE_ENABLE_IPV6=true"
+    fi
+
+    #shellcheck disable=SC2086,SC2068
+    sudo "${CONTAINER_RUNTIME}" run --net host --name ipxe-builder ${POD_NAME} \
+        -e "${IPXE_ENABLE_TLS_CENV_ARG}" -e "${IPXE_ENABLE_IPV6_CENV_ARG}" \
+        -e "IRONIC_IP=${IRONIC_HOST_IP}" ${CERTS_MOUNTS[@]} \
+        -v "${IRONIC_DATA_DIR}":/shared "${IPXE_BUILDER_IMAGE}"
+}
 # -----------------------------
 # Deploy the management cluster
 # -----------------------------
@@ -471,6 +511,7 @@ function start_management_cluster () {
 
 create_clouds_yaml
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
+  build_ipxe_firmware
   start_management_cluster
   kubectl create namespace metal3
 
