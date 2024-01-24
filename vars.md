@@ -7,11 +7,13 @@ recommended modifying or adding variables in `config_${user}.sh` config
 file instead of exporting them in the shell. By doing that, it is
 assured that they are persisted.
 
+<!-- markdownlint-disable MD013 MD034 -->
+
 | Name | Option | Allowed values | Default |
 | :------ | :------- | :--------------- | :-------- |
 | MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1|
 | EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
-| IP_STACK | Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. <br/> Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
+| IP_STACK | Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
 | EXTERNAL_VLAN_ID | If the "external" network is tagged, this is the VLAN id for the network, set on the network interface for the bare metal hosts. | "" or 1-4096 | "" |
 | EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "external" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
 | EXTERNAL_SUBNET_V6 | When using IPv6 stack, this is the subnet used on the "external" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv6 CIDR | fd55::/64 |
@@ -47,7 +49,7 @@ assured that they are persisted.
 | CLUSTER_APIENDPOINT_PORT | API endpoint port for target cluster | | "6443" |
 | BARE_METAL_PROVISIONER_INTERFACE | Cluster provisioning Interface | "ironicendpoint" | "ironicendpoint" |
 | POD_CIDR | Pod CIDR | "x.x.x.x/x" | "192.168.0.0/18" |
-| NODE_HOSTNAME_FORMAT | Node hostname format. This is a format string that must contain exactly one %d format field that will be replaced with an integer representing the number of the node. | "node-%d" |
+| NODE_HOSTNAME_FORMAT | Node hostname format. This is a format string that must contain exactly one %d format field that will be replaced with an integer representing the number of the node. | "node-%d" | "node-%d" |
 | KUBERNETES_VERSION | Kubernetes version | "x.x.x" | "1.29.0" |
 | UPGRADED_K8S_VERSION | Upgraded Kubernetes version | "x.x.x" | "1.29.0" |
 | KUBERNETES_BINARIES_VERSION | Version of kubelet, kubeadm and kubectl | "x.x.x-xx" or "x.x.x" | same as KUBERNETES_VERSION |
@@ -88,10 +90,10 @@ assured that they are persisted.
 | MARIADB_CERT_FILE | Path to the cert of MariaDB | | /opt/metal3-dev-env/certs/mariadb.crt |
 | MARIADB_CAKEY_FILE | Path to the CA key of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.key |
 | MARIADB_CACERT_FILE | Path to the CA certificate of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.pem |
-| M3PATH | Path to clone the Metal3 Development Environment repository | | $HOME/go/src/github.com/metal3-io
-| BMOPATH | Path to clone the Bare Metal Operator repository | | $HOME/go/src/github.com/metal3-io/baremetal-operator
-| CAPM3PATH | Path to clone the Cluster API Provider Metal3 repository | | $HOME/go/src/github.com/metal3-io/cluster-api-provider-metal3
-| CAPIPATH | Path to clone the Cluster API repository | | $HOME/go/src/github.com/metal3-io/cluster-api
+| M3PATH | Path to clone the Metal3 Development Environment repository | | $HOME/go/src/github.com/metal3-io |
+| BMOPATH | Path to clone the Bare Metal Operator repository | | $HOME/go/src/github.com/metal3-io/baremetal-operator |
+| CAPM3PATH | Path to clone the Cluster API Provider Metal3 repository | | $HOME/go/src/github.com/metal3-io/cluster-api-provider-metal3 |
+| CAPIPATH | Path to clone the Cluster API repository | | $HOME/go/src/github.com/metal3-io/cluster-api |
 | IPAMPATH | Path to clone IP Address Manager repository | | $HOME/go/src/github.com/metal3-io/ip-address-manager |
 | CAPIREPO | Cluster API git repository URL | | https://github.com/kubernetes-sigs/cluster-api |
 | CAPIBRANCH | Cluster API git repository branch to checkout | | main |
@@ -129,8 +131,11 @@ assured that they are persisted.
 | ENABLE_NATED_PROVISIONING_NETWORK | A single boolean to configure whether provisioner and provisioning networks are in separate subnets and there is NAT betweend them or not | "true","false" | "false" |
 | CAPI_CONFIG_FOLDER | Cluster API config folder path  | `$HOME/.cluster-api/`, `$XDG_CONFIG_HOME/cluster-api`, `$HOME/.config/cluster-api` | `$HOME/.config/cluster-api` |
 
-**NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the `BRANCH` variables so make sure that
-RELEASE and BRANCH variables are not conflicting.
+<!-- markdownlint-enable MD013 MD034 -->
+
+**NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the
+`BRANCH` variables so make sure that RELEASE and BRANCH variables are
+not conflicting.
 
 ## Local IPA
 
@@ -140,8 +145,9 @@ directly deployed to  the OCI runtime (no K8s pod)
 
 ## Local images
 
-Environment variables with `_LOCAL_IMAGE` in their name are used to specify directories that contain the code to build the
-components locally e.g. `CAPM3_LOCAL_IMAGE`.
+Environment variables with `_LOCAL_IMAGE` in their name are used to
+specify directories that contain the code to build the components
+locally e.g. `CAPM3_LOCAL_IMAGE`.
 
 ## Additional networks
 
@@ -155,7 +161,7 @@ and then ipv4, ipv6 or dual stack subnets can be defined as in the
 following example (note that the name prefix in the subnet variables
 is always uppercase, even if the `EXTRA_NETWORK_NAMES` are lowercase):
 
-```
+```bash
 export EXTRA_NETWORK_NAMES="nmstate1 nmstate2"
 export NMSTATE1_NETWORK_SUBNET_V4='192.168.221.0/24'
 export NMSTATE1_NETWORK_SUBNET_V6='fd2e:6f44:5dd8:ca56::/120'
