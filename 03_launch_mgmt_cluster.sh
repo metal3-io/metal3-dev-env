@@ -139,6 +139,8 @@ function update_images(){
 function launch_ironic() {
   pushd "${BMOPATH}"
 
+  inspector_default=$(grep USE_IRONIC_INSPECTOR "${BMOPATH}/ironic-deployment/default/ironic_bmo_configmap.env" || true)
+
     # Update Configmap parameters with correct urls
     # Variable names inserted into the configmap might have different
     # naming conventions than the dev-env e.g. PROVISIONING_IP and CIDR are
@@ -158,6 +160,7 @@ IRONIC_FAST_TRACK=true
 RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED}"
 IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
 IRONIC_USE_MARIADB=${IRONIC_USE_MARIADB:-false}
+${inspector_default}
 EOF
 
   if [ -n "${DEPLOY_ISO_URL}" ]; then
