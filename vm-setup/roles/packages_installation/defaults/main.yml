@@ -95,7 +95,6 @@ packages:
         - redhat-lsb-core
     el9:
       packages:
-        - NetworkManager-initscripts-updown
         - python3-requests-oauthlib
     pip3:
       - flask_oauthlib==0.9.6
