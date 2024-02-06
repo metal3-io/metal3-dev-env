@@ -63,7 +63,6 @@ packages:
         - bind-utils
         - curl
         - dnsmasq
-        - edk2-ovmf
         - firewalld
         - genisoimage
         - httpd-tools
