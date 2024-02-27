@@ -225,6 +225,8 @@ EOF
 # Create the BMH CRs
 #
 function make_bm_hosts() {
+  mkdir -p "${WORKING_DIR}/bmhs"
+  i=0
   while read -r name address user password mac; do
     go run "${BMOPATH}"/cmd/make-bm-worker/main.go \
       -address "$address" \
@@ -232,7 +234,8 @@ function make_bm_hosts() {
       -user "$user" \
       -boot-mac "$mac" \
       -boot-mode "${BOOT_MODE}" \
-      "$name"
+      "$name" | tee "${WORKING_DIR}/bmhs/node_${i}.yaml" >> "${WORKING_DIR}/bmhosts_crs.yaml"
+      i=$((i+1))
   done
 }
 
@@ -242,7 +245,7 @@ function make_bm_hosts() {
 function apply_bm_hosts() {
   NAMESPACE=$1
   pushd "${BMOPATH}"
-  list_nodes | make_bm_hosts > "${WORKING_DIR}/bmhosts_crs.yaml"
+  list_nodes | make_bm_hosts
   if [[ -n "$(list_nodes)" ]]; then
     echo "bmhosts_crs.yaml is applying"
     while ! kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n "$NAMESPACE" &>/dev/null; do
