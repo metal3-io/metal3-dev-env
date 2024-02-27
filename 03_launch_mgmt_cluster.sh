@@ -264,7 +264,7 @@ function update_capm3_imports(){
   pushd "${CAPM3PATH}"
 
   # Modify the kustomization imports to use local BMO repo instead of Github Main
-  if [[ "${CAPM3BRANCH}" == "release-1.5" ]] || [[ "${CAPM3BRANCH}" == "release-1.4" ]]; then
+  if [[ "${CAPM3RELEASEBRANCH}" == "release-1.5" ]] || [[ "${CAPM3RELEASEBRANCH}" == "release-1.4" ]]; then
     make hack/tools/bin/kustomize
   else
     make kustomize
