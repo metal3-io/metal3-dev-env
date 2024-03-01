@@ -9,7 +9,6 @@
           - vbmc
       ironic_containers:
           - ironic
-          - ironic-inspector
           - ironic-endpoint-keepalived
           - ironic-log-watch
           - dnsmasq
