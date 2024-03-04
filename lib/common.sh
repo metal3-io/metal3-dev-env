@@ -275,7 +275,7 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.6" ]]; then
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.6"}
   export BARE_METAL_OPERATOR_TAG="v0.5.0"
   export KEEPALIVED_TAG="v0.5.0"
-  export IRONIC_TAG="v23.1.0"
+  export IRONIC_TAG="v24.0.0"
   export BMOBRANCH="${BMORELEASEBRANCH:-release-0.5}"
 else
   export CAPM3_IMAGE="${CAPM3_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main}"
