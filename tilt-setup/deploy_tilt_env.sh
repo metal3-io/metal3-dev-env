@@ -30,8 +30,12 @@ kubectl create namespace "${NAMESPACE}"
 kubectl create namespace "${IRONIC_NAMESPACE}"
 mkdir -p "${HOME}/.config/cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}"
 make tilt-up &
-# wait for cert-manager to be ready
-sleep 120
+# wait for cert-manager to be ready, timeout after 120 seconds
+for i in {1..8}; do
+    kubectl get pods -n cert-manager | grep -E 'webhook.*Running' && break
+    echo "Waiting for cert-manager webhooks to be ready... Attempt $i/8"
+    sleep 15
+done
 launch_ironic
 # deploy bmo in order to generate ironic credentials and tls
 launch_baremetal_operator
@@ -85,17 +89,30 @@ spec:
           - mountPath: /opt/metal3/auth/ironic
             name: ironic-credentials
             readOnly: true
+EOF
+
+if [ -n "${IRONICINSPECTOR_SECRET_NAME}" ]; then
+    cat <<EOF >> config/overlays/tilt/ironic-credentials-patch.yaml
           - mountPath: /opt/metal3/auth/ironic-inspector
             name: ironic-inspector-credentials
             readOnly: true
       volumes:
       - name: ironic-credentials
         secret:
-          secretName: ${IRONICINSPECTOR_SECRET_NAME}
+          secretName: ${IRONIC_SECRET_NAME}
       - name: ironic-inspector-credentials
+        secret:
+          secretName: ${IRONICINSPECTOR_SECRET_NAME}
+EOF
+else
+    cat <<EOF >> config/overlays/tilt/ironic-credentials-patch.yaml
+      volumes:
+      - name: ironic-credentials
         secret:
           secretName: ${IRONIC_SECRET_NAME}
 EOF
+fi
+
 "${BMOPATH}"/tools/bin/kustomize build config/overlays/tilt
 popd
 
