@@ -341,6 +341,14 @@ function patch_clusterctl(){
   mkdir -p "${CAPI_CONFIG_FOLDER}"
   touch "${CAPI_CONFIG_FOLDER}"/clusterctl.yaml
 
+  # Set IPAM-provider in clusterctl.yaml to use clsuterctl to deploy IPAM-provider
+  cat << EOF >> "${CAPI_CONFIG_FOLDER}"/clusterctl.yaml
+providers:
+- name: in-cluster
+  url: https://github.com/kubernetes-sigs/cluster-api-ipam-provider-in-cluster/releases/latest/ipam-components.yaml
+  type: IPAMProvider
+EOF
+
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
   if [ -n "${CAPM3_LOCAL_IMAGE:-}" ]; then
@@ -360,7 +368,7 @@ function patch_clusterctl(){
 
   rm -rf "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
- cp out/*.yaml "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  cp out/*.yaml "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   popd
 }
 
@@ -389,7 +397,7 @@ function launch_cluster_api_provider_metal3() {
 
     # shellcheck disable=SC2153
   clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
-    --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
+    --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" --ipam in-cluster -v5
 
   if [ "${CAPM3_RUN_LOCAL}" == true ]; then
     touch capm3.out.log
