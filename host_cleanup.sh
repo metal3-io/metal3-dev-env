@@ -63,6 +63,10 @@ fi
 # Clean up any serial logs
 sudo rm -rf /var/log/libvirt/qemu/*serial0.log*
 
+# Clean up BMH CRs
+sudo rm -rf "${WORKING_DIR}"/bmhosts_crs.yaml
+sudo rm -rf "${WORKING_DIR}"/bmhs
+
 # TODO(Sunnatillo): Remove first line after deprication of camp3 v1.4
 rm -rf "${HOME}"/.cluster-api
 
