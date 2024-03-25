@@ -65,13 +65,6 @@
       namespace: "{{ IRONIC_NAMESPACE }}"
     when: EPHEMERAL_CLUSTER == "minikube"
   
-  - name: Remove BMO deployment from source cluster
-    kubernetes.core.k8s:
-      name: "{{ NAMEPREFIX }}"
-      kind: Deployment
-      state: absent
-      namespace: "{{ IRONIC_NAMESPACE }}"
-
   - name: Label baremetalhost CRD to pivot.
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
     with_items:
@@ -175,6 +168,13 @@
 
   - name: Pivot objects to target cluster
     shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
+
+  - name: Remove BMO deployment from source cluster
+    kubernetes.core.k8s:
+      name: "{{ NAMEPREFIX }}-controller-manager"
+      kind: Deployment
+      state: absent
+      namespace: "{{ IRONIC_NAMESPACE }}"
 
   - name: Verify that all machines are provisioned and running.
     include_tasks: verify_resources_states.yml
