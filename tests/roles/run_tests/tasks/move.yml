@@ -64,7 +64,7 @@
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
     when: EPHEMERAL_CLUSTER == "minikube"
-  
+
   - name: Label baremetalhost CRD to pivot.
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
     with_items:
@@ -114,7 +114,7 @@
 
   # Install BMO
   - name: Install Baremetal Operator
-    shell: "{{ BMOPATH }}/tools/deploy.sh -b {{ BMO_IRONIC_ARGS }}"
+    shell: "{{ BMOPATH }}/tools/deploy-cli -b {{ BMO_IRONIC_ARGS }}"
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
@@ -124,7 +124,7 @@
 
   # Install Ironic
   - name: Install Ironic
-    shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
+    shell: "{{ BMOPATH }}/tools/deploy-cli -i {{ BMO_IRONIC_ARGS }}"
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"

@@ -139,8 +139,12 @@ export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 
 export M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
 export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
-export BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
+# export BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
+# export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
+export BMOREPO="${BMOREPO:-https://github.com/Nordix/baremetal-operator.git}"
+export BMO_BASE_URL="${BMO_BASE_URL:-Nordix/baremetal-operator}"
+export BMOCOMMIT="${BMOCOMMIT:-deploy-script-to-go-lang/max}"
+# export BMOCOMMIT="${BMOCOMMIT:-deploy-script-to-go-lang-feedback-2}"
 
 export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 
@@ -171,7 +175,7 @@ export CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
 export CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 export CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 
-export BMOCOMMIT="${BMOCOMMIT:-HEAD}"
+# export BMOCOMMIT="${BMOCOMMIT:-HEAD}"
 export CAPM3COMMIT="${CAPM3COMMIT:-HEAD}"
 export IPAMCOMMIT="${IPAMCOMMIT:-HEAD}"
 export CAPICOMMIT="${CAPICOMMIT:-HEAD}"

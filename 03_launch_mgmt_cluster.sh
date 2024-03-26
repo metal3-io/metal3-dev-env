@@ -27,9 +27,6 @@ if [ "${IRONIC_USE_MARIADB:-false}" == "true" ]; then
   BMO_IRONIC_ARGS+=("-m")
 fi
 
-sudo mkdir -p "${IRONIC_DATA_DIR}"
-sudo chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
-
 # shellcheck disable=SC1091
 source lib/ironic_tls_setup.sh
 # shellcheck disable=SC1091
@@ -39,13 +36,29 @@ source lib/ironic_basic_auth.sh
 # BMO and Ironic deployment functions
 # ------------------------------------
 
+deploy_ironic_and_or_bmo() {
+  export NAMEPREFIX=${NAMEPREFIX:-"baremetal-operator"}
+
+  IRONIC_DATA_DIR="${IRONIC_DATA_DIR:-/opt/metal3/ironic}"
+  IRONIC_AUTH_DIR="${IRONIC_AUTH_DIR:-${IRONIC_DATA_DIR}/auth}"
+
+  sudo mkdir -p "${IRONIC_DATA_DIR}"
+  sudo mkdir -p "${IRONIC_AUTH_DIR}"
+
+  sudo chown -R "${USER}:$(id -gn)" "${IRONIC_DATA_DIR}"
+  sudo chown "${USER}:$(id -gn)" "${IRONIC_AUTH_DIR}"
+
+  sudo chmod -R 755 "${IRONIC_DATA_DIR}"
+  sudo chmod 755 "${IRONIC_AUTH_DIR}"
+
+  "${BMOPATH}/tools/deploy-cli" "$@"
+}
+
 #
 # Create the BMO deployment (not used for CAPM3 v1a4 since BMO is bundeled there)
 #
 launch_baremetal_operator() {
   pushd "${BMOPATH}"
-
-  # Deploy BMO using deploy.sh script
 
 if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   # Update container images to use local ones
@@ -73,8 +86,8 @@ EOF
     echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${BMOPATH}/config/default/ironic.env"
   fi
 
-  # Deploy BMO using deploy.sh script
-  "${BMOPATH}/tools/deploy.sh" -b "${BMO_IRONIC_ARGS[@]}"
+  # Deploy BMO using the deploy-cli executable
+	deploy_ironic_and_or_bmo -b "${BMO_IRONIC_ARGS[@]}"
 
   # If BMO should run locally, scale down the deployment and run BMO
   if [ "${BMO_RUN_LOCAL}" == "true" ]; then
@@ -210,8 +223,8 @@ EOF
     update_images
     ${RUN_LOCAL_IRONIC_SCRIPT}
   else
-    # Deploy Ironic using deploy.sh script
-    "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
+    # Deploy Ironic using the deploy-cli executable
+    deploy_ironic_and_or_bmo -i "${BMO_IRONIC_ARGS[@]}"
   fi
   popd
 }
@@ -360,7 +373,7 @@ function patch_clusterctl(){
 
   rm -rf "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   mkdir -p "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
- cp out/*.yaml "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  cp out/*.yaml "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   popd
 }
 
