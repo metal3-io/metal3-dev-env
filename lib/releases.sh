@@ -58,7 +58,7 @@ function get_latest_release() {
 
   # if release_tag is not found
   if [ -z "${release_tag}" ]; then
-    echo "Error: release is not found from ${release_path}"
+    echo "Error: release is not found from ${release_path}" >&2
     exit 1
   else
     echo "${release_tag}"
