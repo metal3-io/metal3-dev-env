@@ -69,12 +69,12 @@
 #
 # Set the Cluster Api Metal3 provider repository to clone
 #
-#export CAPM3REPO="${CAPM3REPO:-https://github.com/metal3-io/cluster-api-provider-metal3.git}"
+export CAPM3REPO="https://github.com/Nordix/cluster-api-provider-metal3.git"
 
 #
 # Set the Cluster Api Metal3 provider branch to checkout
 #
-#export CAPM3BRANCH="${CAPM3BRANCH:-main}"
+export CAPM3BRANCH="test/CAPM3-with-CAPIs-in-cluster-IPAM_PEPPI"
 
 #
 # Force deletion of the BMO and CAPM3 repositories before cloning them again
