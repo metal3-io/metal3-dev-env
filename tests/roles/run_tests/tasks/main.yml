@@ -19,6 +19,10 @@
   changed_when: "'configured' in kubectl_apply_controlplane.stdout"
   when: v1aX_integration_test_action in provision_controlplane_actions
 
+- name: Install calico
+  include_tasks: calico.yml
+  when: v1aX_integration_test_action in provision_controlplane_actions
+
 - name: Create worker nodes
   shell: kubectl apply -f "{{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_workers_{{ IMAGE_OS }}.yaml" -n "{{ NAMESPACE }}"
   register: kubectl_apply_workers

@@ -1,5 +1,5 @@
 # CentOS specific controlplane kubeadm config
-preKubeadmCommands:
+preK3sCommands:
   - systemctl restart NetworkManager.service
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
   - nmcli connection up {{ IRONIC_ENDPOINT_BRIDGE }}
@@ -16,17 +16,21 @@ preKubeadmCommands:
   - nmcli connection up /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
 {% endif %}
   - rm /etc/cni/net.d/*
+  - curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server" sh -s - --flannel-backend none
   - systemctl enable --now keepalived
   - sleep 30
-  - systemctl enable --now crio
-  - sleep 30
-  - systemctl enable --now kubelet
-  - sleep 120
-postKubeadmCommands:
-  - mkdir -p /home/{{ IMAGE_USERNAME }}/.kube
-  - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube
-  - cp /etc/kubernetes/admin.conf /home/{{ IMAGE_USERNAME }}/.kube/config
-  - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube/config
+
+postK3sCommands:
+  - useradd -m metal3
+  - echo 'metal3:password' | chpasswd
+  - usermod -aG sudo metal3
+  - echo 'metal3 ALL=(ALL) NOPASSWD:ALL' | EDITOR='tee -a' visudo
+  - mkdir /home/metal3/.ssh
+  - chown metal3:metal3 /home/metal3/.ssh
+  - chmod 700 /home/metal3/.ssh
+  - echo {{ SSH_PUB_KEY_CONTENT }} > /home/metal3/.ssh/authorized_keys
+  - chown metal3:metal3 /home/metal3/.ssh/authorized_keys
+  - chmod 600 /home/metal3/.ssh/authorized_keys
 files:
   - path: /usr/local/bin/retrieve.configuration.files.sh
     owner: root:root

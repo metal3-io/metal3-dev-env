@@ -1,0 +1,8 @@
+providers:
+- name: "k3s"
+  url: ${PWD}/bootstrap-k3s/v1.2.2/bootstrap-components.yaml
+  type: "BootstrapProvider"
+- name: "k3s"
+  url: ${PWD}/control-plane-k3s/v1.2.2/control-plane-components.yaml
+  type: "ControlPlaneProvider"
+# override a pre-defined provider

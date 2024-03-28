@@ -25,7 +25,7 @@ spec:
         configRef:
           name: ${ CLUSTER_NAME }-workers
           apiVersion: bootstrap.cluster.x-k8s.io/{{ CAPI_VERSION }}
-          kind: KubeadmConfigTemplate
+          kind: KThreesConfigTemplate
       infrastructureRef:
         name: ${ CLUSTER_NAME }-workers
         apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
@@ -53,28 +53,22 @@ spec:
 {% endwith %}
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/{{ CAPI_VERSION }}
-kind: KubeadmConfigTemplate
+kind: KThreesConfigTemplate
 metadata:
   name: ${ CLUSTER_NAME }-workers
   namespace: ${ NAMESPACE }
 spec:
   template:
     spec:
-      joinConfiguration:
-        nodeRegistration:
-          name: "{{ '{{ ds.meta_data.name }}' }}"
-          kubeletExtraArgs:
-            node-labels: "metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}"
-            provider-id: "metal3://{{ '{{ ds.meta_data.providerid }}' }}"
-            feature-gates: "AllAlpha=false"
-            cgroup-driver: "systemd"
-            container-runtime-endpoint: "unix:///var/run/crio/crio.sock"
-            runtime-request-timeout: "5m"
-      users:
-      - name: {{ IMAGE_USERNAME }}
-        sudo: "ALL=(ALL) NOPASSWD:ALL"
-        sshAuthorizedKeys:
-        - {{ SSH_PUB_KEY_CONTENT }}
+      agentConfig:
+        kubeletArgs:
+          - "cgroup-driver=systemd"
+          - "container-runtime-endpoint=unix:///var/run/crio/crio.sock"
+          - "feature-gates=AllAlpha=false"
+          - "node-labels=metal3.io/uuid={{ '{{ ds.meta_data.uuid }}' }}"
+          - "provider-id=metal3://{{ '{{ ds.meta_data.providerid }}' }}"
+          - "runtime-request-timeout=5m"
+        nodeName: "{{ '{{ ds.meta_data.name }}' }}"
 {% filter indent(width=6, first=True) %}
 {% include "cluster-template-workers-kubeadm-config-%s.yaml" % IMAGE_OS %}
 {% endfilter %}

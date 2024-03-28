@@ -182,21 +182,19 @@ check_container(){
 
 KUBECONFIG="${KUBECONFIG:-${HOME}/.kube/config}"
 EXPTD_V1ALPHAX_V1BETAX_CRDS="clusters.cluster.x-k8s.io \
-  kubeadmconfigs.bootstrap.cluster.x-k8s.io \
-  kubeadmconfigtemplates.bootstrap.cluster.x-k8s.io \
+  kthreesconfigs.bootstrap.cluster.x-k8s.io \
+  kthreesconfigtemplates.bootstrap.cluster.x-k8s.io \
   machinedeployments.cluster.x-k8s.io \
   machines.cluster.x-k8s.io \
   machinesets.cluster.x-k8s.io \
   baremetalhosts.metal3.io"
 EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-system:capi-controller-manager \
-  capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
-  capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
+  capi-k3s-bootstrap-system:capi-k3s-bootstrap-controller-manager \
+  capi-k3s-control-plane-system:capi-k3s-control-plane-controller-manager \
   baremetal-operator-system:baremetal-operator-controller-manager"
 EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:2 \
-  cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
-  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
-  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1"
+  cluster.x-k8s.io/provider:cluster-api:capi-system:1"
 BRIDGES="provisioning external"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 
