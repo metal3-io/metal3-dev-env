@@ -28,7 +28,7 @@ make kind-reset
 kind create cluster --name capm3 --image="${KIND_NODE_IMAGE}"
 kubectl create namespace "${NAMESPACE}"
 kubectl create namespace "${IRONIC_NAMESPACE}"
-mkdir -p "${HOME}/.config/cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}"
+patch_clusterctl
 make tilt-up &
 # wait for cert-manager to be ready, timeout after 120 seconds
 for i in {1..8}; do
@@ -91,7 +91,7 @@ spec:
             readOnly: true
 EOF
 
-if [ -n "${IRONICINSPECTOR_SECRET_NAME}" ]; then
+if [[ -n "${IRONICINSPECTOR_SECRET_NAME}" ]]; then
     cat <<EOF >> config/overlays/tilt/ironic-credentials-patch.yaml
           - mountPath: /opt/metal3/auth/ironic-inspector
             name: ironic-inspector-credentials
