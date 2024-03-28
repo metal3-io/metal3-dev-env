@@ -28,4 +28,7 @@ test:
 lint:
 	./hack/shellcheck.sh
 
-.PHONY: all ci_run install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint
+prepull_images:
+	./lib/image_prepull.sh
+
+.PHONY: all ci_run install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint  prepull_images
