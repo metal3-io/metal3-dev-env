@@ -149,15 +149,15 @@ export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
 
-if [[ "${CAPM3RELEASEBRANCH}" == "release-1.4" ]]; then
-  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.4}"
-  export IPAMBRANCH="${IPAMBRANCH:-release-1.4}"
-elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.5" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" == "release-1.5" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.5}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.5}"
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.6" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.6}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.6}"
+elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.7" ]]; then
+  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.7}"
+  export IPAMBRANCH="${IPAMBRANCH:-release-1.7}"
 else
   export CAPM3BRANCH="${CAPM3BRANCH:-main}"
   export IPAMBRANCH="${IPAMBRANCH:-main}"
@@ -256,14 +256,7 @@ export VBMC_IMAGE="${VBMC_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/vbmc}"
 export SUSHY_TOOLS_IMAGE="${SUSHY_TOOLS_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/sushy-tools}"
 
 # CAPM3 and IPAM controller images
-if [[ "${CAPM3RELEASEBRANCH}" = "release-1.4" ]]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.4"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.4"}
-  export BARE_METAL_OPERATOR_TAG="v0.3.1"
-  export KEEPALIVED_TAG="v0.3.1"
-  export IRONIC_TAG="v23.1.0"
-  export BMOBRANCH="${BMORELEASEBRANCH:-release-0.3}"
-elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.5" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" = "release-1.5" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.5"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.5"}
   export BARE_METAL_OPERATOR_TAG="v0.4.2"
@@ -277,6 +270,13 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.6" ]]; then
   export KEEPALIVED_TAG="v0.5.1"
   export IRONIC_TAG="v24.0.0"
   export BMOBRANCH="${BMORELEASEBRANCH:-release-0.5}"
+elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.7" ]]; then
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.7"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.7"}
+  export BARE_METAL_OPERATOR_TAG="v0.6.0"
+  export KEEPALIVED_TAG="v0.6.0"
+  export IRONIC_TAG="v24.1.1"
+  export BMOBRANCH="${BMORELEASEBRANCH:-release-0.6}"
 else
   export CAPM3_IMAGE="${CAPM3_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main}"
   export IPAM_IMAGE="${IPAM_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main}"
