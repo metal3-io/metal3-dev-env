@@ -27,7 +27,7 @@ if [[ "${OS}" = "ubuntu" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
   fi
 elif [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
-  sudo dnf upgrade -y
+  sudo dnf upgrade -y --nobest
   case "${VERSION_ID}" in
     8)
       sudo dnf config-manager --set-enabled powertools
