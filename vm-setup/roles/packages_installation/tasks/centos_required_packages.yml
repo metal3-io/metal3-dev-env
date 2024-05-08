@@ -23,6 +23,7 @@
   dnf:
     name: "*"
     state: latest
+    nobest: true
   become: yes
 
 - name: Install podman
