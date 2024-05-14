@@ -104,14 +104,17 @@ clone_repo() {
   if [[ -d "${REPO_PATH}" ]] && [[ "${FORCE_REPO_UPDATE}" = "true" ]]; then
     rm -rf "${REPO_PATH}"
   fi
-  if [[ ! -d "${REPO_PATH}" ]] ; then
+  if [[ ! -d "${REPO_PATH}" ]]; then
     pushd "${M3PATH}" || exit
-    git clone "${REPO_URL}" "${REPO_PATH}"
-    popd || exit
-    pushd "${REPO_PATH}" || exit
-    git checkout "${REPO_BRANCH}"
-    git checkout "${REPO_COMMIT}"
-    git pull -r || true
+    if [[ "${REPO_COMMIT}" = "HEAD" ]]; then
+        git clone --depth 1 --branch "${REPO_BRANCH}" "${REPO_URL}" \
+            "${REPO_PATH}"
+    else
+        git clone --branch "${REPO_BRANCH}" "${REPO_URL}" "${REPO_PATH}"
+        pushd "${REPO_PATH}" || exit
+        git checkout "${REPO_COMMIT}"
+        popd || exit
+    fi
     popd || exit
   fi
 }
