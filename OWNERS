@@ -1,26 +1,20 @@
 # See the OWNERS docs at https://go.k8s.io/owners
 
 approvers:
- - kashifest
- - lentzi90
- - mboukhalfa
- - smoshiur1237
+- metal3-dev-env-maintainers
 
 reviewers:
- - dtantsur
- - elfosardo
- - Rozzii
- - Sunnatillo
- - tuminoid
+- metal3-dev-env-maintainers
+- metal3-dev-env-reviewers
 
 emeritus_approvers:
- - fmuyassarov
- - furkatgofurov7
- - hardys
- - maelk
+- fmuyassarov
+- furkatgofurov7
+- hardys
+- maelk
 
 emeritus_reviewers:
- - jan-est
- - macaptain
- - namnx228
- - xenwar 
+- jan-est
+- macaptain
+- namnx228
+- xenwar
