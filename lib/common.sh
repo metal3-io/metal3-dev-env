@@ -132,6 +132,9 @@ fi
 
 # shellcheck disable=SC2034
 # USE_LOCAL_IPA and IPA_DOWNLOAD_ENABLED also have effect on BMO repo
+export IPA_BASEURI="${IPA_BASEURI:-https://tarballs.opendev.org/openstack/ironic-python-agent/dib}"
+export IPA_BRANCH="${IPA_BRANCH:-master}"
+export IPA_FLAVOR="${IPA_FLAVOR:-centos9}"
 export USE_LOCAL_IPA="${USE_LOCAL_IPA:-false}"
 export LOCAL_IPA_PATH="${LOCAL_IPA_PATH:-/tmp/dib}"
 if [[ "${USE_LOCAL_IPA}" == "true" ]]; then
