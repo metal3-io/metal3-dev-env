@@ -293,7 +293,7 @@ fi
 export IPXE_BUILDER_IMAGE="${IPXE_BUILDER_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/ipxe-builder}"
 
 # Ironic vars
-export IRONIC_TLS_SETUP=${IRONIC_TLS_SETUP:-"true"}
+export IRONIC_TLS_SETUP=${IRONIC_TLS_SETUP:-"false"}
 export IRONIC_BASIC_AUTH=${IRONIC_BASIC_AUTH:-"true"}
 export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-ipa-downloader"}
 export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:${IRONIC_TAG}"}
