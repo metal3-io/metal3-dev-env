@@ -232,6 +232,9 @@ export CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 export WORKING_DIR="${WORKING_DIR:-/opt/metal3-dev-env}"
 export NODES_FILE="${NODES_FILE:-${WORKING_DIR}/ironic_nodes.json}"
 export NODES_PLATFORM="${NODES_PLATFORM:-libvirt}"
+export ANSIBLE_VENV="${ANSIBLE_VENV:-"${WORKING_DIR}/venv"}"
+# shellcheck disable=SC2034
+ANSIBLE="${ANSIBLE_VENV}/bin/ansible"
 
 # Metal3
 export NAMESPACE="${NAMESPACE:-metal3}"

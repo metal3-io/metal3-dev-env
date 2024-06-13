@@ -105,7 +105,7 @@ if ! sudo test -f /root/.ssh/id_rsa_virt_power; then
     sudo cat /root/.ssh/id_rsa_virt_power.pub | sudo tee -a /root/.ssh/authorized_keys
 fi
 
-ANSIBLE_FORCE_COLOR=true ansible-playbook \
+ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -e "working_dir=${WORKING_DIR}" \
     -e "num_nodes=${NUM_NODES}" \
     -e "extradisks=${VM_EXTRADISKS}" \
@@ -259,7 +259,7 @@ EOF
     fi
 fi
 
-ANSIBLE_FORCE_COLOR=true ansible-playbook \
+ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -e "use_firewalld=${USE_FIREWALLD}" \
     -i vm-setup/inventory.ini \
     -b vm-setup/firewall.yml
