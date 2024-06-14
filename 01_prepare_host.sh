@@ -16,7 +16,7 @@ if [[ "${OS}" = "ubuntu" ]]; then
   # make the data retrival more reliable
   sudo sh -c ' echo "Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries '
   sudo apt-get update
-  sudo apt-get -y install python3-pip python3-dev jq curl wget pkg-config bash-completion
+  sudo apt-get -y install python3-pip python3-dev python3-venv jq curl wget pkg-config bash-completion
 
   # Set update-alternatives to python3
   if [[ "${DISTRO}" = "ubuntu18" ]]; then
@@ -58,15 +58,18 @@ source lib/download.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
+# NOTE(dtantsur): system-site-packages is required because of certain Python
+# packages that cannot be pip-installed (firewalld, selinux, etc).
+sudo python -m venv --system-site-packages "${ANSIBLE_VENV}"
 # TODO: since ansible 8.0.0, pinning by digest is PITA, due additional ansible
 # dependencies, which would need to be pinned as well, so it is skipped for now
-sudo python -m pip install ansible=="${ANSIBLE_VERSION}"
+sudo "${ANSIBLE_VENV}/bin/pip" install ansible=="${ANSIBLE_VERSION}"
 
 # Install requirements
-ansible-galaxy install -r vm-setup/requirements.yml
+"${ANSIBLE}-galaxy" install -r vm-setup/requirements.yml
 
 # Install required packages
-ANSIBLE_FORCE_COLOR=true ansible-playbook \
+ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
   -e "working_dir=${WORKING_DIR}" \
   -e "metal3_dir=${SCRIPTDIR}" \
   -e "virthost=${HOSTNAME}" \
