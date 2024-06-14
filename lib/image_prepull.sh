@@ -7,9 +7,15 @@ source lib/images.sh
 
 mkdir -p "${IRONIC_IMAGE_DIR}"
 pushd "${IRONIC_IMAGE_DIR}"
-# Downloading image if it does not exist locally
+
 if [[ ! -f "${IMAGE_NAME}" ]]; then
-    wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
+    if [[ -f "${IMAGE_LOCATION}/${IMAGE_NAME}" ]]; then
+      # Copy local image  
+      cp "${IMAGE_LOCATION}/${IMAGE_NAME}" .
+    else
+      # Downloading image if it does not exist locally
+      wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
+    fi
     IMAGE_SUFFIX="${IMAGE_NAME##*.}"
     if [[ "${IMAGE_SUFFIX}" = "xz" ]]; then
       unxz -v "${IMAGE_NAME}"
