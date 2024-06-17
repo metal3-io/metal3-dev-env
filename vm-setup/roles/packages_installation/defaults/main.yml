@@ -89,10 +89,6 @@ packages:
         - vim-enhanced
         - virt-install
         - wget
-    el8:
-      packages:
-        - network-scripts
-        - redhat-lsb-core
     el9:
       packages:
         - python3-requests-oauthlib

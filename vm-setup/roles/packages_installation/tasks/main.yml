@@ -46,24 +46,17 @@
   become: yes
   when: ansible_facts['distribution'] == "Ubuntu"
 
-- name: Install packages on CentOS/RHEL8
+- name: Install packages on CentOS/RHEL
   block:
     - name: Install packages on CentOS/RHEL
       package:
           name: "{{ packages.centos.common.packages }}"
           state: present
-    - name: Install packages on CentOS8/RHEL8
-      package:
-          name: "{{ packages.centos.el8.packages }}"
-          state: present
-      when: ansible_distribution_version == "8"
     - name: Install packages on CentOS9/RHEL9
       package:
           name: "{{ packages.centos.el9.packages }}"
           state: present
       when: ansible_distribution_version == "9"
-    - name: Perform CentOS/RHEL8 required configurations
-      include_tasks: centos_required_packages.yml
     - name: Install packages using pip3
       pip:
         executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"

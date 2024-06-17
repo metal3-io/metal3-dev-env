@@ -60,10 +60,10 @@ source /etc/os-release
 export DISTRO="${ID}${VERSION_ID%.*}"
 export OS="${ID}"
 export OS_VERSION_ID="${VERSION_ID}"
-export SUPPORTED_DISTROS=(centos8 centos9 rhel8 rhel9 ubuntu18 ubuntu20 ubuntu22)
+export SUPPORTED_DISTROS=(centos9 rhel9 ubuntu18 ubuntu20 ubuntu22)
 
 if [[ ! "${SUPPORTED_DISTROS[*]}" =~ ${DISTRO} ]]; then
-  echo "Supported OS distros for the host are: CentOS Stream 8/9 or RHEL8/9 or Ubuntu20.04 or Ubuntu 22.04"
+  echo "Supported OS distros for the host are: CentOS Stream 9 or RHEL9 or Ubuntu20.04 or Ubuntu 22.04"
   exit 1
 fi
 
@@ -375,12 +375,12 @@ export TILT_SHA256="${TILT_SHA256:-b30ebbba68d4fd04f8afa11efc439515241dbcc2582ea
 
 # Ansible version
 # Older ubuntu version do no support 7.0.0 because of older python versions
-# Ubuntu 18/Centos8 have 4.10.0 as latest ansible
+# Ubuntu 18 has 4.10.0 as latest ansible
 # Ansible 7.0.0 or newer requires python 3.10+
 # TODO: Ansible pinning
 if [[ "${DISTRO}" = "ubuntu22" ]]; then
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-8.0.0}"
-elif [[ "${DISTRO}" = "ubuntu18" ]] || [[ "${DISTRO}" = "centos8" ]]; then
+elif [[ "${DISTRO}" = "ubuntu18" ]]; then
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-4.10.0}"
 else
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-6.7.0}"
