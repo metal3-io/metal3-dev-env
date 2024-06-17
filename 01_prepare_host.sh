@@ -60,10 +60,11 @@ source lib/network.sh
 
 # NOTE(dtantsur): system-site-packages is required because of certain Python
 # packages that cannot be pip-installed (firewalld, selinux, etc).
+rm -rf "${ANSIBLE_VENV}"
 sudo python -m venv --system-site-packages "${ANSIBLE_VENV}"
 # TODO: since ansible 8.0.0, pinning by digest is PITA, due additional ansible
 # dependencies, which would need to be pinned as well, so it is skipped for now
-sudo "${ANSIBLE_VENV}/bin/pip" install ansible=="${ANSIBLE_VERSION}"
+sudo "${ANSIBLE_VENV}/bin/pip" install --ignore-installed ansible=="${ANSIBLE_VERSION}"
 
 # Install requirements
 "${ANSIBLE}-galaxy" install -r vm-setup/requirements.yml
