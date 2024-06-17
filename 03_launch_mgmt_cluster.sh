@@ -409,7 +409,7 @@ function launch_cluster_api_provider_metal3() {
 # -------------
 
 function render_j2_config () {
-  python3 -c 'import os; import sys; import jinja2; sys.stdout.write(jinja2.Template(sys.stdin.read()).render(env=os.environ))' < "${1}"
+  "${ANSIBLE_VENV}/bin/python" -c 'import os; import sys; import jinja2; sys.stdout.write(jinja2.Template(sys.stdin.read()).render(env=os.environ))' < "${1}"
 }
 
 #
