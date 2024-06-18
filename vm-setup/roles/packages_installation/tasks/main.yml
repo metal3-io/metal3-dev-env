@@ -62,6 +62,8 @@
         executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
         name: "{{ packages.centos.pip3 }}"
         state: present
+    - name: Perform CentOS/RHEL required configurations
+      include_tasks: centos_required_packages.yml
     - name: Install TPM emulator packages
       when: tpm_emulator|default(false)|bool
       package:
