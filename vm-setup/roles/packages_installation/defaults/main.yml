@@ -31,12 +31,6 @@ packages:
         - ca-certificates
         - gnupg-agent
         - software-properties-common
-    bionic:
-      packages:
-        - libvirt-bin
-        - libpolkit-backend-1-0
-        - libssl1.0-dev
-        - python3-bcrypt
     focal_jammy:
       packages:
         - apparmor
