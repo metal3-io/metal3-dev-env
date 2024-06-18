@@ -19,9 +19,7 @@ if [[ "${OS}" = "ubuntu" ]]; then
   sudo apt-get -y install python3-pip python3-dev python3-venv jq curl wget pkg-config bash-completion
 
   # Set update-alternatives to python3
-  if [[ "${DISTRO}" = "ubuntu18" ]]; then
-    sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
-  elif [[ "${DISTRO}" = "ubuntu20" ]]; then
+  if [[ "${DISTRO}" = "ubuntu20" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
   elif [[ "${DISTRO}" = "ubuntu22" ]]; then
     sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
