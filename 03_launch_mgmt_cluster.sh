@@ -16,7 +16,7 @@ export REPO_IMAGE_PREFIX="quay.io"
 
 declare -a BMO_IRONIC_ARGS
 # -k is for keepalived
-BMO_IRONIC_ARGS=(-k)
+BMO_IRONIC_ARGS=()
 if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
   BMO_IRONIC_ARGS+=("-t")
 fi
@@ -138,7 +138,7 @@ function update_images(){
 #
 function launch_ironic() {
   pushd "${BMOPATH}"
-
+  _INTERFACE="eth0"
   inspector_default=$(grep USE_IRONIC_INSPECTOR "${BMOPATH}/ironic-deployment/default/ironic_bmo_configmap.env" || true)
 
     # Update Configmap parameters with correct urls
@@ -147,9 +147,7 @@ function launch_ironic() {
     # called PROVISIONER_IP and CIDR in dev-env
     cat << EOF | sudo tee "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
-PROVISIONING_IP=${CLUSTER_BARE_METAL_PROVISIONER_IP}
-PROVISIONING_CIDR=${BARE_METAL_PROVISIONER_CIDR}
-PROVISIONING_INTERFACE=${BARE_METAL_PROVISIONER_INTERFACE}
+PROVISIONING_INTERFACE=${_INTERFACE}
 DHCP_RANGE=${CLUSTER_DHCP_RANGE}
 DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
 DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
@@ -159,6 +157,9 @@ CACHEURL=http://${BARE_METAL_PROVISIONER_URL_HOST}/images
 RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED}"
 IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
 IRONIC_USE_MARIADB=${IRONIC_USE_MARIADB:-false}
+IRONIC_EXTERNAL_IP=172.22.0.2
+IRONIC_EXTERNAL_CALLBACK_URL=https://172.22.0.2:30085
+IRONIC_BASE_URL=https://172.22.0.2:30085
 ${inspector_default}
 IPA_BASEURI=${IPA_BASEURI}
 IPA_BRANCH=${IPA_BRANCH}
@@ -182,7 +183,7 @@ EOF
   fi
 
   # Copy the generated configmap for ironic deployment
-  cp "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/components/keepalived/ironic_bmo_configmap.env"
+  cp "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/default/ironic_bmo_configmap.env"
 
   # Update manifests to use the correct images.
   # Note: Even though the manifests are not used for local deployment we need
@@ -470,6 +471,7 @@ function start_management_cluster () {
       sudo su -l -c "minikube ssh sudo ip link set $BARE_METAL_PROVISIONER_INTERFACE up" "${USER}"
       sudo su -l -c "minikube ssh sudo brctl addif $BARE_METAL_PROVISIONER_INTERFACE eth2" "${USER}"
       sudo su -l -c "minikube ssh sudo ip addr add $INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP/$BARE_METAL_PROVISIONER_CIDR dev $BARE_METAL_PROVISIONER_INTERFACE" "${USER}"
+      minikube ssh sudo ip addr add 172.22.0.2/24 dev ironicendpoint
     fi
   fi
 }

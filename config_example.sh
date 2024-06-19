@@ -79,7 +79,7 @@
 #
 # Force deletion of the BMO and CAPM3 repositories before cloning them again
 #
-#export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
+export FORCE_REPO_UPDATE=false
 
 #
 # Run a local baremetal operator instead of deploying in Kubernetes
@@ -113,8 +113,11 @@
 # Set the driver. The default value is 'mixed' (alternate nodes between ipmi
 # and redfish). Can also be set explicitly to ipmi/redfish/redfish-virtualmedia.
 #
-#export BMC_DRIVER="mixed"
-
+export BMC_DRIVER="redfish-virtualmedia"
+# Ports
+export HTTP_PORT="${HTTP_PORT:-30080}"
+export IRONIC_INSPECTOR_PORT="${IRONIC_INSPECTOR_PORT:-30050}"
+export IRONIC_API_PORT="${IRONIC_API_PORT:-30085}"
 #
 # Set libvirt firmware and BMC bootMode
 # Choose "legacy" (bios), "UEFI", or "UEFISecureBoot"
@@ -179,7 +182,7 @@
 #export CLUSTER_APIENDPOINT_IP="192.168.111.249"
 
 # Cluster provisioning Interface
-#export BARE_METAL_PROVISIONER_INTERFACE="ironicendpoint"
+# export BARE_METAL_PROVISIONER_INTERFACE="eth0"
 
 # POD CIDR
 #export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"}

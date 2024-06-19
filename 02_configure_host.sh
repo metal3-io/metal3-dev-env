@@ -310,7 +310,8 @@ mkdir -p "${M3PATH}"
 # of the path
 detect_mismatch "${BMO_LOCAL_IMAGE:-}" "${BMOPATH}"
 clone_repo "${BMOREPO}" "${BMOBRANCH}" "${BMOPATH}" "${BMOCOMMIT}"
-
+# edit cloned bmo to run ironic without hostnetwork access
+cp -f ironic.yaml "${BMOPATH}/ironic-deployment/base/ironic.yaml"
 detect_mismatch "${CAPM3_LOCAL_IMAGE:-}" "${CAPM3PATH}"
 clone_repo "${CAPM3REPO}" "${CAPM3BRANCH}" "${CAPM3PATH}" "${CAPM3COMMIT}"
 
