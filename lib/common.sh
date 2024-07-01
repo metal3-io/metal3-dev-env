@@ -345,11 +345,10 @@ else
   export EPHEMERAL_CLUSTER="minikube"
 fi
 
-# Kubectl version (do not forget to update KUBECTL_SHA256 when changing KUBERNETES_VERSION!)
+# Kubectl version - SHA256 is downloaded and verified
 export KUBECTL_VERSION="${KUBECTL_VERSION:-${KUBERNETES_BINARIES_VERSION}}"
-export KUBECTL_SHA256="${KUBECTL_SHA256:-7c3807c0f5c1b30110a2ff1e55da1d112a6d0096201f1beb81b269f582b5d1c5}"
 
-# Krew version
+# Krew version - krew install script cannot be downloaded and verified -> hardcoded binary pin
 export KREW_VERSION="${KREW_VERSION:-v0.4.3}"
 export KREW_SHA256="${KREW_SHA256:-5df32eaa0e888a2566439c4ccb2ef3a3e6e89522f2f2126030171e2585585e4f}"
 
