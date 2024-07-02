@@ -28,8 +28,11 @@ pip_install_with_hash()
 }
 
 # Download an url and verify the downloaded object has the same sha as
-# supplied in the function call. If SKIP_INSTALLATION is not false,
-# just prints out the sha and deletes the download
+# supplied in the function call. If sha256 starts with https, it is downloaded
+# and read as the sha256 sum, allowing us to verify binaries without hardcoding
+# the pinning.
+# If SKIP_INSTALLATION is not false, just prints out the sha and deletes the
+# download.
 wget_and_verify()
 {
     local url="${1:?url missing}"
@@ -47,6 +50,10 @@ wget_and_verify()
         args+=(--quiet)
     fi
     wget "${args[@]}"
+
+    if [[ "${sha256}" =~ https ]]; then
+        sha256="$(curl -SsL "${sha256}")"
+    fi
 
     checksum="$(sha256sum "${target}" | awk '{print $1;}')"
     if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
@@ -155,9 +162,10 @@ download_and_install_kubectl()
 {
     KUBECTL_PATH=$(whereis -b kubectl | cut -d ":" -f2 | awk '{print $1}')
     KUBECTL_PATH="${KUBECTL_PATH:-/usr/local/bin/kubectl}"
-    KUBECTL_URL="https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+    KUBECTL_URL="https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+    KUBECTL_SHA256_URL="${KUBECTL_URL}.sha256"
 
-    wget_and_verify "${KUBECTL_URL}" "${KUBECTL_SHA256}" "kubectl"
+    wget_and_verify "${KUBECTL_URL}" "${KUBECTL_SHA256_URL}" "kubectl"
     if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
         return 0
     fi
