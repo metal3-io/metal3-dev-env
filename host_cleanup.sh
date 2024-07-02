@@ -19,11 +19,11 @@ if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
 fi
 
 # Kill the locally running operators
-if [ "${BMO_RUN_LOCAL}" = true ]; then
+if [[ "${BMO_RUN_LOCAL}" = true ]]; then
   kill "$(pgrep "run-bmo-loop.sh")" 2> /dev/null || true
   kill "$(pgrep "operator-sdk")" 2> /dev/null || true
 fi
-if [ "${CAPM3_RUN_LOCAL}" = true ]; then
+if [[ "${CAPM3_RUN_LOCAL}" = true ]]; then
   CAPM3_PARENT_PID="$(pgrep -f "go run ./cmd/manager/main.go")"
   if [[ "${CAPM3_PARENT_PID}" != "" ]]; then
     CAPM3_GO_PID="$(pgrep -P "${CAPM3_PARENT_PID}" )"
@@ -50,13 +50,24 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
 # There was a bug in this file, it may need to be recreated.
 if [[ $OS == "centos" || $OS == "rhel" ]]; then
   sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
-  if [ "$MANAGE_PRO_BRIDGE" == "y" ]; then
+if [[  "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
+    sudo nmcli con delete ironic-peer
+    sudo nmcli con delete "${BARE_METAL_PROVISIONER_INTERFACE}"
     sudo nmcli con delete provisioning
   fi
   # External net should have been cleaned already at this stage, but we double
   # check as leaving it around causes issues when the host is rebooted
-  if [ "${MANAGE_EXT_BRIDGE}" == "y" ]; then
+  if [[ "${MANAGE_EXT_BRIDGE}" == "y" ]]; then
     sudo nmcli con delete external || true
+  fi
+else
+  if [[ "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
+    sudo ip link delete ironic-peer 
+    sudo ip link delete "${BARE_METAL_PROVISIONER_INTERFACE}"
+    sudo ip link delete provisioning
+  fi
+  if [[ "${MANAGE_EXT_BRIDGE}" == "y" ]]; then
+    sudo ip link delete external || true
   fi
 fi
 
