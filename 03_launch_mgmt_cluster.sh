@@ -16,7 +16,7 @@ export REPO_IMAGE_PREFIX="quay.io"
 
 declare -a BMO_IRONIC_ARGS
 # -k is for keepalived
-BMO_IRONIC_ARGS=(-k)
+BMO_IRONIC_ARGS=()
 if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
   BMO_IRONIC_ARGS+=("-t")
 fi
@@ -137,7 +137,28 @@ function update_images(){
 # Launch Ironic locally for Kind and Tilt, in cluster for Minikube
 #
 function launch_ironic() {
+METALLB_IP=172.22.0.2
+
+minikube addons enable metallb
+sleep 10
+
+# Patch MetalLB config with updated IP address range
+kubectl apply -f - -n metallb-system << EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  namespace: metallb-system
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - ${METALLB_IP}-${METALLB_IP}
+EOF
   pushd "${BMOPATH}"
+  _INTERFACE="eth0"
 
   inspector_default=$(grep USE_IRONIC_INSPECTOR "${BMOPATH}/ironic-deployment/default/ironic_bmo_configmap.env" || true)
 
@@ -147,9 +168,7 @@ function launch_ironic() {
     # called PROVISIONER_IP and CIDR in dev-env
     cat << EOF | sudo tee "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
-PROVISIONING_IP=${CLUSTER_BARE_METAL_PROVISIONER_IP}
-PROVISIONING_CIDR=${BARE_METAL_PROVISIONER_CIDR}
-PROVISIONING_INTERFACE=${BARE_METAL_PROVISIONER_INTERFACE}
+PROVISIONING_INTERFACE=${_INTERFACE}
 DHCP_RANGE=${CLUSTER_DHCP_RANGE}
 DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
 DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
@@ -159,6 +178,9 @@ CACHEURL=http://${BARE_METAL_PROVISIONER_URL_HOST}/images
 RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED}"
 IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
 IRONIC_USE_MARIADB=${IRONIC_USE_MARIADB:-false}
+IRONIC_EXTERNAL_IP=172.22.0.2
+IRONIC_EXTERNAL_CALLBACK_URL=https://172.22.0.2:6385
+IRONIC_BASE_URL=https://172.22.0.2:6385
 ${inspector_default}
 IPA_BASEURI=${IPA_BASEURI}
 IPA_BRANCH=${IPA_BRANCH}
@@ -182,7 +204,7 @@ EOF
   fi
 
   # Copy the generated configmap for ironic deployment
-  cp "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/components/keepalived/ironic_bmo_configmap.env"
+  cp "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"  "${BMOPATH}/ironic-deployment/default/ironic_bmo_configmap.env"
 
   # Update manifests to use the correct images.
   # Note: Even though the manifests are not used for local deployment we need
@@ -217,6 +239,28 @@ EOF
     "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
   fi
   popd
+kubectl apply -f - -n baremetal-operator-system << EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: ironic
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 172.22.0.2
+spec:
+  ports:
+    - name: ironic
+      port: 6385
+      targetPort: 6385
+    - name: inspector
+      port: 5050
+      targetPort: 5050
+    - name: httpd
+      port: 6180
+      targetPort: 6180
+  selector:
+    name: ironic
+  type: LoadBalancer
+EOF
 }
 
 # ------------
