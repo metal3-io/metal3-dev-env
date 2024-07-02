@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ironic
+spec:
+  replicas: 1
+  minReadySeconds: 10
+  strategy:
+    # We cannot run Ironic with more than one replica at a time. The recreate
+    # strategy makes sure that the old pod is gone before a new is started.
+    type: Recreate
+  selector:
+    matchLabels:
+      name: ironic
+  template:
+    metadata:
+      labels:
+        name: ironic
+    spec:
+      containers:
+      - name: ironic
+        image: quay.io/metal3-io/ironic
+        imagePullPolicy: Always
+        command:
+        - /bin/runironic
+        volumeMounts:
+        - mountPath: /shared
+          name: ironic-data-volume
+        envFrom:
+        - configMapRef:
+            name: ironic-bmo-configmap
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+          runAsUser: 0 # ironic
+          runAsGroup: 0 # ironic
+      - name: ironic-log-watch
+        image: quay.io/metal3-io/ironic
+        imagePullPolicy: Always
+        command:
+        - /bin/runlogwatch.sh
+        volumeMounts:
+        - mountPath: /shared
+          name: ironic-data-volume
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+          runAsUser: 0 # ironic
+          runAsGroup: 0 # ironic
+      - name: ironic-httpd
+        image: quay.io/metal3-io/ironic
+        imagePullPolicy: Always
+        command:
+        - /bin/runhttpd
+        volumeMounts:
+        - mountPath: /shared
+          name: ironic-data-volume
+        envFrom:
+        - configMapRef:
+            name: ironic-bmo-configmap
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+          runAsUser: 0 # ironic
+          runAsGroup: 0 # ironic
+      initContainers:
+      - name: ironic-ipa-downloader
+        image: quay.io/metal3-io/ironic-ipa-downloader
+        imagePullPolicy: Always
+        command:
+        - /usr/local/bin/get-resource.sh
+        envFrom:
+        - configMapRef:
+            name: ironic-bmo-configmap
+        volumeMounts:
+        - mountPath: /shared
+          name: ironic-data-volume
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+          runAsUser: 0 # ironic
+          runAsGroup: 0 # ironic
+      volumes:
+      - name: ironic-data-volume
+        emptyDir: {}
+      securityContext:
+        runAsNonRoot: false
+        seccompProfile:
+          type: RuntimeDefault
+        fsGroup: 0
