@@ -3,6 +3,10 @@
 set -eux
 
 # shellcheck disable=SC1091
+source lib/common.sh
+# shellcheck disable=SC1091
+source lib/network.sh
+# shellcheck disable=SC1091
 source lib/images.sh
 
 mkdir -p "${IRONIC_IMAGE_DIR}"
