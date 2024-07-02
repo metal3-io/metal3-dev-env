@@ -118,7 +118,7 @@
 #
 # Set libvirt firmware and BMC bootMode
 # Choose "legacy" (bios), "UEFI", or "UEFISecureBoot"
-# Defaults to legacy for ipv4, UEFI for ipv6
+# Defaults to UEFI
 # export BOOT_MODE="UEFI"
 
 # Select the Cluster API provider Metal3 version
