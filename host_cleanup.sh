@@ -5,6 +5,8 @@ set -x
 source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
+# shellcheck disable=SC1091
+source lib/network.sh
 
 # Kill and remove the running ironic containers
 remove_ironic_containers
@@ -32,12 +34,12 @@ if [[ "${CAPM3_RUN_LOCAL}" = true ]]; then
 fi
 
 ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
-    -e "working_dir=$WORKING_DIR" \
-    -e "num_nodes=$NUM_NODES" \
-    -e "extradisks=$VM_EXTRADISKS" \
-    -e "virthost=$HOSTNAME" \
-    -e "manage_external=$MANAGE_EXT_BRIDGE" \
-    -e "nodes_file=$NODES_FILE" \
+    -e "working_dir=${WORKING_DIR}" \
+    -e "num_nodes=${NUM_NODES}" \
+    -e "extradisks=${VM_EXTRADISKS}" \
+    -e "virthost=${HOSTNAME}" \
+    -e "manage_external=${MANAGE_EXT_BRIDGE}" \
+    -e "nodes_file=${NODES_FILE}" \
     -i vm-setup/inventory.ini \
     -b -v vm-setup/teardown-playbook.yml
 
@@ -48,7 +50,7 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -b -v vm-setup/firewall.yml
 
 # There was a bug in this file, it may need to be recreated.
-if [[ $OS == "centos" || $OS == "rhel" ]]; then
+if [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
   sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
 if [[  "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
     sudo nmcli con delete ironic-peer
@@ -62,7 +64,7 @@ if [[  "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
   fi
 else
   if [[ "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
-    sudo ip link delete ironic-peer 
+    sudo ip link delete ironic-peer
     sudo ip link delete "${BARE_METAL_PROVISIONER_INTERFACE}"
     sudo ip link delete provisioning
   fi
