@@ -2,14 +2,17 @@
 
 aliases:
   metal3-dev-env-maintainers:
+  - elfosardo
   - kashifest
   - lentzi90
   - mboukhalfa
+  - Rozzii
   - smoshiur1237
+  - tuminoid
 
   metal3-dev-env-reviewers:
   - dtantsur
   - elfosardo
   - Rozzii
   - Sunnatillo
-  - tuminoid
+
