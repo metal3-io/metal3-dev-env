@@ -12,9 +12,12 @@ if [[ ! -f "${IMAGE_NAME}" ]]; then
     if [[ -f "${IMAGE_LOCATION}/${IMAGE_NAME}" ]]; then
       # Copy local image  
       cp "${IMAGE_LOCATION}/${IMAGE_NAME}" .
-    else
+    elif [[ "${IMAGE_LOCATION}" =~ ^http.* ]]; then
       # Downloading image if it does not exist locally
       wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
+    else
+      echo "Image not found at ${IMAGE_LOCATION}/${IMAGE_NAME}"
+      exit 1
     fi
     IMAGE_SUFFIX="${IMAGE_NAME##*.}"
     if [[ "${IMAGE_SUFFIX}" = "xz" ]]; then
