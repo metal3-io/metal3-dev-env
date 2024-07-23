@@ -15,7 +15,7 @@ libvirt_diskbus: scsi
 libvirt_cdrombus: sata
 libvirt_arch: x86_64
 libvirt_cpu_mode: host-model
-libvirt_firmware: bios
+libvirt_firmware: uefi
 libvirt_secure_boot: false
 
 # Where to log serial console output
