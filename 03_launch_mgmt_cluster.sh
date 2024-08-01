@@ -268,12 +268,7 @@ function apply_bm_hosts() {
 function update_capm3_imports(){
   pushd "${CAPM3PATH}"
 
-  # Modify the kustomization imports to use local BMO repo instead of Github Main
-  if [[ "${CAPM3RELEASEBRANCH}" == "release-1.5" ]] || [[ "${CAPM3RELEASEBRANCH}" == "release-1.4" ]]; then
-    make hack/tools/bin/kustomize
-  else
-    make kustomize
-  fi
+  make kustomize
   ./hack/tools/bin/kustomize build "${IPAMPATH}/config/default" > config/ipam/metal3-ipam-components.yaml
 
   sed -i -e "s#https://github.com/metal3-io/ip-address-manager/releases/download/v.*/ipam-components.yaml#metal3-ipam-components.yaml#" "config/ipam/kustomization.yaml"

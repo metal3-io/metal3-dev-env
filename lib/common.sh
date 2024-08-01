@@ -155,10 +155,7 @@ export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
 
-if [[ "${CAPM3RELEASEBRANCH}" == "release-1.5" ]]; then
-  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.5}"
-  export IPAMBRANCH="${IPAMBRANCH:-release-1.5}"
-elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.6" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" == "release-1.6" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.6}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.6}"
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.7" ]]; then
