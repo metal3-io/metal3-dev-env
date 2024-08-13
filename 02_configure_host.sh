@@ -312,6 +312,19 @@ mkdir -p "${M3PATH}"
 detect_mismatch "${BMO_LOCAL_IMAGE:-}" "${BMOPATH}"
 clone_repo "${BMOREPO}" "${BMOBRANCH}" "${BMOPATH}" "${BMOCOMMIT}"
 
+# We are fading away from deploy.sh, in favor of deploy-cli. In the meantime,
+# as deploy-cli is not available in all BMO branches, and as deploy.sh assumes
+# to be in ${BMOPATH}/tools, we compile deploy-cli and put it in deploy.sh place,
+# if it's available, and use deploy.sh otherwise.
+
+pushd "${BMOPATH}"
+if make deploy-cli; then
+    chmod +x tools/bin/deploy-cli
+    rm tools/deploy.sh
+    cp tools/bin/deploy-cli tools/deploy.sh
+fi
+popd
+
 detect_mismatch "${CAPM3_LOCAL_IMAGE:-}" "${CAPM3PATH}"
 clone_repo "${CAPM3REPO}" "${CAPM3BRANCH}" "${CAPM3PATH}" "${CAPM3COMMIT}"
 

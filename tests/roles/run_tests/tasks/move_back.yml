@@ -15,6 +15,7 @@
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+      BMOPATH: "{{ BMOPATH }}"
     args:
       chdir: "{{ BMOPATH }}"
 
@@ -29,6 +30,7 @@
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+      BMOPATH: "{{ BMOPATH }}"
     when: EPHEMERAL_CLUSTER == "minikube"
     args:
       chdir: "{{ BMOPATH }}"

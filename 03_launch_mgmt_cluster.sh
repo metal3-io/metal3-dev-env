@@ -80,6 +80,7 @@ EOF
 
     # Deploy BMO using deploy.sh script
     "${BMOPATH}/tools/deploy.sh" -b "${BMO_IRONIC_ARGS[@]}"
+    export BMOPATH
 
     # If BMO should run locally, scale down the deployment and run BMO
     if [[ "${BMO_RUN_LOCAL}" = "true" ]]; then
@@ -238,6 +239,7 @@ EOF
     else
         # Deploy Ironic using deploy.sh script
         "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
+        export BMOPATH
     fi
     popd
 }
