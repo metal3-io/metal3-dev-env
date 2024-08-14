@@ -69,11 +69,7 @@ function get_latest_release() {
 CAPIRELEASEPATH="{https://api.github.com/repos/${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}/releases}"
 
 # CAPM3, CAPI and BMO releases
-if [ "${CAPM3RELEASEBRANCH}" = "release-1.5" ]; then
-  # 1.5.99 points to the head of the release-1.5 branch. Local override for CAPM3 is created for this version.
-  export CAPM3RELEASE="v1.5.99"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.5.")}"
-elif [ "${CAPM3RELEASEBRANCH}" = "release-1.6" ]; then
+if [ "${CAPM3RELEASEBRANCH}" = "release-1.6" ]; then
   # 1.6.99 points to the head of the release-1.6 branch. Local override for CAPM3 is created for this version.
   export CAPM3RELEASE="v1.6.99"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.6.")}"
@@ -81,10 +77,14 @@ elif [ "${CAPM3RELEASEBRANCH}" = "release-1.7" ]; then
   # 1.7.99 points to the head of the release-1.7 branch. Local override for CAPM3 is created for this version.
   export CAPM3RELEASE="v1.7.99"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.7.")}"
+elif [ "${CAPM3RELEASEBRANCH}" = "release-1.8" ]; then
+  # 1.7.99 points to the head of the release-1.8 branch. Local override for CAPM3 is created for this version.
+  export CAPM3RELEASE="v1.8.99"
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.8.")}"
 else
   # 1.7.99 points to the head of the main branch as well. Local override for CAPM3 is created for this version.
-  export CAPM3RELEASE="v1.7.99"
-  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.7.")}"
+  export CAPM3RELEASE="v1.8.99"
+  export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.8.")}"
 fi
 
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"

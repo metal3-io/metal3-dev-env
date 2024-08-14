@@ -180,8 +180,8 @@ The following table describes which branches are tested for different test trigg
 | test suffix | CAPM3 branch | IPAM branch  | BMO branch/tag  | Keepalived tag | Ironic tag |
 | ----------- | ------------ | -----------  | --------------- | -------------- | ---------- |
 | main        | main         | main         | main            | latest         | latest     |
+| release-1-8 | release-1.8  | release-1.8  | release-0.6     | v0.6.1         | v25.0.0    |
 | release-1-7 | release-1.7  | release-1.7  | release-0.6     | v0.6.1         | v24.1.1    |
 | release-1-6 | release-1.6  | release-1.6  | release-0.5     | v0.5.1         | v24.0.0    |
-| release-1-5 | release-1.5  | release-1.5  | release-0.4     | v0.4.2         | v23.1.0    |
 
 <!-- markdownlint-enable MD013 -->
