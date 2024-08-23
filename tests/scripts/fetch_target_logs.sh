@@ -5,6 +5,9 @@ set -x
 KUBECONFIG_WORKLOAD="$(sudo find /tmp/ -type f -name "kubeconfig*")"
 DIR_NAME="/tmp/target_cluster_logs"
 NAMESPACES="$(kubectl --kubeconfig="${KUBECONFIG_WORKLOAD}" get namespace -o jsonpath='{.items[*].metadata.name}')"
+
+set +x
+
 mkdir -p "${DIR_NAME}"
 for NAMESPACE in ${NAMESPACES}
 do
