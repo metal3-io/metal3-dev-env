@@ -86,8 +86,8 @@ elif [ "${CAPM3RELEASEBRANCH}" = "release-1.8" ]; then
   export CAPM3RELEASE="v1.8.99"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.8.")}"
 else
-  # 1.7.99 points to the head of the main branch as well. Local override for CAPM3 is created for this version.
-  export CAPM3RELEASE="v1.7.99"
+  # 1.9.99 points to the head of the main branch of CAPM3. Local override for CAPM3 is created for this version.
+  export CAPM3RELEASE="v1.9.99"
   export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release "${CAPIRELEASEPATH}" "v1.8.")}"
 fi
 
