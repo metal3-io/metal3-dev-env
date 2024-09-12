@@ -290,8 +290,7 @@ elif [[ $status == 401 ]]; then
     echo "OK - Ironic endpoint is secured"
 else
     echo "FAIL- got $status from ${IRONIC_NODES_ENDPOINT}, expected 401"
-    echo ""
-    exit "$status"
+    exit 1
 fi
 echo ""
 
