@@ -8,5 +8,5 @@
   - import_role:
       name: fubarhouse.golang
     vars:
-      go_version: "{{ '1.21.11' if lookup('env', 'CAPM3RELEASEBRANCH') == 'release-1.5' else '1.22.4' }}"
+      go_version: 1.22.7
       go_install_clean: true
