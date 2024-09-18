@@ -31,14 +31,18 @@ pip_install_with_hash()
 # supplied in the function call. If sha256 starts with https, it is downloaded
 # and read as the sha256 sum, allowing us to verify binaries without hardcoding
 # the pinning.
+# Acceptable checksum formats: given as string param or as a download link,
+# content can either be just the checksum, a pair or checksum & platform (in that order),
+# or a list of checksum & platform pairs.
 # If SKIP_INSTALLATION is not false, just prints out the sha and deletes the
 # download.
 wget_and_verify()
 {
     local url="${1:?url missing}"
-    local sha256="${2:?sha256 missing}"
+    local checksum="${2:?checksum missing}"
     local target="${3:?target missing}"
-    local checksum
+    local dlname="${url##*/}"
+    local calculated
 
     declare -a args=(
         --no-verbose
@@ -51,20 +55,30 @@ wget_and_verify()
     fi
     wget "${args[@]}"
 
-    if [[ "${sha256}" =~ https ]]; then
-        sha256="$(curl -SsL "${sha256}")"
+    if [[ "${checksum}" =~ https ]]; then
+        checksum="$(curl -SsL "${checksum}")"
     fi
 
-    checksum="$(sha256sum "${target}" | awk '{print $1;}')"
+    if [[ "${checksum}" =~ ${dlname,,} ]]; then
+        while read -r line; do
+            if [[ "${line}" =~ ${dlname,,} ]]; then
+                # It is assumed here that lines look like <checksum> <platform>
+                checksum="${line%% *}"
+                break
+            fi
+        done <<< "${checksum}"
+    fi
+
+    calculated="$(sha256sum "${target}" | awk '{print $1;}')"
     if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
-        echo "info: sha256(${target/*\/}): ${checksum}"
+        echo "info: sha256(${target/*\/}): ${calculated}"
         rm -f "${target?:}"
 
-    elif [[ "${checksum}" != "${sha256}" ]]; then
+    elif [[ "${calculated}" != "${checksum}" ]]; then
         if [[ "${INSECURE_SKIP_DOWNLOAD_VERIFICATION}" == "true" ]]; then
-            echo >&2 "warning: ${url} binary checksum '${checksum}' differs from expected checksum '${sha256}'"
+            echo >&2 "warning: ${url} binary checksum '${calculated}' differs from expected checksum '${checksum}'"
         else
-            echo >&2 "fatal: ${url} binary checksum '${checksum}' differs from expected checksum '${sha256}'"
+            echo >&2 "fatal: ${url} binary checksum '${calculated}' differs from expected checksum '${checksum}'"
             return 1
         fi
     fi
@@ -100,6 +114,7 @@ download_and_install_krew()
 download_and_install_minikube()
 {
     MINIKUBE_URL="https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-amd64"
+    MINIKUBE_SHA256="${MINIKUBE_SHA256:-https://github.com/kubernetes/minikube/releases/download/${MINIKUBE_VERSION}/minikube-linux-amd64.sha256}"
     MINIKUBE_BINARY="minikube"
 
     wget_and_verify "${MINIKUBE_URL}" "${MINIKUBE_SHA256}" "${MINIKUBE_BINARY}"
@@ -114,6 +129,7 @@ download_and_install_minikube()
 download_and_install_kvm2_driver()
 {
     DRIVER_URL="https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/docker-machine-driver-kvm2"
+    MINIKUBE_DRIVER_SHA256="${MINIKUBE_DRIVER_SHA256:-https://github.com/kubernetes/minikube/releases/download/${MINIKUBE_VERSION}/docker-machine-driver-kvm2-amd64.sha256}"
     DRIVER_BINARY="docker-machine-driver-kvm2"
 
     wget_and_verify "${DRIVER_URL}" "${MINIKUBE_DRIVER_SHA256}" "${DRIVER_BINARY}"
@@ -128,6 +144,7 @@ download_and_install_kvm2_driver()
 download_and_install_kind()
 {
     KIND_URL="https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-$(uname)-amd64"
+    KIND_SHA256="${KIND_SHA256:-https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-$(uname)-amd64.sha256sum}"
     KIND_BINARY="kind"
 
     wget_and_verify "${KIND_URL}" "${KIND_SHA256}" "${KIND_BINARY}"
@@ -177,6 +194,7 @@ download_and_install_kubectl()
 download_and_install_kustomize()
 {
     KUSTOMIZE_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+    KUSTOMIZE_SHA256="${KUSTOMIZE_SHA256:-https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/checksums.txt}"
     KUSTOMIZE_BINARY="kustomize"
 
     wget_and_verify "${KUSTOMIZE_URL}" "${KUSTOMIZE_SHA256}" "${KUSTOMIZE_BINARY}.tar.gz"
