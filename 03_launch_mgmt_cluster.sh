@@ -258,23 +258,33 @@ function apply_bm_hosts() {
   popd
 }
 
-# --------------------------
-# CAPM3 deployment functions
-# --------------------------
+# -----------------------------
+# Create loacal IPAM release for testing 
+# -----------------------------
+function create_local_ipam_version(){
 
-#
-# Update the imports for the CAPM3 deployment files
-#
-function update_capm3_imports(){
-  pushd "${CAPM3PATH}"
+  mkdir -p "${HOME}"/ipam-metal3/v1.0.0/
+  git init "${HOME}"/ipam-metal3
+
+  cat << EOF > "${HOME}"/ipam-metal3/v1.0.0/metadata.yaml
+  apiVersion: clusterctl.cluster.x-k8s.io/v1alpha3
+  kind: Metadata
+  releaseSeries:
+    - major: 1
+      minor: 0
+      contract: v1beta1
+EOF
+
+  sed -i -e "s#quay.io/metal3-io/ip-address-manager:main#docker.io/estpeppilotta/ipam-provider-metal3-test:latest#" "${IPAMPATH}/config/default/manager_image_patch.yaml"
 
   make kustomize
-  ./hack/tools/bin/kustomize build "${IPAMPATH}/config/default" > config/ipam/metal3-ipam-components.yaml
-
-  sed -i -e "s#https://github.com/metal3-io/ip-address-manager/releases/download/v.*/ipam-components.yaml#metal3-ipam-components.yaml#" "config/ipam/kustomization.yaml"
+  ./hack/tools/bin/kustomize build "${IPAMPATH}/config/default" > "${HOME}"/ipam-metal3/v1.0.0/ipam-components.yaml
   popd
 }
 
+# --------------------------
+# CAPM3 deployment functions
+# --------------------------
 #
 # Update the CAPM3 and BMO manifests to use local images as defined in variables
 #
@@ -301,11 +311,6 @@ function update_component_image(){
       export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
       export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image
-      ;;
-    "IPAM")
-      export MANIFEST_IMG_IPAM="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
-      export MANIFEST_TAG_IPAM="$TMP_IMAGE_TAG"
-      make set-manifest-image-ipam
       ;;
     "Ironic")
       export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
@@ -339,6 +344,15 @@ function patch_clusterctl(){
   mkdir -p "${CAPI_CONFIG_FOLDER}"
   touch "${CAPI_CONFIG_FOLDER}"/clusterctl.yaml
 
+  cat << EOF >> "${CAPI_CONFIG_FOLDER}"/clusterctl.yaml
+providers:
+- name: metal3
+  url: file://${HOME}/ipam-metal3/v1.0.0/ipam-components.yaml
+  type: IPAMProvider
+EOF
+
+
+
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
   if [ -n "${CAPM3_LOCAL_IMAGE:-}" ]; then
@@ -353,7 +367,8 @@ function patch_clusterctl(){
     update_component_image IPAM "${IPAM_IMAGE}"
   fi
 
-  update_capm3_imports
+  pushd "${CAPM3PATH}"
+  create_local_ipam_version
   make release-manifests
 
   rm -rf "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
@@ -387,7 +402,7 @@ function launch_cluster_api_provider_metal3() {
 
     # shellcheck disable=SC2153
   clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
-    --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
+    --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5 --ipam metal3
 
   if [ "${CAPM3_RUN_LOCAL}" == true ]; then
     touch capm3.out.log
