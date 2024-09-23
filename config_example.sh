@@ -206,3 +206,9 @@
 
 # Uncomment the line below to build ironic-image from source
 # export IRONIC_FROM_SOURCE="true"
+
+export CAPM3REPO="https://github.com/Nordix/cluster-api-provider-metal3"
+export CAPM3BRANCH="peppi-lotta/change-IPAM-namespace"
+
+export IPAMREPO="https://github.com/Nordix/metal3-ipam/"
+export IPAMBRANCH="peppi-lotta/make-ipam-a-provider-for-capi"
