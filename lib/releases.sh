@@ -29,17 +29,19 @@ CAPIGOPROXY="https://proxy.golang.org/sigs.k8s.io/cluster-api/@v/list"
 
 # Extract release version from release-branch name
 if [[ "${CAPM3RELEASEBRANCH}" == release-* ]]; then
-  CAPM3_RELEASE_PREFIX="${CAPM3RELEASEBRANCH#release-}"
+  RELEASE_PREFIX="${CAPM3RELEASEBRANCH#release-}"
 else
-  CAPM3_RELEASE_PREFIX=""
+  RELEASE_PREFIX=""
 fi
 
 # Fetch CAPI version that coresponds to CAPM3_RELEASE_PREFIX release version
-if [[ "${CAPM3_RELEASE_PREFIX}" =~ ^(1\.7|1\.8|1\.9)$ ]]; then
-  export CAPM3RELEASE="v${CAPM3_RELEASE_PREFIX}.99"
-  CAPI_RELEASE_PREFIX="v${CAPM3_RELEASE_PREFIX}."
+if [[ "${RELEASE_PREFIX}" =~ ^(1\.7|1\.8|1\.9)$ ]]; then
+  export CAPM3RELEASE="v${RELEASE_PREFIX}.99"
+  export IPAMRELEASE="v${RELEASE_PREFIX}.99"
+  CAPI_RELEASE_PREFIX="v${RELEASE_PREFIX}."
 else
   export CAPM3RELEASE="${CAPM3RELEASE:-"v1.10.99"}"
+  export IPAMRELEASE="${IPAMRELEASE:-"v1.10.99"}"
   CAPI_RELEASE_PREFIX="${CAPI_RELEASE_PREFIX:-"v1.9."}"
 fi
 export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release_from_goproxy "${CAPIGOPROXY}" "${CAPI_RELEASE_PREFIX}")}"
@@ -52,5 +54,10 @@ fi
 
 if [[ -z "${CAPM3RELEASE}" ]]; then
   echo "Failed to fetch CAPM3 release from GOPROXY"
+  exit 1
+fi
+
+if [[ -z "${IPAMRELEASE}" ]]; then
+  echo "Failed to fetch IPAM release from GOPROXY"
   exit 1
 fi

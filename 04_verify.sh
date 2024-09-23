@@ -14,6 +14,8 @@ source lib/common.sh
 source lib/network.sh
 # shellcheck disable=SC1091
 source lib/images.sh
+# shellcheck disable=SC1091
+source lib/releases.sh
 
 if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
   exit 0
@@ -200,10 +202,20 @@ EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
   capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
   baremetal-operator-system:baremetal-operator-controller-manager"
+
+# TODO: Once testing of 1.9 and older releases stop this if can be removed
+if [[ "${IPAMRELEASE}" =~ ("v1.7.99"|"v1.8.99"|"v1.9.99")$ ]]; then
 EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:2 \
   cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
   cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1"
+else
+EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:1 \
+  cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
+  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1 \
+  cluster.x-k8s.io/provider:ipam-metal3:metal3-ipam-system:1"
+fi
 BRIDGES="provisioning external"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 
