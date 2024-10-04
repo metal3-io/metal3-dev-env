@@ -1,0 +1,10 @@
+---
+# Generate the ironic node inventory files.  Note that this
+# task *must* occur after the above vm tasks, because if
+# `vm_nodes` is defined the template depends on the
+# `node_mac_map` variable.
+- name: Write ironic node json files
+  template:
+    src: ../templates/ironic_nodes.json.j2
+    dest: "{{ nodes_file }}"
+    force: no

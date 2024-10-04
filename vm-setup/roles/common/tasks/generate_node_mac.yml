@@ -1,0 +1,7 @@
+---
+- name: get a list of MACs to use
+  generate_macs:
+    nodes: "{{ vm_nodes }}"
+    networks: "{{ networks }}"
+  register: node_mac_map
+  when: vm_nodes | length > 0

@@ -206,3 +206,7 @@
 
 # Uncomment the line below to build ironic-image from source
 # export IRONIC_FROM_SOURCE="true"
+
+# To enable FakeIPA and run dev-env on a fake platform
+# export NODES_PLATFORM="fake"
+# export FAKE_IPA_IMAGE=192.168.111.1:5000/localimages/fake-ipa

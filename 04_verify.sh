@@ -18,6 +18,10 @@ source lib/images.sh
 if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
   exit 0
 fi
+# TODO (mboukhalfa) Skip verification related to virsh
+if [[ "${NODES_PLATFORM}" == "fake" ]]; then
+  exit 0
+fi
 
 check_bm_hosts() {
     local FAILS_CHECK="${FAILS}"
