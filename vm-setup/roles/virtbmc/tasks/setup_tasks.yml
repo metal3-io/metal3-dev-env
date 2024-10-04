@@ -65,6 +65,7 @@
   when: vbmc_libvirt_uri is not defined
 
 - name: Create VirtualBMC directories
+  when: vm_platform|default("libvirt") != "fake"
   file:
     path: "{{ working_dir }}/virtualbmc/vbmc/conf/{{ item.name }}"
     state: directory
@@ -75,6 +76,7 @@
   become: true
 
 - name: Create the Virtual BMCs
+  when: vm_platform|default("libvirt") != "fake"
   copy:
     mode: 0750
     dest: "{{ working_dir }}/virtualbmc/vbmc/conf/{{ item.name }}/config"

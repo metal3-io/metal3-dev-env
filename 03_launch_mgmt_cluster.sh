@@ -243,7 +243,7 @@ EOF
   # Extract ironic-cert to be used inside fakeIPA for TLS 
   # TODO (mboukhalfa) Currently this works only with Centos when ironic is running inside minikube
   # for Ubuntu we need to fetch the cert differently
-  kubectl -n legacy get secret -n baremetal-operator-system   ironic-cert -o json -o=jsonpath="{.data.ca\.crt}" | base64 -d > /opt/metal3-dev-env/fake-ipa/ironic-ca.crt
+  kubectl -n legacy get secret -n baremetal-operator-system ironic-cert -o json -o=jsonpath="{.data.ca\.crt}" | base64 -d > /opt/metal3-dev-env/fake-ipa/ironic-ca.crt
   # shellcheck disable=SC2086
   sudo "${CONTAINER_RUNTIME}" run -d --net host --name fake-ipa ${POD_NAME_INFRA} \
     -v "/opt/metal3-dev-env/fake-ipa":/root/cert -v "/root/.ssh":/root/ssh \
@@ -574,7 +574,9 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   if [[ "${NODES_PLATFORM}" == "fake" ]]; then
     launch_fakeIPA
     # Generate the BMH files but do not apply them they will get applied by batches in the e2e scalability test
+    pushd "${BMOPATH}"
     list_nodes | make_bm_hosts
+    popd
   else
     apply_bm_hosts "$NAMESPACE"
   fi
