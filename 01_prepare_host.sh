@@ -141,7 +141,11 @@ case "${CONTAINER_RUNTIME}" in
   *)
     ;;
 esac
-
-# pre-pull node and container images
-# shellcheck disable=SC1091
-source lib/image_prepull.sh
+# TODO (mboukhalfa) fake images
+if [[ "${NODES_PLATFORM}" == "fake" ]]; then
+  echo SKIP IMAGE PREPULL
+else
+  # pre-pull node and container images
+  # shellcheck disable=SC1091
+  source lib/image_prepull.sh
+fi
