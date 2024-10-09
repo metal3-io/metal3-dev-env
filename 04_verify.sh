@@ -193,10 +193,11 @@ EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
   capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
   capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
   baremetal-operator-system:baremetal-operator-controller-manager"
-EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:2 \
+EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:1 \
   cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
-  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1"
+  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1 \
+  cluster.x-k8s.io/provider:ipam-metal3:ipam-system:1"
 BRIDGES="provisioning external"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 
