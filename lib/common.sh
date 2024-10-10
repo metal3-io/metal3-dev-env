@@ -174,6 +174,7 @@ export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
 
 export CAPIPATH="${CAPIPATH:-${M3PATH}/cluster-api}"
+export FKASPATH="${FKASPATH:-${M3PATH}/fkas/hack/fake-apiserver}"
 export CAPI_BASE_URL="${CAPI_BASE_URL:-kubernetes-sigs/cluster-api}"
 export CAPIREPO="${CAPIREPO:-https://github.com/${CAPI_BASE_URL}}"
 

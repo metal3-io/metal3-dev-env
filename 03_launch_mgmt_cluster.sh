@@ -577,6 +577,12 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
     pushd "${BMOPATH}"
     list_nodes | make_bm_hosts
     popd
+    
+    ## Build FKAS
+    pushd "${FKASPATH}"
+    sudo "${CONTAINER_RUNTIME}" build -t "192.168.111.1:5000/localimages/api-server" .
+    sudo "${CONTAINER_RUNTIME}" push --tls-verify=false 192.168.111.1:5000/localimages/api-server 
+    popd
   else
     apply_bm_hosts "$NAMESPACE"
   fi
