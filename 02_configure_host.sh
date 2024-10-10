@@ -110,7 +110,7 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -e "num_nodes=${NUM_NODES}" \
     -e "extradisks=${VM_EXTRADISKS}" \
     -e "virthost=${HOSTNAME}" \
-    -e "platform=${NODES_PLATFORM}" \
+    -e "vm_platform=${NODES_PLATFORM}" \
     -e "libvirt_firmware=${LIBVIRT_FIRMWARE}" \
     -e "libvirt_secure_boot=${LIBVIRT_SECURE_BOOT}" \
     -e "libvirt_domain_type=${LIBVIRT_DOMAIN_TYPE}" \
@@ -118,6 +118,7 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -e "manage_external=${MANAGE_EXT_BRIDGE}" \
     -e "provisioning_url_host=${BARE_METAL_PROVISIONER_URL_HOST}" \
     -e "nodes_file=${NODES_FILE}" \
+    -e "fake_nodes_file=${FAKE_NODES_FILE}" \
     -e "node_hostname_format=${NODE_HOSTNAME_FORMAT}" \
     -i vm-setup/inventory.ini \
     -b vm-setup/setup-playbook.yml
@@ -320,6 +321,9 @@ clone_repo "${IPAMREPO}" "${IPAMBRANCH}" "${IPAMPATH}" "${IPAMCOMMIT}"
 detect_mismatch "${CAPI_LOCAL_IMAGE:-}" "${CAPIPATH}"
 clone_repo "${CAPIREPO}" "${CAPIBRANCH}" "${CAPIPATH}" "${CAPICOMMIT}"
 
+# TODO(mboukhalfa): pull image after the open FKAS PR merged
+clone_repo "https://github.com/Nordix/cluster-api-provider-metal3.git" "mquhuy/add-fake-apiserver" "${FKASPATH}"
+
 # MariaDB and Ironic source is not needed unless the images are built locally
 # If the repo path does not match with the IMAGE location that means the image
 # is built from a repo that is not under dev-env's control thus there is no
@@ -407,6 +411,7 @@ if [[ "${BUILD_IRONIC_IMAGE_LOCALLY:-}" == "true" ]] || [[ -n "${IRONIC_LOCAL_IM
 fi
 VBMC_IMAGE=${VBMC_LOCAL_IMAGE:-${VBMC_IMAGE}}
 SUSHY_TOOLS_IMAGE=${SUSHY_TOOLS_LOCAL_IMAGE:-${SUSHY_TOOLS_IMAGE}}
+FAKE_IPA_IMAGE=${FAKE_IPA_LOCAL_IMAGE:-${FAKE_IPA_IMAGE}}
 
 # Pushing images to local registry
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do

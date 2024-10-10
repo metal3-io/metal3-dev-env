@@ -10,4 +10,4 @@
         name: libvirt
     - import_role:
         name: virtbmc
-      when: vm_platform|default("libvirt") == "libvirt"
+      when: vm_platform|default("libvirt") in ["libvirt", "fake"]

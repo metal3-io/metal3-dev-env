@@ -42,6 +42,7 @@ assured that they are persisted.
 | IRONIC_IMAGE | Container image for local ironic services | | "$CONTAINER_REGISTRY/metal3-io/ironic" |
 | VBMC_IMAGE | Container image for vbmc container | | "$CONTAINER_REGISTRY/metal3-io/vbmc" |
 | SUSHY_TOOLS_IMAGE | Container image for sushy-tools container | | "$CONTAINER_REGISTRY/metal3-io/sushy-tools" |
+| FAKE_IPA_IMAGE | Container image for fakeIPA container | | "$CONTAINER_REGISTRY/metal3-io/fake-ipa" |
 | CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1beta1" | "v1beta1" |
 | CAPI_VERSION | Version of Cluster API | "v1beta1" | "v1beta1" |
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "${EXTERNAL_SUBNET_VX}.249" |
@@ -56,12 +57,14 @@ assured that they are persisted.
 | KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.13.0" |
 | LIBVIRT_DOMAIN_TYPE | Which hypervisor to use for the virtual machines libvirt domain, default to kvm. It is possible to switch to qemu in case nested virtualization is not available, although it's considered experimental at this stage of development. | "kvm", "qemu" | "kvm" |
 | NUM_NODES | Set the number of virtual machines to be provisioned. This VMs will be further configured as controlplane or worker Nodes. Note that CONTROL_PLANE_MACHINE_COUNT and WORKER_MACHINE_COUNT should sum to this value. | | 2 |
+| FAKE_NODES_FILE | Path to save fake nodes generated in json file. | | "/opt/metal3-dev-env/fake_nodes.json" |
 | CONTROL_PLANE_MACHINE_COUNT | Set the controlplane replica count in the target cluster. ||1|
 | WORKER_MACHINE_COUNT | Set the worker replica count in the target cluster. ||1|
 | VM_EXTRADISKS | Add extra disks to the virtual machines provisioned. By default the size of the extra disk is set in the libvirt Ansible role to 8 GB | "true", "false" | "false" |
 | VM_EXTRADISKS_FILE_SYSTEM | Create file system to the extra disk. | "ext4", "xfs" | "ext4" |
 | VM_EXTRADISKS_MOUNT_DIR | Mount the extra disk to a directory on a host. | | "/mnt/disk2" |
 | VM_TPM_EMULATOR | Add TPM2.0 emulator to VMs. | "true", "false" | "false" |
+| NODES_PLATFORM | Select the platform used to simulate the Baremetal hosts. | "libvirt", "fake" | "libvirt" |
 | TARGET_NODE_MEMORY | Set the default memory size in MB for the virtual machines provisioned. | | 4096 |
 | CLUSTER_NAME | Set the name of the target cluster | | test1 |
 | IRONIC_TLS_SETUP | Enable TLS for Ironic and inspector | "true", "false" | "true" |
