@@ -65,6 +65,7 @@
   when: vbmc_libvirt_uri is not defined
 
 - name: Create VirtualBMC directories
+  when: vm_platform|default("libvirt") != "fake"
   file:
     path: "{{ working_dir }}/virtualbmc/vbmc/conf/{{ item.name }}"
     state: directory
@@ -75,6 +76,7 @@
   become: true
 
 - name: Create the Virtual BMCs
+  when: vm_platform|default("libvirt") != "fake"
   copy:
     mode: 0750
     dest: "{{ working_dir }}/virtualbmc/vbmc/conf/{{ item.name }}/config"
@@ -107,3 +109,47 @@
       SUSHY_EMULATOR_VMEDIA_VERIFY_SSL = {{ sushy_vmedia_verify_ssl }}
       SUSHY_EMULATOR_AUTH_FILE = "/root/sushy/htpasswd"
   become: true
+  when: vm_platform|default("libvirt") != "fake"
+
+- name: get a list of MACs to use
+  when: vm_platform|default("libvirt") == "fake"
+  include_tasks: ../../common/tasks/generate_node_mac.yml
+
+- name: Set the uuid for fake VMs
+  when: vm_platform|default("libvirt") == "fake"
+  set_fact:
+    vm_id: "{{ vm_id|default({}) | combine ( {item.name: item.name | to_uuid()} ) }}"
+  with_items: "{{ vm_nodes }}"
+
+# Define the fake vm nodes.  These will be
+# used by sushy-tools.
+- name: Define fake vms
+  when: vm_platform|default("libvirt") == "fake"
+  template:
+    src: ../templates/fake_nodes.json.j2
+    dest: "{{ fake_nodes_file }}"
+
+- name: set_fact BMC Driver
+  when: vm_platform|default("libvirt") == "fake"
+  set_fact:
+    vm_driver: "{{ lookup('env', 'BMC_DRIVER') | default('redfish', true) }}"
+
+- name: Write ironic node json files
+  when: vm_platform|default("libvirt") == "fake"
+  include_tasks: ../../common/tasks/write_ironic_nodes_tasks.yml
+
+# if FakeIPA enabled then set required sushy-tools config
+- name: Create the Redfish Virtual BMCs for FakeIPA
+  copy:
+    mode: 0750
+    dest: "{{ working_dir }}/virtualbmc/sushy-tools/conf.py"
+    content: |
+      SUSHY_EMULATOR_LIBVIRT_URI = "{{ vbmc_libvirt_uri }}"
+      SUSHY_EMULATOR_IGNORE_BOOT_DEVICE = {{ sushy_ignore_boot_device }}
+      SUSHY_EMULATOR_VMEDIA_VERIFY_SSL = {{ sushy_vmedia_verify_ssl }}
+      SUSHY_EMULATOR_AUTH_FILE = "/root/sushy/htpasswd"
+      SUSHY_EMULATOR_FAKE_DRIVER = True
+      SUSHY_EMULATOR_FAKE_IPA = True
+      SUSHY_EMULATOR_FAKE_SYSTEMS = {{ lookup('ansible.builtin.file', fake_nodes_file ) }}
+  become: true
+  when: vm_platform|default("libvirt") == "fake"
