@@ -32,43 +32,47 @@ check_bm_hosts() {
       -n metal3 -o json)"
     BARE_METAL_VMS="$(sudo virsh list --all)"
     BARE_METAL_VMNAME="${NAME//-/_}"
-    # Verify BM host exists
-    RESULT_STR="${NAME} Baremetalhost exist"
-    echo "${BARE_METAL_HOSTS}" | grep -w "${NAME}"  > /dev/null
-    process_status $?
 
-    BARE_METAL_HOST="$(echo "${BARE_METAL_HOSTS}" | \
-      jq ' .items[] | select(.metadata.name=="'"${NAME}"'" )')"
+    # Skip BMH verification if not applied
+    if [[ "${SKIP_APPLY_BMH:-false}" != "true" ]]; then
+      # Verify BM host exists
+      RESULT_STR="${NAME} Baremetalhost exist"
+      echo "${BARE_METAL_HOSTS}" | grep -w "${NAME}"  > /dev/null
+      process_status $?
 
-    # Verify addresses of the host
-    RESULT_STR="${NAME} Baremetalhost address correct"
-    equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.address')" "${ADDRESS}"
+      BARE_METAL_HOST="$(echo "${BARE_METAL_HOSTS}" | \
+        jq ' .items[] | select(.metadata.name=="'"${NAME}"'" )')"
 
-    RESULT_STR="${NAME} Baremetalhost mac address correct"
-    equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bootMACAddress')" \
-      "${MAC}"
+      # Verify addresses of the host
+      RESULT_STR="${NAME} Baremetalhost address correct"
+      equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.address')" "${ADDRESS}"
 
-    # Verify BM host status
-    RESULT_STR="${NAME} Baremetalhost status OK"
-    equals "$(echo "${BARE_METAL_HOST}" | jq -r '.status.operationalStatus')" \
-      "OK"
+      RESULT_STR="${NAME} Baremetalhost mac address correct"
+      equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bootMACAddress')" \
+        "${MAC}"
 
-    # Verify credentials exist
-    RESULT_STR="${NAME} Baremetalhost credentials secret exist"
-    CRED_NAME="$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.credentialsName')"
-    CRED_SECRET="$(kubectl get secret "${CRED_NAME}" -n metal3 -o json | \
-      jq '.data')"
-    process_status $?
+      # Verify BM host status
+      RESULT_STR="${NAME} Baremetalhost status OK"
+      equals "$(echo "${BARE_METAL_HOST}" | jq -r '.status.operationalStatus')" \
+        "OK"
 
-    # Verify credentials correct
-    RESULT_STR="${NAME} Baremetalhost password correct"
-    equals "$(echo "${CRED_SECRET}" | jq -r '.password' | \
-      base64 --decode)" "${PASSWORD}"
+      # Verify credentials exist
+      RESULT_STR="${NAME} Baremetalhost credentials secret exist"
+      CRED_NAME="$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.credentialsName')"
+      CRED_SECRET="$(kubectl get secret "${CRED_NAME}" -n metal3 -o json | \
+        jq '.data')"
+      process_status $?
 
-    RESULT_STR="${NAME} Baremetalhost user correct"
-    equals "$(echo "${CRED_SECRET}" | jq -r '.username' | \
-      base64 --decode)" "${USER}"
+      # Verify credentials correct
+      RESULT_STR="${NAME} Baremetalhost password correct"
+      equals "$(echo "${CRED_SECRET}" | jq -r '.password' | \
+        base64 --decode)" "${PASSWORD}"
 
+      RESULT_STR="${NAME} Baremetalhost user correct"
+      equals "$(echo "${CRED_SECRET}" | jq -r '.username' | \
+        base64 --decode)" "${USER}"
+    fi
+  
     # Verify the VM was created
     RESULT_STR="${NAME} Baremetalhost VM exist"
     echo "${BARE_METAL_VMS} "| grep -w "${BARE_METAL_VMNAME}"  > /dev/null
@@ -82,10 +86,13 @@ check_bm_hosts() {
       process_status $?
     done
 
-    #Verify the introspection completed successfully
-    RESULT_STR="${NAME} Baremetalhost introspecting completed"
-    is_in "$(echo "${BARE_METAL_HOST}" | jq -r '.status.provisioning.state')" \
-      "ready available"
+    # Skip introspection verification in no BMH applied
+    if [[ "${SKIP_APPLY_BMH:-false}" != "true" ]]; then
+      #Verify the introspection completed successfully
+      RESULT_STR="${NAME} Baremetalhost introspecting completed"
+      is_in "$(echo "${BARE_METAL_HOST}" | jq -r '.status.provisioning.state')" \
+        "ready available"
+    fi
 
     echo ""
 
