@@ -36,6 +36,7 @@ fi
 ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -e "working_dir=${WORKING_DIR}" \
     -e "num_nodes=${NUM_NODES}" \
+    -e "vm_platform=${NODES_PLATFORM}" \
     -e "extradisks=${VM_EXTRADISKS}" \
     -e "virthost=${HOSTNAME}" \
     -e "manage_external=${MANAGE_EXT_BRIDGE}" \

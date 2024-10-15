@@ -142,17 +142,13 @@
         vm_id: "{{ vm_id|default({}) | combine ( {item.item.name: item.stdout} ) }}"
       with_items: "{{ vm_uuid.results }}"
 
-- name: set_fact BMC Driver
-  set_fact:
-    vm_driver: "{{ lookup('env', 'BMC_DRIVER') | default('mixed', true) }}"
+    - name: set_fact BMC Driver
+      set_fact:
+        vm_driver: "{{ lookup('env', 'BMC_DRIVER') | default('mixed', true) }}"
 
-
-# Generate the ironic node inventory files.  Note that this
-# task *must* occur after the above vm tasks, because if
-# `vm_nodes` is defined the template depends on the
-# `node_mac_map` variable.
-- name: Write ironic node json files
-  template:
-    src: ../templates/ironic_nodes.json.j2
-    dest: "{{ nodes_file }}"
-    force: no
+    # Generate the ironic node inventory files.  Note that this
+    # task *must* occur after the above vm tasks, because if
+    # `vm_nodes` is defined the template depends on the
+    # `node_mac_map` variable.
+    - name: Write ironic node json files
+      include_tasks: ../../common/tasks/write_ironic_nodes_tasks.yml
