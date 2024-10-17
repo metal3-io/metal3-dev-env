@@ -31,7 +31,7 @@ assured that they are persisted.
 | TEST_TIME_INTERVAL | Interval between retries after verification or test failure (seconds) | | 10 |
 | TEST_MAX_TIME | Number of maximum verification or test retries | | 120 |
 | BMO_ROLLOUT_WAIT | Number of minutes(Until max 10m that is the default value of deployment.spec.progressDeadlineSeconds) to wait for BMO rollout | | 5 |
-| BMC_DRIVER | Set the BMC driver | "ipmi", "redfish", "redfish-virtualmedia" | "mixed" |
+| BMC_DRIVER | Set the BMC driver | "ipmi", "redfish", "redfish-virtualmedia", "redfish-uefihttp" | "mixed" |
 | BMORELEASEBRANCH | BMO Release branch | "main", "release-0.5", "release-0.6", "release-0.8" | Set via jjb for CI, for local dev it gets default value based on CAPM3 branch |
 | BOOT_MODE  | Set libvirt firmware and BMH bootMode | "legacy", "UEFI", "UEFISecureBoot" | "legacy" |
 | IMAGE_OS | OS of the image to boot the nodes from, overriden by IMAGE\_\* if set | "centos", "cirros", "FCOS", "ubuntu", "flatcar" | "centos" |
