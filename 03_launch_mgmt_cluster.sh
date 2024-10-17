@@ -538,7 +538,15 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
     # Thus we are deleting validatingwebhookconfiguration resource if exists to let BMO is working properly on local runs.
     kubectl delete validatingwebhookconfiguration/"${BMO_NAME_PREFIX}"-validating-webhook-configuration --ignore-not-found=true
   fi
-  apply_bm_hosts "$NAMESPACE"
+  # Tests might want to apply bmh inside the test scipt
+  # then dev-env will create the bmh files but do not apply tehm
+  if [[ "${SKIP_APPLY_BMH:-false}" == "true" ]]; then
+    pushd "${BMOPATH}"
+      list_nodes | make_bm_hosts
+    popd
+  else
+    apply_bm_hosts "$NAMESPACE"
+  fi
 elif [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
 
 source tilt-setup/deploy_tilt_env.sh

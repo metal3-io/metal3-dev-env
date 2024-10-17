@@ -206,3 +206,6 @@
 
 # Uncomment the line below to build ironic-image from source
 # export IRONIC_FROM_SOURCE="true"
+
+# Skip applying BMHs 
+# export SKIP_APPLY_BMH="true"
