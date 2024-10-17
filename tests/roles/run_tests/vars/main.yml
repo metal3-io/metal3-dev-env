@@ -94,7 +94,7 @@ IPAM_INSECURE_DIAGNOSTICS: "true"
 
 # Args to pass to the deploy.sh script when deploying Ironic and BMO
 # [k]eepalived [t]ls [n]o basic auth or [m]ariadb
-BMO_IRONIC_ARGS: "-k {{ (IRONIC_TLS_SETUP == 'true') | ternary('-t', '') }} {{ (IRONIC_BASIC_AUTH == 'true') | ternary('', '-n') }} {{ (IRONIC_USE_MARIADB == 'true') | ternary('-m', '') }}"
+BMO_IRONIC_ARGS: "{{ (IRONIC_TLS_SETUP == 'true') | ternary('-t', '') }} {{ (IRONIC_BASIC_AUTH == 'true') | ternary('', '-n') }} {{ (IRONIC_USE_MARIADB == 'true') | ternary('-m', '') }}"
 
 provision_cluster_actions:
 - "ci_test_provision"
