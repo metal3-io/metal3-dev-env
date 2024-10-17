@@ -79,7 +79,7 @@
 #
 # Force deletion of the BMO and CAPM3 repositories before cloning them again
 #
-#export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-false}"
+export FORCE_REPO_UPDATE=false
 
 #
 # Run a local baremetal operator instead of deploying in Kubernetes
@@ -113,7 +113,7 @@
 # Set the driver. The default value is 'mixed' (alternate nodes between ipmi
 # and redfish). Can also be set explicitly to ipmi/redfish/redfish-virtualmedia.
 #
-#export BMC_DRIVER="mixed"
+export BMC_DRIVER="redfish-virtualmedia"
 
 #
 # Set libvirt firmware and BMC bootMode

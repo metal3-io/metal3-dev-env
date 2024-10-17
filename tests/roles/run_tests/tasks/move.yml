@@ -132,6 +132,88 @@
     args:
       chdir: "{{ BMOPATH }}"
 
+  # Download and apply MetalLB manifest
+  - name: Download metrics-server manifest to the cluster.
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/metallb/metallb/v0.14.5/config/manifests/metallb-native.yaml
+      dest: ~/metallb-native.yaml
+      mode: '0664'
+
+  - name: Apply MetalLB manifest to the cluster.
+    kubernetes.core.k8s:
+      state: present
+      src: ~/metallb-native.yaml
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  # Check for MetalLB pods on the target cluster
+  - name: Check if MetalLB  pods in running state
+    kubernetes.core.k8s_info:
+      kind: pods
+      namespace: metallb-system
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      field_selectors:
+        - status.phase!=Running
+    register: target_running_pods
+    retries: 20
+    delay: 20
+    until: (target_running_pods is succeeded) and
+           (target_running_pods.resources | length == 0)
+  - name: Pause for 1 minutes to avoid failure with the next steps
+    ansible.builtin.pause:
+      minutes: 1
+  - name: Create the IPAddressPool
+    kubernetes.core.k8s:
+      state: present
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        apiVersion: metallb.io/v1beta1
+        kind: IPAddressPool
+        metadata:
+          name: ironic-pool
+          namespace: metallb-system
+        spec:
+          addresses:
+          - 172.22.0.2-172.22.0.2
+  - name: Create the L2Advertisement
+    kubernetes.core.k8s:
+      state: present
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        apiVersion: metallb.io/v1beta1
+        kind: L2Advertisement
+        metadata:
+          name: ironic
+          namespace: metallb-system
+        spec:
+          ipAddressPools:
+          - ironic-pool
+  - name: Create the loadbalancer service
+    kubernetes.core.k8s:
+      state: present
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition:
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: ironic
+          namespace: baremetal-operator-system
+          annotations:
+            metallb.universe.tf/loadBalancerIPs: 172.22.0.2
+        spec:
+          ports:
+            - name: ironic
+              port: 6385
+              targetPort: 6385
+            - name: inspector
+              port: 5050
+              targetPort: 5050
+            - name: httpd
+              port: 6180
+              targetPort: 6180
+          selector:
+            name: ironic
+          type: LoadBalancer
+
   - name: Label baremetalhost CRD in target cluster to pivot back.
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
     with_items:
