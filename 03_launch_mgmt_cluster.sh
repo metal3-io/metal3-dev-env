@@ -173,11 +173,6 @@ EOF
     echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
 
-  # TODO (mboukhalfa) enable heartbeating and ironic TLS
-  if [[ "${NODES_PLATFORM}" == "fake" ]]; then
-    echo "OS_AGENT__REQUIRE_TLS=false" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
-  fi
-
   if [ -n "${DHCP_IGNORE:-}" ]; then
     echo "DHCP_IGNORE=${DHCP_IGNORE}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
@@ -227,18 +222,16 @@ EOF
 #
 # Launch and configure fakeIPA
 #
-function launch_fakeIPA() {
+launch_fake_ipa() {
   # Create a folder to host fakeIPA config and certs
-  mkdir -p /opt/metal3-dev-env/fake-ipa
-  if [[ "${EPHEMERAL_CLUSTER}" == "kind" ]]; then
-    if [[ "${IRONIC_TLS_SETUP}" == "true" ]]; then
-      cp "${IRONIC_CACERT_FILE}" "/opt/metal3-dev-env/fake-ipa/ironic-ca.crt"
-    fi
-  else
+  mkdir -p "${WORKING_DIR}/fake-ipa"
+  if [[ "${EPHEMERAL_CLUSTER}" == "kind" ]] && [[ "${IRONIC_TLS_SETUP}" == "true" ]]; then
+    cp "${IRONIC_CACERT_FILE}" "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
+  elif [[ "${IRONIC_TLS_SETUP}" == "true" ]]; then
     # wait for ironic to be running to ensure ironic-cert is created 
     kubectl -n baremetal-operator-system wait --for=condition=available deployment/baremetal-operator-ironic --timeout=900s
     # Extract ironic-cert to be used inside fakeIPA for TLS 
-    kubectl -n legacy get secret -n baremetal-operator-system ironic-cert -o json -o=jsonpath="{.data.ca\.crt}" | base64 -d > /opt/metal3-dev-env/fake-ipa/ironic-ca.crt
+    kubectl get secret -n baremetal-operator-system ironic-cert -o json -o=jsonpath="{.data.ca\.crt}" | base64 -d > "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
   fi
   # Create fake IPA custom config
   cat << EOF > "${WORKING_DIR}/fake-ipa/config.py"
@@ -581,15 +574,15 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   # then dev-env will create the bmh files but do not apply them
   if [[ "${SKIP_APPLY_BMH:-false}" == "true" ]]; then
     pushd "${BMOPATH}"
-      list_nodes | make_bm_hosts
+    list_nodes | make_bm_hosts
     popd
   else
-    apply_bm_hosts "$NAMESPACE"
+    apply_bm_hosts "${NAMESPACE}"
   fi
   # if fake platform (no VMs) run FakeIPA
   if [[ "${NODES_PLATFORM}" == "fake" ]]; then
-    launch_fakeIPA
+    launch_fake_ipa
   fi
 elif [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
-  source tilt-setup/deploy_tilt_env.sh
+  . tilt-setup/deploy_tilt_env.sh
 fi

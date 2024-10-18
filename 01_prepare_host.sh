@@ -143,7 +143,7 @@ case "${CONTAINER_RUNTIME}" in
 esac
 # TODO (mboukhalfa) fake images
 if [[ "${NODES_PLATFORM}" == "fake" ]]; then
-  echo Skipping image prepulling on fake nodes platform
+  echo "Skipping image prepulling on fake nodes platform"
 else
   # pre-pull node and container images
   # shellcheck disable=SC1091

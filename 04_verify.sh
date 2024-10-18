@@ -18,11 +18,6 @@ source lib/images.sh
 if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
   exit 0
 fi
-# TODO (mboukhalfa) Skip verification related to virsh
-if [[ "${NODES_PLATFORM}" == "fake" ]]; then
-  echo "Skipping virsh nodes verification on fake vm platform"
-  exit 0
-fi
 
 check_bm_hosts() {
     local FAILS_CHECK="${FAILS}"
@@ -249,6 +244,12 @@ echo ""
 # Verify v1beta1 Operators, Deployments, Replicasets
 iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
 iterate check_k8s_rs "${EXPTD_RS}"
+
+# Skip verification related to virsh when running with fakeIPA
+if [[ "${NODES_PLATFORM}" == "fake" ]]; then
+  echo "Skipping virsh nodes verification on fake vm platform"
+  exit 0
+fi
 
 # Verify the baremetal hosts
 ## Fetch the BM CRs
