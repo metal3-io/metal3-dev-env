@@ -44,6 +44,7 @@ assured that they are persisted.
 | VBMC_IMAGE | Container image for vbmc container | | "$CONTAINER_REGISTRY/metal3-io/vbmc" |
 | SUSHY_TOOLS_IMAGE | Container image for sushy-tools container | | "$CONTAINER_REGISTRY/metal3-io/sushy-tools" |
 | FAKE_IPA_IMAGE | Container image for fakeIPA container | | "$CONTAINER_REGISTRY/metal3-io/fake-ipa" |
+| FKAS_IMAGE | Container image for fkas container | | "$CONTAINER_REGISTRY/metal3-io/metal3-fkas" |
 | CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1beta1" | "v1beta1" |
 | CAPI_VERSION | Version of Cluster API | "v1beta1" | "v1beta1" |
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "${EXTERNAL_SUBNET_VX}.249" |
