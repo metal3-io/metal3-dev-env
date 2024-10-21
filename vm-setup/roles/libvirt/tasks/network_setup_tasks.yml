@@ -18,11 +18,7 @@
 
 # TODO(apuimedo) drop this back to vm tasks once we have proper DNS
 - name: get a list of MACs to use
-  generate_macs:
-    nodes: "{{ vm_nodes }}"
-    networks: "{{ networks }}"
-  register: node_mac_map
-  when: vm_nodes | length > 0
+  include_tasks: ../../common/tasks/generate_node_mac.yml
 
 # Create the global, root-managed libvirt networks to which we will
 # attach the undercoud and vm virtual machines.
