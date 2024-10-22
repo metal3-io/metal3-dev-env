@@ -15,7 +15,6 @@
 # generate_vm_interface_macs method ripped from
 # openstack/tripleo-incubator/scripts/configure-vm
 
-import math
 import random
 
 DOCUMENTATION = '''
@@ -27,7 +26,7 @@ description:
    - Generate a list of Ethernet MAC addresses suitable for external testing.
 '''
 
-MAX_NUM_MACS = math.trunc(0xff / 2)
+MAX_NUM_MACS = 256
 
 
 def generate_vm_interface_macs(nodes, networks):
@@ -42,7 +41,7 @@ def generate_vm_interface_macs(nodes, networks):
     # attached NIC.
     # MACs generated for a given machine will also be in sequential
     # order, which matches how most BM machines are laid out as well.
-    # Additionally we increment each MAC by two places.
+
     macs = []
     count = len(nodes) * len(networks)
 
@@ -58,10 +57,10 @@ def generate_vm_interface_macs(nodes, networks):
     base_mac = ':'.join(["%02x" % x for x in base_nums])
 
     start = random.randint(0x00, 0xff)
-    if (start + (count * 2)) > 0xff:
+    if (start + count) > 0xff:
         # leave room to generate macs in sequence
-        start = 0xff - count * 2
-    for num in range(0, count * 2, 2):
+        start = 0xff + 1 - count
+    for num in range(0, count, 1):
         mac = start + num
         macs.append(base_mac + ":" + ("%02x" % mac))
 

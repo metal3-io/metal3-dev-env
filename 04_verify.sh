@@ -245,6 +245,12 @@ echo ""
 iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
 iterate check_k8s_rs "${EXPTD_RS}"
 
+# Skip verification related to virsh when running with fakeIPA
+if [[ "${NODES_PLATFORM}" == "fake" ]]; then
+  echo "Skipping virsh nodes verification on fake vm platform"
+  exit 0
+fi
+
 # Verify the baremetal hosts
 ## Fetch the BM CRs
 RESULT_STR="Fetch Baremetalhosts"

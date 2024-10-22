@@ -209,3 +209,7 @@
 
 # Skip applying BMHs 
 # export SKIP_APPLY_BMH="true"
+
+# To enable FakeIPA and run dev-env on a fake platform
+# export NODES_PLATFORM="fake"
+# export FAKE_IPA_IMAGE=192.168.111.1:5000/localimages/fake-ipa
