@@ -64,7 +64,10 @@
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
     when: EPHEMERAL_CLUSTER == "minikube"
-  
+
+  - name: delete ironic ip 
+    shell: "minikube ssh sudo ip addr del 172.22.0.2/24 dev ironicendpoint"
+
   - name: Label baremetalhost CRD to pivot.
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
     with_items:
@@ -122,6 +125,8 @@
     args:
       chdir: "{{ BMOPATH }}"
 
+  - name: add ironic ip 
+    shell: "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no metal3@192.168.111.249 sudo ip addr add 172.22.0.2/24 dev ironicendpoint"
   # Install Ironic
   - name: Install Ironic
     shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
