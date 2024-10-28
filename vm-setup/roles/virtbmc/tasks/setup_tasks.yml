@@ -149,6 +149,7 @@
       SUSHY_EMULATOR_VMEDIA_VERIFY_SSL = {{ sushy_vmedia_verify_ssl }}
       SUSHY_EMULATOR_AUTH_FILE = "/root/sushy/htpasswd"
       SUSHY_EMULATOR_FAKE_DRIVER = True
+      EXTERNAL_NOTIFICATION_URL = "https://localhost:9999"
       SUSHY_EMULATOR_FAKE_IPA = True
       SUSHY_EMULATOR_FAKE_SYSTEMS = {{ lookup('ansible.builtin.file', fake_nodes_file ) }}
   become: true
