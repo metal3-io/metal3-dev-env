@@ -238,6 +238,85 @@ EOF
     -n ironic-standalone-operator-system deployment/ironic-standalone-operator-controller-manager
 }
 
+launch_ironic_via_irso() {
+  if [ "${IRONIC_BASIC_AUTH}" != "true" ]; then
+    echo "Not possible to use ironic-standalone-operator without authentication"
+    exit 1
+  fi
+  kubectl create secret generic ironic-auth -n "${IRONIC_NAMESPACE}" \
+    --from-file=username="${IRONIC_AUTH_DIR}ironic-username"  \
+    --from-file=password="${IRONIC_AUTH_DIR}ironic-password"
+
+  local ironic="${IRONIC_DATA_DIR}/ironic.yaml"
+  cat > "${ironic}" <<EOF
+---
+apiVersion: metal3.io/v1alpha1
+kind: Ironic
+metadata:
+  name: ironic
+  namespace: "${IRONIC_NAMESPACE}"
+spec:
+  credentialsRef:
+    name: ironic-auth
+  networking:
+    dhcp:
+      rangeBegin: "${CLUSTER_DHCP_RANGE_START}"
+      rangeEnd: "${CLUSTER_DHCP_RANGE_END}"
+      networkCIDR: "${BARE_METAL_PROVISIONER_NETWORK}"
+    interface: "${BARE_METAL_PROVISIONER_INTERFACE}"
+    ipAddress: "${CLUSTER_BARE_METAL_PROVISIONER_IP}"
+    ipAddressManager: keepalived
+  deployRamdisk:
+    sshKey: "${SSH_PUB_KEY_CONTENT}"
+EOF
+
+  if [[ "${NODES_PLATFORM}" == "libvirt" ]]; then
+      cat >> "${ironic}" <<EOF
+    extraKernelParams: "console=ttyS0"
+EOF
+  fi
+
+  if [[ -r "${IRONIC_CERT_FILE}" ]] && [[ -r "${IRONIC_KEY_FILE}" ]]; then
+    kubectl create secret tls ironic-cert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_KEY_FILE}" --cert="${IRONIC_CERT_FILE}"
+      cat >> "${ironic}" <<EOF
+  tlsRef:
+    name: ironic-cert
+EOF
+  fi
+  # This is not used by Ironic currently but is needed by BMO
+  if [[ -r "${IRONIC_CACERT_FILE}" ]] && [[ -r "${IRONIC_CAKEY_FILE}" ]]; then
+    kubectl create secret tls ironic-cacert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_CAKEY_FILE}" --cert="${IRONIC_CACERT_FILE}"
+  fi
+
+  if [[ "${IRONIC_USE_MARIADB}" == "true" ]]; then
+      cat >> "${ironic}" <<EOF
+  databaseRef:
+    name: ironic-db
+---
+apiVersion: metal3.io/v1alpha1
+kind: IronicDatabase
+metadata:
+  name: ironic-db
+  namespace: "${IRONIC_NAMESPACE}"
+spec: {}
+EOF
+  fi
+
+  # NOTE(dtantsur): the webhook may not be ready immediately, retry if needed
+  while ! kubectl create -f "${ironic}"; do
+    sleep 3
+  done
+
+  if ! kubectl wait --for=condition=Ready --timeout="${IRONIC_ROLLOUT_WAIT}m" -n "${IRONIC_NAMESPACE}" ironic/ironic; then
+    # FIXME(dtantsur): remove this when Ironic objects are collected in the CI
+    kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironic/ironic
+    if [[ "${IRONIC_USE_MARIADB}" == "true" ]]; then
+      kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironicdatabase/ironic-db
+    fi
+    exit 1
+  fi
+}
+
 #
 # Launch and configure fakeIPA
 #
@@ -578,7 +657,11 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   BMO_NAME_PREFIX="${NAMEPREFIX}"
   launch_baremetal_operator
   launch_ironic_standalone_operator
-  launch_ironic
+  if [[ "${USE_IRSO}" == true ]]; then
+    launch_ironic_via_irso
+  else
+    launch_ironic
+  fi
 
   if [[ "${BMO_RUN_LOCAL}" != true ]]; then
     if ! kubectl rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout="${BMO_ROLLOUT_WAIT}"m; then

@@ -155,6 +155,7 @@ export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
 
+export USE_IRSO="${USE_IRSO:-false}"
 export IRSOPATH="${IRSOPATH:-${M3PATH}/ironic-standalone-operator}"
 export IRSO_BASE_URL="${IRSO_BASE_URL:-metal3-io/ironic-standalone-operator}"
 export IRSOREPO="${IRSOREPO:-https://github.com/${IRSO_BASE_URL}}"
@@ -204,6 +205,7 @@ export BUILD_BMO_LOCALLY="${BUILD_BMO_LOCALLY:-false}"
 export BUILD_CAPI_LOCALLY="${BUILD_CAPI_LOCALLY:-false}"
 export BUILD_IRONIC_IMAGE_LOCALLY="${BUILD_IRONIC_IMAGE_LOCALLY:-false}"
 export BUILD_MARIADB_IMAGE_LOCALLY="${BUILD_MARIADB_IMAGE_LOCALLY:-false}"
+export BUILD_IRSO_LOCALLY="${BUILD_IRSO_LOCALLY:-false}"
 
 # If IRONIC_FROM_SOURCE has a "true" value that
 # automatically requires BUILD_IRONIC_IMAGE_LOCALLY to have "true" value too
@@ -400,6 +402,7 @@ TEST_MAX_TIME="${TEST_MAX_TIME:-240}"
 FAILS=0
 RESULT_STR=""
 BMO_ROLLOUT_WAIT="${BMO_ROLLOUT_WAIT:-5}"
+IRONIC_ROLLOUT_WAIT="${IRONIC_ROLLOUT_WAIT:-10}"
 
 # Avoid printing skipped Ansible tasks
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS="no"
