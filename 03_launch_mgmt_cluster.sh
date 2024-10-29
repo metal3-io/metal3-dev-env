@@ -173,6 +173,11 @@ EOF
     echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
 
+  # TODO (mboukhalfa) enable heartbeating and ironic TLS when sushy-tools release v1.3.1
+  if [[ "${NODES_PLATFORM}" == "fake" ]]; then
+    echo "OS_AGENT__REQUIRE_TLS=false" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
+  fi
+
   if [ -n "${DHCP_IGNORE:-}" ]; then
     echo "DHCP_IGNORE=${DHCP_IGNORE}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
   fi
