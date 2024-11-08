@@ -11,6 +11,9 @@ source lib/network.sh
 # Kill and remove the running ironic containers
 remove_ironic_containers
 
+# Kill and remove fake-ipa container if it exists
+sudo "${CONTAINER_RUNTIME}" rm -f fake-ipa 2>/dev/null
+
 # Remove existing pod
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   for pod in ironic-pod infra-pod; do
