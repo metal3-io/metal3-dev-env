@@ -11,6 +11,12 @@
       apt_repository:
         repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
         state: absent
+    
+    - name: Remove Ubuntu Noble old repository (without gpg key file location)
+      apt_repository:
+        repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+        state: absent
+      when: ansible_distribution_release == "noble"
 
     - name: Fetch OS release key
       get_url:
@@ -18,6 +24,15 @@
         dest: /usr/share/keyrings/libcontainers-archive-keyring.asc
         mode: '0644'
         force: true
+      when: ansible_distribution_release != "noble"
+
+    - name: Fetch Ubuntu Noble release key
+      get_url:
+        url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/Release.key"
+        dest: /usr/share/keyrings/libcontainers-archive-keyring.asc
+        mode: '0644'
+        force: true
+      when: ansible_distribution_release == "noble"
 
     - name: Dearmor Release key
       shell: | 
@@ -31,6 +46,17 @@
         owner: root
         group: root
         mode: '0644'
+      when: ansible_distribution_release != "noble"
+
+    - name: Add Ubuntu Noble repository
+      lineinfile:
+        path: /etc/apt/sources.list.d/devel:kubic:libcontainers:unstable.list
+        line: "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+        create: yes
+        owner: root
+        group: root
+        mode: '0644'
+      when: ansible_distribution_release == "noble"
 
     - name: Update all packages to their latest version
       apt:

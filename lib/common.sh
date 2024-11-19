@@ -60,7 +60,7 @@ source /etc/os-release
 export DISTRO="${ID}${VERSION_ID%.*}"
 export OS="${ID}"
 export OS_VERSION_ID="${VERSION_ID}"
-export SUPPORTED_DISTROS=(centos9 rhel9 ubuntu20 ubuntu22)
+export SUPPORTED_DISTROS=(centos9 rhel9 ubuntu20 ubuntu22 ubuntu24)
 
 if [[ ! "${SUPPORTED_DISTROS[*]}" =~ ${DISTRO} ]]; then
   echo "Supported OS distros for the host are: CentOS Stream 9 or RHEL9 or Ubuntu20.04 or Ubuntu 22.04"
@@ -374,7 +374,9 @@ export TILT_SHA256="${TILT_SHA256:-b30ebbba68d4fd04f8afa11efc439515241dbcc2582ea
 # Older ubuntu version do no support 7.0.0 because of older python versions
 # Ansible 7.0.0 or newer requires python 3.10+
 # TODO: Ansible pinning
-if [[ "${DISTRO}" = "ubuntu22" ]]; then
+if [[ "${DISTRO}" = "ubuntu24" ]]; then
+    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-10.6.0}"
+elif [[ "${DISTRO}" = "ubuntu22" ]]; then
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-8.0.0}"
 else
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-6.7.0}"

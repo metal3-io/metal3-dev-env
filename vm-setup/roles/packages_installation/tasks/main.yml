@@ -12,6 +12,12 @@
         name: "{{ packages.ubuntu.focal_jammy.packages}}"
         state: present
       become: yes
+    - name: Install packages using standard package manager for Ubuntu 24.04
+      when: ansible_distribution_version == "24.04"
+      package:
+        name: "{{ packages.ubuntu.noble.packages}}"
+        state: present
+      become: yes
     - name: Install packages specific to Podman
       package:
         name: "{{ packages.ubuntu.podman.packages}}"
@@ -23,6 +29,14 @@
         executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
         name: "{{ packages.ubuntu.pip3 }}"
         state: present
+      when: ansible_distribution_version != "24.04"
+    - name: Install packages using pip3 on Ubuntu Noble
+      pip:
+        break_system_packages: true
+        executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
+        name: "{{ packages.ubuntu.pip3 }}"
+        state: present
+      when: ansible_distribution_version == "24.04" 
     - name: Add TPM emulator
       block:
         - name: Add TPM emulator PPA
