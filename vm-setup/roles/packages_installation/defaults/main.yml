@@ -24,7 +24,6 @@ packages:
         - libpolkit-agent-1-0
         - libpolkit-gobject-1-0
         - apache2-utils
-        - netcat
     podman:
       packages:
         - apt-transport-https
@@ -39,6 +38,16 @@ packages:
         - libvirt-daemon
         - libvirt-daemon-system
         - libssl-dev
+        - netcat
+    noble:
+      packages:
+        - apparmor
+        - apparmor-profiles-extra
+        - apparmor-utils
+        - libvirt-daemon
+        - libvirt-daemon-system
+        - libssl-dev
+        - netcat-traditional
     pip3:
     - python-apt
     - kubernetes==25.3.0
