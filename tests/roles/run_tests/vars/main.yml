@@ -57,7 +57,7 @@ IMAGE_USERNAME: "{{ lookup('env', 'IMAGE_USERNAME') | default('metal3', true) }}
 REGISTRY: "{{ lookup('env', 'REGISTRY') | default('192.168.111.1:5000', true) }}"
 CALICO_MINOR_RELEASE: "{{ lookup('env', 'CALICO_MINOR_RELEASE') | default('v3.25.1', true) }}"
 CALICO_PATCH_RELEASE: "{{ lookup('env', 'CALICO_PATCH_RELEASE') | default('v3.25.1', true) }}"
-DOCKER_HUB_PROXY: "{{ lookup('env', 'DOCKER_HUB_PROXY') }}"
+CONTAINER_HUB_PROXY: "{{ lookup('env', 'CONTAINER_HUB_PROXY') }}"
 WORKING_DIR: "{{ lookup('env', 'WORKING_DIR') | default('/opt/metal3-dev-env', true) }}"
 
 # Environment variables for deployment. IMAGE_OS can be centos or ubuntu, change accordingly to your needs.

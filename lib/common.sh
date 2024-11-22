@@ -252,11 +252,11 @@ export BARE_METAL_OPERATOR_TAG="${BARE_METAL_OPERATOR_TAG:-latest}"
 export KEEPALIVED_TAG="${KEEPALIVED_TAG:-latest}"
 export MARIADB_TAG="${MARIADB_TAG:-latest}"
 
-# Docker Hub proxy registry (or docker.io if no proxy)
-export DOCKER_HUB_PROXY="${DOCKER_HUB_PROXY:-docker.io}"
+# Container Hub proxy registry (deafult to quay.io if no proxy)
+export CONTAINER_HUB_PROXY="${CONTAINER_HUB_PROXY:-quay.io}"
 
-# Docker registry for local images
-export DOCKER_REGISTRY_IMAGE="${DOCKER_REGISTRY_IMAGE:-${DOCKER_HUB_PROXY}/library/registry:2.7.1}"
+# Container registry for local images
+export CONTAINER_REGISTRY_IMAGE="${CONTAINER_REGISTRY_IMAGE:-${CONTAINER_HUB_PROXY}/libpod/registry:2.8}"
 
 # Registry to pull metal3 container images from
 export CONTAINER_REGISTRY="${CONTAINER_REGISTRY:-quay.io}"
@@ -364,7 +364,7 @@ export MINIKUBE_VERSION="${MINIKUBE_VERSION:-v1.34.0}"
 # Kind, kind node image versions (if EPHEMERAL_CLUSTER=kind)
 export KIND_VERSION="${KIND_VERSION:-v0.24.0}"
 export KIND_NODE_IMAGE_VERSION="${KIND_NODE_IMAGE_VERSION:-v1.31.0}"
-export KIND_NODE_IMAGE="${KIND_NODE_IMAGE:-${DOCKER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}}"
+export KIND_NODE_IMAGE="${KIND_NODE_IMAGE:-${CONTAINER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}}"
 
 # Tilt
 export TILT_VERSION="${TILT_VERSION:-v0.32.3}"
