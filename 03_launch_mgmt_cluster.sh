@@ -311,56 +311,57 @@ function update_capm3_imports(){
   popd
 }
 
-#
-# Update the CAPM3 and BMO manifests to use local images as defined in variables
-#
-function update_component_image(){
-  IMPORT=$1
-  ORIG_IMAGE=$2
+function get_component_image(){
+  local ORIG_IMAGE=$1
   # Split the image IMAGE_NAME AND IMAGE_TAG, if any tag exist
-  TMP_IMAGE="${ORIG_IMAGE##*/}"
-  TMP_IMAGE_NAME="${TMP_IMAGE%%:*}"
-  TMP_IMAGE_TAG="${TMP_IMAGE##*:}"
+  local TMP_IMAGE="${ORIG_IMAGE##*/}"
+  local TMP_IMAGE_NAME="${TMP_IMAGE%%:*}"
+  local TMP_IMAGE_TAG="${TMP_IMAGE##*:}"
   # Assign the image tag to latest if there is no tag in the image
   if [ "${TMP_IMAGE_NAME}" == "${TMP_IMAGE_TAG}" ]; then
     TMP_IMAGE_TAG="latest"
   fi
 
+  echo "${REGISTRY}/localimages/${TMP_IMAGE_NAME}:${TMP_IMAGE_TAG}"
+}
+
+#
+# Update the CAPM3 and BMO manifests to use local images as defined in variables
+#
+function update_component_image(){
+  local IMPORT=$1
+  local ORIG_IMAGE=$2
+  local TMP_IMAGE
+  TMP_IMAGE="$(get_component_image "$ORIG_IMAGE")"
+  if [[ "${IMPORT}" == "IPAM" ]]; then
+    export MANIFEST_IMG_IPAM="${TMP_IMAGE%:*}"
+    export MANIFEST_TAG_IPAM="${TMP_IMAGE##*:}"
+  else
+    export MANIFEST_IMG="${TMP_IMAGE%:*}"
+    export MANIFEST_TAG="${TMP_IMAGE##*:}"
+  fi
+
   # NOTE: It is assumed that we are already in the correct directory to run make
   case "${IMPORT}" in
     "BMO")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-bmo
       ;;
     "CAPM3")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image
       ;;
     "IPAM")
-      export MANIFEST_IMG_IPAM="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
-      export MANIFEST_TAG_IPAM="$TMP_IMAGE_TAG"
       make set-manifest-image-ipam
       ;;
     "Ironic")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-ironic
       ;;
     "Mariadb")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-mariadb
       ;;
     "Keepalived")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-keepalived
       ;;
     "IPA-downloader")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-ipa-downloader
       ;;
   esac
