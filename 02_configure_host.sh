@@ -321,6 +321,9 @@ clone_repo "${IPAMREPO}" "${IPAMBRANCH}" "${IPAMPATH}" "${IPAMCOMMIT}"
 detect_mismatch "${CAPI_LOCAL_IMAGE:-}" "${CAPIPATH}"
 clone_repo "${CAPIREPO}" "${CAPIBRANCH}" "${CAPIPATH}" "${CAPICOMMIT}"
 
+detect_mismatch "${IRSO_LOCAL_IMAGE:-}" "${IRSOPATH}"
+clone_repo "${IRSOREPO}" "${IRSOBRANCH}" "${IRSOPATH}" "${IRSOCOMMIT}"
+
 # MariaDB and Ironic source is not needed unless the images are built locally
 # If the repo path does not match with the IMAGE location that means the image
 # is built from a repo that is not under dev-env's control thus there is no

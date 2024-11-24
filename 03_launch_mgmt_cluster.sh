@@ -224,6 +224,20 @@ EOF
   popd
 }
 
+launch_ironic_standalone_operator() {
+  # TODO(dtantsur): IPA branch support
+  cat > "${IRSOPATH}/config/manager/manager.env" <<EOF
+IRONIC_IMAGE=$(get_component_image "${IRONIC_LOCAL_IMAGE:-${IRONIC_IMAGE}}")
+MARIADB_IMAGE=$(get_component_image "${MARIADB_LOCAL_IMAGE:-${MARIADB_IMAGE}}")
+KEEPALIVED_IMAGE=$(get_component_image "${IRONIC_KEEPALIVED_LOCAL_IMAGE:-${IRONIC_KEEPALIVED_IMAGE}}")
+RAMDISK_DOWNLOADER_IMAGE=$(get_component_image "${IPA_DOWNLOADER_LOCAL_IMAGE:-${IPA_DOWNLOADER_IMAGE}}")
+EOF
+
+  make -C "${IRSOPATH}" install deploy IMG="$(get_component_image "${IRSO_LOCAL_IMAGE:-${IRSO_IMAGE}}")"
+  kubectl wait --for=condition=Available --timeout=60s \
+    -n ironic-standalone-operator-system deployment/ironic-standalone-operator-controller-manager
+}
+
 #
 # Launch and configure fakeIPA
 #
@@ -563,6 +577,7 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   launch_cluster_api_provider_metal3
   BMO_NAME_PREFIX="${NAMEPREFIX}"
   launch_baremetal_operator
+  launch_ironic_standalone_operator
   launch_ironic
 
   if [[ "${BMO_RUN_LOCAL}" != true ]]; then

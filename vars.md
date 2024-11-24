@@ -138,6 +138,9 @@ assured that they are persisted.
 | IPA_BASEURI | IPA downloader will download IPA from this url | | https://tarballs.opendev.org/openstack/ironic-python-agent/dib |
 | IPA_BRANCH | The last part of the name of the IPA archive | | master |
 | IPA_FLAVOR | The middle part of the name of the IPA archive | | centos9 |
+| IRSOREPO | Ironic Standalone Operator git repository URL | | https://github.com/metal3-io/ironic-standalone-operator.git |
+| IRSOBRANCH | Ironic Standalone Operator git repository branch to checkout | | main |
+| IRSOCOMMIT | Ironic Standalone Operator git commit to checkout on IRSOBRANCH | | HEAD |
 <!-- markdownlint-enable MD013 MD034 -->
 
 **NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the
