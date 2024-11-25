@@ -10,6 +10,9 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
+# Default CAPI_CONFIG_DIR to $HOME/.config directory if XDG_CONFIG_HOME not set
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
+export CAPI_CONFIG_DIR="${CONFIG_DIR}/cluster-api"
 export IRONIC_HOST="${CLUSTER_BARE_METAL_PROVISIONER_HOST}"
 export IRONIC_HOST_IP="${CLUSTER_BARE_METAL_PROVISIONER_IP}"
 export REPO_IMAGE_PREFIX="quay.io"
@@ -336,8 +339,8 @@ function update_component_image(){
 function patch_clusterctl(){
 
   pushd "${CAPM3PATH}"
-  mkdir -p "${CAPI_CONFIG_FOLDER}"
-  touch "${CAPI_CONFIG_FOLDER}"/clusterctl.yaml
+  mkdir -p "${CAPI_CONFIG_DIR}"
+  touch "${CAPI_CONFIG_DIR}"/clusterctl.yaml
 
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
@@ -356,9 +359,9 @@ function patch_clusterctl(){
   update_capm3_imports
   make release-manifests
 
-  rm -rf "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
-  mkdir -p "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
- cp out/*.yaml "${CAPI_CONFIG_FOLDER}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  rm -rf "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  mkdir -p "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+ cp out/*.yaml "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
   popd
 }
 

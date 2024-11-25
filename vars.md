@@ -130,7 +130,7 @@ assured that they are persisted.
 | DHCP_HOSTS | A list of `;` separated dhcp-host directives for dnsmasq | e.g. `00:20:e0:3b:13:af;00:20:e0:3b:14:af` | |
 | DHCP_IGNORE | A set of tags on hosts to be ignored by dnsmasq | e.g. `tag:!known` | |
 | ENABLE_NATED_PROVISIONING_NETWORK | A single boolean to configure whether provisioner and provisioning networks are in separate subnets and there is NAT betweend them or not | "true","false" | "false" |
-| CAPI_CONFIG_FOLDER | Cluster API config folder path  | `$HOME/.cluster-api/`, `$XDG_CONFIG_HOME/cluster-api`, `$HOME/.config/cluster-api` | `$HOME/.config/cluster-api` |
+| CAPI_CONFIG_DIR | Cluster API config directory path  | `$HOME/.cluster-api/`, `$XDG_CONFIG_HOME/cluster-api`, `$HOME/.config/cluster-api` | `$HOME/.config/cluster-api` |
 | IPA_BASEURI | IPA downloader will download IPA from this url | | https://tarballs.opendev.org/openstack/ironic-python-agent/dib |
 | IPA_BRANCH | The last part of the name of the IPA archive | | master |
 | IPA_FLAVOR | The middle part of the name of the IPA archive | | centos9 |
