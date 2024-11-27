@@ -155,6 +155,12 @@ export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
 
+export USE_IRSO="${USE_IRSO:-false}"
+export IRSOPATH="${IRSOPATH:-${M3PATH}/ironic-standalone-operator}"
+export IRSO_BASE_URL="${IRSO_BASE_URL:-metal3-io/ironic-standalone-operator}"
+export IRSOREPO="${IRSOREPO:-https://github.com/${IRSO_BASE_URL}}"
+export IRSOBRANCH="${IRSOBRANCH:-main}"
+
 if [[ "${CAPM3RELEASEBRANCH}" == "release-1.6" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.6}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.6}"
@@ -181,6 +187,7 @@ export BMOCOMMIT="${BMOCOMMIT:-HEAD}"
 export CAPM3COMMIT="${CAPM3COMMIT:-HEAD}"
 export IPAMCOMMIT="${IPAMCOMMIT:-HEAD}"
 export CAPICOMMIT="${CAPICOMMIT:-HEAD}"
+export IRSOCOMMIT="${IRSOCOMMIT:-HEAD}"
 
 export IRONIC_IMAGE_PATH="${IRONIC_IMAGE_PATH:-/tmp/ironic-image}"
 export IRONIC_IMAGE_REPO="${IRONIC_IMAGE_REPO:-https://github.com/metal3-io/ironic-image.git}"
@@ -198,6 +205,7 @@ export BUILD_BMO_LOCALLY="${BUILD_BMO_LOCALLY:-false}"
 export BUILD_CAPI_LOCALLY="${BUILD_CAPI_LOCALLY:-false}"
 export BUILD_IRONIC_IMAGE_LOCALLY="${BUILD_IRONIC_IMAGE_LOCALLY:-false}"
 export BUILD_MARIADB_IMAGE_LOCALLY="${BUILD_MARIADB_IMAGE_LOCALLY:-false}"
+export BUILD_IRSO_LOCALLY="${BUILD_IRSO_LOCALLY:-false}"
 
 # If IRONIC_FROM_SOURCE has a "true" value that
 # automatically requires BUILD_IRONIC_IMAGE_LOCALLY to have "true" value too
@@ -225,6 +233,9 @@ fi
 if [[ "${BUILD_MARIADB_IMAGE_LOCALLY}" == "true" ]]; then
   export MARIADB_LOCAL_IMAGE="${MARIADB_IMAGE_PATH}"
 fi
+if [[ "${BUILD_IRSO_LOCALLY}" == "true" ]]; then
+  export IRSO_LOCAL_IMAGE="${IRSOPATH}"
+fi
 
 export BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
 export CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
@@ -251,6 +262,7 @@ export IRONIC_TAG="${IRONIC_TAG:-latest}"
 export BARE_METAL_OPERATOR_TAG="${BARE_METAL_OPERATOR_TAG:-latest}"
 export KEEPALIVED_TAG="${KEEPALIVED_TAG:-latest}"
 export MARIADB_TAG="${MARIADB_TAG:-latest}"
+export IRSO_TAG="${IRSO_TAG:-latest}"
 
 # Docker Hub proxy registry (or docker.io if no proxy)
 export DOCKER_HUB_PROXY="${DOCKER_HUB_PROXY:-docker.io}"
@@ -311,6 +323,7 @@ export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 export IRONIC_NAMESPACE="${IRONIC_NAMESPACE:-baremetal-operator-system}"
 export NAMEPREFIX="${NAMEPREFIX:-baremetal-operator}"
+export IRSO_IMAGE=${IRSO_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-standalone-operator:${IRSO_TAG}"}
 
 # iPXE vars of ironic-image
 export BUILD_IPXE="${BUILD_IPXE:-false}"
@@ -389,6 +402,7 @@ TEST_MAX_TIME="${TEST_MAX_TIME:-240}"
 FAILS=0
 RESULT_STR=""
 BMO_ROLLOUT_WAIT="${BMO_ROLLOUT_WAIT:-5}"
+IRONIC_ROLLOUT_WAIT="${IRONIC_ROLLOUT_WAIT:-10}"
 
 # Avoid printing skipped Ansible tasks
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS="no"

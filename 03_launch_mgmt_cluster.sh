@@ -224,6 +224,99 @@ EOF
   popd
 }
 
+launch_ironic_standalone_operator() {
+  # TODO(dtantsur): IPA branch support
+  cat > "${IRSOPATH}/config/manager/manager.env" <<EOF
+IRONIC_IMAGE=$(get_component_image "${IRONIC_LOCAL_IMAGE:-${IRONIC_IMAGE}}")
+MARIADB_IMAGE=$(get_component_image "${MARIADB_LOCAL_IMAGE:-${MARIADB_IMAGE}}")
+KEEPALIVED_IMAGE=$(get_component_image "${IRONIC_KEEPALIVED_LOCAL_IMAGE:-${IRONIC_KEEPALIVED_IMAGE}}")
+RAMDISK_DOWNLOADER_IMAGE=$(get_component_image "${IPA_DOWNLOADER_LOCAL_IMAGE:-${IPA_DOWNLOADER_IMAGE}}")
+EOF
+
+  make -C "${IRSOPATH}" install deploy IMG="$(get_component_image "${IRSO_LOCAL_IMAGE:-${IRSO_IMAGE}}")"
+  kubectl wait --for=condition=Available --timeout=60s \
+    -n ironic-standalone-operator-system deployment/ironic-standalone-operator-controller-manager
+}
+
+launch_ironic_via_irso() {
+  if [ "${IRONIC_BASIC_AUTH}" != "true" ]; then
+    echo "Not possible to use ironic-standalone-operator without authentication"
+    exit 1
+  fi
+  kubectl create secret generic ironic-auth -n "${IRONIC_NAMESPACE}" \
+    --from-file=username="${IRONIC_AUTH_DIR}ironic-username"  \
+    --from-file=password="${IRONIC_AUTH_DIR}ironic-password"
+
+  local ironic="${IRONIC_DATA_DIR}/ironic.yaml"
+  cat > "${ironic}" <<EOF
+---
+apiVersion: metal3.io/v1alpha1
+kind: Ironic
+metadata:
+  name: ironic
+  namespace: "${IRONIC_NAMESPACE}"
+spec:
+  credentialsRef:
+    name: ironic-auth
+  networking:
+    dhcp:
+      rangeBegin: "${CLUSTER_DHCP_RANGE_START}"
+      rangeEnd: "${CLUSTER_DHCP_RANGE_END}"
+      networkCIDR: "${BARE_METAL_PROVISIONER_NETWORK}"
+    interface: "${BARE_METAL_PROVISIONER_INTERFACE}"
+    ipAddress: "${CLUSTER_BARE_METAL_PROVISIONER_IP}"
+    ipAddressManager: keepalived
+  deployRamdisk:
+    sshKey: "${SSH_PUB_KEY_CONTENT}"
+EOF
+
+  if [[ "${NODES_PLATFORM}" == "libvirt" ]]; then
+      cat >> "${ironic}" <<EOF
+    extraKernelParams: "console=ttyS0"
+EOF
+  fi
+
+  if [[ -r "${IRONIC_CERT_FILE}" ]] && [[ -r "${IRONIC_KEY_FILE}" ]]; then
+    kubectl create secret tls ironic-cert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_KEY_FILE}" --cert="${IRONIC_CERT_FILE}"
+      cat >> "${ironic}" <<EOF
+  tlsRef:
+    name: ironic-cert
+EOF
+  fi
+  # This is not used by Ironic currently but is needed by BMO
+  if [[ -r "${IRONIC_CACERT_FILE}" ]] && [[ -r "${IRONIC_CAKEY_FILE}" ]]; then
+    kubectl create secret tls ironic-cacert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_CAKEY_FILE}" --cert="${IRONIC_CACERT_FILE}"
+  fi
+
+  if [[ "${IRONIC_USE_MARIADB}" == "true" ]]; then
+      cat >> "${ironic}" <<EOF
+  databaseRef:
+    name: ironic-db
+---
+apiVersion: metal3.io/v1alpha1
+kind: IronicDatabase
+metadata:
+  name: ironic-db
+  namespace: "${IRONIC_NAMESPACE}"
+spec: {}
+EOF
+  fi
+
+  # NOTE(dtantsur): the webhook may not be ready immediately, retry if needed
+  while ! kubectl create -f "${ironic}"; do
+    sleep 3
+  done
+
+  if ! kubectl wait --for=condition=Ready --timeout="${IRONIC_ROLLOUT_WAIT}m" -n "${IRONIC_NAMESPACE}" ironic/ironic; then
+    # FIXME(dtantsur): remove this when Ironic objects are collected in the CI
+    kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironic/ironic
+    if [[ "${IRONIC_USE_MARIADB}" == "true" ]]; then
+      kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironicdatabase/ironic-db
+    fi
+    exit 1
+  fi
+}
+
 #
 # Launch and configure fakeIPA
 #
@@ -311,56 +404,57 @@ function update_capm3_imports(){
   popd
 }
 
-#
-# Update the CAPM3 and BMO manifests to use local images as defined in variables
-#
-function update_component_image(){
-  IMPORT=$1
-  ORIG_IMAGE=$2
+function get_component_image(){
+  local ORIG_IMAGE=$1
   # Split the image IMAGE_NAME AND IMAGE_TAG, if any tag exist
-  TMP_IMAGE="${ORIG_IMAGE##*/}"
-  TMP_IMAGE_NAME="${TMP_IMAGE%%:*}"
-  TMP_IMAGE_TAG="${TMP_IMAGE##*:}"
+  local TMP_IMAGE="${ORIG_IMAGE##*/}"
+  local TMP_IMAGE_NAME="${TMP_IMAGE%%:*}"
+  local TMP_IMAGE_TAG="${TMP_IMAGE##*:}"
   # Assign the image tag to latest if there is no tag in the image
   if [ "${TMP_IMAGE_NAME}" == "${TMP_IMAGE_TAG}" ]; then
     TMP_IMAGE_TAG="latest"
   fi
 
+  echo "${REGISTRY}/localimages/${TMP_IMAGE_NAME}:${TMP_IMAGE_TAG}"
+}
+
+#
+# Update the CAPM3 and BMO manifests to use local images as defined in variables
+#
+function update_component_image(){
+  local IMPORT=$1
+  local ORIG_IMAGE=$2
+  local TMP_IMAGE
+  TMP_IMAGE="$(get_component_image "$ORIG_IMAGE")"
+  if [[ "${IMPORT}" == "IPAM" ]]; then
+    export MANIFEST_IMG_IPAM="${TMP_IMAGE%:*}"
+    export MANIFEST_TAG_IPAM="${TMP_IMAGE##*:}"
+  else
+    export MANIFEST_IMG="${TMP_IMAGE%:*}"
+    export MANIFEST_TAG="${TMP_IMAGE##*:}"
+  fi
+
   # NOTE: It is assumed that we are already in the correct directory to run make
   case "${IMPORT}" in
     "BMO")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-bmo
       ;;
     "CAPM3")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image
       ;;
     "IPAM")
-      export MANIFEST_IMG_IPAM="${REGISTRY}/localimages/$TMP_IMAGE_NAME"
-      export MANIFEST_TAG_IPAM="$TMP_IMAGE_TAG"
       make set-manifest-image-ipam
       ;;
     "Ironic")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-ironic
       ;;
     "Mariadb")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-mariadb
       ;;
     "Keepalived")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-keepalived
       ;;
     "IPA-downloader")
-      export MANIFEST_IMG="${REGISTRY}/localimages/${TMP_IMAGE_NAME}"
-      export MANIFEST_TAG="${TMP_IMAGE_TAG}"
       make set-manifest-image-ipa-downloader
       ;;
   esac
@@ -562,7 +656,12 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   launch_cluster_api_provider_metal3
   BMO_NAME_PREFIX="${NAMEPREFIX}"
   launch_baremetal_operator
-  launch_ironic
+  launch_ironic_standalone_operator
+  if [[ "${USE_IRSO}" == true ]]; then
+    launch_ironic_via_irso
+  else
+    launch_ironic
+  fi
 
   if [[ "${BMO_RUN_LOCAL}" != true ]]; then
     if ! kubectl rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout="${BMO_ROLLOUT_WAIT}"m; then

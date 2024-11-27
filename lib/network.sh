@@ -82,8 +82,8 @@ else
 fi
 
 # Calculate DHCP range
-network_address ironic_dhcp_range_start "$BARE_METAL_PROVISIONER_NETWORK" 10
-network_address ironic_dhcp_range_end "$BARE_METAL_PROVISIONER_NETWORK" 100
+network_address CLUSTER_DHCP_RANGE_START "$BARE_METAL_PROVISIONER_NETWORK" 10
+network_address CLUSTER_DHCP_RANGE_END "$BARE_METAL_PROVISIONER_NETWORK" 100
 # The nex range is for IPAM to know what is the pool that porovisioned noodes
 # can get IP's from
 network_address IPAM_PROVISIONING_POOL_RANGE_START "$BARE_METAL_PROVISIONER_NETWORK" 100
@@ -91,7 +91,7 @@ network_address IPAM_PROVISIONING_POOL_RANGE_END "$BARE_METAL_PROVISIONER_NETWOR
 
 export IPAM_PROVISIONING_POOL_RANGE_START
 export IPAM_PROVISIONING_POOL_RANGE_END
-export CLUSTER_DHCP_RANGE=${CLUSTER_DHCP_RANGE:-"$ironic_dhcp_range_start,$ironic_dhcp_range_end"}
+export CLUSTER_DHCP_RANGE=${CLUSTER_DHCP_RANGE:-"$CLUSTER_DHCP_RANGE_START,$CLUSTER_DHCP_RANGE_END"}
 
 EXTERNAL_SUBNET=${EXTERNAL_SUBNET:-""}
 if [[ -n "${EXTERNAL_SUBNET}" ]]; then
