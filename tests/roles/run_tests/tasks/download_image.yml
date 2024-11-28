@@ -1,41 +1,41 @@
 ---
-  - name: Check IMAGE_OS 
+- name: Check IMAGE_OS
+  block:
+  - name: Get the facts about local image
+    stat:
+      path: "{{ IRONIC_IMAGE_DIR }}/{{ RAW_IMAGE_NAME }}"
+    register: image_path
+
+  - debug:
+      msg: "Local image {{ RAW_IMAGE_NAME }} is found"
+    when:
+    - image_path.stat.exists == True
+
+  - name: Download image.
     block:
-      - name: Get the facts about local image
-        stat:
-          path: "{{ IRONIC_IMAGE_DIR }}/{{ RAW_IMAGE_NAME }}"
-        register: image_path
+    - debug:
+        msg: "Local image {{ IMAGE_LOCATION }}/{{ IMAGE_NAME }} is not found, starting to download"
 
-      - debug:
-          msg: "Local image {{ RAW_IMAGE_NAME }} is found"
-        when:
-          - image_path.stat.exists == True
+    - name: Verify specific image containing newer version of cloud-init is downloaded
+      shell: |
+        time wget -q "{{ IMAGE_LOCATION }}/{{ IMAGE_NAME }}" -O "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}"
 
-      - name: Download image.
-        block:
-          - debug:
-              msg: "Local image {{ IMAGE_LOCATION }}/{{ IMAGE_NAME }} is not found, starting to download"
+    - name: Create raw image
+      shell: |
+        qemu-img convert -O raw "{{ IRONIC_IMAGE_DIR }}/{{IMAGE_NAME}}" "{{ IRONIC_IMAGE_DIR }}/{{RAW_IMAGE_NAME}}"
 
-          - name: Verify specific image containing newer version of cloud-init is downloaded
-            shell: | 
-              wget -q "{{ IMAGE_LOCATION }}/{{ IMAGE_NAME }}" -O "{{ IRONIC_IMAGE_DIR }}/{{ IMAGE_NAME }}" 
+    - name: Calculate sha256sum of the image
+      stat:
+        path: "{{ IRONIC_IMAGE_DIR }}/{{ RAW_IMAGE_NAME }}"
+        checksum_algorithm: sha256
+      register: image_sha256
 
-          - name: Create raw image
-            shell: |
-              qemu-img convert -O raw "{{ IRONIC_IMAGE_DIR }}/{{IMAGE_NAME}}" "{{ IRONIC_IMAGE_DIR }}/{{RAW_IMAGE_NAME}}"
+    - name: Create the sha256sum file
+      copy:
+        content: |
+          {{ image_sha256.stat.checksum }}
 
-          - name: Calculate sha256sum of the image
-            stat:
-              path: "{{ IRONIC_IMAGE_DIR }}/{{ RAW_IMAGE_NAME }}"
-              checksum_algorithm: sha256
-            register: image_sha256
-
-          - name: Create the sha256sum file
-            copy:
-              content: |
-                {{ image_sha256.stat.checksum }}
-
-              dest: "{{ IRONIC_IMAGE_DIR }}/{{ RAW_IMAGE_NAME }}.sha256sum"
-              mode: 0664
-        when:
-          - image_path.stat.exists == False
+        dest: "{{ IRONIC_IMAGE_DIR }}/{{ RAW_IMAGE_NAME }}.sha256sum"
+        mode: 664
+    when:
+    - image_path.stat.exists == False

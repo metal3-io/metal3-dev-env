@@ -326,9 +326,9 @@ launch_fake_ipa() {
   if [[ "${EPHEMERAL_CLUSTER}" == "kind" ]] && [[ "${IRONIC_TLS_SETUP}" == "true" ]]; then
     cp "${IRONIC_CACERT_FILE}" "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
   elif [[ "${IRONIC_TLS_SETUP}" == "true" ]]; then
-    # wait for ironic to be running to ensure ironic-cert is created 
+    # wait for ironic to be running to ensure ironic-cert is created
     kubectl -n baremetal-operator-system wait --for=condition=available deployment/baremetal-operator-ironic --timeout=900s
-    # Extract ironic-cert to be used inside fakeIPA for TLS 
+    # Extract ironic-cert to be used inside fakeIPA for TLS
     kubectl get secret -n baremetal-operator-system ironic-cert -o json -o=jsonpath="{.data.ca\.crt}" | base64 -d > "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
   fi
   # Create fake IPA custom config
@@ -497,7 +497,7 @@ function patch_clusterctl(){
 # Currently we just download latest CAPIRELEASE version, which means we don't know
 # the expected SHA, and can't pin it
 install_clusterctl() {
-  wget --no-verbose -O clusterctl "https://github.com/kubernetes-sigs/cluster-api/releases/download/${CAPIRELEASE}/clusterctl-linux-amd64"
+  time wget --no-verbose -O clusterctl "https://github.com/kubernetes-sigs/cluster-api/releases/download/${CAPIRELEASE}/clusterctl-linux-amd64"
   chmod +x ./clusterctl
   sudo mv ./clusterctl /usr/local/bin/
 }

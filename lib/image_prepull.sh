@@ -14,11 +14,11 @@ pushd "${IRONIC_IMAGE_DIR}"
 
 if [[ ! -f "${IMAGE_NAME}" ]]; then
     if [[ -f "${IMAGE_LOCATION}/${IMAGE_NAME}" ]]; then
-      # Copy local image  
+      # Copy local image
       cp "${IMAGE_LOCATION}/${IMAGE_NAME}" .
     elif [[ "${IMAGE_LOCATION}" =~ ^http.* ]]; then
       # Downloading image if it does not exist locally
-      wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
+      time wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
     else
       echo "Image not found at ${IMAGE_LOCATION}/${IMAGE_NAME}"
       exit 1

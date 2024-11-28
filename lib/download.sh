@@ -53,7 +53,7 @@ wget_and_verify()
     if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
         args+=(--quiet)
     fi
-    wget "${args[@]}"
+    time wget "${args[@]}"
 
     if [[ "${checksum}" =~ https ]]; then
         checksum="$(curl -SsL "${checksum}")"
