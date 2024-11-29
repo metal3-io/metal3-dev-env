@@ -408,6 +408,8 @@ function get_component_image(){
   local ORIG_IMAGE=$1
   # Split the image IMAGE_NAME AND IMAGE_TAG, if any tag exist
   local TMP_IMAGE="${ORIG_IMAGE##*/}"
+  # Remove the digest (already considered when caching the image)
+  TMP_IMAGE="${TMP_IMAGE%@*}"
   local TMP_IMAGE_NAME="${TMP_IMAGE%%:*}"
   local TMP_IMAGE_TAG="${TMP_IMAGE##*:}"
   # Assign the image tag to latest if there is no tag in the image
