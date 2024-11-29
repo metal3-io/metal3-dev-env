@@ -420,7 +420,7 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
     # shellcheck disable=SC2086
     IMAGE_NAME="${IMAGE##*/}"
     # shellcheck disable=SC2086
-    LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME}"
+    LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME%@*}"
     sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
 
     if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
