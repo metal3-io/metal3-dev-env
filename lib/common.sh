@@ -262,7 +262,8 @@ export IRONIC_TAG="${IRONIC_TAG:-latest}"
 export BARE_METAL_OPERATOR_TAG="${BARE_METAL_OPERATOR_TAG:-latest}"
 export KEEPALIVED_TAG="${KEEPALIVED_TAG:-latest}"
 export MARIADB_TAG="${MARIADB_TAG:-latest}"
-export IRSO_TAG="${IRSO_TAG:-latest}"
+# FIXME(dtantsur): pinned temporary to avoid breakages while we're preparing the MVP release
+export IRSO_TAG="${IRSO_TAG:-main@sha256:8fe5e8338d791550cc53d28ae9b63bd4ce3ed687ce147ea33021c21379170a33}"
 
 # Docker Hub proxy registry (or docker.io if no proxy)
 export DOCKER_HUB_PROXY="${DOCKER_HUB_PROXY:-docker.io}"
