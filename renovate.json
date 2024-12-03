@@ -107,7 +107,7 @@
         "^lib/common.sh$"
       ],
       "matchStrings": [
-        "DOCKER_REGISTRY_IMAGE:-\"registry:(?<currentValue>.*?)\"}"
+        "CONTAINER_REGISTRY_IMAGE:-\"registry:(?<currentValue>.*?)\"}"
       ],
       "depNameTemplate": "registry",
       "datasourceTemplate": "docker"

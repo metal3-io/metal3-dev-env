@@ -29,8 +29,8 @@
   - name: Pin calico version to v3.25.1
     ansible.builtin.replace:
       path: /tmp/calico.yaml
-      regexp: 'image: docker.io/calico/(.+):v(.+)$'
-      replace: 'image: {{ DOCKER_HUB_PROXY }}/calico/\1:{{ CALICO_PATCH_RELEASE }}'
+      regexp: 'image: quay.io/calico/(.+):v(.+)$'
+      replace: 'image: {{ CONTAINER_HUB_PROXY }}/calico/\1:{{ CALICO_PATCH_RELEASE }}'
 
   - name: Replace the POD_CIDR in calico config
     replace:

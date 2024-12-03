@@ -39,7 +39,7 @@ assured that they are persisted.
 | IMAGE_LOCATION | Location of the image to download | | https://artifactory.nordix.org/artifactory/metal3/images/${KUBERNETES_VERSION} |
 | IMAGE_USERNAME | Image username for ssh | | "metal3" |
 | CONTAINER_REGISTRY | Registry to pull metal3 container images from | | "quay.io" |
-| DOCKER_HUB_PROXY | Registry to pull docker hub images from | | "docker.io" |
+| CONTAINER_HUB_PROXY | Registry to pull container hub images from | | "quay.io" |
 | IRONIC_IMAGE | Container image for local ironic services | | "$CONTAINER_REGISTRY/metal3-io/ironic" |
 | VBMC_IMAGE | Container image for vbmc container | | "$CONTAINER_REGISTRY/metal3-io/vbmc" |
 | SUSHY_TOOLS_IMAGE | Container image for sushy-tools container | | "$CONTAINER_REGISTRY/metal3-io/sushy-tools" |
