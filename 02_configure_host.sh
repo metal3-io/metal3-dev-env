@@ -312,6 +312,13 @@ mkdir -p "${M3PATH}"
 detect_mismatch "${BMO_LOCAL_IMAGE:-}" "${BMOPATH}"
 clone_repo "${BMOREPO}" "${BMOBRANCH}" "${BMOPATH}" "${BMOCOMMIT}"
 
+# Clone a separate BMO main branch, to install deploy-cli.
+clone_repo "${BMOREPO}" "main" "/tmp/bmo-main"
+pushd /tmp/bmo-main
+make deploy-cli
+sudo install tools/bin/deploy-cli /usr/bin/
+popd
+
 detect_mismatch "${CAPM3_LOCAL_IMAGE:-}" "${CAPM3PATH}"
 clone_repo "${CAPM3REPO}" "${CAPM3BRANCH}" "${CAPM3PATH}" "${CAPM3COMMIT}"
 

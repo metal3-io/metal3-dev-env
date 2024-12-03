@@ -65,7 +65,7 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
 fi
 
   # Update Configmap parameters with correct urls
-  cat << EOF | sudo tee "${BMOPATH}/config/default/ironic.env"
+  cat << EOF | sudo tee "${IRONIC_DATA_DIR}/ironic.env"
 DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
 DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
 IRONIC_ENDPOINT=${IRONIC_URL}
@@ -76,8 +76,8 @@ EOF
     echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${BMOPATH}/config/default/ironic.env"
   fi
 
-  # Deploy BMO using deploy.sh script
-  "${BMOPATH}/tools/deploy.sh" -b "${BMO_IRONIC_ARGS[@]}"
+  # Deploy BMO using deploy-cli.
+  deploy-cli -b "${BMO_IRONIC_ARGS[@]}"
 
   # If BMO should run locally, scale down the deployment and run BMO
   if [ "${BMO_RUN_LOCAL}" == "true" ]; then
@@ -222,7 +222,7 @@ EOF
     ${RUN_LOCAL_IRONIC_SCRIPT}
   else
     # Deploy Ironic using deploy.sh script
-    "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
+    deploy-cli -i "${BMO_IRONIC_ARGS[@]}"
   fi
   popd
 }
