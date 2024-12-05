@@ -394,19 +394,6 @@ function apply_bm_hosts() {
 # CAPM3 deployment functions
 # --------------------------
 
-#
-# Update the imports for the CAPM3 deployment files
-#
-function update_capm3_imports(){
-  pushd "${CAPM3PATH}"
-
-  make kustomize
-  ./hack/tools/bin/kustomize build "${IPAMPATH}/config/default" > config/ipam/metal3-ipam-components.yaml
-
-  sed -i -e "s#https://github.com/metal3-io/ip-address-manager/releases/download/v.*/ipam-components.yaml#metal3-ipam-components.yaml#" "config/ipam/kustomization.yaml"
-  popd
-}
-
 function get_component_image(){
   local ORIG_IMAGE=$1
   # Split the image IMAGE_NAME AND IMAGE_TAG, if any tag exist
@@ -431,13 +418,8 @@ function update_component_image(){
   local ORIG_IMAGE=$2
   local TMP_IMAGE
   TMP_IMAGE="$(get_component_image "$ORIG_IMAGE")"
-  if [[ "${IMPORT}" == "IPAM" ]]; then
-    export MANIFEST_IMG_IPAM="${TMP_IMAGE%:*}"
-    export MANIFEST_TAG_IPAM="${TMP_IMAGE##*:}"
-  else
-    export MANIFEST_IMG="${TMP_IMAGE%:*}"
-    export MANIFEST_TAG="${TMP_IMAGE##*:}"
-  fi
+  export MANIFEST_IMG="${TMP_IMAGE%:*}"
+  export MANIFEST_TAG="${TMP_IMAGE##*:}"
 
   # NOTE: It is assumed that we are already in the correct directory to run make
   case "${IMPORT}" in
@@ -448,7 +430,7 @@ function update_component_image(){
       make set-manifest-image
       ;;
     "IPAM")
-      make set-manifest-image-ipam
+      make set-manifest-image
       ;;
     "Ironic")
       make set-manifest-image-ironic
@@ -474,6 +456,13 @@ function patch_clusterctl(){
   mkdir -p "${CAPI_CONFIG_DIR}"
   touch "${CAPI_CONFIG_DIR}"/clusterctl.yaml
 
+  cat << EOF > "${CAPI_CONFIG_DIR}"/clusterctl.yaml
+providers:
+- name: metal3ipam
+  url: https://github.com/metal3-io/ip-address-manager/releases/${IPAMRELEASE}/ipam-components.yaml
+  type: IPAMProvider
+EOF
+
   # At this point the images variables have been updated with update_images
   # Reflect the change in components files
   if [ -n "${CAPM3_LOCAL_IMAGE:-}" ]; then
@@ -482,18 +471,27 @@ function patch_clusterctl(){
     update_component_image CAPM3 "${CAPM3_IMAGE}"
   fi
 
+  make release-manifests
+
+  rm -rf "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  mkdir -p "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  cp out/*.yaml "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  popd
+}
+
+function patch_ipam(){
+  pushd "${IPAMPATH}"
+
   if [ -n "${IPAM_LOCAL_IMAGE:-}" ]; then
     update_component_image IPAM "${IPAM_LOCAL_IMAGE}"
   else
     update_component_image IPAM "${IPAM_IMAGE}"
   fi
 
-  update_capm3_imports
   make release-manifests
-
-  rm -rf "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
-  mkdir -p "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
- cp out/*.yaml "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+  rm -rf "${CAPI_CONFIG_DIR}"/overrides/ipam-metal3ipam/"${IPAMRELEASE}"
+  mkdir -p "${CAPI_CONFIG_DIR}"/overrides/ipam-metal3ipam/"${IPAMRELEASE}"
+  cp out/*.yaml "${CAPI_CONFIG_DIR}"/overrides/ipam-metal3ipam/"${IPAMRELEASE}"
   popd
 }
 
@@ -522,7 +520,7 @@ function launch_cluster_api_provider_metal3() {
 
     # shellcheck disable=SC2153
   clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
-    --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5
+    --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5 --ipam=metal3ipam:"${IPAMRELEASE}"
 
   if [ "${CAPM3_RUN_LOCAL}" == true ]; then
     touch capm3.out.log
@@ -658,6 +656,7 @@ if [ "${EPHEMERAL_CLUSTER}" != "tilt" ]; then
   kubectl create namespace metal3
 
   patch_clusterctl
+  patch_ipam
   launch_cluster_api_provider_metal3
   BMO_NAME_PREFIX="${NAMEPREFIX}"
   launch_baremetal_operator
