@@ -232,6 +232,9 @@ EOF
     if [[ "${EPHEMERAL_CLUSTER}" != "minikube" ]]; then
         update_images
         ${RUN_LOCAL_IRONIC_SCRIPT}
+        # Wait for ironic to become ready
+        echo "Waiting for Ironic to become ready"
+        retry sudo "${CONTAINER_RUNTIME}" exec ironic /bin/ironic-readiness
     else
         # Deploy Ironic using deploy.sh script
         "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"

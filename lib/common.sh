@@ -521,6 +521,26 @@ iterate(){
   return "${TMP_RET_CODE}"
 }
 
+#
+# Retry a command until it runs successfully or exceeds the maximum retries
+#
+# Inputs:
+# - the command to run
+#
+retry()
+{
+    local retries=10
+    local i
+    for i in $(seq 1 "${retries}"); do
+        if "${@}"; then
+            return 0
+        fi
+        echo "Retrying... ${i}/${retries}"
+        sleep 5
+    done
+    return 1
+}
+
 
 #
 # Check the return code
