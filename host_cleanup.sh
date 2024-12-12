@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-set -x
+
+set -eux
 
 # shellcheck disable=SC1091
-source lib/logging.sh
+. lib/logging.sh
 # shellcheck disable=SC1091
-source lib/common.sh
+. lib/common.sh
 # shellcheck disable=SC1091
-source lib/network.sh
+. lib/network.sh
 
 # Kill and remove the running ironic containers
 remove_ironic_containers
@@ -18,7 +19,7 @@ sudo "${CONTAINER_RUNTIME}" rm -f fake-ipa 2>/dev/null
 if [[ "${CONTAINER_RUNTIME}" = "podman" ]]; then
     for pod in ironic-pod infra-pod; do
         if sudo "${CONTAINER_RUNTIME}" pod exists "${pod}"; then
-           sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
+            sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
         fi
     done
 fi
@@ -57,7 +58,7 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
 # There was a bug in this file, it may need to be recreated.
 if [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
     sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
-    if [[  "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
+    if [[  "${MANAGE_PRO_BRIDGE}" = "y" ]]; then
         sudo nmcli con delete ironic-peer
         sudo nmcli con delete "${BARE_METAL_PROVISIONER_INTERFACE}"
         sudo nmcli con delete provisioning

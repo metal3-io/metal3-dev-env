@@ -4,7 +4,7 @@ set -eu
 
 # shellcheck disable=SC2312
 DIR="$(dirname "$(readlink -f "$0")")"
-# shellcheck source=lib/common.sh
+# shellcheck disable=SC1091
 source "${DIR}/lib/common.sh"
 
 if [[ -d "${PWD}/_clouds_yaml" ]]; then

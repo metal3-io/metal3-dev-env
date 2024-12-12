@@ -1,7 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-[[ ! "${PATH}" =~ .*(:|^)(/usr/local/go/bin)(:|$).* ]] && export PATH="$PATH:/usr/local/go/bin"
-
+SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )/.." && pwd)"
 
 USER="$(whoami)"
 export USER
@@ -13,10 +12,11 @@ if [[ "$USER" != "root" ]]; then
     fi
 fi
 
+if [[ ! "${PATH}" =~ .*(:|^)(/usr/local/go/bin)(:|$).* ]]; then
+    export PATH="${PATH}:/usr/local/go/bin"
+fi
 eval "$(go env)"
 export GOPATH="${GOPATH:-/home/$(whoami)/go}"
-
-SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 # Get variables from the config file
 if [[ -z "${CONFIG:-}" ]]; then
@@ -94,30 +94,6 @@ export SSH_PUB_KEY_CONTENT
 
 FILESYSTEM="${FILESYSTEM:=/}"
 
-# Reusable repository cloning function
-clone_repo() {
-  local REPO_URL="$1"
-  local REPO_BRANCH="$2"
-  local REPO_PATH="$3"
-  local REPO_COMMIT="${4:-HEAD}"
-
-  if [[ -d "${REPO_PATH}" ]] && [[ "${FORCE_REPO_UPDATE}" = "true" ]]; then
-    rm -rf "${REPO_PATH}"
-  fi
-  if [[ ! -d "${REPO_PATH}" ]]; then
-    pushd "${M3PATH}" || exit
-    if [[ "${REPO_COMMIT}" = "HEAD" ]]; then
-        git clone --depth 1 --branch "${REPO_BRANCH}" "${REPO_URL}" \
-            "${REPO_PATH}"
-    else
-        git clone --branch "${REPO_BRANCH}" "${REPO_URL}" "${REPO_PATH}"
-        pushd "${REPO_PATH}" || exit
-        git checkout "${REPO_COMMIT}"
-        popd || exit
-    fi
-    popd || exit
-  fi
-}
 
 # Configure common environment variables
 CAPM3_VERSION_LIST="v1beta1"
@@ -400,8 +376,6 @@ fi
 SKIP_RETRIES="${SKIP_RETRIES:-false}"
 TEST_TIME_INTERVAL="${TEST_TIME_INTERVAL:-10}"
 TEST_MAX_TIME="${TEST_MAX_TIME:-240}"
-FAILS=0
-RESULT_STR=""
 BMO_ROLLOUT_WAIT="${BMO_ROLLOUT_WAIT:-5}"
 IRONIC_ROLLOUT_WAIT="${IRONIC_ROLLOUT_WAIT:-10}"
 
@@ -485,125 +459,6 @@ list_nodes() {
            .address + " " +
            .user + " " + .password + " " + .mac' \
        | sed 's/"//g'
-}
-
-#
-# Iterate a command until it runs successfully or exceeds the maximum retries
-#
-# Inputs:
-# - the command to run
-#
-iterate(){
-  local RUNS=0
-  local COMMAND="$*"
-  local TMP_RET TMP_RET_CODE
-  TMP_RET="$(${COMMAND})"
-  TMP_RET_CODE="$?"
-
-  until [[ "${TMP_RET_CODE}" = 0 ]] || [[ "${SKIP_RETRIES}" = true ]]
-  do
-    if [[ "${RUNS}" = "0" ]]; then
-      echo "   - Waiting for task completion (up to" \
-        "$((TEST_TIME_INTERVAL*TEST_MAX_TIME)) seconds)" \
-        " - Command: '${COMMAND}'"
-    fi
-    RUNS="$((RUNS+1))"
-    if [[ "${RUNS}" = "${TEST_MAX_TIME}" ]]; then
-      break
-    fi
-    sleep "${TEST_TIME_INTERVAL}"
-    # shellcheck disable=SC2068
-    TMP_RET="$(${COMMAND})"
-    TMP_RET_CODE="$?"
-  done
-  FAILS="$((FAILS+TMP_RET_CODE))"
-  echo "${TMP_RET}"
-  return "${TMP_RET_CODE}"
-}
-
-#
-# Retry a command until it runs successfully or exceeds the maximum retries
-#
-# Inputs:
-# - the command to run
-#
-retry()
-{
-    local retries=10
-    local i
-    for i in $(seq 1 "${retries}"); do
-        if "${@}"; then
-            return 0
-        fi
-        echo "Retrying... ${i}/${retries}"
-        sleep 5
-    done
-    return 1
-}
-
-
-#
-# Check the return code
-#
-# Inputs:
-# - return code to check
-# - message to print
-#
-process_status(){
-  if [[ "${1}" = 0 ]]; then
-    echo "OK - ${RESULT_STR}"
-    return 0
-  else
-    echo "FAIL - ${RESULT_STR}"
-    FAILS="$((FAILS+1))"
-    return 1
-  fi
-}
-
-#
-# Compare if the two inputs are the same and log
-#
-# Inputs:
-# - first input to compare
-# - second input to compare
-#
-equals(){
-  [[ "${1}" = "${2}" ]]; RET_CODE="$?"
-  if ! process_status "${RET_CODE}" ; then
-    echo "       expected ${2}, got ${1}"
-  fi
-  return ${RET_CODE}
-}
-
-#
-# Compare the substring to the string and log
-#
-# Inputs:
-# - Substring to look for
-# - String to look for the substring in
-#
-is_in(){
-  [[ "${2}" =~ .*(${1}).* ]]; RET_CODE="$?"
-  if ! process_status "${RET_CODE}" ; then
-    echo "       expected ${1} to be in ${2}"
-  fi
-  return ${RET_CODE}
-}
-
-
-#
-# Check if the two inputs differ and log
-#
-# Inputs:
-# - first input to compare
-# - second input to compare
-#
-differs(){
-  [[ "${1}" != "${2}" ]]; RET_CODE="$?"
-  if ! process_status "${RET_CODE}" ; then
-    echo "       expected to be different from ${2}, got ${1}"
-  fi
-  return ${RET_CODE}
 }
 
 #

@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
+
 set -eux
 
 # shellcheck disable=SC1091
-source lib/logging.sh
+. lib/logging.sh
 # shellcheck disable=SC1091
-source lib/common.sh
+. lib/common.sh
 # shellcheck disable=SC1091
-source lib/network.sh
+. lib/network.sh
 # shellcheck disable=SC1091
-source lib/releases.sh
-# pre-pull node and container images
+. lib/releases.sh
 # shellcheck disable=SC1091
-source lib/image_prepull.sh
+. lib/image_prepull.sh
+# shellcheck disable=SC1091
+. lib/utils.sh
 
 # cleanup ci config file if it exists from earlier run
 rm -f "${CI_CONFIG_FILE}"
@@ -30,7 +32,7 @@ elif grep -q svm /proc/cpuinfo; then
 fi
 
 # Clean, copy and extract local IPA
-if [[ "${USE_LOCAL_IPA}" == "true" ]]; then
+if [[ "${USE_LOCAL_IPA}" = "true" ]]; then
     sudo rm -f  "${IRONIC_DATA_DIR}/html/images/ironic-python-agent*"
     sudo cp "${LOCAL_IPA_PATH}/ironic-python-agent.tar" "${IRONIC_DATA_DIR}/html/images"
     sudo tar --extract --file "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.tar" \
@@ -94,7 +96,7 @@ init_minikube()
     fi
 }
 
-if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]]; then
+if [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then
     init_minikube
 fi
 
@@ -137,19 +139,19 @@ EOF
     sudo virsh pool-autostart default
 fi
 
-if [[ "${OS}" == "ubuntu" ]]; then
+if [[ "${OS}" = "ubuntu" ]]; then
     # source ubuntu_bridge_network_configuration.sh
     # shellcheck disable=SC1091
     source ubuntu_bridge_network_configuration.sh
     # shellcheck disable=SC1091
     source disable_apparmor_driver_libvirtd.sh
 else
-    if [[ "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
+    if [[ "${MANAGE_PRO_BRIDGE}" = "y" ]]; then
         # Adding an IP address in the libvirt definition for this network results in
         # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
         # the IP address here
         if [[ ! -e /etc/NetworkManager/system-connections/provisioning.nmconnection ]]; then
-            if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" == "true" ]]; then
+            if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" = "true" ]]; then
                 sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
 [connection]
 id=provisioning
@@ -206,7 +208,7 @@ EOF
             sudo nmcli con up "${PRO_IF}"
         fi
 
-    if [[ "${MANAGE_INT_BRIDGE}" == "y" ]]; then
+    if [[ "${MANAGE_INT_BRIDGE}" = "y" ]]; then
         if [[ "$(nmcli con show)" != *"external"* ]]; then
             sudo tee /etc/NetworkManager/system-connections/external.nmconnection <<EOF
 [connection]
@@ -250,7 +252,7 @@ EOF
     fi
 
     # Restart the libvirt network so it applies an ip to the bridge
-    if [[ "${MANAGE_EXT_BRIDGE}" == "y" ]]; then
+    if [[ "${MANAGE_EXT_BRIDGE}" = "y" ]]; then
         sudo virsh net-destroy external
         sudo virsh net-start external
         if [[ -n "${INT_IF}" ]]; then
@@ -266,7 +268,7 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -b vm-setup/firewall.yml
 
 # FIXME(stbenjam): ansbile firewalld module doesn't seem to be doing the right thing
-if [[ "${USE_FIREWALLD}" == "True" ]]; then
+if [[ "${USE_FIREWALLD}" = "True" ]]; then
     sudo firewall-cmd --zone=libvirt --change-interface=provisioning
     sudo firewall-cmd --zone=libvirt --change-interface=external
 fi
@@ -281,7 +283,7 @@ fi
 reg_state=$(sudo "${CONTAINER_RUNTIME}" inspect registry --format "{{.State.Status}}" || echo "error")
 
 # ubuntu_install_requirements.sh script restarts docker daemon which causes local registry container to be in exited state.
-if [[ "${reg_state}" == "exited" ]]; then
+if [[ "${reg_state}" = "exited" ]]; then
     sudo "${CONTAINER_RUNTIME}" start registry
 elif [[ "${reg_state}" != "running" ]]; then
     sudo "${CONTAINER_RUNTIME}" rm registry -f || true
@@ -293,7 +295,7 @@ detect_mismatch()
 {
     local LOCAL_IMAGE="$1"
     local REPO_PATH="$2"
-    if [[ -z "${LOCAL_IMAGE}" ]] || [[ "${LOCAL_IMAGE}" == "${REPO_PATH}" ]]; then
+    if [[ -z "${LOCAL_IMAGE}" ]] || [[ "${LOCAL_IMAGE}" = "${REPO_PATH}" ]]; then
         echo "Local image: ${LOCAL_IMAGE} and repo path: ${REPO_PATH} are matching!"
     else
         echo "There is a mismatch between LOCAL_IMAGE:${LOCAL_IMAGE} and IMAGE_PATH:${REPO_PATH}"
@@ -330,11 +332,11 @@ clone_repo "${IRSOREPO}" "${IRSOBRANCH}" "${IRSOPATH}" "${IRSOCOMMIT}"
 # need to clone the repo.
 # There is no need to keep the PATH and the IMAGE vars in sync as there
 # is no other use of the path variable than cloning
-if [[ "${MARIADB_LOCAL_IMAGE:-}" == "${MARIADB_IMAGE_PATH}" ]]; then
+if [[ "${MARIADB_LOCAL_IMAGE:-}" = "${MARIADB_IMAGE_PATH}" ]]; then
     clone_repo "${MARIADB_IMAGE_REPO}" "${MARIADB_IMAGE_BRANCH}" "${MARIADB_IMAGE_PATH}" "${MARIADB_IMAGE_COMMIT}"
 fi
 
-if [[ "${IRONIC_LOCAL_IMAGE:-}" == "${IRONIC_IMAGE_PATH}" ]]; then
+if [[ "${IRONIC_LOCAL_IMAGE:-}" = "${IRONIC_IMAGE_PATH}" ]]; then
     clone_repo "${IRONIC_IMAGE_REPO}" "${IRONIC_IMAGE_BRANCH}" "${IRONIC_IMAGE_PATH}" "${IRONIC_IMAGE_COMMIT}"
 fi
 
@@ -352,7 +354,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
     IMAGE_DATE="$(date -u +%y_%j_%H%M)"
 
     # Support building ironic-image from source
-    if [[ "${IMAGE_VAR/_LOCAL_IMAGE}" == "IRONIC" ]] && [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
+    if [[ "${IMAGE_VAR/_LOCAL_IMAGE}" = "IRONIC" ]] && [[ ${IRONIC_FROM_SOURCE:-} = "true" ]]; then
         # NOTE(rpittau): to customize the source origin we need to copy the source code we
         # want to use into the sources directory under the ironic-image repository.
         for CODE_SOURCE_VAR in $(env | grep -E '^IRONIC_SOURCE=|^IRONIC_INSPECTOR_SOURCE=|^SUSHY_SOURCE=' | grep -o "^[^=]*"); do
@@ -368,7 +370,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
             -t "${IMAGE_URL}:latest" -t "${IMAGE_URL}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
 
     # TODO: Do we want to support CAPI in dev-env? CI just pulls it anyways ...
-    elif [[ "${IMAGE_VAR/_LOCAL_IMAGE}" == "CAPI" ]]; then
+    elif [[ "${IMAGE_VAR/_LOCAL_IMAGE}" = "CAPI" ]]; then
         CAPI_GO_VERSION=$(grep "GO_VERSION ?= [0-9].*" Makefile | sed -e 's/GO_VERSION ?= //g')
         # shellcheck disable=SC2016
         CAPI_BASEIMAGE=$(grep "GO_CONTAINER_IMAGE ?=" Makefile | sed -e 's/GO_CONTAINER_IMAGE ?= //g' -e 's/$(GO_VERSION)//g')
@@ -382,7 +384,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
     fi
 
     cd - || exit
-    if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
+    if [[ "${CONTAINER_RUNTIME}" = "podman" ]]; then
         sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${IMAGE_URL}"
     else
         sudo "${CONTAINER_RUNTIME}" push "${IMAGE_URL}"
@@ -405,7 +407,7 @@ done
 
 # IRONIC_IMAGE is also used in this script so when it is built locally and
 # consequently unset, it has to be redefined for local use
-if [[ "${BUILD_IRONIC_IMAGE_LOCALLY:-}" == "true" ]] || [[ -n "${IRONIC_LOCAL_IMAGE:-}" ]]; then
+if [[ "${BUILD_IRONIC_IMAGE_LOCALLY:-}" = "true" ]] || [[ -n "${IRONIC_LOCAL_IMAGE:-}" ]]; then
     IRONIC_IMAGE="${REGISTRY}/localimages/$(basename "${IRONIC_LOCAL_IMAGE}")"
     export IRONIC_IMAGE
 fi
@@ -423,7 +425,7 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
     LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME%@*}"
     sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
 
-    if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
+    if [[ "${CONTAINER_RUNTIME}" = "podman" ]]; then
         sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
     else
         sudo "${CONTAINER_RUNTIME}" push "${LOCAL_IMAGE}"
@@ -431,7 +433,7 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
 done
 
 # Start httpd-infra container
-if [[ "${OS}" == "ubuntu" ]]; then
+if [[ "${OS}" = "ubuntu" ]]; then
     # shellcheck disable=SC2086
     sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra ${POD_NAME_INFRA} \
         -v "${IRONIC_DATA_DIR}":/shared --entrypoint /bin/runhttpd \

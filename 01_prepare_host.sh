@@ -3,9 +3,9 @@
 set -eux
 
 # shellcheck disable=SC1091
-source lib/logging.sh
+. lib/logging.sh
 # shellcheck disable=SC1091
-source lib/common.sh
+. lib/common.sh
 
 if [[ "${EUID}" -eq 0 ]]; then
     echo "Please run 'make' as a non-root user"
@@ -28,7 +28,7 @@ if [[ "${OS}" = "ubuntu" ]]; then
         ubuntu24)
             sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 ;;
         *) ;;
-  esac
+    esac
 
 elif [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
     sudo dnf upgrade -y --nobest
@@ -53,14 +53,14 @@ fi
 # NOTE(tuminoid) lib/releases.sh must be after the jq and python installation
 # TODO: fix all of the lib/ scripts not to actually run code, but only define functions
 # shellcheck disable=SC1091
-source lib/releases.sh
+. lib/releases.sh
 # shellcheck disable=SC1091
-source lib/download.sh
+. lib/download.sh
 # NOTE(fmuyassarov) Make sure to source before runnig install-package-playbook.yml
 # because there are some vars exported in network.sh and used by
 # install-package-playbook.yml.
 # shellcheck disable=SC1091
-source lib/network.sh
+. lib/network.sh
 
 # NOTE(dtantsur): system-site-packages is required because of certain Python
 # packages that cannot be pip-installed (firewalld, selinux, etc).

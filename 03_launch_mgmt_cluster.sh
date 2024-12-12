@@ -3,13 +3,15 @@
 set -eux
 
 # shellcheck disable=SC1091
-source lib/logging.sh
+. lib/logging.sh
 # shellcheck disable=SC1091
-source lib/common.sh
+. lib/common.sh
 # shellcheck disable=SC1091
-source lib/releases.sh
+. lib/releases.sh
 # shellcheck disable=SC1091
-source lib/network.sh
+. lib/network.sh
+# shellcheck disable=SC1091
+. lib/utils.sh
 
 # Default CAPI_CONFIG_DIR to $HOME/.config directory if XDG_CONFIG_HOME not set
 CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}"
@@ -36,9 +38,9 @@ sudo mkdir -p "${IRONIC_DATA_DIR}"
 sudo chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
 
 # shellcheck disable=SC1091
-source lib/ironic_tls_setup.sh
+. lib/ironic_tls_setup.sh
 # shellcheck disable=SC1091
-source lib/ironic_basic_auth.sh
+. lib/ironic_basic_auth.sh
 
 # ------------------------------------
 # BMO and Ironic deployment functions
@@ -135,11 +137,11 @@ update_images()
     # Assign images from local image registry after update image
     # This allows to use cached images for faster downloads
     for image_var in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
-      image=${!image_var}
-      #shellcheck disable=SC2086
-      image_name="${image##*/}"
-      local_image="${REGISTRY}/localimages/${image_name}"
-      eval "${image_var}"="${local_image}"
+        image=${!image_var}
+        #shellcheck disable=SC2086
+        image_name="${image##*/}"
+        local_image="${REGISTRY}/localimages/${image_name}"
+        eval "${image_var}"="${local_image}"
     done
 }
 
@@ -397,7 +399,7 @@ make_bm_hosts()
             -boot-mode "${BOOT_MODE}" \
             "${name}" | \
             tee "${WORKING_DIR}/bmhs/node_${i}.yaml" >> "${WORKING_DIR}/bmhosts_crs.yaml"
-        i=$((i+1))
+        i=$((i + 1))
     done
 }
 
@@ -412,7 +414,9 @@ apply_bm_hosts()
     list_nodes | make_bm_hosts
     if [[ -n "$(list_nodes)" ]]; then
         echo "bmhosts_crs.yaml is applying"
-        while ! kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n "${namespace}" &>/dev/null; do
+        # this is most useless loop ever - if it partially fails, it'll never be
+        # able to recover anyways... but keeping it for some edge cases where it may help
+        while ! kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n "${namespace}" >/dev/null; do
             sleep 3
         done
         echo "bmhosts_crs.yaml is successfully applied"
@@ -687,23 +691,24 @@ build_ipxe_firmware()
 
     if [[ "${IPXE_ENABLE_TLS}" = "true" ]]; then
         export IPXE_ENABLE_TLS_CENV_ARG="IPXE_ENABLE_TLS=true"
-        certs_mounts+=("-v ${IPXE_CACERT_FILE}:/certs/ca/ipxe/tls.crt")
-        certs_mounts+=("-v ${IPXE_CERT_FILE}:/certs/ipxe/tls.crt")
-        certs_mounts+=("-v ${IPXE_KEY_FILE}:/certs/ipxe/tls.key ")
+        certs_mounts+=(-v "${IPXE_CACERT_FILE}:/certs/ca/ipxe/tls.crt")
+        certs_mounts+=(-v "${IPXE_CERT_FILE}:/certs/ipxe/tls.crt")
+        certs_mounts+=(-v "${IPXE_KEY_FILE}:/certs/ipxe/tls.key")
     fi
 
     if [[ "${IPXE_ENABLE_IPV6}" = "true" ]]; then
         export IPXE_ENABLE_IPV6_CENV_ARG="IPXE_ENABLE_IPV6=true"
     fi
 
-    # shellcheck disable=SC2086,SC2068
+    # shellcheck disable=SC2086
     sudo "${CONTAINER_RUNTIME}" run \
         --net host \
-        --name ipxe-builder ${POD_NAME} \
+        --name ipxe-builder \
+        ${POD_NAME} \
         -e "${IPXE_ENABLE_TLS_CENV_ARG}" \
         -e "${IPXE_ENABLE_IPV6_CENV_ARG}" \
         -e "IRONIC_IP=${IRONIC_HOST_IP}" \
-        ${certs_mounts[@]} \
+        "${certs_mounts[@]}" \
         -v "${IRONIC_DATA_DIR}":/shared \
         "${ipxe_builder_image}"
 }
@@ -731,8 +736,8 @@ patch_clusterctl
 launch_cluster_api_provider_metal3
 BMO_NAME_PREFIX="${NAMEPREFIX}"
 launch_baremetal_operator
-launch_ironic_standalone_operator
 if [[ "${USE_IRSO}" = true ]]; then
+    launch_ironic_standalone_operator
     launch_ironic_via_irso
 else
     launch_ironic
@@ -757,7 +762,6 @@ if [[ "${SKIP_APPLY_BMH:-false}" = "true" ]]; then
     list_nodes | make_bm_hosts
     popd
 else
-    # this is coming from lib/common.sh
     # shellcheck disable=SC2153
     apply_bm_hosts "${NAMESPACE}"
 fi
