@@ -731,8 +731,8 @@ patch_clusterctl
 launch_cluster_api_provider_metal3
 BMO_NAME_PREFIX="${NAMEPREFIX}"
 launch_baremetal_operator
-launch_ironic_standalone_operator
 if [[ "${USE_IRSO}" = true ]]; then
+    launch_ironic_standalone_operator
     launch_ironic_via_irso
 else
     launch_ironic
