@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Requires parameters url and version. An optional parameter can be given to
-# exclude some versions. 
+# exclude some versions.
 # Example usage:
 # get_latest_release_from_goproxy "https://proxy.golang.org/sigs.k8s.io/cluster-api/@v/list" "v1.8." "beta|rc|pre|alpha"
 get_latest_release_from_goproxy() {
@@ -30,16 +30,16 @@ CAPIGOPROXY="https://proxy.golang.org/sigs.k8s.io/cluster-api/@v/list"
 # Extract release version from release-branch name
 if [[ "${CAPM3RELEASEBRANCH}" == release-* ]]; then
   CAPM3_RELEASE_PREFIX="${CAPM3RELEASEBRANCH#release-}"
-else 
+else
   CAPM3_RELEASE_PREFIX=""
-fi 
+fi
 
 # Fetch CAPI version that coresponds to CAPM3_RELEASE_PREFIX release version
-if [[ "${CAPM3_RELEASE_PREFIX}" =~ ^(1\.6|1\.7|1\.8)$ ]]; then
+if [[ "${CAPM3_RELEASE_PREFIX}" =~ ^(1\.6|1\.7|1\.8|1\.9)$ ]]; then
   export CAPM3RELEASE="v${CAPM3_RELEASE_PREFIX}.99"
   CAPI_RELEASE_PREFIX="v${CAPM3_RELEASE_PREFIX}."
 else
-  export CAPM3RELEASE="v1.9.99"
+  export CAPM3RELEASE="v1.10.99"
   CAPI_RELEASE_PREFIX="v1.9."
 fi
 export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release_from_goproxy "${CAPIGOPROXY}" "${CAPI_RELEASE_PREFIX}")}"
