@@ -161,10 +161,7 @@ export IRSO_BASE_URL="${IRSO_BASE_URL:-metal3-io/ironic-standalone-operator}"
 export IRSOREPO="${IRSOREPO:-https://github.com/${IRSO_BASE_URL}}"
 export IRSOBRANCH="${IRSOBRANCH:-main}"
 
-if [[ "${CAPM3RELEASEBRANCH}" == "release-1.6" ]]; then
-  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.6}"
-  export IPAMBRANCH="${IPAMBRANCH:-release-1.6}"
-elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.7" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" == "release-1.7" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.7}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.7}"
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.8" ]]; then
@@ -284,15 +281,7 @@ export FAKE_IPA_IMAGE="${FAKE_IPA_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/fake-ip
 export FKAS_IMAGE="${FKAS_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/metal3-fkas}"
 
 # CAPM3 and IPAM controller images
-if [[ "${CAPM3RELEASEBRANCH}" = "release-1.6" ]]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.6"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.6"}
-  export BARE_METAL_OPERATOR_TAG="v0.5.2"
-  export KEEPALIVED_TAG="v0.5.2"
-  export IRONIC_TAG="v24.0.1"
-  export BMOBRANCH="${BMORELEASEBRANCH:-release-0.5}"
-  export BMOCOMMIT="bedae7b997d16f36e772806681569bb8eb4dadbb" # tag v0.5.2
-elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.7" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" = "release-1.7" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.7"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.7"}
   export BARE_METAL_OPERATOR_TAG="v0.6.2"

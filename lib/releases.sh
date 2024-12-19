@@ -35,7 +35,7 @@ else
 fi
 
 # Fetch CAPI version that coresponds to CAPM3_RELEASE_PREFIX release version
-if [[ "${CAPM3_RELEASE_PREFIX}" =~ ^(1\.6|1\.7|1\.8|1\.9)$ ]]; then
+if [[ "${CAPM3_RELEASE_PREFIX}" =~ ^(1\.7|1\.8|1\.9)$ ]]; then
   export CAPM3RELEASE="v${CAPM3_RELEASE_PREFIX}.99"
   CAPI_RELEASE_PREFIX="v${CAPM3_RELEASE_PREFIX}."
 else
