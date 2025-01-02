@@ -244,15 +244,6 @@ EOF
 
 launch_ironic_standalone_operator()
 {
-    # TODO(dtantsur): IPA branch support
-    # shellcheck disable=SC2311
-    cat > "${IRSOPATH}/config/manager/manager.env" <<EOF
-IRONIC_IMAGE=$(get_component_image "${IRONIC_LOCAL_IMAGE:-${IRONIC_IMAGE}}")
-MARIADB_IMAGE=$(get_component_image "${MARIADB_LOCAL_IMAGE:-${MARIADB_IMAGE}}")
-KEEPALIVED_IMAGE=$(get_component_image "${IRONIC_KEEPALIVED_LOCAL_IMAGE:-${IRONIC_KEEPALIVED_IMAGE}}")
-RAMDISK_DOWNLOADER_IMAGE=$(get_component_image "${IPA_DOWNLOADER_LOCAL_IMAGE:-${IPA_DOWNLOADER_IMAGE}}")
-EOF
-
     # shellcheck disable=SC2311
     make -C "${IRSOPATH}" install deploy IMG="$(get_component_image "${IRSO_LOCAL_IMAGE:-${IRSO_IMAGE}}")"
     kubectl wait --for=condition=Available --timeout=60s \
@@ -273,14 +264,19 @@ launch_ironic_via_irso()
     local ironic="${IRONIC_DATA_DIR}/ironic.yaml"
     cat > "${ironic}" <<EOF
 ---
-apiVersion: metal3.io/v1alpha1
+apiVersion: ironic.metal3.io/v1alpha1
 kind: Ironic
 metadata:
   name: ironic
   namespace: "${IRONIC_NAMESPACE}"
 spec:
-  credentialsRef:
-    name: ironic-auth
+  apiCredentialsName: ironic-auth
+  images:
+    deployRamdiskBranch: "${IPA_BRANCH}"
+    deployRamdiskDownloader: "$(get_component_image "${IPA_DOWNLOADER_LOCAL_IMAGE:-${IPA_DOWNLOADER_IMAGE}}")"
+    ironic: "$(get_component_image "${IRONIC_LOCAL_IMAGE:-${IRONIC_IMAGE}}")"
+    keepalived: "$(get_component_image "${IRONIC_KEEPALIVED_LOCAL_IMAGE:-${IRONIC_KEEPALIVED_IMAGE}}")"
+  version: "${IRSO_IRONIC_VERSION}"
   networking:
     dhcp:
       rangeBegin: "${CLUSTER_DHCP_RANGE_START}"
@@ -302,8 +298,8 @@ EOF
     if [[ -r "${IRONIC_CERT_FILE}" ]] && [[ -r "${IRONIC_KEY_FILE}" ]]; then
         kubectl create secret tls ironic-cert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_KEY_FILE}" --cert="${IRONIC_CERT_FILE}"
         cat >> "${ironic}" <<EOF
-  tlsRef:
-    name: ironic-cert
+  tls:
+    certificateName: ironic-cert
 EOF
     fi
 
@@ -312,17 +308,17 @@ EOF
         kubectl create secret tls ironic-cacert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_CAKEY_FILE}" --cert="${IRONIC_CACERT_FILE}"
     fi
 
-    if [[ "${IRONIC_USE_MARIADB}" = "true" ]]; then
+    if [[ "${IRONIC_USE_MARIADB:-false}" = "true" ]]; then
         cat >> "${ironic}" <<EOF
-  databaseRef:
-    name: ironic-db
+  databaseName: ironic-db
 ---
-apiVersion: metal3.io/v1alpha1
+apiVersion: ironic.metal3.io/v1alpha1
 kind: IronicDatabase
 metadata:
   name: ironic-db
   namespace: "${IRONIC_NAMESPACE}"
-spec: {}
+spec:
+  image: "$(get_component_image "${MARIADB_LOCAL_IMAGE:-${MARIADB_IMAGE}}")"
 EOF
   fi
 
@@ -334,7 +330,7 @@ EOF
     if ! kubectl wait --for=condition=Ready --timeout="${IRONIC_ROLLOUT_WAIT}m" -n "${IRONIC_NAMESPACE}" ironic/ironic; then
         # FIXME(dtantsur): remove this when Ironic objects are collected in the CI
         kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironic/ironic
-        if [[ "${IRONIC_USE_MARIADB}" = "true" ]]; then
+        if [[ "${IRONIC_USE_MARIADB:-false}" = "true" ]]; then
             kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironicdatabase/ironic-db
         fi
         exit 1
