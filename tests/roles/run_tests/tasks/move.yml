@@ -69,6 +69,8 @@
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
     with_items:
        - clusterctl.cluster.x-k8s.io=""
+       - clusterctl.cluster.x-k8s.io/move=""
+       - clusterctl.cluster.x-k8s.io/move-hierarchy=""
 
   - name: Label hardwareData CRD to pivot.
     shell: "kubectl label --overwrite crds hardwaredata.metal3.io {{ item }}"
@@ -136,6 +138,8 @@
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
     with_items:
       - clusterctl.cluster.x-k8s.io=""
+      - clusterctl.cluster.x-k8s.io/move=""
+      - clusterctl.cluster.x-k8s.io/move-hierarchy=""
 
   - name: Label hardwareData CRD in target cluster to pivot back.
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds hardwaredata.metal3.io {{ item }} --overwrite "
