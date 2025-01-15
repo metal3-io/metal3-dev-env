@@ -58,8 +58,8 @@ provisioning_network_nat:
   - name: provisioning
     bridge: provisioning
     forward_mode: nat
-    address_v4: "{{ provisioning_network_cidr_v4|nthhost(1)|default('', true) }}"
-    netmask_v4: "{{ provisioning_network_cidr_v4|ipaddr('netmask') }}"
+    address_v4: "{{ provisioning_network_cidr_v4|ansible.utils.nthhost(1)|default('', true) }}"
+    netmask_v4: "{{ provisioning_network_cidr_v4|ansible.utils.ipaddr('netmask') }}"
     dhcp_range_v4:
       - "{{ provisioning_dhcp_v4_start }}"
       - "{{ provisioning_dhcp_v4_end }}"
@@ -82,13 +82,13 @@ external_network:
   - name: external
     bridge: external
     forward_mode: "{% if manage_external == 'y' %}nat{% else %}bridge{% endif %}"
-    address_v4: "{{ external_network_cidr_v4|nthhost(1)|default('', true) }}"
-    netmask_v4: "{{ external_network_cidr_v4|ipaddr('netmask') }}"
+    address_v4: "{{ external_network_cidr_v4|ansible.utils.nthhost(1)|default('', true) }}"
+    netmask_v4: "{{ external_network_cidr_v4|ansible.utils.ipaddr('netmask') }}"
     dhcp_range_v4:
       - "{{ external_dhcp_v4_start }}"
       - "{{ external_dhcp_v4_end }}"
-    address_v6: "{{ external_network_cidr_v6|nthhost(1)|default('', true) }}"
-    prefix_v6: "{{ external_network_cidr_v6|ipaddr('prefix') }}"
+    address_v6: "{{ external_network_cidr_v6|ansible.utils.nthhost(1)|default('', true) }}"
+    prefix_v6: "{{ external_network_cidr_v6|ansible.utils.ipaddr('prefix') }}"
     dhcp_range_v6:
       - "{{ external_dhcp_v6_start }}"
       - "{{ external_dhcp_v6_end }}"
@@ -103,7 +103,7 @@ external_network:
       forwarders:
         # Use 127.0.0.1 unless only IPv6 is enabled
         - domain: "apps.{{ cluster_domain }}"
-          addr: "{% if external_network_cidr_v4|ipv4 != False %}127.0.0.1{% else %}::1{% endif %}"
+          addr: "{% if external_network_cidr_v4|ansible.utils.ipv4 != False %}127.0.0.1{% else %}::1{% endif %}"
       srvs: "{{dns_externalsrvs | default([])}}"
 
 # Provisioning network is bridged and external network is nated
