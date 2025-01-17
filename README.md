@@ -182,6 +182,6 @@ The following table describes which branches are tested for different test trigg
 | main        | main         | main         | main            | latest         | latest     |
 | release-1-9 | release-1.9  | release-1.9  | release-0.9     | v0.9.0         | v27.0.0    |
 | release-1-8 | release-1.8  | release-1.8  | release-0.8     | v0.8.0         | v26.0.1    |
-| release-1-7 | release-1.7  | release-1.7  | release-0.6     | v0.6.1         | v25.0.1    |
+| release-1-7 | release-1.7  | release-1.7  | release-0.6     | v0.6.2         | v24.1.2    |
 
 <!-- markdownlint-enable MD013 -->
