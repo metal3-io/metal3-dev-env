@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #
 # Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6.
@@ -207,7 +207,7 @@
 # Uncomment the line below to build ironic-image from source
 # export IRONIC_FROM_SOURCE="true"
 
-# Skip applying BMHs 
+# Skip applying BMHs
 # export SKIP_APPLY_BMH="true"
 
 # To enable FakeIPA and run dev-env on a fake platform
