@@ -11,6 +11,7 @@ aliases:
   - tuminoid
 
   metal3-dev-env-reviewers:
+  - adilGhaffarDev
   - dtantsur
+  - mquhuy
   - Sunnatillo
-
