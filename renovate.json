@@ -2,7 +2,7 @@
   "extends": [
     "config:base"
   ],
-  "enabled": "true",
+  "enabled": true,
   "baseBranches": [
     "main"
   ],
@@ -112,19 +112,5 @@
       "depNameTemplate": "registry",
       "datasourceTemplate": "docker"
     }
-  ],
-  "assignees": [
-    "kashifest"
-  ],
-  "assigneesSampleSize": 1,
-  "reviewers": [
-    "lentzi90",
-    "mboukhalfa",
-    "Rozzii",
-    "smoshiur1237",
-    "Sunnatillo",
-    "adilGhaffarDev",
-    "tuminoid"
-  ],
-  "reviewersSampleSize": 2
+  ]
 }
