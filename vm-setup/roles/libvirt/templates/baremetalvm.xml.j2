@@ -9,11 +9,12 @@
   <os>
     <type arch='{{ libvirt_arch }}' machine='q35'>hvm</type>
 {% if libvirt_firmware  == 'uefi' %}
-     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
 {% if libvirt_secure_boot|bool %}
-     <nvram template="/usr/share/OVMF/OVMF_VARS.secboot.fd">/var/lib/libvirt/qemu/nvram/{{ item.name }}.fd</nvram>
+     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.secboot.fd</loader>
+{% elif host_os == 'centos' or host_os == 'rhel' %}
+     <loader readonly='yes' type='pflash'>/usr/share/edk2/ovmf/OVMF_CODE.fd</loader>
 {% else %}
-     <nvram>/var/lib/libvirt/qemu/nvram/{{ item.name }}.fd</nvram>
+     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
 {% endif %}
 {% endif %}
     <boot dev='network'/>
