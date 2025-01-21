@@ -14,3 +14,5 @@
     vm_nodes_index: "{{vm_nodes_index|int + lookup('vars', 'num_' + flavor.key + 's')|int }}"
 - set_fact:
     host_os: "{{ lookup('ansible.builtin.env', 'OS') }}"
+- set_fact:
+    host_distro: "{{ lookup('ansible.builtin.env', 'DISTRO') }}"
