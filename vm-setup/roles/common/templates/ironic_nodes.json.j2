@@ -41,16 +41,16 @@
         "password": "{{ vbmc_password }}",
         {% if vm_driver_tmp =='redfish' -%}
         "port": "8000",
-        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ansible.utils.ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
         {% elif vm_driver_tmp == 'redfish-virtualmedia' -%}
         "port": "8000",
-        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ansible.utils.ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
         {% elif vm_driver_tmp == 'redfish-uefihttp' -%}
         "port": "8000",
-        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ansible.utils.ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
         {% else -%}
         "port": "{{ node.virtualbmc_port }}",
-        "address": "{{vm_driver_tmp}}://{{lvars['host_ip'] | ansible.utils.ipwrap }}:{{node.virtualbmc_port}}",
+        "address": "{{vm_driver_tmp}}://{{lvars['host_ip'] | ipwrap }}:{{node.virtualbmc_port}}",
         {% endif -%}
         "deploy_kernel": "http://{{ provisioning_url_host }}/images/ironic-python-agent.kernel",
         "deploy_ramdisk": "http://{{ provisioning_url_host }}/images/ironic-python-agent.initramfs"
