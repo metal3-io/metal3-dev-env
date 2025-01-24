@@ -151,10 +151,11 @@ export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
 
 export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 
+# Nordix:fix-noccloudprovider/adil
 export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
-export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
-export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
-export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
+export CAPM3_BASE_URL="Nordix/cluster-api-provider-metal3"
+export CAPM3REPO="https://github.com/Nordix/cluster-api-provider-metal3"
+export CAPM3RELEASEBRANCH="fix-noccloudprovider/adil"
 
 export USE_IRSO="${USE_IRSO:-false}"
 export IRSOPATH="${IRSOPATH:-${M3PATH}/ironic-standalone-operator}"
@@ -172,7 +173,7 @@ elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.9" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.9}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.9}"
 else
-  export CAPM3BRANCH="${CAPM3BRANCH:-main}"
+  export CAPM3BRANCH="fix-noccloudprovider/adil"
   export IPAMBRANCH="${IPAMBRANCH:-main}"
 fi
 
