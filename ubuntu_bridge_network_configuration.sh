@@ -3,11 +3,11 @@
 set -eux
 
 # shellcheck disable=SC1091
-source lib/logging.sh
+. lib/logging.sh
 # shellcheck disable=SC1091
-source lib/common.sh
+. lib/common.sh
 # shellcheck disable=SC1091
-source lib/network.sh
+. lib/network.sh
 
 if [[ "${MANAGE_PRO_BRIDGE}" = "y" ]]; then
     # Adding an IP address in the libvirt definition for this network results in
@@ -24,7 +24,7 @@ if [[ "${MANAGE_PRO_BRIDGE}" = "y" ]]; then
     sudo ip link set provisioning up
     if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" = "true" ]]; then
         sudo ip -6 addr add "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}" dev ironicendpoint
-      else
+    else
         sudo ip addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
     fi
     sudo brctl addif provisioning ironic-peer
