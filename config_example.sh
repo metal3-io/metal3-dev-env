@@ -216,3 +216,9 @@
 
 # Whether to use ironic-standalone-operator to deploy Ironic.
 # export USE_IRSO="true"
+
+export CAPM3REPO="https://github.com/Nordix/cluster-api-provider-metal3"
+export CAPM3BRANCH="peppi-lotta/change-IPAM-namespace"
+
+export IPAMREPO="https://github.com/Nordix/metal3-ipam/"
+export IPAMBRANCH="peppi-lotta/make-ipam-a-provider-for-capi"
