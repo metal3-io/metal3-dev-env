@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #
 # Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6.
