@@ -269,8 +269,14 @@ export IRSO_IRONIC_VERSION="${IRSO_IRONIC_VERSION:-latest}"
 # Docker Hub proxy registry (or docker.io if no proxy)
 export DOCKER_HUB_PROXY="${DOCKER_HUB_PROXY:-docker.io}"
 
+export REGISTRY_IMAGE_VERSION="2.7.1"
+
+export DOCKER_REGISTRY_IMAGE_DEFAULT_PATH="library/registry:${REGISTRY_IMAGE_VERSION}"
 # Docker registry for local images
-export DOCKER_REGISTRY_IMAGE="${DOCKER_REGISTRY_IMAGE:-${DOCKER_HUB_PROXY}/library/registry:2.7.1}"
+if [[ "${DOCKER_HUB_PROXY}" = "quay.io" ]]; then
+    export DOCKER_REGISTRY_IMAGE_DEFAULT_PATH="libpod/registry:${REGISTRY_IMAGE_VERSION}"
+fi
+export DOCKER_REGISTRY_IMAGE="${DOCKER_REGISTRY_IMAGE:-${DOCKER_HUB_PROXY}/${DOCKER_REGISTRY_IMAGE_DEFAULT_PATH}}"
 
 # Registry to pull metal3 container images from
 export CONTAINER_REGISTRY="${CONTAINER_REGISTRY:-quay.io}"
