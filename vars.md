@@ -29,7 +29,7 @@ assured that they are persisted.
 | SKIP_RETRIES | Do not retry on failure during verifications or tests of the environment. This should be false. It could only be set to false for verifications of a dev env deployment that fully completed. Otherwise failures will appear as resources are not ready. | "true", "false" | "false" |
 | SKIP_APPLY_BMH | Do not apply the BMHs. used usually when the BMHs will be applied later in the tests. | "true", "false" | "false" |
 | TEST_TIME_INTERVAL | Interval between retries after verification or test failure (seconds) | | 10 |
-| TEST_MAX_TIME | Number of maximum verification or test retries | | 120 |
+| TEST_MAX_TIME | Number of maximum verification or test retries | | 240 |
 | BMO_ROLLOUT_WAIT | Number of minutes(Until max 10m that is the default value of deployment.spec.progressDeadlineSeconds) to wait for BMO rollout | | 5 |
 | BMC_DRIVER | Set the BMC driver | "ipmi", "redfish", "redfish-virtualmedia", "redfish-uefihttp" | "mixed" |
 | BMORELEASEBRANCH | BMO Release branch | "main", "release-0.5", "release-0.6", "release-0.8" | Set via jjb for CI, for local dev it gets default value based on CAPM3 branch |

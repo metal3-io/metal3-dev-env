@@ -107,7 +107,7 @@
 #
 # Number of maximum verification or test retries
 #
-#export TEST_MAX_TIME=120
+#export TEST_MAX_TIME=240
 
 #
 # Set the driver. The default value is 'mixed' (alternate nodes between ipmi
