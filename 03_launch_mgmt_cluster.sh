@@ -492,13 +492,12 @@ update_component_image()
 #
 # Update the clusterctl deployment files to use local repositories
 #
-patch_clusterctl(){
-
+patch_clusterctl()
+{
     pushd "${CAPM3PATH}"
-    mkdir -p "${CAPI_CONFIG_DIR}"
-    touch "${CAPI_CONFIG_DIR}"/clusterctl.yaml
 
-    cat << EOF > "${CAPI_CONFIG_DIR}"/clusterctl.yaml
+    mkdir -p "${CAPI_CONFIG_DIR}"
+    cat << EOF >> "${CAPI_CONFIG_DIR}"/clusterctl.yaml
 providers:
 - name: metal3ipam
   url: https://github.com/metal3-io/ip-address-manager/releases/${IPAMRELEASE}/ipam-components.yaml
@@ -521,7 +520,8 @@ EOF
     popd
 }
 
-patch_ipam(){
+patch_ipam()
+{
     pushd "${IPAMPATH}"
 
     if [[ -n "${IPAM_LOCAL_IMAGE:-}" ]]; then
