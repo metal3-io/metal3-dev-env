@@ -499,7 +499,7 @@ patch_clusterctl()
     mkdir -p "${CAPI_CONFIG_DIR}"
     cat << EOF >> "${CAPI_CONFIG_DIR}"/clusterctl.yaml
 providers:
-- name: metal3ipam
+- name: metal3
   url: https://github.com/metal3-io/ip-address-manager/releases/${IPAMRELEASE}/ipam-components.yaml
   type: IPAMProvider
 EOF
@@ -531,9 +531,9 @@ patch_ipam()
     fi
 
     make release-manifests
-    rm -rf "${CAPI_CONFIG_DIR}"/overrides/ipam-metal3ipam/"${IPAMRELEASE}"
-    mkdir -p "${CAPI_CONFIG_DIR}"/overrides/ipam-metal3ipam/"${IPAMRELEASE}"
-    cp out/*.yaml "${CAPI_CONFIG_DIR}"/overrides/ipam-metal3ipam/"${IPAMRELEASE}"
+    rm -rf "${CAPI_CONFIG_DIR}"/overrides/ipam-metal3/"${IPAMRELEASE}"
+    mkdir -p "${CAPI_CONFIG_DIR}"/overrides/ipam-metal3/"${IPAMRELEASE}"
+    cp out/*.yaml "${CAPI_CONFIG_DIR}"/overrides/ipam-metal3/"${IPAMRELEASE}"
     popd
 }
 
@@ -564,7 +564,7 @@ launch_cluster_api_provider_metal3()
 
     # shellcheck disable=SC2153
     clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
-      --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5 --ipam=metal3ipam:"${IPAMRELEASE}"
+      --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5 --ipam=metal3:"${IPAMRELEASE}"
 
     if [[ "${CAPM3_RUN_LOCAL}" = true ]]; then
         touch capm3.out.log
