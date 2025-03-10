@@ -109,7 +109,7 @@
   - name: Initialize Provider component in target cluster
     vars:
       ipam_release: "{{ lookup('env', 'IPAMRELEASE') }}"
-    shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5 --ipam metal3ipam:{{ IPAMRELEASE }}"
+    shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5 --ipam metal3:{{ IPAMRELEASE }}"
     when: ipam_release != 'v1.7.99' and ipam_release != 'v1.8.99' and ipam_release != 'v1.9.99'
 
   # Check for cert-manager pods on the target cluster
