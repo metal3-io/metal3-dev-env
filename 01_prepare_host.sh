@@ -71,15 +71,17 @@ sudo python -m venv --system-site-packages "${ANSIBLE_VENV}"
 sudo "${ANSIBLE_VENV}/bin/pip" install --ignore-installed ansible=="${ANSIBLE_VERSION}"
 
 # Install requirements
-"${ANSIBLE}-galaxy" install -r vm-setup/requirements.yml
+if [[ "${INSTALL_HOST_REQUIREMENTS}" = "true" ]]; then
+    "${ANSIBLE}-galaxy" install -r vm-setup/requirements.yml
 
-# Install required packages
-ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
-    -e "working_dir=${WORKING_DIR}" \
-    -e "metal3_dir=${SCRIPTDIR}" \
-    -e "virthost=${HOSTNAME}" \
-    -i vm-setup/inventory.ini \
-    -b vm-setup/install-package-playbook.yml
+    # Install required packages
+    ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
+        -e "working_dir=${WORKING_DIR}" \
+        -e "metal3_dir=${SCRIPTDIR}" \
+        -e "virthost=${HOSTNAME}" \
+        -i vm-setup/inventory.ini \
+        -b vm-setup/install-package-playbook.yml
+fi
 
 # Add usr/local/go/bin to the PATH environment variable
 GOBINARY="${GOBINARY:-/usr/local/go/bin}"
