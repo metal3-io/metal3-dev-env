@@ -1,5 +1,7 @@
 all: install_requirements configure_host launch_mgmt_cluster verify
 
+nodep: configure_host launch_mgmt_cluster verify
+
 ci_run: configure_host launch_mgmt_cluster verify
 
 install_requirements:

@@ -16,6 +16,36 @@ source lib/image_prepull.sh
 # cleanup ci config file if it exists from earlier run
 rm -f "${CI_CONFIG_FILE}"
 
+# Add usr/local/go/bin to the PATH environment variable
+GOBINARY="${GOBINARY:-/usr/local/go/bin}"
+if [[ ! "${PATH}" =~ .*(:|^)(${GOBINARY})(:|$).* ]]; then
+    echo "export PATH=${PATH}:${GOBINARY}" >> ~/.bashrc
+    export PATH=${PATH}:${GOBINARY}
+fi
+
+# Allow local non-root-user access to libvirt
+# shellcheck disable=SC2312
+if ! id "${USER}" | grep -q libvirt; then
+    sudo usermod -a -G "libvirt" "${USER}"
+fi
+
+# Clean-up any old ironic containers
+remove_ironic_containers
+
+# Clean-up existing pod, if podman
+case "${CONTAINER_RUNTIME}" in
+    podman)
+        for pod in ironic-pod infra-pod; do
+            if  sudo "${CONTAINER_RUNTIME}" pod exists "${pod}" ; then
+                sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
+            fi
+            sudo "${CONTAINER_RUNTIME}" pod create -n "${pod}"
+        done
+        ;;
+    *)
+        ;;
+esac
+
 # (workaround) disable tdp_mmu to avoid
 # kernel crashes with  NULL pointer dereference
 # note(elfosardo): run this only if we have kvm support
