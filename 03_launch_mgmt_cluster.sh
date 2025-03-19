@@ -702,7 +702,7 @@ build_ipxe_firmware()
         --name ipxe-builder ${POD_NAME} \
         -e "${IPXE_ENABLE_TLS_CENV_ARG}" \
         -e "${IPXE_ENABLE_IPV6_CENV_ARG}" \
-        -e "IRONIC_IP=${IRONIC_HOST_IP}" \
+        -e "IPXE_CHAIN_HOST=${IRONIC_HOST_IP}" \
         ${certs_mounts[@]} \
         -v "${IRONIC_DATA_DIR}":/shared \
         "${ipxe_builder_image}"
