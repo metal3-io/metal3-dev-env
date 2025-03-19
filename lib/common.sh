@@ -38,6 +38,7 @@ export CI_CONFIG_FILE="${TMP_DIR:-/tmp}/config_ci.sh"
 export BOOT_MODE="${BOOT_MODE:-UEFI}"
 export MARIADB_HOST="mariaDB"
 export MARIADB_HOST_IP="127.0.0.1"
+export INSTALL_HOST_REQUIREMENTS="${INSTALL_HOST_REQUIREMENTS:-true}"
 # Additional DNS
 ADDN_DNS="${ADDN_DNS:-}"
 # External interface for routing traffic through the host

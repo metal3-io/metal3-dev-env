@@ -141,6 +141,7 @@ assured that they are persisted.
 | IRSOREPO | Ironic Standalone Operator git repository URL | | https://github.com/metal3-io/ironic-standalone-operator.git |
 | IRSOBRANCH | Ironic Standalone Operator git repository branch to checkout | | main |
 | IRSOCOMMIT | Ironic Standalone Operator git commit to checkout on IRSOBRANCH | | HEAD |
+| INSTALL_HOST_REQUIREMENTS | Enable (if `true`) dev-env host package installation/upgrade | "true","anything else" | `true` |
 <!-- markdownlint-enable MD013 MD034 -->
 
 **NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the
