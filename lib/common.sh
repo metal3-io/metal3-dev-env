@@ -399,11 +399,11 @@ export TILT_SHA256="${TILT_SHA256:-b30ebbba68d4fd04f8afa11efc439515241dbcc2582ea
 
 # Ansible version
 # Older ubuntu version do no support 7.0.0 because of older python versions
-# Ansible 7.0.0 or newer requires python 3.10+
+# Ansible 7.0.0 or newer requires python 3.9+
 # TODO: Ansible pinning
 if [[ "${DISTRO}" = "ubuntu24" ]]; then
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-10.6.0}"
-elif [[ "${DISTRO}" = "ubuntu22" ]]; then
+elif [[ "${DISTRO}" = "ubuntu22" ]] || [[ "${DISTRO}" = "centos9" ]]; then
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-8.0.0}"
 else
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-6.7.0}"
