@@ -61,11 +61,6 @@
       package:
           name: "{{ packages.centos.common.packages }}"
           state: present
-    - name: Install packages on CentOS9/RHEL9
-      package:
-          name: "{{ packages.centos.el9.packages }}"
-          state: present
-      when: ansible_distribution_version == "9"
     - name: Install packages using pip3
       pip:
         executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"

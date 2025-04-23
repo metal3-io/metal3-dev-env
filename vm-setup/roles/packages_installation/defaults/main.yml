@@ -79,26 +79,26 @@ packages:
         - NetworkManager
         - nmap
         - patch
+        - podman
         - polkit-pkla-compat
         - psmisc
         - python3-bcrypt
         - python3-libvirt
         - python3-lxml
         - python3-netaddr
-        - python3-passlib
+        - python3-requests-oauthlib
         - python3-six
+        - qemu-img
         - qemu-kvm
         - unzip
         - vim-enhanced
         - virt-install
         - wget
-    el9:
-      packages:
-        - python3-requests-oauthlib
     pip3:
       - flask_oauthlib==0.9.6
       - jmespath
       - kubernetes==25.3.0
+      - passlib
 DAEMON_JSON_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/files"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') }}"
 OS_VERSION_ID: "{{ lookup('env', 'OS_VERSION_ID') }}"

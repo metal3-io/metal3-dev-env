@@ -41,6 +41,10 @@ elif [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
             sudo dnf config-manager --set-enabled crb
             sudo dnf install -y "https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
             ;;
+	10)
+            sudo dnf config-manager --set-enabled crb
+            sudo dnf install -y "https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm"
+            ;;
         *)
             echo -n "CentOS or RHEL version not supported"
             exit 1
