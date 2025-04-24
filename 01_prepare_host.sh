@@ -81,22 +81,10 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -i vm-setup/inventory.ini \
     -b vm-setup/install-package-playbook.yml
 
-# Add usr/local/go/bin to the PATH environment variable
-GOBINARY="${GOBINARY:-/usr/local/go/bin}"
-if [[ ! "${PATH}" =~ .*(:|^)(${GOBINARY})(:|$).* ]]; then
-    echo "export PATH=${PATH}:${GOBINARY}" >> ~/.bashrc
-    export PATH=${PATH}:${GOBINARY}
-fi
 
 ## Install krew
 if ! kubectl krew > /dev/null 2>&1; then
     download_and_install_krew
-fi
-
-# Allow local non-root-user access to libvirt
-# shellcheck disable=SC2312
-if ! id "${USER}" | grep -q libvirt; then
-    sudo usermod -a -G "libvirt" "${USER}"
 fi
 
 if [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then
@@ -134,23 +122,6 @@ if [[ ! -r "${BASH_COMPLETION}" ]]; then
     # shellcheck disable=SC2312
     kubectl completion bash | sudo tee "${BASH_COMPLETION}"
 fi
-
-# Clean-up any old ironic containers
-remove_ironic_containers
-
-# Clean-up existing pod, if podman
-case "${CONTAINER_RUNTIME}" in
-    podman)
-        for pod in ironic-pod infra-pod; do
-            if  sudo "${CONTAINER_RUNTIME}" pod exists "${pod}" ; then
-                sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
-            fi
-            sudo "${CONTAINER_RUNTIME}" pod create -n "${pod}"
-        done
-        ;;
-    *)
-        ;;
-esac
 
 # TODO (mboukhalfa) fake images
 if [[ "${NODES_PLATFORM}" = "fake" ]]; then

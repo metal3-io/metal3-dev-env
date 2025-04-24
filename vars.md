@@ -184,3 +184,11 @@ export NMSTATE2_NETWORK_SUBNET_V6='fd2e:6f44:5dd8:cc56::/120'
 By default, we pin downloaded binaries and packages with SHA256 digests.
 For testing purposes, verification of the digests will be skipped if
 `INSECURE_SKIP_DOWNLOAD_VERIFICATION` is set to `true`.
+
+## Make options
+
+- `make` will run the installation of all te dependencies and set up the
+   ephemeral controlplane
+- `make nodep` will skip the dependency installation
+- `make ci_run` will run only those make targets that are executed in the
+   CI
