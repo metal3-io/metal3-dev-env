@@ -53,8 +53,8 @@ assured that they are persisted.
 | BARE_METAL_PROVISIONER_INTERFACE | Cluster provisioning Interface | "ironicendpoint" | "ironicendpoint" |
 | POD_CIDR | Pod CIDR | "x.x.x.x/x" | "192.168.0.0/18" |
 | NODE_HOSTNAME_FORMAT | Node hostname format. This is a format string that must contain exactly one %d format field that will be replaced with an integer representing the number of the node. | "node-%d" | "node-%d" |
-| KUBERNETES_VERSION | Kubernetes version | "x.x.x" | "1.32.1" |
-| UPGRADED_K8S_VERSION | Upgraded Kubernetes version | "x.x.x" | "1.32.1" |
+| KUBERNETES_VERSION | Kubernetes version | "x.x.x" | "1.33.0" |
+| UPGRADED_K8S_VERSION | Upgraded Kubernetes version | "x.x.x" | "1.33.0" |
 | KUBERNETES_BINARIES_VERSION | Version of kubelet, kubeadm and kubectl | "x.x.x-xx" or "x.x.x" | same as KUBERNETES_VERSION |
 | KUBERNETES_BINARIES_CONFIG_VERSION | Version of kubelet.service and 10-kubeadm.conf files | "vx.x.x" | "v0.13.0" |
 | LIBVIRT_DOMAIN_TYPE | Which hypervisor to use for the virtual machines libvirt domain, default to kvm. It is possible to switch to qemu in case nested virtualization is not available, although it's considered experimental at this stage of development. | "kvm", "qemu" | "kvm" |
