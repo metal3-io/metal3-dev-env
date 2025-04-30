@@ -11,7 +11,12 @@ get_latest_release_from_goproxy() {
 
   # This gets the latest release
   if [[ -z "${exclude}" ]]; then
-    release_tag=$(curl -s "${proxuUrl}" | sort -rV | grep -m1 "^${release}")
+    # Using whats suggested here https://stackoverflow.com/questions/40390957/how-to-sort-semantic-versions-in-bash
+    # Add _ in front of all stable releases, so they are sorted before the pre-releases
+    # Sort the list in reverse order, so the latest version is first
+    # Remove the _ at the end of the version
+    # Get the first version that matches the release
+    release_tag=$(curl -s "${proxuUrl}" | sed '/-/!{s/$/_/}' | sort -rV | sed 's/_$//'| grep -m1 "^${release}")
   else
     # prune based on exluded values given in the command
     release_tag=$(curl -s "${proxuUrl}" | sort -rV | grep -vE "${exclude}" | grep -m1 "${release}")
