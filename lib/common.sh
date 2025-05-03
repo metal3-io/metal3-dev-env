@@ -146,8 +146,8 @@ export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 
 export M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
 export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
-export BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
+export BMOREPO="${BMOREPO:-https://github.com/Nordix/baremetal-operator.git}"
+export BMO_BASE_URL="${BMO_BASE_URL:-Nordix/baremetal-operator}"
 
 export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 
@@ -321,7 +321,12 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.9" ]]; then
 else
   export CAPM3_IMAGE="${CAPM3_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main}"
   export IPAM_IMAGE="${IPAM_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main}"
-  export BMOBRANCH="${BMORELEASEBRANCH:-main}"
+  export KEEPALIVED_TAG="v0.9.0"
+  export IRONIC_TAG="v26.0.1"
+  export IPA_BASEURL="https://tarballs.opendev.org/openstack/ironic-python-agent/"
+  export IPA_FILENAME="ironic-python-agent-bugfix-10.0.tar.gz"
+  export BMOBRANCH="fix-disablepoweroff/adil"
+  export BMOCOMMIT="e22bd447e13830c52c7e8d459e11df82997525b2"
 fi
 
 # IPXE support image
