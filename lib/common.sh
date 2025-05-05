@@ -291,29 +291,27 @@ export FKAS_IMAGE="${FKAS_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/metal3-fkas}"
 if [[ "${CAPM3RELEASEBRANCH}" = "release-1.7" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.7"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.7"}
-  export BARE_METAL_OPERATOR_TAG="v0.6.2"
-  export KEEPALIVED_TAG="v0.6.2"
-  export IRONIC_TAG="v24.1.2"
+  export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.6"}
+  export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:release-0.6"}
+  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-24.1"}
   export IPA_BASEURL="https://tarballs.opendev.org/openstack/ironic-python-agent/"
   export IPA_FILENAME="ironic-python-agent-stable-2024.1.tar.gz"
-  export BMOCOMMIT="3af4882e9c5fadc1a7550f53daea21dccd271f74" # tag v0.6.2
   export BMOBRANCH="${BMORELEASEBRANCH:-release-0.6}"
 elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.8" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.8"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.8"}
-  export BARE_METAL_OPERATOR_TAG="v0.8.0"
-  export KEEPALIVED_TAG="v0.8.0"
-  export IRONIC_TAG="v26.0.1"
+  export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.8"}
+  export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:release-0.8"}
+  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-26.0"}
   export IPA_BASEURL="https://tarballs.opendev.org/openstack/ironic-python-agent/"
   export IPA_FILENAME="ironic-python-agent-bugfix-9.13.tar.gz"
-  export BMOCOMMIT="c2b5a557641bc273367635124047d6c958aa15f7" # tag v0.8.0
   export BMOBRANCH="${BMORELEASEBRANCH:-release-0.8}"
 elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.9" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.9"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.9"}
-  export BARE_METAL_OPERATOR_TAG="v0.9.0"
-  export KEEPALIVED_TAG="v0.9.0"
-  export IRONIC_TAG="v27.0.0"
+  export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.9"}
+  export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:release-0.9"}
+  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-27.0"}
   export IPA_BASEURL="https://tarballs.opendev.org/openstack/ironic-python-agent/"
   export IPA_FILENAME="ironic-python-agent-bugfix-10.0.tar.gz"
   export IRSO_IRONIC_VERSION="27.0"
@@ -321,6 +319,9 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.9" ]]; then
 else
   export CAPM3_IMAGE="${CAPM3_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main}"
   export IPAM_IMAGE="${IPAM_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main}"
+  export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:main"}
+  export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:main"}
+  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:main"}
   export BMOBRANCH="${BMORELEASEBRANCH:-main}"
 fi
 
@@ -331,7 +332,6 @@ export IPXE_BUILDER_IMAGE="${IPXE_BUILDER_IMAGE:-${CONTAINER_REGISTRY}/metal3-io
 export IRONIC_TLS_SETUP=${IRONIC_TLS_SETUP:-"true"}
 export IRONIC_BASIC_AUTH=${IRONIC_BASIC_AUTH:-"true"}
 export IPA_DOWNLOADER_IMAGE=${IPA_DOWNLOADER_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-ipa-downloader"}
-export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:${IRONIC_TAG}"}
 export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-client"}
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
@@ -347,14 +347,10 @@ export IPXE_RELEASE_BRANCH="${IPXE_RELEASE_BRANCH:-v1.21.1}"
 export IPXE_SOURCE_FORCE_UPDATE="${IPXE_SOURCE_FORCE_UPDATE:-false}"
 export IPXE_SOURCE_DIR="${IRONIC_DATA_DIR}/ipxe-source"
 
-export IRONIC_KEEPALIVED_IMAGE="${IRONIC_KEEPALIVED_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/keepalived:${KEEPALIVED_TAG}}"
 export MARIADB_IMAGE="${MARIADB_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/mariadb:${MARIADB_TAG}}"
 
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}"
-
-# Baremetal operator image
-export BARE_METAL_OPERATOR_IMAGE="${BARE_METAL_OPERATOR_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:${BARE_METAL_OPERATOR_TAG}}"
 
 # Config for OpenStack CLI
 export OPENSTACK_CONFIG="${HOME}/.config/openstack/clouds.yaml"
