@@ -171,6 +171,9 @@ elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.8" ]]; then
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.9" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.9}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.9}"
+elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.10" ]]; then
+  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.10}"
+  export IPAMBRANCH="${IPAMBRANCH:-release-1.10}"
 else
   export CAPM3BRANCH="${CAPM3BRANCH:-main}"
   export IPAMBRANCH="${IPAMBRANCH:-main}"
@@ -316,6 +319,16 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.9" ]]; then
   export IPA_FILENAME="ironic-python-agent-bugfix-10.0.tar.gz"
   export IRSO_IRONIC_VERSION="27.0"
   export BMOBRANCH="${BMORELEASEBRANCH:-release-0.9}"
+elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.10" ]]; then
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.10"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.10"}
+  export BARE_METAL_OPERATOR_TAG="v0.10.1"
+  export KEEPALIVED_TAG="v0.9.0"
+  export IRONIC_TAG="v29.0.0"
+  export IPA_BASEURL="https://tarballs.opendev.org/openstack/ironic-python-agent/"
+  export IPA_FILENAME="ironic_python_agent-10.2.0.tar.gz"
+  export IRSO_IRONIC_VERSION="29.0"
+  export BMOBRANCH="${BMORELEASEBRANCH:-release-0.10}"
 else
   export CAPM3_IMAGE="${CAPM3_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main}"
   export IPAM_IMAGE="${IPAM_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main}"
