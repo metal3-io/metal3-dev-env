@@ -23,13 +23,14 @@ fi
 
 check_bm_hosts() {
     local FAILS_CHECK="${FAILS}"
-    local NAME ADDRESS USER PASSWORD MAC CRED_NAME CRED_SECRET
+    local NAME ADDRESS USER PASSWORD MAC VERIFY_CA CRED_NAME CRED_SECRET
     local BARE_METAL_HOSTS BARE_METAL_HOST BARE_METAL_VMS BARE_METAL_VMNAME BARE_METAL_VM_IFACES
     NAME="${1}"
     ADDRESS="${2}"
     USER="${3}"
     PASSWORD="${4}"
     MAC="${5}"
+    VERIFY_CA="${6}"
     BARE_METAL_HOSTS="$(kubectl --kubeconfig "${KUBECONFIG}" get baremetalhosts\
       -n metal3 -o json)"
     BARE_METAL_VMS="$(sudo virsh list --all)"
@@ -48,6 +49,10 @@ check_bm_hosts() {
       # Verify addresses of the host
       RESULT_STR="${NAME} Baremetalhost address correct"
       equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.address')" "${ADDRESS}"
+
+      RESULT_STR="${NAME} Baremetalhost disableCertificateVerification correct"
+      disableCertificateVerification=$([ "${VERIFY_CA}" == "False" ] && echo -n "true" || echo -n "false")
+      equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.disableCertificateVerification')" "${disableCertificateVerification}"
 
       RESULT_STR="${NAME} Baremetalhost mac address correct"
       equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bootMACAddress')" \
@@ -278,9 +283,9 @@ echo ""
 
 ## Verify
 if [[ -n "$(list_nodes)" ]]; then
-  while read -r name address user password mac; do
+  while read -r name address user password mac verify_ca; do
     iterate check_bm_hosts "${name}" "${address}" "${user}" \
-      "${password}" "${mac}"
+      "${password}" "${mac}" "${verify_ca}"
     echo ""
   done <<< "$(list_nodes)"
 fi
