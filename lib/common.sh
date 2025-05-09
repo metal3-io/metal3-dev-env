@@ -490,11 +490,12 @@ list_nodes() {
            port:.driver_info.port,
            user:.driver_info.username,
            password:.driver_info.password,
+           verify_ca:.driver_info.redfish_verify_ca // True,
            mac: .ports[0].address
            } |
            .name + " " +
            .address + " " +
-           .user + " " + .password + " " + .mac' \
+           .user + " " + .password + " " + .mac + " " + .verify_ca' \
        | sed 's/"//g'
 }
 
