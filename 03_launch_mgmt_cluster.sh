@@ -391,9 +391,11 @@ make_bm_hosts()
     mkdir -p "${WORKING_DIR}/bmhs"
 
     local i=0
-    while read -r name address user password mac; do
+    while read -r name address user password mac verify_ca; do
+        disableCertificateVerification=$([ "${verify_ca}" == "False" ] && echo -n "true" || echo -n "false")
         go run "${BMOPATH}"/cmd/make-bm-worker/main.go \
             -address "${address}" \
+            -disableCertificateVerification "${disableCertificateVerification}" \
             -password "${password}" \
             -user "${user}" \
             -boot-mac "${mac}" \
