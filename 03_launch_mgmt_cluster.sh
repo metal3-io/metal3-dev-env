@@ -412,15 +412,29 @@ apply_bm_hosts()
     local namespace="$1"
     pushd "${BMOPATH}"
 
-    list_nodes | make_bm_hosts
-    if [[ -n "$(list_nodes)" ]]; then
-        echo "bmhosts_crs.yaml is applying"
-        while ! kubectl apply -f "${WORKING_DIR}/bmhosts_crs.yaml" -n "${namespace}" &>/dev/null; do
-            sleep 3
-        done
-        echo "bmhosts_crs.yaml is successfully applied"
-    fi
+    local RETRY=10
+    while [[ "${RETRY}" -gt 0 ]]; do
+      echo "bmhosts_crs.yaml is applying"
+      list_nodes | make_bm_hosts
+      # check if we have a not empty manifests file
+      local BMH_FILE="${WORKING_DIR}/bmhosts_crs.yaml"
+      if [[ -s "${BMH_FILE}" ]]; then
+        cat "${BMH_FILE}"
+        kubectl apply -f "${BMH_FILE}" -n "${namespace}" && break
+      else
+        echo "bmhosts_crs.yaml does not exist or is empty"
+      fi
+      echo "retrying in 1 minute"
+      sleep 60
+      (( RETRY-=1 ))
+    done
+
     popd
+
+    if [[ "${RETRY}" -eq 0 ]]; then
+      echo "failed to create and apply BMH manifests"
+      exit 1
+    fi
 }
 
 
