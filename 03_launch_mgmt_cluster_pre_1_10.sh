@@ -385,10 +385,9 @@ make_bm_hosts()
 
     local i=0
     while read -r name address user password mac verify_ca; do
-        disableCertificateVerification=$([ "${verify_ca}" == "False" ] && echo -n "true" || echo -n "false")
         go run "${BMOPATH}"/cmd/make-bm-worker/main.go \
             -address "${address}" \
-            -disableCertificateVerification "${disableCertificateVerification}" \
+            -disableCertificateVerification "$(get_disableCertificateVerification_from_verify_ca "${verify_ca}")" \
             -password "${password}" \
             -user "${user}" \
             -boot-mac "${mac}" \
