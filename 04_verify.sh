@@ -50,8 +50,13 @@ check_bm_hosts() {
       RESULT_STR="${NAME} Baremetalhost address correct"
       equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.address')" "${ADDRESS}"
 
+      # Verify disableCertificateVerification, it's empty (=null) when false!
+      DISABLE_CERTIFICATE_VERIFICATION="$(get_disableCertificateVerification_from_verify_ca "${VERIFY_CA}")"
+      if [[ ${DISABLE_CERTIFICATE_VERIFICATION} == "false" ]]; then
+        DISABLE_CERTIFICATE_VERIFICATION="null"
+      fi
       RESULT_STR="${NAME} Baremetalhost disableCertificateVerification correct"
-      equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.disableCertificateVerification')" "$(get_disableCertificateVerification_from_verify_ca "${VERIFY_CA}")"
+      equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.disableCertificateVerification')" "${DISABLE_CERTIFICATE_VERIFICATION}"
 
       RESULT_STR="${NAME} Baremetalhost mac address correct"
       equals "$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bootMACAddress')" \
