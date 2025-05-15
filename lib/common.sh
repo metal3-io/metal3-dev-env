@@ -491,11 +491,15 @@ list_nodes() {
            port:.driver_info.port,
            user:.driver_info.username,
            password:.driver_info.password,
+           verify_ca:.driver_info.redfish_verify_ca,
            mac: .ports[0].address
-           } |
+           } | if .verify_ca == null then .verify_ca="True" else . end |
            .name + " " +
            .address + " " +
-           .user + " " + .password + " " + .mac' \
+           .user + " " +
+           .password + " " +
+           .mac + " " +
+           .verify_ca' \
        | sed 's/"//g'
 }
 
@@ -650,3 +654,17 @@ manage_libvirtd() {
         ;;
 esac
 }
+
+#
+# Translate verify_ca, which is True or False and coming from ironic nodes,
+# to disableCertificateVerification, which is true or false, and is set in BMH
+#
+get_disableCertificateVerification_from_verify_ca() {
+  local VERIFY_CA="$1"
+  if [[ ${VERIFY_CA} == "False" ]]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
