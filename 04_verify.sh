@@ -169,26 +169,6 @@ check_k8s_rs() {
   return "$((FAILS-FAILS_CHECK))"
 }
 
-
-# Verify that a resource exists in a type
-check_k8s_pods() {
-  local FAILS_CHECK="${FAILS}"
-  local ENTITY
-  local NS="${2:-metal3}"
-  for name in "${@}"; do
-    # Check entity exists
-    LABEL=$(echo "$name" | cut -f1 -d:);
-    NAME=$(echo "$name" | cut -f2 -d:);
-
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get pods \
-      -l "${LABEL}"="${NAME}" -n "${NS}" -o json | jq '.items[0]')"
-    RESULT_STR="Pod ${NAME} created"
-    differs "${ENTITY}" "null"
-  done
-
-  return "$((FAILS-FAILS_CHECK))"
-}
-
 # Verify a container is running
 check_container(){
   local NAME="$1"
