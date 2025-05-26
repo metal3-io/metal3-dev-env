@@ -89,18 +89,11 @@ init_minikube()
             # for CS9 and RHEL9, or restart the libvirtd.service for other DISTRO
             manage_libvirtd
             configure_minikube
-            #NOTE(elfosardo): workaround for https://bugzilla.redhat.com/show_bug.cgi?id=2057769
-            sudo mkdir -p "/etc/qemu/firmware"
-            sudo touch "/etc/qemu/firmware/50-edk2-ovmf-amdsev.json"
-            sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "${USER}" || minikube_error=1
+            sudo su -l -c "minikube start --alsologtostderr -v=9 --insecure-registry ${REGISTRY}" "${USER}" || minikube_error=1
             if [[ ${minikube_error} -eq 0 ]]; then
                 break
             fi
             sudo su -l -c 'minikube delete --all --purge' "${USER}"
-            # NOTE (Mohammed): workaround for https://github.com/kubernetes/minikube/issues/9878
-            if ip link show virbr0 > /dev/null 2>&1; then
-                sudo ip link delete virbr0
-            fi
         done
         sudo su -l -c "minikube stop" "${USER}"
     fi
