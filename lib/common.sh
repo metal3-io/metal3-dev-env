@@ -133,7 +133,7 @@ fi
 
 # shellcheck disable=SC2034
 # USE_LOCAL_IPA and IPA_DOWNLOAD_ENABLED also have effect on BMO repo
-export IPA_BASEURI="${IPA_BASEURI:-https://tarballs.opendev.org/openstack/ironic-python-agent/dib}"
+export IPA_BASEURI="${IPA_BASEURI:-https://artifactory.nordix.org/artifactory/openstack-remote-cache/ironic-python-agent/dib}"
 export IPA_BRANCH="${IPA_BRANCH:-master}"
 export IPA_FLAVOR="${IPA_FLAVOR:-centos9}"
 export USE_LOCAL_IPA="${USE_LOCAL_IPA:-false}"
@@ -667,4 +667,3 @@ get_disableCertificateVerification_from_verify_ca() {
     echo "false"
   fi
 }
-
