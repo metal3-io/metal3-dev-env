@@ -8,5 +8,5 @@
   - import_role:
       name: fubarhouse.golang
     vars:
-      go_version: 1.22.7
+      go_version: 1.24.3
       go_install_clean: true
