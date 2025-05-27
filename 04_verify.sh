@@ -186,11 +186,22 @@ EXPTD_V1ALPHAX_V1BETAX_CRDS="clusters.cluster.x-k8s.io \
   machines.cluster.x-k8s.io \
   machinesets.cluster.x-k8s.io \
   baremetalhosts.metal3.io"
-EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
-  capi-system:capi-controller-manager \
-  capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
-  capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
-  baremetal-operator-system:baremetal-operator-controller-manager"
+# Add check for ironic deployment for Centos test
+# Different tests were failing in CI because of ironic deployment was not in ready state.
+if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]]; then
+  EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
+    capi-system:capi-controller-manager \
+    capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
+    capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
+    baremetal-operator-system:baremetal-operator-controller-manager \
+    baremetal-operator-system:baremetal-operator-ironic"
+else
+  EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
+    capi-system:capi-controller-manager \
+    capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
+    capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
+    baremetal-operator-system:baremetal-operator-controller-manager"
+fi
 
 # TODO: Once testing of 1.9 and older releases stop this if can be removed
 if [[ "${IPAMRELEASE}" =~ ("v1.7.99"|"v1.8.99"|"v1.9.99")$ ]]; then
