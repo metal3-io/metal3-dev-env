@@ -254,18 +254,7 @@ done
 echo ""
 
 # Verify v1beta1 Operators, Deployments, Replicasets
-if [[ "${SKIP_APPLY_BMH:-false}" == "true" ]] && [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]]; then
-  EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
-  capi-system:capi-controller-manager \
-  capi-kubeadm-bootstrap-system:capi-kubeadm-bootstrap-controller-manager \
-  capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
-  baremetal-operator-system:baremetal-operator-controller-manager \
-  baremetal-operator-system:baremetal-operator-ironic"
-
-  iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
-else
-  iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
-fi
+iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
 iterate check_k8s_rs "${EXPTD_RS}"
 
 # Skip verification related to virsh when running with fakeIPA
