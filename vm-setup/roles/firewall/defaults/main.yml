@@ -1,4 +1,4 @@
-use_firewalld: true
+use_firewalld: "{{ lookup('env', 'USE_FIREWALLD') | default(true, true) }}"
 external_interface: external
 provisioning_interface: provisioning
 bare_metal_provisioner_interface: "{{ lookup('env', 'BARE_METAL_PROVISIONER_INTERFACE') | default('ironicendpoint', true) }}"

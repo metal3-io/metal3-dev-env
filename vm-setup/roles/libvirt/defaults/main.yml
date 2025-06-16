@@ -34,7 +34,7 @@ libvirtd_service: libvirtd
 # The host that has images for provisioning, this should be in the
 # format of a URL host, e.g. with IPv6, it should be surrounded
 # by brackets
-provisioning_url_host: 172.22.0.1
+provisioning_url_host: "{{ lookup('env', 'BARE_METAL_PROVISIONER_NETWORK') | default('172.22.0.1', true) }}"
 
 # BMC credentials
 vbmc_username: "admin"
