@@ -1,0 +1,15 @@
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: Metal3MachineTemplate
+metadata:
+  name: kamaji-1-workers
+  namespace: default
+spec:
+  nodeReuse: false
+  template:
+    spec:
+      automatedCleaningMode: disabled
+      image:
+        checksum: b03ecdc4bb9be44fae2eb0e9e260d26a8b561814a7aa8c52b134b77dacf200d5
+        checksumType: sha256
+        format: raw
+        url: http://192.168.222.1/ubuntu-2404.raw

@@ -1,0 +1,20 @@
+<network>
+  <name>baremetal-e2e</name>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='metal3'/>
+  <ip address='192.168.222.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.222.2' end='192.168.222.199'/>
+      <host mac='00:60:2f:31:81:00' name='bmo-e2e-0' ip='192.168.222.100'/>
+      <host mac='00:60:2f:31:81:01' name='bmo-e2e-1' ip='192.168.222.101'/>
+      <host mac='00:60:2f:31:81:02' name='bmo-e2e-2' ip='192.168.222.102'/>
+      <host mac='00:60:2f:31:81:03' name='bmo-e2e-3' ip='192.168.222.103'/>
+      <host mac='00:60:2f:31:81:04' name='bmo-e2e-4' ip='192.168.222.104'/>
+      <bootp file='http://192.168.222.1:6180/boot.ipxe'/>
+    </dhcp>
+  </ip>
+</network>

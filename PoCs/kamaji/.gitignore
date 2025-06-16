@@ -1,0 +1,7 @@
+ironic-htpasswd
+ironic-password
+ironic-username
+metal3/images
+metal3/tmp
+calico.yaml
+*kubeconfig.yaml

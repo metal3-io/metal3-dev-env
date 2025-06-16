@@ -1,0 +1,23 @@
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: kamaji-1-workers
+  namespace: default
+spec:
+  template:
+    spec:
+      files:
+      - contentFrom:
+          secret:
+            key: ubuntu-install-k8s-release-artifacts.sh
+            name: install-k8s
+        path: /tmp/install-k8s.sh
+        owner: root:root
+        permissions: '0755'
+      preKubeadmCommands:
+      - /tmp/install-k8s.sh
+      joinConfiguration:
+        nodeRegistration:
+          name: '{{ ds.meta_data.name }}'
+          kubeletExtraArgs:
+            node-labels: 'metal3.io/uuid={{ ds.meta_data.uuid }}'
