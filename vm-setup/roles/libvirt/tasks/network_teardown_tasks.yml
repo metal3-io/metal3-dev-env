@@ -14,6 +14,11 @@
   with_items: "{{ networks }}"
   become: true
 
+- name: Delete libvirt network hooks
+  ansible.builtin.file:
+    path: "/etc/libvirt/hooks/network.d/"
+    state: absent
+
 # TODO: Replace with ansible community.general.nmcli?
 - name: Delete bridges and veth interfaces on Ubuntu
   shell: |
@@ -23,8 +28,6 @@
      brctl delbr external || true
      brctl delbr provisioning || true
      sudo ip link del ironicendpoint || true
-
   when:
     - ansible_distribution == 'Ubuntu'
-
   become: yes

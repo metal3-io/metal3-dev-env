@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+if [[ "$1" = "{{ item.name }}" ]] && [[ "$2" = "started" ]] && [[ "$3" = "begin" ]]; then
+	ip -6 addr del {{ item.address_v6 }}/{{ item.prefix_v6 }} dev {{ item.name }}
+	ip -6 addr add {{ item.address_v6 }}/{{ item.prefix_v6 }} dev {{ item.name }} nodad
+fi

@@ -20,6 +20,29 @@
 - name: get a list of MACs to use
   include_tasks: ../../common/tasks/generate_node_mac.yml
 
+# Create config dir + hooks to disable dad from IPv6 addresses
+- name: Create libvirt configuration directory
+  ansible.builtin.file:
+    path: "/etc/libvirt/hooks/network.d"
+    state: directory
+
+- name: Create libvirt network hooks
+  ansible.builtin.template:
+    src: ../templates/libvirt_hook.sh.j2
+    dest: "/etc/libvirt/hooks/network.d/{{ item.name }}_{{ loop_index}}.sh"
+    owner: root
+    mode: '0755'
+  with_items: "{{ networks }}"
+  when: item.address_v6 is defined and item.address_v6 != '' and item.forward_mode != 'bridge'
+  loop_control:
+    index_var: loop_index
+
+# Restart to ensure the hooks are enabled
+- name: Restart libvirt
+  systemd:
+    name: libvirtd
+    state: restarted
+
 # Create the global, root-managed libvirt networks to which we will
 # attach the undercoud and vm virtual machines.
 - name: Create libvirt networks
