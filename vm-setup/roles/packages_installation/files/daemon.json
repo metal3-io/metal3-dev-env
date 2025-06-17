@@ -1,3 +1,5 @@
 {
+    "ipv6": {{ DOCKER_IPV6_SUPPORT }},
+    "fixed-cidr-v6": "fd00::/80",
     "insecure-registries" : ["{{ REGISTRY }}"]
 }
