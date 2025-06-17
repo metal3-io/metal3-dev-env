@@ -133,3 +133,15 @@ Run this PoC or review code changes at [hostnetworkless-ironic-metallb](https://
 1. **Provisioning Networks:**
 
    - No need to configure the `ironicendpoint` with 172.22.0.2
+
+### 3. PoC Hosted control-plane using Kamaji
+
+This PoC does NOT build on metal3-dev-env. It demonstrates how Kamaji can be
+used as a control-plane provider together with Metal3 as an infrastructure
+provider to create workload clusters where the control-plane is hosted in the
+management cluster. The control-plane components run as pods and are exposed via
+a LoadBalancer Service. This is a way to save resources by not having dedicated
+control-plane nodes for each workload cluster.
+
+See the [README.md](./kamaji/README.md) in the `kamaji` directory for more
+details.

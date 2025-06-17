@@ -1,0 +1,8 @@
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+# We want all address pools to be handeled by L2, so no need to specify anything here.
+# spec:
+#   ipAddressPools:
+#     - default
