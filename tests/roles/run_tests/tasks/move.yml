@@ -133,6 +133,7 @@
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+      BMOPATH: "{{ BMOPATH }}"
     args:
       chdir: "{{ BMOPATH }}"
 
@@ -143,6 +144,7 @@
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
       KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+      BMOPATH: "{{ BMOPATH }}"
     args:
       chdir: "{{ BMOPATH }}"
 
