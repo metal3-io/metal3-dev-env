@@ -1,0 +1,75 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: ${ CLUSTER_NAME }
+  namespace: ${ NAMESPACE }
+spec:
+  clusterNetwork:
+    services:
+      cidrBlocks: [${ SERVICE_CIDR }]
+    pods:
+      cidrBlocks: [${ POD_CIDR }]
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+    kind: Metal3Cluster
+    name: ${ CLUSTER_NAME }
+  controlPlaneRef:
+    kind: KubeadmControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    name: ${ CLUSTER_NAME }
+---
+apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+kind: Metal3Cluster
+metadata:
+  name: ${ CLUSTER_NAME }
+  namespace: ${ NAMESPACE }
+spec:
+  controlPlaneEndpoint:
+    host: ${ CLUSTER_APIENDPOINT_HOST }
+    port: ${ CLUSTER_APIENDPOINT_PORT }
+  noCloudProvider: true
+---
+apiVersion: ipam.metal3.io/v1alpha1
+kind: IPPool
+metadata:
+  name: provisioning-pool
+  namespace: ${ NAMESPACE }
+spec:
+  clusterName: ${ CLUSTER_NAME }
+  namePrefix: ${ CLUSTER_NAME }-prov
+  pools:
+    - start: ${ IPAM_PROVISIONING_POOL_RANGE_START }
+      end: ${ IPAM_PROVISIONING_POOL_RANGE_END }
+  prefix: ${ BARE_METAL_PROVISIONER_CIDR }
+{% if IP_STACK == 'v4' or IP_STACK == 'v4v6' %}
+---
+apiVersion: ipam.metal3.io/v1alpha1
+kind: IPPool
+metadata:
+  name: externalv4-pool
+  namespace: ${ NAMESPACE }
+spec:
+  clusterName: ${ CLUSTER_NAME }
+  namePrefix: ${ CLUSTER_NAME }-bmv4
+  pools:
+    - start: ${ IPAM_EXTERNALV4_POOL_RANGE_START }
+      end: ${ IPAM_EXTERNALV4_POOL_RANGE_END }
+  prefix: ${ EXTERNAL_SUBNET_V4_PREFIX }
+  gateway: ${ EXTERNAL_SUBNET_V4_HOST }
+{% endif %}
+{% if IP_STACK == 'v6' or IP_STACK == 'v4v6' %}
+---
+apiVersion: ipam.metal3.io/v1alpha1
+kind: IPPool
+metadata:
+  name: externalv6-pool
+  namespace: ${ NAMESPACE }
+spec:
+  clusterName: ${ CLUSTER_NAME }
+  namePrefix: ${ CLUSTER_NAME }-bmv6
+  pools:
+    - start: ${ IPAM_EXTERNALV6_POOL_RANGE_START }
+      end: ${ IPAM_EXTERNALV6_POOL_RANGE_END }
+  prefix: ${ EXTERNAL_SUBNET_V6_PREFIX }
+  gateway: ${ EXTERNAL_SUBNET_V6_HOST }
+{% endif %}

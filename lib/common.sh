@@ -121,15 +121,7 @@ clone_repo() {
 }
 
 # Configure common environment variables
-CAPM3_VERSION_LIST="v1beta1"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
-
-if [[ "${CAPM3_VERSION}" == "v1beta1" ]]; then
-  export CAPI_VERSION="v1beta1"
-else
-  echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
-  exit 1
-fi
 
 # shellcheck disable=SC2034
 # USE_LOCAL_IPA and IPA_DOWNLOAD_ENABLED also have effect on BMO repo
@@ -161,6 +153,25 @@ export IRSOPATH="${IRSOPATH:-${M3PATH}/ironic-standalone-operator}"
 export IRSO_BASE_URL="${IRSO_BASE_URL:-metal3-io/ironic-standalone-operator}"
 export IRSOREPO="${IRSOREPO:-https://github.com/${IRSO_BASE_URL}}"
 export IRSOBRANCH="${IRSOBRANCH:-main}"
+
+
+if [[ "${CAPM3RELEASEBRANCH}" == "main" ]]; then
+  export CAPI_VERSION="v1beta2"
+  export NODE_DRAIN_TIMEOUT="${NODE_DRAIN_TIMEOUT:-0}"
+elif [[ "${CAPM3RELEASEBRANCH}" =~ ^release-([0-9]+)\.([0-9]+)$ ]]; then
+  major="${BASH_REMATCH[1]}"
+  minor="${BASH_REMATCH[2]}"
+  if (( major > 1 )) || (( major == 1 && minor >= 11 )); then
+    export CAPI_VERSION="v1beta2"
+    export NODE_DRAIN_TIMEOUT="${NODE_DRAIN_TIMEOUT:-0}"
+  else
+    export CAPI_VERSION="v1beta1"
+    export NODE_DRAIN_TIMEOUT="${NODE_DRAIN_TIMEOUT:-0s}"
+  fi
+else
+  echo "Unknown CAPM3RELEASEBRANCH format: $CAPM3RELEASEBRANCH"
+  exit 1
+fi
 
 if [[ "${CAPM3RELEASEBRANCH}" == "release-1.7" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.7}"
@@ -260,7 +271,6 @@ export WORKER_MACHINE_COUNT="${WORKER_MACHINE_COUNT:-1}"
 export VM_EXTRADISKS="${VM_EXTRADISKS:-false}"
 export VM_EXTRADISKS_FILE_SYSTEM="${VM_EXTRADISKS_FILE_SYSTEM:-ext4}"
 export VM_EXTRADISKS_MOUNT_DIR="${VM_EXTRADISKS_MOUNT_DIR:-/mnt/disk2}"
-export NODE_DRAIN_TIMEOUT="${NODE_DRAIN_TIMEOUT:-0s}"
 export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-1}"
 export IRONIC_TAG="${IRONIC_TAG:-latest}"
 export BARE_METAL_OPERATOR_TAG="${BARE_METAL_OPERATOR_TAG:-latest}"
