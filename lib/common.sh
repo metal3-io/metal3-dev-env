@@ -627,7 +627,7 @@ differs(){
 #
 remove_ironic_containers() {
   #shellcheck disable=SC2015
-  for name in ipa-downloader vbmc sushy-tools httpd-infra ipxe-builder; do
+  for name in ipa-downloader vbmc sushy-tools httpd-infra ipxe-builder registry; do
     if sudo "${CONTAINER_RUNTIME}" ps | grep -w -q "${name}$"; then
         sudo "${CONTAINER_RUNTIME}" kill "${name}" || true
     fi

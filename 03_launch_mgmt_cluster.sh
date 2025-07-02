@@ -624,12 +624,15 @@ create_clouds_yaml()
 #
 launch_kind()
 {
+    # If registry is IPv6 address, '[', ']' are not allowed
+    local registry
+    registry=$(echo "${REGISTRY}" | sed -E 's/\[\|\]//g')
     cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:
 - |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${REGISTRY}"]
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${registry}"]
     endpoint = ["http://${REGISTRY}"]
 EOF
 }
@@ -662,7 +665,7 @@ start_management_cluster()
         fi
 
         if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" = "true" ]]; then
-            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/  ${BARE_METAL_PROVISIONER_CIDR} dev eth2" "${USER}"
+            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev eth2" "${USER}"
         else
             sudo su -l -c "minikube ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
             sudo su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"

@@ -11,6 +11,7 @@ assured that they are persisted.
 
 | Name | Option | Allowed values | Default |
 | :------ | :------- | :--------------- | :-------- |
+| DOCKER_USE_IPV6_INTERNALLY | Choose whether Docker will use IPv6 internally. | "true", "false" | false |
 | MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1|
 | EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
 | IP_STACK | Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
