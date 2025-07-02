@@ -116,7 +116,7 @@
         action: insert
         protocol: tcp
         match: tcp
-        destination: "{{ bare_metal_provisioner_subnet_v4 }}"
+        destination: "{{ bare_metal_provisioner_subnet }}"
         destination_port: "{{ item }}"
         jump: ACCEPT
         state: "{{ firewall_rule_state }}"
@@ -141,4 +141,54 @@
         destination: "{{ external_subnet_v4 }}"
         jump: ACCEPT
         state: "{{ firewall_rule_state }}"
-  when: (EPHEMERAL_CLUSTER == "kind")
+  when: (EPHEMERAL_CLUSTER == "kind") and (ip_stack == "v4")
+
+- block:
+    - name: "ip6tables: Allow access to external network from kind"
+      iptables:
+        ip_version: ipv6
+        chain: INPUT
+        action: insert
+        protocol: tcp
+        match: tcp
+        destination: "{{ external_subnet_v6 }}"
+        destination_port: "{{ item }}"
+        jump: ACCEPT
+        state: "{{ firewall_rule_state }}"
+      loop: "{{ vm_host_ports }}"
+
+    - name: "ip6tables: Allow access to bare metal provisioner network from kind"
+      iptables:
+        ip_version: ipv6
+        chain: INPUT
+        action: insert
+        protocol: tcp
+        match: tcp
+        destination: "{{ bare_metal_provisioner_subnet }}"
+        destination_port: "{{ item }}"
+        jump: ACCEPT
+        state: "{{ firewall_rule_state }}"
+      loop: "{{ ironic_ports }}"
+
+    - name: "ip6tables: Allow access to Kubernetes API from kind"
+      iptables:
+        ip_version: ipv6
+        chain: INPUT
+        action: insert
+        protocol: tcp
+        match: tcp
+        destination: "{{ kind_subnet }}"
+        destination_port: "{{ cluster_api_port }}"
+        jump: ACCEPT
+        state: "{{ firewall_rule_state }}"
+
+    - name: "ip6tables: Allow forwarding to baremetal network from kind"
+      iptables:
+        ip_version: ipv6
+        chain: FORWARD
+        action: insert
+        out_interface: "{{ external_interface }}"
+        destination: "{{ external_subnet_v6 }}"
+        jump: ACCEPT
+        state: "{{ firewall_rule_state }}"
+  when: (EPHEMERAL_CLUSTER == "kind") and (ip_stack == "v6")

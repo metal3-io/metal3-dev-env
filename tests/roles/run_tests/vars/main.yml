@@ -39,7 +39,7 @@ IPAM_EXTERNALV6_POOL_RANGE_START: "{{ lookup('env', 'IPAM_EXTERNALV6_POOL_RANGE_
 IPAM_EXTERNALV6_POOL_RANGE_END: "{{ lookup('env', 'IPAM_EXTERNALV6_POOL_RANGE_END') | default('fd55::200', true) }}"
 EXTERNAL_SUBNET_V6_PREFIX: "{{ lookup('env', 'EXTERNAL_SUBNET_V6_PREFIX') | default('64', true) }}"
 EXTERNAL_SUBNET_V6_HOST: "{{ lookup('env', 'EXTERNAL_SUBNET_V6_HOST') | default('fd55::1', true) }}"
-BARE_METAL_PROVISIONER_IP: "{{ lookup('env', 'BARE_METAL_PROVISIONER_IP') | default('172.22.0.1', true) }}"
+BARE_METAL_PROVISIONER_IP: "{{ lookup('env', 'BARE_METAL_PROVISIONER_URL_HOST') | default('172.22.0.1', true) }}"
 IRONIC_HOST: "{{ lookup('env', 'IRONIC_HOST') | default('172.22.0.2', true) }}"
 IRONIC_HOST_IP: "{{ lookup('env', 'IRONIC_HOST_IP') | default('172.22.0.2', true) }}"
 KUBECTL_ARGS: "--kubeconfig=/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"

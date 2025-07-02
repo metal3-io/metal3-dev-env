@@ -624,17 +624,47 @@ create_clouds_yaml()
 #
 launch_kind()
 {
-    # If registry is IPv6 address, '[', ']' are not allowed
-    local registry
-    registry=$(echo "${REGISTRY}" | sed -E 's/\[\|\]//g')
-    cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
+    if [[ "${IP_STACK}" == "v6" ]]; then
+        # If registry is IPv6 address, '[', ']' are not allowed in kind configuration.
+        # We need to create config files for the containerd patches.
+        # Notice that having '[' and ']' in the key requires containerd 2.0 or newer.
+        cat <<EOF | tee /tmp/hosts.toml
+[host."http://${REGISTRY}/v2"]
+  capabilities = ["pull", "resolve", "push"]
+  skip_verify = true
+EOF
+
+        cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraMounts:
+  - hostPath: /tmp/hosts.toml
+    containerPath: /hosts.toml
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri".registry]
+    config_path = "/etc/containerd/certs.d"
+networking:
+  ipFamily: ipv6
+EOF
+
+        # Copy config to correct place. Mounting it directly does not work
+        # because the filepath contains colons.
+        docker exec -it kind-control-plane mkdir -p /etc/containerd/certs.d/"${REGISTRY}"
+        docker exec -it kind-control-plane cp /hosts.toml /etc/containerd/certs.d/"${REGISTRY}"/hosts.toml
+
+    else
+        cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:
 - |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${registry}"]
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${REGISTRY}"]
     endpoint = ["http://${REGISTRY}"]
 EOF
+    fi
 }
 
 #
@@ -664,12 +694,15 @@ start_management_cluster()
             sudo su -l -c "minikube ssh -- sudo ip addr add ${MINIKUBE_BMNET_V6_IP}/64 dev eth3" "${USER}"
         fi
 
+        sudo su -l -c "minikube ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+        sudo su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
+        sudo su -l -c "minikube ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
+
         if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" = "true" ]]; then
-            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev eth2" "${USER}"
+            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
+            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
+            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
         else
-            sudo su -l -c "minikube ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
             sudo su -l -c "minikube ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
         fi
     fi
