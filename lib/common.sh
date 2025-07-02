@@ -125,7 +125,7 @@ CAPM3_VERSION_LIST="v1beta1"
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
 if [[ "${CAPM3_VERSION}" == "v1beta1" ]]; then
-  export CAPI_VERSION="v1beta1"
+  export CAPI_VERSION="v1beta2"
 else
   echo "Invalid CAPM3 version : ${CAPM3_VERSION}. Not in : ${CAPM3_VERSION_LIST}"
   exit 1
