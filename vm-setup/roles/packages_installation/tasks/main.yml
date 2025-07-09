@@ -61,6 +61,7 @@
       package:
           name: "{{ packages.centos.common.packages }}"
           state: present
+          nobest: true
     - name: Install packages using pip3
       pip:
         executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
