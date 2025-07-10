@@ -128,10 +128,10 @@
 #export CAPM3_VERSION=v1beta1
 
 # Select the Cluster API version
-# Accepted values : v1beta1
-# default: v1beta1
+# Accepted values : v1beta2
+# default: v1beta2
 #
-#export CAPI_VERSION=v1beta1
+#export CAPI_VERSION=v1beta2
 
 #export KUBERNETES_VERSION="v1.33.0"
 #export UPGRADED_K8S_VERSION="v1.33.0"
@@ -202,7 +202,7 @@
 
 # Set nodeDrainTimeout for controlplane and worker template, otherwise default value will be  '0s'.
 #
-#export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}
+#export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-0}
 
 # Uncomment the line below to build ironic-image from source
 # export IRONIC_FROM_SOURCE="true"
