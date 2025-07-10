@@ -202,7 +202,7 @@
 
 # Set nodeDrainTimeout for controlplane and worker template, otherwise default value will be  '0s'.
 #
-#export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0s"}
+#export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-0}
 
 # Uncomment the line below to build ironic-image from source
 # export IRONIC_FROM_SOURCE="true"
