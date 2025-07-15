@@ -7,11 +7,11 @@
         state: latest
 
     # TODO: (Sunnatillo) Remove this task after fully removing apt-key
-    - name: Remove OS old repository (without gpg key file location) 
+    - name: Remove OS old repository (without gpg key file location)
       apt_repository:
         repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
         state: absent
-    
+
     - name: Remove Ubuntu Noble old repository (without gpg key file location)
       apt_repository:
         repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/ /"
@@ -35,9 +35,9 @@
       when: ansible_distribution_release == "noble"
 
     - name: Dearmor Release key
-      shell: | 
+      shell: |
         cat /usr/share/keyrings/libcontainers-archive-keyring.asc | sudo gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg --yes
-    
+
     - name: Add OS repository
       lineinfile:
         path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
@@ -66,7 +66,7 @@
     - name: Podman
       block:
         - name: Install podman
-          apt: 
+          apt:
             name: podman
             state: present
 
@@ -92,19 +92,19 @@
             dest: /etc/apt/keyrings/docker.asc
             mode: '0644'
             force: true
-          
+
         - name: Dearmor GPG key
-          shell: | 
+          shell: |
             cat /etc/apt/keyrings/docker.asc | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
-                
+
         # TODO: (Sunnatillo) Remove this task after fully removing apt-key
-        - name: Remove Docker old repository (without gpg key file location) 
+        - name: Remove Docker old repository (without gpg key file location)
           apt_repository:
             repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
             state: absent
 
         # TODO: (Sunnatillo) Remove this task after fully removing apt-key
-        - name: Remove Docker old repository (without gpg key file location) 
+        - name: Remove Docker old repository (without gpg key file location)
           apt_repository:
             repo: "deb  https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
             state: absent
@@ -150,4 +150,10 @@
             append: yes
       when: CONTAINER_RUNTIME == "docker"
       become: yes
+
+    - name: Install swtpm
+      apt:
+        name: swtpm
+        state: present
+
   become: yes
