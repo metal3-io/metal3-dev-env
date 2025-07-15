@@ -32,8 +32,9 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 # Ansible config file
 export ANSIBLE_CONFIG=${METAL3_DIR}/ansible.cfg
 
+# shellcheck disable=SC2086
 ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
-   -e "metal3_dir=$SCRIPTDIR" \
-   -e "v1aX_integration_test_action=${ACTION}" \
-   -i "${METAL3_DIR}/tests/inventory.ini" \
-   -b -v "${METAL3_DIR}/tests/main.yml"
+    -e "metal3_dir=${SCRIPTDIR}" \
+    -e "v1aX_integration_test_action=${ACTION}" \
+    -i "${METAL3_DIR}/tests/inventory.ini" \
+    -b -v "${METAL3_DIR}/tests/main.yml"
