@@ -12,6 +12,11 @@ if [[ "$USER" != "root" ]]; then
         exit 1
     fi
 fi
+# Verify that user has group with the same name
+if [[ ! $(id -Gn "${USER}") == *"${USER}"* ]]; then
+    sudo groupadd "${USER}"
+    sudo usermod -aG "${USER}" "${USER}"
+fi
 
 eval "$(go env)"
 export GOPATH="${GOPATH:-/home/$(whoami)/go}"
@@ -61,10 +66,10 @@ source /etc/os-release
 export DISTRO="${ID}${VERSION_ID%.*}"
 export OS="${ID}"
 export OS_VERSION_ID="${VERSION_ID}"
-export SUPPORTED_DISTROS=(centos9 rhel9 centos10 rhel10 ubuntu20 ubuntu22 ubuntu24)
+export SUPPORTED_DISTROS=(centos9 rhel9 centos10 rhel10 ubuntu20 ubuntu22 ubuntu24 opensuse-leap15)
 
 if [[ ! "${SUPPORTED_DISTROS[*]}" =~ ${DISTRO} ]]; then
-  echo "Supported OS distros for the host are: CentOS Stream 9 or RHEL9 or Ubuntu20.04 or Ubuntu 22.04"
+  echo "Supported OS distros for the host are: CentOS Stream 9 or RHEL9 or Ubuntu20.04 or Ubuntu 22.04 or Opensuse Leap 15"
   exit 1
 fi
 
@@ -465,11 +470,9 @@ fi
 FSTYPE="$(df "${FILESYSTEM}" --output=fstype | tail -n 1)"
 
 case "${FSTYPE}" in
-  'ext4'|'btrfs')
-  ;;
-  'xfs')
-    # shellcheck disable=SC2143
-    if [[ $(xfs_info "${FILESYSTEM}" | grep -q "ftype=1") ]]; then
+  ext4|btrfs) ;;
+  xfs)
+    if sudo xfs_info "${FILESYSTEM}" | grep "ftype=1" &>/dev/null; then
       echo "XFS filesystem must have ftype set to 1"
       exit 1
     fi

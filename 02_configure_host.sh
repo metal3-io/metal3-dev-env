@@ -167,6 +167,88 @@ EOF
     sudo virsh pool-autostart default
 fi
 
+# When running kind ironic is running on the host, hence we need ironicendpoint
+# interface on the host.
+configure_kind_network() {
+    if [[ ! -e /etc/NetworkManager/system-connections/provisioning.nmconnection ]]; then
+        # Don't define an IP address to the bridge, put both into ironicendpoint.
+        # ironicendpoint needs 2 IP-addresses for keepalived.
+        sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
+[connection]
+id=provisioning
+type=bridge
+interface-name=provisioning
+
+[bridge]
+stp=false
+EOF
+    fi
+    sudo chmod 600 /etc/NetworkManager/system-connections/provisioning.nmconnection
+    sudo nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
+    sudo nmcli con up provisioning
+
+    sudo ip link add ironicendpoint type veth peer name ironic-peer
+    sudo ip link set ironic-peer master provisioning
+
+    if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" = "true" ]]; then
+        sudo ip -6 addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
+        sudo ip -6 addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+    else
+        sudo ip addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
+        sudo ip addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+    fi
+    sudo ip link set ironicendpoint up
+    sudo ip link set ironic-peer up
+}
+
+# When running minikube, ironic is running inside the cluster, provisioning named
+# interface on the host is enough
+configure_minikube_network() {
+    if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" == "true" ]]; then
+        # Adding an IP address in the libvirt definition for this network results in
+        # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
+        # the IP address here
+        sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
+[connection]
+id=provisioning
+type=bridge
+interface-name=provisioning
+
+[bridge]
+stp=false
+
+[ipv4]
+method=disabled
+
+[ipv6]
+addr-gen-mode=eui64
+address1=${BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR}
+method=manual
+EOF
+    else
+        sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
+[connection]
+id=provisioning
+type=bridge
+interface-name=provisioning
+
+[bridge]
+stp=false
+
+[ipv4]
+address1=${BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR}
+method=manual
+
+[ipv6]
+addr-gen-mode=eui64
+method=disabled
+EOF
+    fi
+    sudo chmod 600 /etc/NetworkManager/system-connections/provisioning.nmconnection
+    sudo nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
+    sudo nmcli con up provisioning
+}
+
 if [[ "${OS}" == "ubuntu" ]]; then
     # source ubuntu_bridge_network_configuration.sh
     # shellcheck disable=SC1091
@@ -175,55 +257,16 @@ if [[ "${OS}" == "ubuntu" ]]; then
     source disable_apparmor_driver_libvirtd.sh
 else
     if [[ "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
-        # Adding an IP address in the libvirt definition for this network results in
-        # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
-        # the IP address here
-        if [[ ! -e /etc/NetworkManager/system-connections/provisioning.nmconnection ]]; then
-            if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" == "true" ]]; then
-                sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
-[connection]
-id=provisioning
-type=bridge
-interface-name=provisioning
-
-[bridge]
-stp=false
-
-[ipv4]
-method=disabled
-
-[ipv6]
-addr-gen-mode=eui64
-address1=${BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR}
-method=manual
-EOF
-            else
-                sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
-[connection]
-id=provisioning
-type=bridge
-interface-name=provisioning
-
-[bridge]
-stp=false
-
-[ipv4]
-address1=${BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR}
-method=manual
-
-[ipv6]
-addr-gen-mode=eui64
-method=disabled
-EOF
-            fi
-            sudo chmod 600 /etc/NetworkManager/system-connections/provisioning.nmconnection
-            sudo nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
+        if [[ ${EPHEMERAL_CLUSTER} == "kind" ]]; then
+            configure_kind_network
+        else
+            configure_minikube_network
         fi
-        sudo nmcli con up provisioning
+    fi
 
-        # Need to pass the provision interface for bare metal
-        if [[ -n "${PRO_IF}" ]]; then
-            sudo tee -a /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection <<EOF
+    # Need to pass the provision interface for bare metal
+    if [[ -n "${PRO_IF}" ]]; then
+        sudo tee -a /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection <<EOF
 [connection]
 id=${PRO_IF}
 type=ethernet
@@ -231,10 +274,10 @@ interface-name=${PRO_IF}
 master=provisioning
 slave-type=bridge
 EOF
-            sudo chmod 600 /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection
-            sudo nmcli con load /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection
-            sudo nmcli con up "${PRO_IF}"
-        fi
+        sudo chmod 600 /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection
+        sudo nmcli con load /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection
+        sudo nmcli con up "${PRO_IF}"
+    fi
 
     if [[ "${MANAGE_INT_BRIDGE}" == "y" ]]; then
         if [[ "$(nmcli con show)" != *"external"* ]]; then
@@ -256,12 +299,12 @@ EOF
             sudo nmcli con load /etc/NetworkManager/system-connections/external.nmconnection
         fi
     fi
-        sudo nmcli connection up external
+    sudo nmcli connection up external
 
-        # Add the internal interface to it if requests, this may also be the interface providing
-        # external access so we need to make sure we maintain dhcp config if its available
-        if [[ -n "${INT_IF}" ]]; then
-            sudo tee /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection <<EOF
+    # Add the internal interface to it if requests, this may also be the interface providing
+    # external access so we need to make sure we maintain dhcp config if its available
+    if [[ -n "${INT_IF}" ]]; then
+        sudo tee /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection <<EOF
 [connection]
 id=${INT_IF}
 type=ethernet
@@ -270,13 +313,12 @@ master=provisioning
 slave-type=bridge
 EOF
 
-            sudo chmod 600 /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection
-            sudo nmcli con load /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection
-            if sudo nmap --script broadcast-dhcp-discover -e "${INT_IF}" | grep "IP Offered" ; then
-                sudo nmcli connection modify external ipv4.method auto
-            fi
-            sudo nmcli connection up "${INT_IF}"
+        sudo chmod 600 /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection
+        sudo nmcli con load /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection
+        if sudo nmap --script broadcast-dhcp-discover -e "${INT_IF}" | grep "IP Offered" ; then
+            sudo nmcli connection modify external ipv4.method auto
         fi
+        sudo nmcli connection up "${INT_IF}"
     fi
 
     # Restart the libvirt network so it applies an ip to the bridge

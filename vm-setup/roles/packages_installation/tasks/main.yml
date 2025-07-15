@@ -79,3 +79,21 @@
       become: yes
   become: yes
   when: ansible_os_family == "RedHat"
+
+- name: Install packages on openSUSE Leap 15 SP6
+  block:
+    - name: Install packages on openSUSE Leap 15
+      package:
+        name: "{{ packages.suse.common.packages }}"
+        state: present
+
+    - name: Install packages using pip3
+      pip:
+        virtualenv: "{{ ANSIBLE_VENV }}"
+        name: "{{ packages.suse.pip3 }}"
+        state: present
+
+    - name: Perform Suse required configurations
+      include_tasks: suse_required_packages.yml
+  become: yes
+  when: ansible_os_family == "Suse"
