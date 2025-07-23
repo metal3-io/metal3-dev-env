@@ -47,7 +47,7 @@ assured that they are persisted.
 | FAKE_IPA_IMAGE | Container image for fakeIPA container | | "$CONTAINER_REGISTRY/metal3-io/fake-ipa" |
 | FKAS_IMAGE | Container image for fkas container | | "$CONTAINER_REGISTRY/metal3-io/metal3-fkas" |
 | CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1beta1" | "v1beta1" |
-| CAPI_VERSION | Version of Cluster API | "v1beta1" | "v1beta1" |
+| CAPI_VERSION | Version of Cluster API | "v1beta2" | "v1beta2" |
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "${EXTERNAL_SUBNET_VX}.249" |
 | CLUSTER_APIENDPOINT_HOST | API endpoint host for target cluster | | $CLUSTER_APIENDPOINT_IP |
 | CLUSTER_APIENDPOINT_PORT | API endpoint port for target cluster | | "6443" |
@@ -91,7 +91,7 @@ assured that they are persisted.
 | IRONIC_INSPECTOR_PORT | Ironic Inspector port | | 5050 |
 | IRONIC_API_PORT | Ironic Api port | | 6385 |
 | RESTART_CONTAINER_CERTIFICATE_UPDATED | Enable the ironic restart feature when TLS certificates are updated | "true", "false" | "true" |
-| NODE_DRAIN_TIMEOUT | Set the nodeDrainTimeout for controlplane and worker template | | '0s' |
+| NODE_DRAIN_TIMEOUT | Set the nodeDrainTimeoutSeconds for controlplane and worker template | | '0' |
 | MARIADB_KEY_FILE | Path to the key of MariaDB | | /opt/metal3-dev-env/certs/mariadb.key |
 | MARIADB_CERT_FILE | Path to the cert of MariaDB | | /opt/metal3-dev-env/certs/mariadb.crt |
 | MARIADB_CAKEY_FILE | Path to the CA key of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.key |

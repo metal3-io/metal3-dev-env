@@ -19,14 +19,14 @@
 
   - name: Deploy clusterctl variables to clusterctl config
     ansible.builtin.blockinfile:
-      block: "{{lookup('ansible.builtin.template', '{{ CRS_PATH }}/clusterctl-vars.yaml')}}"
+      block: "{{lookup('ansible.builtin.template', '{{ CRS_PATH }}/{{ CAPM3RELEASEBRANCH }}/clusterctl-vars.yaml')}}"
       path: "{{ CAPI_CONFIG_DIR }}/clusterctl.yaml"
-      create: yes 
+      create: yes
       state: present
 
   - name: Generate clusterctl cluster template
     template:
-      src: "{{ CRS_PATH }}/cluster-template-{{ item }}.yaml"
+      src: "{{ CRS_PATH }}/{{ CAPM3RELEASEBRANCH }}/cluster-template-{{ item }}.yaml"
       dest: "{{CAPI_CONFIG_DIR }}/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml"
     with_items:
       - cluster
@@ -34,10 +34,8 @@
       - workers
 
   - name: Generate templates
-    vars:
-      clusterctl_var: "{{ 'generate' if CAPI_VERSION == 'v1beta1' else 'config' }}"
     shell: >
-      clusterctl {{ clusterctl_var }} cluster {{ CLUSTER_NAME }}
+      clusterctl generate cluster {{ CLUSTER_NAME }}
       --from {{CAPI_CONFIG_DIR }}/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml
       --kubernetes-version {{ KUBERNETES_VERSION }}
       --control-plane-machine-count={{ CONTROL_PLANE_MACHINE_COUNT }}

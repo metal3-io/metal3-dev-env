@@ -1,0 +1,70 @@
+apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+kind: Metal3DataTemplate
+metadata:
+  name: ${ CLUSTER_NAME }-{{ template_type }}-template
+  namespace: ${ NAMESPACE }
+spec:
+  clusterName: ${ CLUSTER_NAME }
+  metaData:
+    objectNames:
+      - key: name
+        object: machine
+      - key: local-hostname
+        object: machine
+      - key: local_hostname
+        object: machine
+    ipAddressesFromIPPool:
+      - key: provisioningIP
+        name: provisioning-pool
+    prefixesFromIPPool:
+      - key: provisioningCIDR
+        name: provisioning-pool
+  networkData:
+    links:
+      ethernets:
+{% for nic_name in bmh_nic_names %}
+        - type: phy
+          id: {{ nic_name }}
+          macAddress:
+            fromHostInterface: {{ nic_name }}
+{% endfor %}
+{% if EXTERNAL_VLAN_ID != "" %}
+      vlans:
+        - id: "vlan{{ EXTERNAL_VLAN_ID }}"
+          mtu: 1500
+          macAddress:
+            fromHostInterface: {{ bmh_nic_names | first }}
+          vlanID: {{ EXTERNAL_VLAN_ID }}
+          vlanLink: {{ bmh_nic_names | first }}
+{% endif %}
+    networks:
+{% if IP_STACK == 'v4' or IP_STACK == 'v4v6' %}
+      ipv4:
+        - id: externalv4
+          link: "{% if EXTERNAL_VLAN_ID == "" %}{{ bmh_nic_names[1] }}{% else %}vlan{{ EXTERNAL_VLAN_ID }}{% endif %}"
+          ipAddressFromIPPool: externalv4-pool
+          routes:
+            - network: 0.0.0.0
+              prefix: 0
+              gateway:
+                fromIPPool: externalv4-pool
+{% endif %}
+{% if IP_STACK == 'v6' or IP_STACK == 'v4v6'%}
+      ipv6:
+        - id: externalv6
+          link: "{% if EXTERNAL_VLAN_ID == "" %}{{ bmh_nic_names[1] }}{% else %}vlan{{ EXTERNAL_VLAN_ID }}{% endif %}"
+          ipAddressFromIPPool: externalv6-pool
+          routes:
+            - network: 0::0
+              prefix: 0
+              gateway:
+                fromIPPool: externalv6-pool
+{% endif %}
+    services:
+      dns:
+{% if IP_STACK == 'v4' or IP_STACK == 'v4v6' %}
+        - 8.8.8.8
+{% endif %}
+{% if IP_STACK == 'v6' or IP_STACK == 'v4v6' %}
+        - 2001:4860:4860::8888
+{% endif %}

@@ -1,0 +1,28 @@
+# Ubuntu specific worker kubeadm config
+preKubeadmCommands:
+  - sed -i "s/MACAddressPolicy=persistent/MACAddressPolicy=none/g" /usr/lib/systemd/network/99-default.link
+  - netplan apply
+  - systemctl enable --now crio
+  - sleep 30
+  - systemctl enable --now kubelet
+  - sleep 120
+files:
+  - path : /etc/netplan/52-ironicendpoint.yaml
+    owner: root:root
+    permissions: '0644'
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        bridges:
+          {{ IRONIC_ENDPOINT_BRIDGE }}:
+            interfaces: [enp1s0]
+            addresses:
+            - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
+  - path : /etc/containers/registries.conf
+    content: |
+       [registries.search]
+       registries = ['docker.io']
+
+       [registries.insecure]
+       registries = ['{{ REGISTRY }}']
