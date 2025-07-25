@@ -40,7 +40,6 @@ export POD_CIDR=${POD_CIDR:-"192.168.0.0/18"}
 
 # Enables single-stack IPv6
 BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY=${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-false}
-IPV6_ADDR_PREFIX=${IPV6_ADDR_PREFIX:-"fd2e:6f44:5dd8:b856"}
 
 if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" == "true" ]]; then
   # IPV6 only works with UEFI boot mode
@@ -71,6 +70,9 @@ network_address CLUSTER_BARE_METAL_PROVISIONER_IP "${BARE_METAL_PROVISIONER_NETW
 
 export BARE_METAL_PROVISIONER_IP
 export CLUSTER_BARE_METAL_PROVISIONER_IP
+# These are inherited into ironic deployment in BMO, so we need to have duplicates
+export PROVISIONING_IP=${BARE_METAL_PROVISIONER_IP}
+export CLUSTER_PROVISIONING_IP=${CLUSTER_BARE_METAL_PROVISIONER_IP}
 
 # shellcheck disable=SC2153
 if [[ "$BARE_METAL_PROVISIONER_IP" = *":"* ]]; then
