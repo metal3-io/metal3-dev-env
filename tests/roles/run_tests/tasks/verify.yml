@@ -18,61 +18,10 @@
       create: yes
       block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
 
-  # Install Calico
-  - name: Download Calico manifests
-    get_url:
-      url: "https://raw.githubusercontent.com/projectcalico/calico/{{ CALICO_VERSION }}/manifests/calico.yaml"
-      dest: /tmp/
-      mode: '664'
-    register: calico_manifest
-
-  - name: Replace docker.io with proxy
-    ansible.builtin.replace:
-      path: /tmp/calico.yaml
-      regexp: 'docker.io'
-      replace: '{{ DOCKER_HUB_PROXY }}'
-
-  - name: Uncomment CALICO_IPV4POOL_CIDR name
-    replace:
-      path: /tmp/calico.yaml
-      regexp: "# - name: CALICO_IPV4POOL_CIDR"
-      replace: "- name: CALICO_IPV4POOL_CIDR"
-
-  - name: Uncomment CALICO_IPV4POOL_CIDR value and set POD_CIDR
-    replace:
-      path: /tmp/calico.yaml
-      regexp: '#   value: "192.168.0.0/16"'
-      replace: '  value: "{{ POD_CIDR }}"'
-
-  - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
-    blockinfile:
-      path: /tmp/calico.yaml
-      insertafter: "{{ POD_CIDR }}"
-      block: |
-          # for indentation
-                      - name: IP_AUTODETECTION_METHOD
-                        value: "cidr={{ EXTERNAL_SUBNET_V4_HOST }}/{{ EXTERNAL_SUBNET_V4_PREFIX }}"
-
-  - name: Apply Calico manifest
-    kubernetes.core.k8s:
-      state: present
-      src: "/tmp/calico.yaml"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: install_cni
-
-  - name: Wait (maximum 10 mins) until Calico pods start running
-    kubernetes.core.k8s_info:
-      api_version: v1
-      kind: Pod
-      namespace: kube-system
-      kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
-      field_selectors:
-        - status.phase!=Running
-    retries: 60
-    delay: 10
-    register: calico_pods
-    until: (calico_pods is succeeded) and
-           (calico_pods.resources | length == 0)
+  - name: Install CNI based on CNI_NAME
+    include_tasks: "{{ cni_task_file }}"
+    vars:
+      cni_task_file: "{{ 'install_calico.yaml' if (CNI_NAME == 'calico') else 'install_cilium.yaml' }}"
 
   # Check for pods & nodes on the target cluster
   - name: Wait for all pods to be in running state
