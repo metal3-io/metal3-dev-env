@@ -58,8 +58,9 @@
           spec:
             version: "{{item}}"
             machineTemplate:
-              infrastructureRef:
-                name: "{{CLUSTER_NAME}}-new-controlplane-image-{{item}}"
+              spec:
+                infrastructureRef:
+                  name: "{{CLUSTER_NAME}}-new-controlplane-image-{{item}}"
         kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
     - name: Verify that controlplane nodes using the new node image
@@ -151,10 +152,11 @@
         kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
         resource_definition:
           spec:
-            strategy:
-              rollingUpdate:
-                maxSurge: 1
-                maxUnavailable: 1
+            rollout:
+              strategy:
+                rollingUpdate:
+                  maxSurge: 1
+                  maxUnavailable: 1
 
     - name: Update boot-disk and kubernetes versions of worker node
       kubernetes.core.k8s:
