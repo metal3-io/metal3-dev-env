@@ -1,10 +1,15 @@
-use_firewalld: "{{ lookup('env', 'USE_FIREWALLD') | default(true, true) }}"
+use_firewalld: "{{ lookup('env', 'USE_FIREWALLD') | default('true', true) }}"
 external_interface: external
 provisioning_interface: provisioning
 bare_metal_provisioner_interface: "{{ lookup('env', 'BARE_METAL_PROVISIONER_INTERFACE') | default('ironicendpoint', true) }}"
+# Set external subnet based on the used protocol
+ip_stack: "{{ lookup('env', 'IP_STACK') | default('v4', true) }}"
 external_subnet_v4: "{{ lookup('env', 'EXTERNAL_SUBNET_V4') | default('192.168.111.0/24', true) }}"
-bare_metal_provisioner_subnet_v4: "{{ lookup('env', 'BARE_METAL_PROVISIONER_NETWORK') | default('172.22.0.0/24', true) }}"
-kind_subnet: '172.18.0.0/24'
+external_subnet_v6: "{{ lookup('env', 'EXTERNAL_SUBNET_V6') | default('fd55::/64', true) }}"
+# Bare metal provisioner subnet can also be IPv6, set in lib/network.sh line 48
+bare_metal_provisioner_subnet: "{{ lookup('env', 'BARE_METAL_PROVISIONER_NETWORK') | default('172.22.0.0/24', true) }}"
+# These values come from kind defaults.
+kind_subnet: "{{ '172.18.0.0/24' if ip_stack == 'v4' else 'fc00:f853:ccd:e793::/64' }}"
 registry_port: "{{ lookup('env', 'REGISTRY_PORT') | default('5000', true) }}"
 http_port: "{{ lookup('env', 'HTTP_PORT') | default('6180', true) }}"
 ironic_inspector_port: "{{ lookup('env', 'IRONIC_INSPECTOR_PORT') | default('5050', true) }}"
