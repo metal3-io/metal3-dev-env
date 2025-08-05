@@ -74,8 +74,8 @@ UPGRADED_IMAGE_NAME: "{{ lookup('env', 'UPGRADED_IMAGE_NAME') }}"
 UPGRADED_RAW_IMAGE_NAME: "{{ lookup('env', 'UPGRADED_RAW_IMAGE_NAME') }}"
 
 # Distibution specific environment variables
-IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_22.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}.qcow2', true) }}"
-RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_22.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}-raw.img', true) }}"
+IMAGE_NAME: "{{ lookup('env', 'IMAGE_NAME') | default('UBUNTU_24.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}.qcow2', true) }}"
+RAW_IMAGE_NAME: "{{ lookup('env', 'IMAGE_RAW_NAME') | default('UBUNTU_24.04_NODE_IMAGE_K8S_{{KUBERNETES_VERSION}}-raw.img', true) }}"
 IMAGE_LOCATION: "{{ lookup('env', 'IMAGE_LOCATION') | default('https://artifactory.nordix.org/artifactory/metal3/images/k8s_{{KUBERNETES_VERSION}}', true) }}"
 IMAGE_URL: "http://{{ BARE_METAL_PROVISIONER_IP }}/images/{{ RAW_IMAGE_NAME }}"
 IMAGE_FORMAT: "{{ lookup('env', 'IMAGE_FORMAT') | default('raw', true) }}"
