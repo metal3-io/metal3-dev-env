@@ -193,3 +193,36 @@ For testing purposes, verification of the digests will be skipped if
 - `make nodep` will skip the dependency installation
 - `make ci_run` will run only those make targets that are executed in the
    CI
+
+## IPv6 support
+
+The environment supports IPv6-only networking, but this currently works
+**only with `kind`**. Minikube does not have official IPv6 support at the time
+of writing. IPv6 can also be enabled partially, but for full IPv6
+networking, the following additional steps are required:
+
+1. Build iPXE image builder with IPv6 support and with correct name (or rename
+   after building). By default the builder is named after the address it is
+   hosted at.
+1. Build iPXE with IPv6 support.
+1. The Docker engine depends on containerd 1.7. To configure image registries
+   using an IPv6 address, containerd version **2.0 or later** is required. You
+   can download the correct containerd binary and replace the existing one under
+   `/usr/local/bin`. There is a convenience script for this
+   `hack/replace-containerd2.sh`.
+1. You need to replace the default IPv4 addresses with IPv6 addresses in the
+   environment variables.
+
+The following variables need to be set:
+
+``` sh
+export IPXE_ENABLE_IPV6=true
+export BUILD_IPXE=true
+export IPXE_BUILDER_LOCAL_IMAGE="<path to local builder image>"
+export EPHEMERAL_CLUSTER="kind"
+export IP_STACK=v6
+export EXTERNAL_SUBNET_V6="fd55::/64"
+export BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY=true
+export DOCKER_USE_IPV6_INTERNALLY=true
+export POD_CIDR="fd00:6969::/64"
+```
