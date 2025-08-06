@@ -328,7 +328,7 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.10" ]]; then
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.10"}
   export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.10"}
   export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:release-0.9"}
-  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-29.0"}
+  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:v30.0.0"}
   export IRSO_IRONIC_VERSION="29.0"
   export BMOBRANCH="${BMORELEASEBRANCH:-release-0.10}"
 else
