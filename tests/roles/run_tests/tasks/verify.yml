@@ -18,44 +18,83 @@
       create: yes
       block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
 
-  # Install Calico
-  - name: Download Calico v3.25.x manifests
-    get_url:
-      url: "https://raw.githubusercontent.com/projectcalico/calico/{{ CALICO_MINOR_RELEASE }}/manifests/calico.yaml"
-      dest: /tmp/
-      mode: '664'
-    register: calico_manifest
+  # Install Cilium CLI
+  - name: Get latest Cilium CLI version
+    ansible.builtin.uri:
+      url: https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt
+      return_content: yes
+    register: cilium_version_response
 
-  - name: Pin calico version to v3.25.1
-    ansible.builtin.replace:
-      path: /tmp/calico.yaml
-      regexp: 'image: docker.io/calico/(.+):v(.+)$'
-      replace: 'image: {{ DOCKER_HUB_PROXY }}/calico/\1:{{ CALICO_PATCH_RELEASE }}'
+  - name: Set Cilium CLI version and architecture
+    ansible.builtin.set_fact:
+      CILIUM_CLI_VERSION: "{{ cilium_version_response.content | trim }}"
+      CLI_ARCH: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 
-  - name: Replace the POD_CIDR in calico config
-    replace:
-      path: /tmp/calico.yaml
-      regexp: "192.168.0.0/16"
-      replace: "{{ POD_CIDR }}"
-    register: updated_manifest
+  - name: Download Cilium CLI archive and checksum
+    ansible.builtin.get_url:
+      url: "https://github.com/cilium/cilium-cli/releases/download/{{ CILIUM_CLI_VERSION }}/cilium-linux-{{ CLI_ARCH }}.tar.gz{{ item }}"
+      dest: "/tmp/cilium-linux-{{ CLI_ARCH }}.tar.gz{{ item }}"
+    loop:
+      - ""
+      - ".sha256sum"
 
-  - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
-    blockinfile:
-      path: /tmp/calico.yaml
-      insertafter: "{{ POD_CIDR }}"
-      block: |
-          # for indentation
-                      - name: IP_AUTODETECTION_METHOD
-                        value: "cidr={{ EXTERNAL_SUBNET_V4_HOST }}/{{ EXTERNAL_SUBNET_V4_PREFIX }}"
+  - name: Verify checksum of Cilium CLI archive
+    ansible.builtin.stat:
+      path: "/tmp/cilium-linux-{{ CLI_ARCH }}.tar.gz"
+      checksum_algorithm: sha256
+      get_checksum: yes
+    register: cilium_archive_stat
 
-  - name: Apply Calico manifest
-    kubernetes.core.k8s:
-      state: present
-      src: "/tmp/calico.yaml"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: install_cni
+  - name: Read expected checksum
+    ansible.builtin.slurp:
+      src: "/tmp/cilium-linux-{{ CLI_ARCH }}.tar.gz.sha256sum"
+    register: expected_checksum_file
 
-  - name: Wait (maximum 10 mins) until Calico pods start running
+  - name: Extract expected checksum value
+    ansible.builtin.set_fact:
+      expected_checksum: "{{ (expected_checksum_file.content | b64decode).split()[0] }}"
+
+  - name: Verify checksum matches
+    ansible.builtin.fail:
+      msg: "Checksum verification failed"
+    when: cilium_archive_stat.stat.checksum != expected_checksum
+
+  - name: Extract Cilium CLI to /usr/local/bin
+    ansible.builtin.unarchive:
+      src: "/tmp/cilium-linux-{{ CLI_ARCH }}.tar.gz"
+      dest: /usr/local/bin
+      mode: 0755
+    become: true
+    become_user: root
+
+  - name: Clean up downloaded files
+    ansible.builtin.file:
+      path: "/tmp/cilium-linux-{{ CLI_ARCH }}.tar.gz{{ item }}"
+      state: absent
+    loop:
+      - ""
+      - ".sha256sum"
+  
+  - name: Check if Cilium is already installed
+    ansible.builtin.command:
+      cmd: cilium status
+    environment:
+      KUBECONFIG: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    register: cilium_status
+    failed_when: false
+    changed_when: false
+  
+  - name: Install Cilium using CLI
+    ansible.builtin.command:
+      cmd: >
+        cilium install --version {{ CILIUM_VERSION }}
+        --set ipam.operator.clusterPoolIPv4PodCIDRList={{ POD_CIDR }}
+    environment:
+      KUBECONFIG: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    become: true
+    when: cilium_status.rc != 0
+
+  - name: Wait (maximum 10 mins) until Cilium pods start running
     kubernetes.core.k8s_info:
       api_version: v1
       kind: Pod
@@ -65,9 +104,9 @@
         - status.phase!=Running
     retries: 60
     delay: 10
-    register: calico_pods
-    until: (calico_pods is succeeded) and
-           (calico_pods.resources | length == 0)
+    register: cilium_pods
+    until: (cilium_pods is succeeded) and
+           (cilium_pods.resources | length == 0)
 
   # Check for pods & nodes on the target cluster
   - name: Wait for all pods to be in running state
