@@ -1,0 +1,58 @@
+# Perform Suse related package installations and configurations
+
+- name: Install docker
+  block:
+    - name: Create docker configuration dir
+      file:
+        path: /etc/docker
+        state: directory
+        owner: root
+        group: root
+
+    - name: Template daemon.json to /etc/docker/daemon.json
+      template:
+        src: "{{ DAEMON_JSON_PATH }}/daemon.json"
+        dest: /etc/docker/daemon.json
+        owner: root
+        group: root
+
+    - name: Restart docker systemd service
+      service:
+        name: docker
+        state: restarted
+        daemon_reload: yes
+
+    - name: Add current user to the docker group
+      user:
+        name: "{{ lookup('env','USER') }}"
+        groups: docker
+        append: yes
+  become: yes
+  when: CONTAINER_RUNTIME == "docker"
+
+- name: NetworkManager setup
+  block:
+    - name: Backup resolv.conf
+      ansible.builtin.copy:
+        src: /etc/resolv.conf
+        dest: /etc/resolv.conf.backup
+
+    - name: Install NetworkManager
+      package:
+        name: NetworkManager
+        state: present
+
+    - name: Disable wicked
+      ansible.builtin.systemd_service:
+        name: wicked
+        state: stopped
+
+    - name: Enable NetworkManager
+      ansible.builtin.systemd_service:
+        name: NetworkManager
+        state: started
+
+    - name: Restore resolv.conf backup
+      ansible.builtin.copy:
+        src: /etc/resolv.conf.backup
+        dest: /etc/resolv.conf

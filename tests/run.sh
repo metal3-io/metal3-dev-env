@@ -32,8 +32,15 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 # Ansible config file
 export ANSIBLE_CONFIG=${METAL3_DIR}/ansible.cfg
 
+ansible_python_interpreter=""
+if [[ "${DISTRO}" == "opensuse-leap15" ]]; then
+    ansible_python_interpreter="-e ansible_python_interpreter=${ANSIBLE_VENV}/bin/python"
+fi
+
+# shellcheck disable=SC2086
 ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
-   -e "metal3_dir=$SCRIPTDIR" \
-   -e "v1aX_integration_test_action=${ACTION}" \
-   -i "${METAL3_DIR}/tests/inventory.ini" \
-   -b -v "${METAL3_DIR}/tests/main.yml"
+    -e "metal3_dir=$SCRIPTDIR" \
+    -e "v1aX_integration_test_action=${ACTION}" \
+    ${ansible_python_interpreter} \
+    -i "${METAL3_DIR}/tests/inventory.ini" \
+    -b -v "${METAL3_DIR}/tests/main.yml"

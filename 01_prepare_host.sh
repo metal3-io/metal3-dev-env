@@ -52,6 +52,16 @@ elif [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
     esac
     sudo dnf -y install python3-pip jq curl wget pkgconf-pkg-config bash-completion
     sudo ln -s /usr/bin/python3 /usr/bin/python || true
+
+elif [[ "${OS}" = "opensuse-leap" ]]; then
+    # sudo SUSEConnect --product sle-module-containers/15.6/x86_64
+    sudo zypper refresh
+    sudo zypper -n in python311 python311-pip jq bash-completion apparmor-utils update-alternatives
+    sudo update-alternatives --install /usr/bin/python python3.11 /usr/bin/python3.11 20
+    # Disable apparmor, it causes troubles when running dnsmasq with kind
+    # sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 10
+    # sudo aa-disable dnsmasq
+    sudo aa-teardown
 fi
 
 # NOTE(tuminoid) lib/releases.sh must be after the jq and python installation
