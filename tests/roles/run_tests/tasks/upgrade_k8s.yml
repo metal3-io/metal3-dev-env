@@ -1,8 +1,8 @@
     - name: Download upgraded boot-disk image for deployment
       include_tasks: download_image.yml
       vars:
-        IMAGE_NAME: "UBUNTU_22.04_NODE_IMAGE_K8S_{{item}}.qcow2"
-        RAW_IMAGE_NAME: "UBUNTU_22.04_NODE_IMAGE_K8S_{{item}}-raw.img"
+        IMAGE_NAME: "UBUNTU_24.04_NODE_IMAGE_K8S_{{item}}.qcow2"
+        RAW_IMAGE_NAME: "UBUNTU_24.04_NODE_IMAGE_K8S_{{item}}-raw.img"
         IMAGE_LOCATION: "https://artifactory.nordix.org/artifactory/metal3/images/k8s_{{item}}"
         IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
         IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
@@ -25,7 +25,7 @@
         CLUSTER_UID: "{{ clusters.resources[0].metadata.uid }}"
         M3MT_NAME: "{{CLUSTER_NAME}}-new-controlplane-image-{{item}}"
         DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-controlplane-template"
-        RAW_IMAGE_NAME: "UBUNTU_22.04_NODE_IMAGE_K8S_{{item}}-raw.img"
+        RAW_IMAGE_NAME: "UBUNTU_24.04_NODE_IMAGE_K8S_{{item}}-raw.img"
         IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
         IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
         NODE_REUSE_STATUS: "false"
@@ -41,7 +41,7 @@
         CLUSTER_UID: "{{ clusters.resources[0].metadata.uid }}"
         M3MT_NAME: "{{CLUSTER_NAME}}-new-workers-image-{{item}}"
         DATA_TEMPLATE_NAME: "{{CLUSTER_NAME}}-workers-template"
-        RAW_IMAGE_NAME: "UBUNTU_22.04_NODE_IMAGE_K8S_{{item}}-raw.img"
+        RAW_IMAGE_NAME: "UBUNTU_24.04_NODE_IMAGE_K8S_{{item}}-raw.img"
         IMAGE_URL: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}"
         IMAGE_CHECKSUM: "http://172.22.0.1/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
         NODE_REUSE_STATUS: "false"
