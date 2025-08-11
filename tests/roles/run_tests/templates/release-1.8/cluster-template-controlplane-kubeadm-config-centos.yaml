@@ -3,8 +3,8 @@ preKubeadmCommands:
   - systemctl restart NetworkManager.service
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
   - nmcli connection up {{ IRONIC_ENDPOINT_BRIDGE }}
-  - nmcli connection load /etc/NetworkManager/system-connections/eth0.nmconnection
-  - nmcli connection up eth0
+  - nmcli connection load /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.nmconnection
+  - nmcli connection up {{ bmh_nic_names[0] }}
 {% if VM_EXTRADISKS == "true" %}
   - (echo n; echo p; echo 1; echo  ;echo  ;echo w) | fdisk /dev/vda
   - mkfs.{{ VM_EXTRADISKS_FILE_SYSTEM }} /dev/vda1
@@ -12,8 +12,8 @@ preKubeadmCommands:
   - mount /dev/vda1 {{ VM_EXTRADISKS_MOUNT_DIR }}
 {% endif %}
 {% if EXTERNAL_VLAN_ID != "" %}
-  - nmcli connection load /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
-  - nmcli connection up /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
+  - nmcli connection load /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}.nmconnection
+  - nmcli connection up /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}.nmconnection
 {% endif %}
   - rm /etc/cni/net.d/*
   - systemctl enable --now keepalived
@@ -60,7 +60,7 @@ files:
 
       vrrp_instance VI_1 {
           state MASTER
-          interface {% if EXTERNAL_VLAN_ID == "" %}eth1{% else %}eth0.{{ EXTERNAL_VLAN_ID }}{% endif %}
+          interface {% if EXTERNAL_VLAN_ID == "" %}{{ bmh_nic_names[1] }}{% else %}{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}{% endif %}
 
           virtual_router_id 1
           priority 101
@@ -72,14 +72,14 @@ files:
               k8s_api_check
           }
       }
-  - path: /etc/NetworkManager/system-connections/eth0.nmconnection
+  - path: /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.nmconnection
     owner: root:root
     permissions: '0600'
     content: |
       [connection]
-      id=eth0
+      id={{ bmh_nic_names[0] }}
       type=ethernet
-      interface-name=eth0
+      interface-name={{ bmh_nic_names[0] }}
       master={{ IRONIC_ENDPOINT_BRIDGE }}
       slave-type=bridge
   - path: /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
@@ -120,20 +120,20 @@ files:
       [registries.insecure]
       registries = ['{{ REGISTRY }}']
 {% if EXTERNAL_VLAN_ID != "" %}
-  - path: /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
+  - path: /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}.nmconnection
     owner: root:root
     permissions: '0600'
     content: |
       [connection]
-      id=Vlan eth0.{{ EXTERNAL_VLAN_ID }}
+      id=Vlan {{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}
       type=vlan
       autoconnect-priority=999
-      interface-name=eth0.{{ EXTERNAL_VLAN_ID }}
+      interface-name={{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}
 
       [vlan]
       flags=1
       id=3
-      parent=eth0
+      parent={{ bmh_nic_names[0] }}
 
       [ipv4]
       method=auto
