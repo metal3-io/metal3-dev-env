@@ -56,7 +56,7 @@ files:
         renderer: networkd
         bridges:
           {{ IRONIC_ENDPOINT_BRIDGE }}:
-            interfaces: [enp1s0]
+            interfaces: [{{ bmh_nic_names[0] }}]
             addresses:
             - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
   - path : /etc/containers/registries.conf
