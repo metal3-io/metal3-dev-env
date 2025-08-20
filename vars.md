@@ -203,13 +203,17 @@ networking, the following additional steps are required:
 
 1. Build iPXE image builder with IPv6 support and with correct name (or rename
    after building). By default the builder is named after the address it is
-   hosted at.
-1. Build iPXE with IPv6 support.
+   hosted at. Also, by default it is enough if `IPXE_BUILDER_LOCAL_IMAGE`
+   contains path to the folder with iPXE builder docker file, the dev env will
+   build the buider automatically.
+1. Build iPXE with IPv6 support. This is also done by the dev env with the
+   correct vars and builder.
 1. The Docker engine depends on containerd 1.7. To configure image registries
    using an IPv6 address, containerd version **2.0 or later** is required. You
    can download the correct containerd binary and replace the existing one under
    `/usr/local/bin`. There is a convenience script for this
-   `hack/replace-containerd2.sh`.
+   `hack/replace-containerd2.sh`. Notice that kind control plane contains
+   containerd 2.x, so it should not be necessary to replace containerd on host.
 1. You need to replace the default IPv4 addresses with IPv6 addresses in the
    environment variables.
 
