@@ -652,8 +652,8 @@ EOF
 
         # Copy config to correct place. Mounting it directly does not work
         # because the filepath contains colons.
-        docker exec -it kind-control-plane mkdir -p /etc/containerd/certs.d/"${REGISTRY}"
-        docker exec -it kind-control-plane cp /hosts.toml /etc/containerd/certs.d/"${REGISTRY}"/hosts.toml
+        docker exec kind-control-plane mkdir -p /etc/containerd/certs.d/"${REGISTRY}"
+        docker exec kind-control-plane cp /hosts.toml /etc/containerd/certs.d/"${REGISTRY}"/hosts.toml
 
     else
         cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
