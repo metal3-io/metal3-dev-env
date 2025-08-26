@@ -1,0 +1,17 @@
+- name: Install IPv6 only required packages
+  package:
+    name:
+      - tayga
+      - bind9
+    state: present
+  when: nat64_action == "setup"
+
+- name: Setup NAT64
+  block:
+    - include_tasks: setup_nat.yml
+  when: nat64_action == "setup"
+
+- name: Teardown NAT64
+  block:
+    - include_tasks: teardown_nat.yml
+  when: nat64_action == "teardown"

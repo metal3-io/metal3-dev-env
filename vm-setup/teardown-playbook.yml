@@ -14,4 +14,8 @@
         name: virtbmc
       vars:
         virtbmc_action: "teardown"
+    - import_role:
+        name: nat64
+      vars:
+        nat64_action: "teardown"
 
