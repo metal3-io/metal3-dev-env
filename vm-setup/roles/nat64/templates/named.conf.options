@@ -1,0 +1,20 @@
+options {
+        directory "/var/cache/bind";
+
+        forwarders {
+                {{ DNS_UPSTREAM }};
+        };
+
+        dnssec-validation auto;
+        listen-on { {{ LOCAL_DNS_V4 }}; };
+        listen-on-v6 { {{ LOCAL_DNS_V6 }}; };
+        dns64 {{ DNS64_PREFIX }} {
+                // Accept all requests
+                clients { any; };
+                // maps all ipv4 addresses
+                mapped { any; };
+                // excludes all native ipv6 addresses: even if domain has
+                // native ipv6 address bind will return mapped ipv4 address
+                exclude { any; };
+        };
+};

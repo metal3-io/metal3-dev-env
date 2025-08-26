@@ -12,26 +12,71 @@
     regexp: 'docker.io'
     replace: '{{ DOCKER_HUB_PROXY }}'
 
-- name: Uncomment CALICO_IPV4POOL_CIDR name
-  replace:
-    path: /tmp/calico.yaml
-    regexp: "# - name: CALICO_IPV4POOL_CIDR"
-    replace: "- name: CALICO_IPV4POOL_CIDR"
+- name: Calico IPv4 specific setup
+  block:
+    - name: Uncomment CALICO_IPV4POOL_CIDR name
+      replace:
+        path: /tmp/calico.yaml
+        regexp: "# - name: CALICO_IPV4POOL_CIDR"
+        replace: "- name: CALICO_IPV4POOL_CIDR"
 
-- name: Uncomment CALICO_IPV4POOL_CIDR value and set POD_CIDR
-  replace:
-    path: /tmp/calico.yaml
-    regexp: '#   value: "192.168.0.0/16"'
-    replace: '  value: "{{ POD_CIDR }}"'
+    - name: Uncomment CALICO_IPV4POOL_CIDR value and set POD_CIDR
+      replace:
+        path: /tmp/calico.yaml
+        regexp: '#   value: "192.168.0.0/16"'
+        replace: '  value: "{{ POD_CIDR }}"'
 
-- name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
-  blockinfile:
-    path: /tmp/calico.yaml
-    insertafter: "{{ POD_CIDR }}"
-    block: |
-        # for indentation
-                    - name: IP_AUTODETECTION_METHOD
-                      value: "cidr={{ EXTERNAL_SUBNET_V4_HOST }}/{{ EXTERNAL_SUBNET_V4_PREFIX }}"
+    - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
+      blockinfile:
+        path: /tmp/calico.yaml
+        insertafter: "{{ POD_CIDR }}"
+        block: |
+            # for indentation
+                        - name: IP_AUTODETECTION_METHOD
+                          value: "cidr={{ EXTERNAL_SUBNET_V4_HOST }}/{{ EXTERNAL_SUBNET_V4_PREFIX }}"
+
+  when: IP_STACK == "v4" or IP_STACK == "v4v6"
+
+- name: Calico IPv6 specific setup
+  block: 
+    - name: Edit IPAM pool
+      replace:
+        path: /tmp/calico.yaml
+        regexp: '"type": "calico-ipam"'
+        replace: '"type": "calico-ipam", "assign_ipv4": "false", "assign_ipv6": "true"'
+
+    - name: Add IP_AUTODETECTION_METHOD and POD_CIDR in calico config Ubuntu
+      blockinfile:
+        path: /tmp/calico.yaml
+        insertafter: "{{ POD_CIDR }}"
+        block: |
+            # for indentation
+                        - name: IP_AUTODETECTION_METHOD
+                          value: "cidr=127.0.0.1/24"
+                        - name: IP6_AUTODETECTION_METHOD
+                          value: "cidr={{ EXTERNAL_SUBNET_V6_HOST }}/{{ EXTERNAL_SUBNET_V6_PREFIX }}"
+                        - name: IP6
+                          value: "autodetect"
+                        # CALICO_ROUTER_ID needed when v4 is disabled
+                        - name: CALICO_ROUTER_ID
+                          value: "hash"
+
+    - name: Disable IPv4 autodetection
+      replace:
+        path: /tmp/calico.yaml
+        after: "name: IP"
+        before: "name: CALICO_IPV4POOL_IPIP"
+        regexp: "autodetect"
+        replace: "none"
+
+    - name: set FELIX_IPV6SUPPORT to true
+      replace:
+        path: /tmp/calico.yaml
+        after: "name: FELIX_IPV6SUPPORT"
+        before: "name: FELIX_HEALTHENABLED"
+        regexp: "false"
+        replace: "true"
+  when: IP_STACK == "v6"
 
 - name: Apply Calico manifest
   kubernetes.core.k8s:

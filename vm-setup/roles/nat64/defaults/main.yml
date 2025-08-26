@@ -1,0 +1,8 @@
+nat64_action: setup
+ENABLE_NAT64: "{{ lookup('env', 'ENABLE_NAT64') | default('false', true) }}"
+TEMPLATES_PATH: "{{ metal3_dir }}/vm-setup/roles/nat64/files"
+DNS_UPSTREAM: "{{ lookup('env', 'DNS_UPSTREAM') | default('10.1.0.2', true) }}"
+DNS64_PREFIX: "{{ lookup('env', 'DNS64_PREFIX') | default('fd00:ffff:ffff::/96', true) }}"
+# Local DNS is only used in IPv6 only env
+LOCAL_DNS_V4: "{{ lookup('env', 'LOCAL_DNS_V4') | default('127.0.0.2', true) }}"
+LOCAL_DNS_V6: "{{ lookup('env', 'LOCAL_DNS_V6') | default('2001:4860:4860::8888', true) }}"

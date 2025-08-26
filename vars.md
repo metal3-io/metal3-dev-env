@@ -12,6 +12,11 @@ assured that they are persisted.
 | Name | Option | Allowed values | Default |
 | :------ | :------- | :--------------- | :-------- |
 | DOCKER_USE_IPV6_INTERNALLY | Choose whether Docker will use IPv6 internally. | "true", "false" | false |
+| ENABLE_NAT64 | Enable NAT64 functionality to emulate IPv6 capable host. | "true", "false" | "false |
+| DNS_UPSTREAM | Specify upstream DNS server for locally run DNS. Only used when ENABLE_NAT64 = "true" | IPv4 or IPv6 address | 10.1.0.2 |
+| DNS64_PREFIX | Prefix for DNS64 server. Only used when ENABLE_NAT64 = "true" | Any valid prefix | 64:ff9b::/96 |
+| LOCAL_DNS_V4 | IPv4 address for local DNS server. Only used when ENABLE_NAT64 = "true". Using loopback is fine, because in the IPv6 setup VMs don't access DNS server over IPv4. | IPv4 address | 127.0.0.2 |
+| LOCAL_DNS_V6 | IPv6 address for local DNS server. Only used when ENABLE_NAT64 = "true". NOT RECOMMENDED TO USE LOOPBACK ::1, because then VMs cannot access the server. | IPv6 address | fd00:abcd::1 |
 | MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1|
 | BOOTSTRAP_CLUSTER | Tool for running management/bootstrap cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
 | IP_STACK | Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
@@ -218,6 +223,10 @@ networking, the following additional steps are required:
 1. You need to replace the default IPv4 addresses with IPv6 addresses in the
    environment variables.
 
+Notice that if your host does not have support for native IPv6, you need to
+enable NAT64 and DNS64 to provision the VMs. If you enable NAT64 with the
+variable below, it will also enable DNS64.
+
 The following variables need to be set:
 
 ``` sh
@@ -230,4 +239,5 @@ export EXTERNAL_SUBNET_V6="fd55::/64"
 export BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY=true
 export DOCKER_USE_IPV6_INTERNALLY=true
 export POD_CIDR="fd00:6969::/64"
+export ENABLE_NAT64=true # use if host does not support native IPv6
 ```
