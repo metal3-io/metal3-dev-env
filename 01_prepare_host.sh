@@ -85,10 +85,6 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -i vm-setup/inventory.ini \
     -b vm-setup/install-package-playbook.yml
 
-# NOTE(nuhakala): At this point we would want to replace containerd 1.7 with 2.0
-# if we were to use IPv6.
-#./hack/replace-containerd2.sh
-
 ## Install krew
 if ! kubectl krew > /dev/null 2>&1; then
     download_and_install_krew
