@@ -41,15 +41,15 @@
         "password": "{{ vbmc_password }}",
         {% if vm_driver_tmp =='redfish' -%}
         "port": "8000",
-        "address": "{{vm_driver_tmp}}+https://{{ lvars['host_ip'] | ansible.utils.ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ansible.utils.ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
         "redfish_verify_ca": "False",
         {% elif vm_driver_tmp == 'redfish-virtualmedia' -%}
         "port": "8000",
-        "address": "{{vm_driver_tmp}}+https://{{ lvars['host_ip'] | ansible.utils.ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ansible.utils.ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
         "redfish_verify_ca": "False",
         {% elif vm_driver_tmp == 'redfish-uefihttp' -%}
         "port": "8000",
-        "address": "{{vm_driver_tmp}}+https://{{ lvars['host_ip'] | ansible.utils.ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
+        "address": "{{vm_driver_tmp}}+http://{{ lvars['host_ip'] | ansible.utils.ipwrap }}:8000/redfish/v1/Systems/{{vm_id[node.name]}}",
         "redfish_verify_ca": "False",
         {% else -%}
         "port": "{{ node.virtualbmc_port }}",
