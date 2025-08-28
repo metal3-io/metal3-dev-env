@@ -56,13 +56,13 @@
       "matchPackageNames": [
         "kindest/node"
       ],
-      "allowedVersions": "<=1.33"
+      "allowedVersions": "<=1.34"
     },
     {
       "matchPackageNames": [
         "kubernetes-sigs/cri-tools"
       ],
-      "allowedVersions": "<=1.33"
+      "allowedVersions": "<=1.34"
     }
   ],
   "prHourlyLimit": 5,
