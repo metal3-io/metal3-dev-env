@@ -512,12 +512,26 @@ patch_clusterctl()
     pushd "${CAPM3PATH}"
 
     mkdir -p "${CAPI_CONFIG_DIR}"
+    rm -f "${CAPI_CONFIG_DIR}"/clusterctl.yaml
     cat << EOF >> "${CAPI_CONFIG_DIR}"/clusterctl.yaml
 providers:
 - name: metal3
   url: https://github.com/metal3-io/ip-address-manager/releases/${IPAMRELEASE}/ipam-components.yaml
   type: IPAMProvider
 EOF
+    if [[ "${CAPI_NIGHTLY_BUILD:-}" = "true" ]]; then
+      cat << EOF >> "${CAPI_CONFIG_DIR}"/clusterctl.yaml
+- name: "cluster-api"
+  type: "CoreProvider"
+  url: "${CAPI_CONFIG_DIR}/dev-repository/cluster-api/${CAPIRELEASE}/core-components.yaml"
+- name: "kubeadm"
+  type: "BootstrapProvider"
+  url: "${CAPI_CONFIG_DIR}/dev-repository/bootstrap-kubeadm/${CAPIRELEASE}/bootstrap-components.yaml"
+- name: "kubeadm"
+  type: "ControlPlaneProvider"
+  url: "${CAPI_CONFIG_DIR}/dev-repository/control-plane-kubeadm/${CAPIRELEASE}/control-plane-components.yaml"
+EOF
+    fi
 
     # At this point the images variables have been updated with update_images
     # Reflect the change in components files
@@ -532,6 +546,25 @@ EOF
     rm -rf "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
     mkdir -p "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
     cp out/*.yaml "${CAPI_CONFIG_DIR}"/overrides/infrastructure-metal3/"${CAPM3RELEASE}"
+    popd
+}
+
+patch_capi()
+{
+    pushd "${CAPIPATH}"
+    date=$(date '+%Y%m%d' -d "1 day ago")
+
+    rm -f ./clusterctl-settings.json
+    cat << EOF >> ./clusterctl-settings.json
+{
+  "providers": ["cluster-api","bootstrap-kubeadm","control-plane-kubeadm"]
+}
+EOF
+    ./cmd/clusterctl/hack/create-local-repository.py "https://storage.googleapis.com/k8s-staging-cluster-api/components/nightly_main_${date}"
+
+    cp -r "${CAPI_CONFIG_DIR}"/dev-repository/control-plane-kubeadm/ "${CAPI_CONFIG_DIR}"/overrides/
+    cp -r "${CAPI_CONFIG_DIR}"/dev-repository/bootstrap-kubeadm/ "${CAPI_CONFIG_DIR}"/overrides/
+    cp -r "${CAPI_CONFIG_DIR}"/dev-repository/cluster-api/ "${CAPI_CONFIG_DIR}"/overrides/
     popd
 }
 
@@ -558,7 +591,13 @@ patch_ipam()
 # the expected SHA, and can't pin it
 install_clusterctl()
 {
-    wget --no-verbose -O clusterctl "https://github.com/kubernetes-sigs/cluster-api/releases/download/${CAPIRELEASE}/clusterctl-linux-amd64"
+    DOWNLOAD_CAPIRELEASE="${CAPIRELEASE}"
+
+    # Can't use version numbers ending in .99 in so fetch latest stable version
+    if [[ "${CAPIRELEASE}" =~ ^v([0-9]+\.[0-9]+)\.99$ ]]; then
+        DOWNLOAD_CAPIRELEASE=$(get_latest_release_from_goproxy "${CAPIGOPROXY}" "${CAPI_RELEASE_PREFIX}" "beta|rc|pre|alpha")
+    fi
+    wget --no-verbose -O clusterctl "https://github.com/kubernetes-sigs/cluster-api/releases/download/${DOWNLOAD_CAPIRELEASE}/clusterctl-linux-amd64"
     chmod +x ./clusterctl
     sudo mv ./clusterctl /usr/local/bin/
 }
@@ -779,6 +818,11 @@ start_management_cluster
 kubectl create namespace metal3
 
 patch_clusterctl
+
+if [[ "${CAPI_NIGHTLY_BUILD:-}" = "true" ]]; then
+    patch_capi
+fi
+
 patch_ipam
 launch_cluster_api_provider_metal3
 BMO_NAME_PREFIX="${NAMEPREFIX}"

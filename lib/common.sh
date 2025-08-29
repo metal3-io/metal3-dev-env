@@ -123,6 +123,11 @@ clone_repo() {
 # Configure common environment variables
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
+export CAPI_NIGHTLY_BUILD="${CAPI_NIGHTLY_BUILD:-false}"
+if [[ "${CAPI_NIGHTLY_BUILD:-}" = "true" ]]; then
+    export CAPIBRANCH="main"
+fi
+
 # shellcheck disable=SC2034
 # USE_LOCAL_IPA and IPA_DOWNLOAD_ENABLED also have effect on BMO repo
 export IPA_BASEURI="${IPA_BASEURI:-https://tarballs.opendev.org/openstack/ironic-python-agent/dib}"
