@@ -123,6 +123,10 @@ clone_repo() {
 # Configure common environment variables
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
 
+# going to remove these when ready with testing:
+export CAPIRELEASE="v1.11.99"
+export CAPI_NIGHTLY_BUILD="true"
+
 export CAPI_NIGHTLY_BUILD="${CAPI_NIGHTLY_BUILD:-false}"
 if [[ "${CAPI_NIGHTLY_BUILD:-}" = "true" ]]; then
   export CAPIBRANCH="main"
