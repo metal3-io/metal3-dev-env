@@ -39,6 +39,14 @@ else
   RELEASE_PREFIX=""
 fi
 
+if [[ "${CAPI_NIGHTLY_BUILD:-}" = "true" ]]; then
+  if [[  -n "${RELEASE_PREFIX}" ]]; then
+    export CAPIRELEASE="v${RELEASE_PREFIX}.99"
+  else
+    export CAPIRELEASE="${CAPIRELEASE:-"v1.11.99"}"
+  fi
+fi
+
 # Fetch CAPI version that coresponds to CAPM3_RELEASE_PREFIX release version
 if [[ -n "${RELEASE_PREFIX}" ]]; then
   export CAPM3RELEASE="v${RELEASE_PREFIX}.99"
@@ -50,7 +58,6 @@ else
   CAPI_RELEASE_PREFIX="${CAPI_RELEASE_PREFIX:-"v1.11."}"
 fi
 export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release_from_goproxy "${CAPIGOPROXY}" "${CAPI_RELEASE_PREFIX}")}"
-CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
 
 if [[ -z "${CAPIRELEASE}" ]]; then
   echo "Failed to fetch CAPI release from GOPROXY"
