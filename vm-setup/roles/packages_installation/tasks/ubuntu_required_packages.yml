@@ -11,7 +11,7 @@
       apt_repository:
         repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
         state: absent
-    
+
     - name: Remove Ubuntu Noble old repository (without gpg key file location)
       apt_repository:
         repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/ /"
@@ -37,7 +37,7 @@
     - name: Dearmor Release key
       shell: | 
         cat /usr/share/keyrings/libcontainers-archive-keyring.asc | sudo gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg --yes
-    
+
     - name: Add OS repository
       lineinfile:
         path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
@@ -92,11 +92,11 @@
             dest: /etc/apt/keyrings/docker.asc
             mode: '0644'
             force: true
-          
+
         - name: Dearmor GPG key
           shell: | 
             cat /etc/apt/keyrings/docker.asc | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
-                
+
         # TODO: (Sunnatillo) Remove this task after fully removing apt-key
         - name: Remove Docker old repository (without gpg key file location) 
           apt_repository:
@@ -132,7 +132,7 @@
 
         - name: Template daemon.json to /etc/docker/daemon.json
           template:
-            src: "{{ DAEMON_JSON_PATH }}/daemon.json"
+            src: "{{ TEMPLATES_PATH }}/daemon.json"
             dest: /etc/docker/daemon.json
             owner: root
             group: root
@@ -150,4 +150,5 @@
             append: yes
       when: CONTAINER_RUNTIME == "docker"
       become: yes
+
   become: yes
