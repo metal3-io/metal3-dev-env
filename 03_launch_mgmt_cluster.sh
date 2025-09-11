@@ -391,14 +391,13 @@ make_bm_hosts()
     mkdir -p "${WORKING_DIR}/bmhs"
 
     local i=0
-    while read -r name address user password mac verify_ca; do
+    while read -r name address user password mac; do
         go run "${BMOPATH}"/cmd/make-bm-worker/main.go \
-            -address="${address}" \
-            -disableCertificateVerification="$(get_disableCertificateVerification_from_verify_ca "${verify_ca}")" \
-            -password="${password}" \
-            -user="${user}" \
-            -boot-mac="${mac}" \
-            -boot-mode="${BOOT_MODE}" \
+            -address "${address}" \
+            -password "${password}" \
+            -user "${user}" \
+            -boot-mac "${mac}" \
+            -boot-mode "${BOOT_MODE}" \
             "${name}" | \
             tee "${WORKING_DIR}/bmhs/node_${i}.yaml" >> "${WORKING_DIR}/bmhosts_crs.yaml"
         i=$((i+1))
