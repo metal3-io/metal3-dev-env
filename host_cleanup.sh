@@ -55,26 +55,27 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -b -v vm-setup/firewall.yml
 
 # There was a bug in this file, it may need to be recreated.
-if [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
+if [[ "${OS}" = "ubuntu" ]]; then
+    if [[ "${MANAGE_PRO_BRIDGE}" = "y" ]]; then
+        # these are hardcoded in ./ubuntu_bridge_network_configuration.sh
+        sudo ip link delete ironic-peer
+        sudo ip link delete ironicendpoint
+        sudo ip link delete provisioning
+    fi
+    if [[ "${MANAGE_EXT_BRIDGE}" = "y" ]]; then
+        sudo ip link delete external || true
+    fi
+else
     sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
     if [[  "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
-        sudo nmcli con delete ironic-peer
-        sudo nmcli con delete "${BARE_METAL_PROVISIONER_INTERFACE}"
+        sudo ip link del ironic-peer
+        sudo ip link del "${BARE_METAL_PROVISIONER_INTERFACE}"
         sudo nmcli con delete provisioning
     fi
     # External net should have been cleaned already at this stage, but we double
     # check as leaving it around causes issues when the host is rebooted
     if [[ "${MANAGE_EXT_BRIDGE}" = "y" ]]; then
         sudo nmcli con delete external || true
-    fi
-else
-    if [[ "${MANAGE_PRO_BRIDGE}" = "y" ]]; then
-        sudo ip link delete ironic-peer
-        sudo ip link delete "${BARE_METAL_PROVISIONER_INTERFACE}"
-        sudo ip link delete provisioning
-    fi
-    if [[ "${MANAGE_EXT_BRIDGE}" = "y" ]]; then
-        sudo ip link delete external || true
     fi
 fi
 
