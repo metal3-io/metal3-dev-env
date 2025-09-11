@@ -48,6 +48,7 @@ assured that they are persisted.
 | FKAS_IMAGE | Container image for fkas container | | "$CONTAINER_REGISTRY/metal3-io/metal3-fkas" |
 | CAPM3_VERSION | Version of Cluster API provider Metal3 | "v1beta1" | "v1beta1" |
 | CAPI_VERSION | Version of Cluster API | "v1beta2" | "v1beta2" |
+| CAPI_NIGHTLY_BUILD | Use nightly versions of CAPI components’ manifests. They are built from CAPI's main branch. | "true", "false" | "false" |
 | CLUSTER_APIENDPOINT_IP | API endpoint IP for target cluster | "x.x.x.x" | "${EXTERNAL_SUBNET_VX}.249" |
 | CLUSTER_APIENDPOINT_HOST | API endpoint host for target cluster | | $CLUSTER_APIENDPOINT_IP |
 | CLUSTER_APIENDPOINT_PORT | API endpoint port for target cluster | | "6443" |

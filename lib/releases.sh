@@ -39,6 +39,14 @@ else
   RELEASE_PREFIX=""
 fi
 
+if [[ "${CAPI_NIGHTLY_BUILD:-}" = "true" ]]; then
+  if [[  -n "${RELEASE_PREFIX}" ]]; then
+    export CAPIRELEASE="v${RELEASE_PREFIX}.99"
+  else
+    export CAPIRELEASE="${CAPIRELEASE:-"v1.12.99"}"
+  fi
+fi
+
 # Fetch CAPI version that coresponds to CAPM3_RELEASE_PREFIX release version
 if [[ -n "${RELEASE_PREFIX}" ]]; then
   export CAPM3RELEASE="v${RELEASE_PREFIX}.99"
