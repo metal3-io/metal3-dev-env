@@ -178,11 +178,10 @@ The following table describes which branches are tested for different test trigg
 <!-- markdownlint-disable MD013 -->
 
 | test suffix  | CAPM3 branch | IPAM branch  | BMO branch/tag  | Keepalived tag | Ironic-image tag | IPA branch    |
-| ------------ | ------------ | ------------ | --------------- | -------------- | ---------- | ------------- |
-| main         | main         | main         | main            | latest         | latest     | master        |
-| release-1-10 | release-1.10 | release-1.10 | release-0.10    | v0.10.0        | v29.0.0    | stable/2025.1 |
-| release-1-9  | release-1.9  | release-1.9  | release-0.9     | v0.9.0         | v27.0.0    | bugfix/10.0   |
-| release-1-8  | release-1.8  | release-1.8  | release-0.8     | v0.8.0         | v26.0.1    | bugfix/9.13   |
-| release-1-7  | release-1.7  | release-1.7  | release-0.6     | v0.6.2         | v24.1.2    | stable/2024.1 |
+| ------------ | ------------ | ------------ | --------------- | -------------- | ------------ | ------------- |
+| main         | main         | main         | main            | latest         | latest       | master        |
+| release-1-11 | release-1.11 | release-1.11 | release-0.11    | release-0.9    | release-31.0 | bugfix/11.1   |
+| release-1-10 | release-1.10 | release-1.10 | release-0.10    | release-0.9    | release-29.0 | stable/2025.1 |
+| release-1-9  | release-1.9  | release-1.9  | release-0.9     | release-0.9    | release-27.0 | bugfix/10.0   |
 
 <!-- markdownlint-enable MD013 -->
