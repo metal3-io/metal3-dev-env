@@ -178,18 +178,15 @@ else
   exit 1
 fi
 
-if [[ "${CAPM3RELEASEBRANCH}" == "release-1.7" ]]; then
-  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.7}"
-  export IPAMBRANCH="${IPAMBRANCH:-release-1.7}"
-elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.8" ]]; then
-  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.8}"
-  export IPAMBRANCH="${IPAMBRANCH:-release-1.8}"
-elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.9" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" == "release-1.9" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.9}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.9}"
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.10" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.10}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.10}"
+elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.11" ]]; then
+  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.11}"
+  export IPAMBRANCH="${IPAMBRANCH:-release-1.11}"
 else
   export CAPM3BRANCH="${CAPM3BRANCH:-main}"
   export IPAMBRANCH="${IPAMBRANCH:-main}"
@@ -306,21 +303,7 @@ export FAKE_IPA_IMAGE="${FAKE_IPA_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/fake-ip
 export FKAS_IMAGE="${FKAS_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/metal3-fkas}"
 
 # CAPM3 and IPAM controller images
-if [[ "${CAPM3RELEASEBRANCH}" = "release-1.7" ]]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.7"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.7"}
-  export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.6"}
-  export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:release-0.6"}
-  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-24.1"}
-  export BMOBRANCH="${BMORELEASEBRANCH:-release-0.6}"
-elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.8" ]]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.8"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.8"}
-  export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.8"}
-  export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:release-0.8"}
-  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-26.0"}
-  export BMOBRANCH="${BMORELEASEBRANCH:-release-0.8}"
-elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.9" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" = "release-1.9" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.9"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.9"}
   export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.9"}
@@ -336,6 +319,14 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.10" ]]; then
   export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-29.0"}
   export IRSO_IRONIC_VERSION="29.0"
   export BMOBRANCH="${BMORELEASEBRANCH:-release-0.10}"
+elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.11" ]]; then
+  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.11"}
+  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.11"}
+  export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.11"}
+  export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:release-0.9"}
+  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-31.0"}
+  export IRSO_IRONIC_VERSION="31.0"
+  export BMOBRANCH="${BMORELEASEBRANCH:-release-0.11}"
 else
   export CAPM3_IMAGE="${CAPM3_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main}"
   export IPAM_IMAGE="${IPAM_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:main}"
