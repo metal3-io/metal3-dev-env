@@ -1,0 +1,76 @@
+# Libvirt needs dnsmasq to manage networks. Installing it will likely automatically
+# enable global dnsmasq. We don't want it.
+- name: Ensure dnsmasq is stopped
+  ansible.builtin.systemd_service:
+    state: stopped
+    name: dnsmasq
+  become: yes
+
+- name: Write Tayga configuration
+  template:
+    src: "../templates/tayga.conf"
+    dest: "/etc/tayga.conf"
+
+- name: ensure IP forwarding is on
+  shell: |
+    sysctl net.ipv4.ip_forward=1
+    sysctl net.ipv6.conf.all.forwarding=1
+  become: yes
+
+- name: Start NAT64 service tayga
+  ansible.builtin.systemd_service:
+    state: started
+    name: tayga
+  become: yes
+
+- name: Generate Bind9 options file
+  template:
+    src: "../templates/named.conf.options"
+    dest: /etc/bind/named.conf.options
+    owner: root
+    group: root
+    mode: '0644'
+
+# IPv6 only supported on ubuntu, so assume that systemd-resolved is
+# the default dns resolution
+- name: Disable systemd-resolved
+  ansible.builtin.systemd_service:
+    state: stopped
+    name: systemd-resolved
+  become: yes
+
+- name: Write /etc/resolv.conf to contain local DNS server
+  template:
+    src: "../templates/resolv.conf"
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+
+# Note that if the address is regular 127.0.0.1, then this will add a duplicate 
+# address to the interface but with different subnet mask, the default
+# subnetmask is 8 for IPv4 and 
+- name: Add DNS-server IPv4-address to loopback interface
+  shell:
+    cmd: "ip addr add {{ LOCAL_DNS_V4 }}/32 dev lo"
+  become: yes
+  ignore_errors: true
+
+- name: Add DNS-server IPv6-address to loopback interface
+  shell:
+    cmd: "ip addr add {{ LOCAL_DNS_V6 }}/128 dev lo"
+  become: yes
+  ignore_errors: true
+
+- name: Restart Bind9 service
+  ansible.builtin.systemd_service:
+    state: restarted
+    daemon_reload: true
+    name: named.service
+  become: yes
+
+- name: Add local hostname to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: 127.0.0.1 {{ ansible_hostname }}

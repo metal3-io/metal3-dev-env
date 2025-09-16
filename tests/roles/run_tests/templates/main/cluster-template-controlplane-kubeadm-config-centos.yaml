@@ -1,5 +1,7 @@
 # CentOS specific controlplane kubeadm config
 preKubeadmCommands:
+  - sysctl -w net.ipv6.conf.all.forwarding=1
+  - sysctl -w net.ipv6.conf.default.forwarding=1
   - systemctl restart NetworkManager.service
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
   - nmcli connection up {{ IRONIC_ENDPOINT_BRIDGE }}
@@ -66,7 +68,11 @@ files:
           priority 101
           advert_int 1
           virtual_ipaddress {
-              {{ CLUSTER_APIENDPOINT_HOST }}
+{% if IP_STACK == "v6" %}
+{# According to VRRP, link local address should come first with v6 #}
+              {{ CLUSTER_APIENDPOINT_LINK_LOCAL }}
+{% endif %}
+              {{ CLUSTER_APIENDPOINT_IP }}
           }
           track_script {
               k8s_api_check
@@ -92,26 +98,38 @@ files:
       type=bridge
       autoconnect=yes
       autoconnect-priority=1
+
       [bridge]
       interface-name={{ IRONIC_ENDPOINT_BRIDGE }}
       stp=false
+
+{% if IP_STACK == "v6" %}
+      [ipv4]
+      method=disabled
+
+      [ipv6]
+      address1={{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
+      addr-gen-mode=eui64
+      method=manual
+{% else %}
       [ipv4]
       address1={{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
       method=manual
+
       [ipv6]
       addr-gen-mode=eui64
       method=ignore
+{% endif %}
   - path: /etc/yum.repos.d/kubernetes.repo
     owner: root:root
     permissions: '0644'
     content: |
       [kubernetes]
       name=Kubernetes
-      baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      baseurl=https://pkgs.k8s.io/core:/stable:/v1.34/rpm/
       enabled=1
       gpgcheck=1
-      repo_gpgcheck=0
-      gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      gpgkey=https://pkgs.k8s.io/core:/stable:/v1.34/rpm/repodata/repomd.xml.key
   - path : /etc/containers/registries.conf
     content: |
       [registries.search]

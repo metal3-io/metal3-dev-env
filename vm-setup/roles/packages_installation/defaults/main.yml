@@ -99,8 +99,10 @@ packages:
       - jmespath
       - kubernetes==25.3.0
       - passlib
-DAEMON_JSON_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/files"
+TEMPLATES_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/templates"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') }}"
 OS_VERSION_ID: "{{ lookup('env', 'OS_VERSION_ID') }}"
 REGISTRY: "{{ lookup('env', 'REGISTRY') }}"
 DOCKER_IPV6_SUPPORT: "{{ lookup('env', 'DOCKER_USE_IPV6_INTERNALLY') | default('false', true) }}"
+ENABLE_NAT64: "{{ lookup('env', 'ENABLE_NAT64') | default('false', true) }}"
+DOCKER_LOCAL_DNS_V6: "{{ lookup('env', 'LOCAL_DNS_V6') | default('\"::1\", \"fd00:abcd::1\"', true) }}"
