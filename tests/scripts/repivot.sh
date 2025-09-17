@@ -1,28 +1,14 @@
 #!/bin/bash
-set -xe
+set -e
 
-METAL3_DIR="$(dirname "$(readlink -f "${0}")")/.."
+METAL3_DIR="$(dirname "$(readlink -f "${0}")")/../.."
 
 # shellcheck disable=SC1090,SC1091
 source "${METAL3_DIR}/lib/common.sh"
 
-export ACTION="ci_test_provision"
-
-"${METAL3_DIR}"/tests/run.sh
-
-# Manifest collection before pivot
-"${METAL3_DIR}"/tests/scripts/fetch_manifests.sh
-
-export ACTION="pivoting"
-
-"${METAL3_DIR}"/tests/run.sh
-
-"${METAL3_DIR}"/tests/scripts/fetch_target_logs.sh
-# Manifest collection after pivot
-"${METAL3_DIR}"/tests/scripts/fetch_manifests.sh
+set -x
 
 export ACTION="repivoting"
-
 "${METAL3_DIR}"/tests/run.sh
 
 # wait until status of Metal3Machine is rebuilt
@@ -43,7 +29,3 @@ if [ "${NUM_DEPLOYED_NODES}" -ne "$((CONTROL_PLANE_MACHINE_COUNT + WORKER_MACHIN
     echo "Failed with incorrect number of nodes deployed"
     exit 1
 fi
-
-export ACTION="ci_test_deprovision"
-
-"${METAL3_DIR}"/tests/run.sh

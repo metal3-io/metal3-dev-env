@@ -24,8 +24,7 @@ delete_mgmt_cluster:
 host_cleanup:
 	./host_cleanup.sh
 
-test:
-	./tests/test.sh
+test: provision pivot repivot deprovision
 
 lint:
 	./hack/shellcheck.sh
@@ -33,4 +32,16 @@ lint:
 prepull_images:
 	./lib/image_prepull.sh
 
-.PHONY: all ci_run install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint  prepull_images
+pivot:
+	./tests/scripts/pivot.sh
+
+repivot:
+	./tests/scripts/repivot.sh
+
+provision:
+	./tests/scripts/provision.sh
+
+deprovision:
+	./tests/scripts/deprovision.sh
+
+.PHONY: all ci_run install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint  prepull_images pivot repivot provision deprovision
