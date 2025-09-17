@@ -15,6 +15,8 @@
      <loader readonly='yes' type='pflash'>/usr/share/edk2/ovmf/OVMF_CODE.fd</loader>
 {% elif host_distro == 'ubuntu24' %}
      <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE_4M.fd</loader>
+{% elif host_distro == 'opensuse-leap15' %}
+	 <loader readonly='yes' type='pflash'>/usr/share/qemu/ovmf-x86_64-4m-code.bin</loader>
 {% else %}
      <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
 {% endif %}

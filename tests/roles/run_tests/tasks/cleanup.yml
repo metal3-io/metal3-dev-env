@@ -12,6 +12,15 @@
       - workers_ubuntu
     when: IMAGE_OS == "ubuntu"
 
+  - name: Remove temporary Leap crs
+    file:
+      path: "/tmp/{{ item }}.yaml"
+      state: absent
+    with_items:
+      - controlplane_leap
+      - workers_leap
+    when: (IMAGE_OS == "leap")
+
   - name: Remove temporary CentOS crs
     file:
       path: "/tmp/{{ item }}.yaml"

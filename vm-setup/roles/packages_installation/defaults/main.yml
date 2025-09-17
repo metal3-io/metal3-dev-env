@@ -99,8 +99,34 @@ packages:
       - jmespath
       - kubernetes==25.3.0
       - passlib
+  suse:
+    common:
+      packages:
+        - jq
+        - qemu-img
+        - libvirt
+        - libvirt-devel
+        - dnsmasq
+        - virt-install
+        - unzip
+        - nmap
+        - docker
+        - podman
+        - python311-setuptools
+        - python311-lxml
+        - python311-netaddr
+        - python311-libvirt-python
+        - python311-passlib
+        - python311-cryptography
+        - qemu-hw-display-virtio-gpu
+        - apache2-utils
+    pip3:
+      - jmespath
+      - pyYAML
+      - kubernetes==25.3.0
 DAEMON_JSON_PATH: "{{ metal3_dir }}/vm-setup/roles/packages_installation/files"
 CONTAINER_RUNTIME: "{{ lookup('env', 'CONTAINER_RUNTIME') }}"
 OS_VERSION_ID: "{{ lookup('env', 'OS_VERSION_ID') }}"
 REGISTRY: "{{ lookup('env', 'REGISTRY') }}"
 DOCKER_IPV6_SUPPORT: "{{ lookup('env', 'DOCKER_USE_IPV6_INTERNALLY') | default('false', true) }}"
+ANSIBLE_VENV: "{{ lookup('env', 'ANSIBLE_VENV') | default('/usr', true) }}"
