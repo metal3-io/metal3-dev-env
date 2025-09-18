@@ -468,7 +468,7 @@ FSTYPE="$(df "${FILESYSTEM}" --output=fstype | tail -n 1)"
 case "${FSTYPE}" in
   ext4|btrfs) ;;
   xfs)
-    if sudo xfs_info "${FILESYSTEM}" | grep "ftype=1" &>/dev/null; then
+    if ! sudo xfs_info "${FILESYSTEM}" | grep "ftype=1" &>/dev/null; then
       echo "XFS filesystem must have ftype set to 1"
       exit 1
     fi
