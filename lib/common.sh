@@ -398,7 +398,7 @@ export KREW_SHA256="${KREW_SHA256:-5df32eaa0e888a2566439c4ccb2ef3a3e6e89522f2f21
 export KUSTOMIZE_VERSION="${KUSTOMIZE_VERSION:-v5.4.1}"
 
 # Minikube version (if EPHEMERAL_CLUSTER=minikube)
-export MINIKUBE_VERSION="${MINIKUBE_VERSION:-v1.36.0}"
+export MINIKUBE_VERSION="${MINIKUBE_VERSION:-v1.37.0}"
 
 # Kind, kind node image versions (if EPHEMERAL_CLUSTER=kind)
 export KIND_VERSION="${KIND_VERSION:-v0.30.0}"
