@@ -11,7 +11,7 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
-# TODO: Once testing of 1.9 and older releases stop this and the file named 
+# TODO: Once testing of 1.9 and older releases stop this and the file named
 # 03_launch_mgmt_cluster_pre1.10.sh can be removed
 if [[ "${IPAMRELEASE}" =~ ("v1.7.99"|"v1.8.99"|"v1.9.99")$ ]]; then
     ./03_launch_mgmt_cluster_pre_1_10.sh
