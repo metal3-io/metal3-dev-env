@@ -99,16 +99,6 @@
     name: "{{ vbmc_username }}"
     password: "{{ vbmc_password }}"
 
-- name: Create private key (RSA, 4096 bits) for redfish TLS
-  community.crypto.openssl_privatekey:
-    path: "{{ working_dir }}/virtualbmc/sushy-tools/key.pem"
-
-- name: Create self-signed certificate for redfish TLS
-  community.crypto.x509_certificate:
-    path: "{{ working_dir }}/virtualbmc/sushy-tools/cert.pem"
-    privatekey_path: "{{ working_dir }}/virtualbmc/sushy-tools/key.pem"
-    provider: selfsigned
-
 - name: Create the Redfish Virtual BMCs
   copy:
     mode: 0750
@@ -118,8 +108,6 @@
       SUSHY_EMULATOR_IGNORE_BOOT_DEVICE = {{ sushy_ignore_boot_device }}
       SUSHY_EMULATOR_VMEDIA_VERIFY_SSL = {{ sushy_vmedia_verify_ssl }}
       SUSHY_EMULATOR_AUTH_FILE = "/root/sushy/htpasswd"
-      SUSHY_EMULATOR_SSL_KEY = "/root/sushy/key.pem"
-      SUSHY_EMULATOR_SSL_CERT = "/root/sushy/cert.pem"
   become: true
   when: vm_platform|default("libvirt") != "fake"
 
