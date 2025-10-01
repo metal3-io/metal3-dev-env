@@ -16,7 +16,7 @@ Instructions can be found here: <https://book.metal3.io/developer_environment/tr
 Version v1beta1 is later referred as **v1betaX**.
 
 The v1betaX deployment can be done with Ubuntu 18.04, 20.04, 22.04 or
-Centos 9 Stream target host images. By default, for Ubuntu based target hosts
+Centos 10 Stream target host images. By default, for Ubuntu based target hosts
 we are using Ubuntu 22.04
 
 ### Requirements
