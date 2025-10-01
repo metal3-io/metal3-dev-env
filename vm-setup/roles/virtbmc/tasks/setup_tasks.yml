@@ -162,6 +162,8 @@
       SUSHY_EMULATOR_AUTH_FILE = "/root/sushy/htpasswd"
       SUSHY_EMULATOR_FAKE_DRIVER = True
       SUSHY_EMULATOR_FAKE_IPA = True
+      SUSHY_EMULATOR_SSL_KEY = "/root/sushy/key.pem"
+      SUSHY_EMULATOR_SSL_CERT = "/root/sushy/cert.pem"
       SUSHY_EMULATOR_FAKE_SYSTEMS = {{ lookup('ansible.builtin.file', fake_nodes_file ) }}
   become: true
   when: vm_platform|default("libvirt") == "fake"

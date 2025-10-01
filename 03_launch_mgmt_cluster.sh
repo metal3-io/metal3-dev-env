@@ -512,7 +512,9 @@ patch_clusterctl()
     pushd "${CAPM3PATH}"
 
     mkdir -p "${CAPI_CONFIG_DIR}"
-    rm -f "${CAPI_CONFIG_DIR}"/clusterctl.yaml
+    if [[ "${CAPI_NIGHTLY_BUILD:-}" = "true" ]]; then
+        rm -f "${CAPI_CONFIG_DIR}"/clusterctl.yaml
+    fi
     cat << EOF >> "${CAPI_CONFIG_DIR}"/clusterctl.yaml
 providers:
 - name: metal3
