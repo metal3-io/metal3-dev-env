@@ -1,0 +1,83 @@
+kind: KubeadmControlPlane
+apiVersion: controlplane.cluster.x-k8s.io/v1beta2
+metadata:
+  name: ${ CLUSTER_NAME }
+  namespace: ${ NAMESPACE }
+spec:
+  rollout:
+    strategy:
+      rollingUpdate:
+        maxSurge: ${ MAX_SURGE_VALUE }
+  replicas: ${ CONTROL_PLANE_MACHINE_COUNT }
+  version: ${ KUBERNETES_VERSION }
+  machineTemplate:
+    spec:
+      infrastructureRef:
+        apiGroup: infrastructure.cluster.x-k8s.io
+        kind: Metal3MachineTemplate
+        name: ${ CLUSTER_NAME }-controlplane
+      deletion:
+        nodeDrainTimeoutSeconds: ${ NODE_DRAIN_TIMEOUT }
+  kubeadmConfigSpec:
+    joinConfiguration:
+      controlPlane: {}
+      nodeRegistration:
+        name: "{{ '{{ ds.meta_data.name }}' }}"
+        kubeletExtraArgs:
+        - name: node-labels
+          value: 'metal3.io/uuid={{ "{{ ds.meta_data.uuid }}" }}'
+        - name: provider-id
+          value: 'metal3://{{ "{{ ds.meta_data.providerid }}" }}'
+        - name: feature-gates
+          value: 'AllAlpha=false'
+        - name: cgroup-driver
+          value: 'systemd'
+        - name: container-runtime-endpoint
+          value: 'unix:///var/run/crio/crio.sock'
+        - name: runtime-request-timeout
+          value: '5m'
+    initConfiguration:
+      nodeRegistration:
+        name: "{{ '{{ ds.meta_data.name }}' }}"
+        kubeletExtraArgs:
+        - name: node-labels
+          value: 'metal3.io/uuid={{ "{{ ds.meta_data.uuid }}" }}'
+        - name: provider-id
+          value: 'metal3://{{ "{{ ds.meta_data.providerid }}" }}'
+        - name: feature-gates
+          value: 'AllAlpha=false'
+        - name: cgroup-driver
+          value: 'systemd'
+        - name: container-runtime-endpoint
+          value: 'unix:///var/run/crio/crio.sock'
+        - name: runtime-request-timeout
+          value: '5m'
+    users:
+    - name: {{ IMAGE_USERNAME }}
+      sudo: "ALL=(ALL) NOPASSWD:ALL"
+      sshAuthorizedKeys:
+      - {{ SSH_PUB_KEY_CONTENT }}
+{% filter indent(width=4, first=True) %}
+{% include "cluster-template-controlplane-kubeadm-config-%s.yaml" % IMAGE_OS %}
+{% endfilter %}
+
+---
+apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+kind: Metal3MachineTemplate
+metadata:
+  name: ${ CLUSTER_NAME }-controlplane
+  namespace: ${ NAMESPACE }
+spec:
+  template:
+    spec:
+      image:
+        url: {{ IMAGE_URL }}
+        checksum: {{ IMAGE_CHECKSUM }}
+        checksumType: {{ IMAGE_CHECKSUM_TYPE }}
+        format: {{ IMAGE_FORMAT }}
+      dataTemplate:
+        name: ${ CLUSTER_NAME }-controlplane-template
+---
+{% with template_type="controlplane" %}
+{% include "metal3datatemplate-template.yaml" %}
+{% endwith %}

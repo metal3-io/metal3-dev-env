@@ -1,0 +1,68 @@
+# Ubuntu specific controlplane kubeadm config
+preKubeadmCommands:
+  - rm /etc/cni/net.d/*
+  - sed -i "s/MACAddressPolicy=persistent/MACAddressPolicy=none/g" /usr/lib/systemd/network/99-default.link
+{% if VM_EXTRADISKS == "true" %}
+  - (echo n; echo p; echo 1; echo  ;echo  ;echo w) | fdisk /dev/vda
+  - mkfs.{{ VM_EXTRADISKS_FILE_SYSTEM }} /dev/vda1
+  - mkdir {{ VM_EXTRADISKS_MOUNT_DIR }}
+  - mount /dev/vda1 {{ VM_EXTRADISKS_MOUNT_DIR }}
+{% endif %}
+  - netplan apply
+  - systemctl enable --now keepalived
+  - sleep 30
+  - systemctl enable --now crio
+  - sleep 30
+  - systemctl enable --now kubelet
+  - sleep 120
+postKubeadmCommands:
+  - mkdir -p /home/{{ IMAGE_USERNAME }}/.kube
+  - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube
+  - cp /etc/kubernetes/admin.conf /home/{{ IMAGE_USERNAME }}/.kube/config
+  - chown {{ IMAGE_USERNAME }}:{{ IMAGE_USERNAME }} /home/{{ IMAGE_USERNAME }}/.kube/config
+files:
+  - path: /etc/keepalived/keepalived.conf
+    content: |
+      ! Configuration File for keepalived
+
+      vrrp_script k8s_api_check {
+          script "curl -sk https://127.0.0.1:6443/healthz"
+          interval 5
+          timeout 5
+          rise 3
+          fall 3
+      }
+
+      vrrp_instance VI_2 {
+          state MASTER
+          interface {% if EXTERNAL_VLAN_ID == "" %}{{ bmh_nic_names[1] }}{% else %}{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}{% endif %}
+
+          virtual_router_id 2
+          priority 101
+          advert_int 1
+          virtual_ipaddress {
+              {{ CLUSTER_APIENDPOINT_HOST }}
+          }
+          track_script {
+              k8s_api_check
+          }
+      }
+  - path : /etc/netplan/52-ironicendpoint.yaml
+    owner: root:root
+    permissions: '0600'
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        bridges:
+          {{ IRONIC_ENDPOINT_BRIDGE }}:
+            interfaces: [{{ bmh_nic_names[0] }}]
+            addresses:
+            - {{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
+  - path : /etc/containers/registries.conf
+    content: |
+      [registries.search]
+      registries = ['docker.io']
+
+      [registries.insecure]
+      registries = ['{{ REGISTRY }}']
