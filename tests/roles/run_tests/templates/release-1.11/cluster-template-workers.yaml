@@ -1,0 +1,87 @@
+apiVersion: cluster.x-k8s.io/v1beta2
+kind: MachineDeployment
+metadata:
+  name: ${ CLUSTER_NAME }
+  namespace: ${ NAMESPACE }
+  labels:
+    cluster.x-k8s.io/cluster-name: ${ CLUSTER_NAME }
+    nodepool: nodepool-0
+spec:
+  clusterName: ${ CLUSTER_NAME }
+  replicas: ${ WORKER_MACHINE_COUNT }
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: ${ CLUSTER_NAME }
+      nodepool: nodepool-0
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/cluster-name: ${ CLUSTER_NAME }
+        nodepool: nodepool-0
+    spec:
+      clusterName: ${ CLUSTER_NAME }
+      version: ${ KUBERNETES_VERSION }
+      bootstrap:
+        configRef:
+          name: ${ CLUSTER_NAME }-workers
+          apiGroup: bootstrap.cluster.x-k8s.io
+          kind: KubeadmConfigTemplate
+      infrastructureRef:
+        name: ${ CLUSTER_NAME }-workers
+        apiGroup: infrastructure.cluster.x-k8s.io
+        kind: Metal3MachineTemplate
+      deletion:
+        nodeDrainTimeoutSeconds: ${ NODE_DRAIN_TIMEOUT }
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: Metal3MachineTemplate
+metadata:
+  name: ${ CLUSTER_NAME }-workers
+  namespace: ${ NAMESPACE }
+spec:
+  template:
+    spec:
+      image:
+        url: {{ IMAGE_URL }}
+        checksum: {{ IMAGE_CHECKSUM }}
+        checksumType: {{ IMAGE_CHECKSUM_TYPE }}
+        format: {{ IMAGE_FORMAT }}
+      dataTemplate:
+        name: ${ CLUSTER_NAME }-workers-template
+---
+{% with template_type="workers" %}
+{% include "metal3datatemplate-template.yaml" %}
+{% endwith %}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
+kind: KubeadmConfigTemplate
+metadata:
+  name: ${ CLUSTER_NAME }-workers
+  namespace: ${ NAMESPACE }
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          name: "{{ '{{ ds.meta_data.name }}' }}"
+          kubeletExtraArgs:
+          - name: node-labels
+            value: 'metal3.io/uuid={{ "{{ ds.meta_data.uuid }}" }}'
+          - name: provider-id
+            value: 'metal3://{{ "{{ ds.meta_data.providerid }}" }}'
+          - name: feature-gates
+            value: 'AllAlpha=false'
+          - name: cgroup-driver
+            value: 'systemd'
+          - name: container-runtime-endpoint
+            value: 'unix:///var/run/crio/crio.sock'
+          - name: runtime-request-timeout
+            value: '5m'
+      users:
+      - name: {{ IMAGE_USERNAME }}
+        sudo: "ALL=(ALL) NOPASSWD:ALL"
+        sshAuthorizedKeys:
+        - {{ SSH_PUB_KEY_CONTENT }}
+{% filter indent(width=6, first=True) %}
+{% include "cluster-template-workers-kubeadm-config-%s.yaml" % IMAGE_OS %}
+{% endfilter %}
