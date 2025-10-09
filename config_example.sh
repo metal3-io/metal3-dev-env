@@ -149,7 +149,7 @@
 
 # Image for target hosts deployment
 #
-#export IMAGE_NAME="CENTOS_9_NODE_IMAGE_K8S_v1.34.1.qcow2"
+#export IMAGE_NAME="CENTOS_10_NODE_IMAGE_K8S_v1.34.1.qcow2"
 
 # Location of the image to download
 #
