@@ -4,11 +4,11 @@ preKubeadmCommands:
   - systemctl restart NetworkManager.service
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
   - nmcli connection up {{ IRONIC_ENDPOINT_BRIDGE }}
-  - nmcli connection load /etc/NetworkManager/system-connections/enp1s0.nmconnection
-  - nmcli connection up enp1s0
+  - nmcli connection load /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.nmconnection
+  - nmcli connection up {{ bmh_nic_names[0] }}
 {% if EXTERNAL_VLAN_ID != "" %}
-  - nmcli connection load /etc/NetworkManager/system-connections/enp1s0.{{ EXTERNAL_VLAN_ID }}.nmconnection
-  - nmcli connection up /etc/NetworkManager/system-connections/enp1s0.{{ EXTERNAL_VLAN_ID }}.nmconnection
+  - nmcli connection load /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}.nmconnection
+  - nmcli connection up /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}.nmconnection
 {% endif %}
   - systemctl enable --now crio
   - sleep 30
@@ -33,7 +33,7 @@ files:
         else
           cat "$tmpfile"| sed '$d' > "$dst";
         fi
-  - path: /etc/NetworkManager/system-connections/enp1s0.nmconnection
+  - path: /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.nmconnection
     owner: root:root
     permissions: '0600'
     content: |
@@ -85,7 +85,7 @@ files:
       [registries.insecure]
       registries = ['{{ REGISTRY }}']
 {% if EXTERNAL_VLAN_ID != "" %}
-  - path: /etc/NetworkManager/system-connections/enp1s0.{{ EXTERNAL_VLAN_ID }}.nmconnection
+  - path: /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}.nmconnection
     owner: root:root
     permissions: '0600'
     content: |
