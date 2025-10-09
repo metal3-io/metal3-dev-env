@@ -210,6 +210,10 @@
 # Skip applying BMHs
 # export SKIP_APPLY_BMH="true"
 
+# Skip node image download and preparation - useful for CAPM3 e2e tests (default: false)
+# Container images will still be pulled
+# export SKIP_NODE_IMAGE_PREPULL="true"
+
 # To enable FakeIPA and run dev-env on a fake platform
 # export NODES_PLATFORM="fake"
 # export FAKE_IPA_IMAGE=192.168.111.1:5000/localimages/fake-ipa
