@@ -19,8 +19,8 @@ elif [[ "${IMAGE_OS}" == "flatcar" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-flatcar_production_qemu_image.img.bz2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://stable.release.flatcar-linux.net/amd64-usr/current/}
 elif [[ "${IMAGE_OS}" == "leap" ]]; then
-  export IMAGE_NAME=${IMAGE_NAME:-LEAP_15_6_NODE_IMAGE_K8S_v1.34.0.qcow2}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://stable.release.flatcar-linux.net/amd64-usr/current/}
+  export IMAGE_NAME=${IMAGE_NAME:-LEAP_15_6_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2}
+  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/metal3/images/k8s_${KUBERNETES_VERSION}}
 else
   export IMAGE_NAME=${IMAGE_NAME:-cirros-0.5.2-x86_64-disk.img}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-http://download.cirros-cloud.net/0.5.2}
