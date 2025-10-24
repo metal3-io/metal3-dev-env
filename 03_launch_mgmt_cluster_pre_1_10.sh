@@ -245,6 +245,7 @@ EOF
 launch_ironic_standalone_operator()
 {
     # shellcheck disable=SC2311
+    echo 'IPA_BASEURI="https://artifactory.nordix.org/artifactory/openstack-remote-cache/ironic-python-agent/dib"' > "${IRSOPATH}/config/manager/manager.env"
     make -C "${IRSOPATH}" install deploy IMG="$(get_component_image "${IRSO_LOCAL_IMAGE:-${IRSO_IMAGE}}")"
     kubectl wait --for=condition=Available --timeout=60s \
         -n ironic-standalone-operator-system deployment/ironic-standalone-operator-controller-manager
