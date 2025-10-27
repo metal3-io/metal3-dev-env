@@ -19,25 +19,30 @@
       block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
 
   # Install Calico
-  - name: Download Calico v3.25.x manifests
+  - name: Download Calico manifests
     get_url:
-      url: "https://raw.githubusercontent.com/projectcalico/calico/{{ CALICO_MINOR_RELEASE }}/manifests/calico.yaml"
+      url: "https://raw.githubusercontent.com/projectcalico/calico/{{ CALICO_VERSION }}/manifests/calico.yaml"
       dest: /tmp/
       mode: '664'
     register: calico_manifest
 
-  - name: Pin calico version to v3.25.1
+  - name: Replace docker.io with proxy
     ansible.builtin.replace:
       path: /tmp/calico.yaml
-      regexp: 'image: docker.io/calico/(.+):v(.+)$'
-      replace: 'image: {{ DOCKER_HUB_PROXY }}/calico/\1:{{ CALICO_PATCH_RELEASE }}'
+      regexp: 'docker.io'
+      replace: '{{ DOCKER_HUB_PROXY }}'
 
-  - name: Replace the POD_CIDR in calico config
+  - name: Uncomment CALICO_IPV4POOL_CIDR name
     replace:
       path: /tmp/calico.yaml
-      regexp: "192.168.0.0/16"
-      replace: "{{ POD_CIDR }}"
-    register: updated_manifest
+      regexp: "# - name: CALICO_IPV4POOL_CIDR"
+      replace: "- name: CALICO_IPV4POOL_CIDR"
+
+  - name: Uncomment CALICO_IPV4POOL_CIDR value and set POD_CIDR
+    replace:
+      path: /tmp/calico.yaml
+      regexp: '#   value: "192.168.0.0/16"'
+      replace: '  value: "{{ POD_CIDR }}"'
 
   - name: Add IP_AUTODETECTION_METHOD in calico config Ubuntu
     blockinfile:
