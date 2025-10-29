@@ -141,7 +141,7 @@
         destination: "{{ external_subnet_v4 }}"
         jump: ACCEPT
         state: "{{ firewall_rule_state }}"
-  when: (EPHEMERAL_CLUSTER == "kind") and (ip_stack == "v4")
+  when: (BOOTSTRAP_CLUSTER == "kind") and (ip_stack == "v4")
 
 - block:
     - name: "ip6tables: Allow access to external network from kind"
@@ -191,4 +191,4 @@
         destination: "{{ external_subnet_v6 }}"
         jump: ACCEPT
         state: "{{ firewall_rule_state }}"
-  when: (EPHEMERAL_CLUSTER == "kind") and (ip_stack == "v6")
+  when: (BOOTSTRAP_CLUSTER == "kind") and (ip_stack == "v6")

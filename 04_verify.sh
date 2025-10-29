@@ -17,7 +17,7 @@ source lib/images.sh
 # shellcheck disable=SC1091
 source lib/releases.sh
 
-if [ "${EPHEMERAL_CLUSTER}" == "tilt" ]; then
+if [ "${BOOTSTRAP_CLUSTER}" == "tilt" ]; then
   exit 0
 fi
 
@@ -195,7 +195,7 @@ EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
     capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
     baremetal-operator-system:baremetal-operator-controller-manager"
 
-if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]]; then
+if [[ "${BOOTSTRAP_CLUSTER}" == "minikube" ]]; then
   if [[ "${USE_IRSO}" == "true" ]]; then
     EXPTD_DEPLOYMENTS+=" \
       baremetal-operator-system:ironic-service \

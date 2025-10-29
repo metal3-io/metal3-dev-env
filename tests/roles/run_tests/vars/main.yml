@@ -5,7 +5,7 @@ IRONIC_NAMESPACE: "{{ lookup('env', 'IRONIC_NAMESPACE') | default('baremetal-ope
 NAMEPREFIX: "{{ lookup('env', 'NAMEPREFIX') | default('baremetal-operator', true) }}"
 CRS_PATH: "{{ metal3_dir }}/tests/roles/run_tests/templates"
 TEMP_GEN_DIR: "{{ metal3_dir }}/tests/roles/run_tests/files/manifests"
-EPHEMERAL_CLUSTER: "{{ lookup('env', 'EPHEMERAL_CLUSTER') | default('kind', true) }}"
+BOOTSTRAP_CLUSTER: "{{ lookup('env', 'BOOTSTRAP_CLUSTER') | default('kind', true) }}"
 CAPI_CONFIG_DIR: "{{ lookup('env', 'CAPI_CONFIG_DIR') | default('$HOME/.config/cluster-api', true) }}"
 CLUSTER_APIENDPOINT_HOST: "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
 CLUSTER_APIENDPOINT_PORT: "{{ lookup('env', 'CLUSTER_APIENDPOINT_PORT') | default(6443, true) }}"

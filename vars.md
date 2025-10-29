@@ -13,7 +13,7 @@ assured that they are persisted.
 | :------ | :------- | :--------------- | :-------- |
 | DOCKER_USE_IPV6_INTERNALLY | Choose whether Docker will use IPv6 internally. | "true", "false" | false |
 | MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1|
-| EPHEMERAL_CLUSTER | Tool for running management/ephemeral cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
+| BOOTSTRAP_CLUSTER | Tool for running management/bootstrap cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
 | IP_STACK | Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
 | EXTERNAL_VLAN_ID | If the "external" network is tagged, this is the VLAN id for the network, set on the network interface for the bare metal hosts. | "" or 1-4096 | "" |
 | EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "external" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
@@ -152,7 +152,7 @@ not conflicting.
 ## Local IPA
 
 The use of local IPA enabled via `USE_LOCAL_IPA` is only supported on
-Ubuntu host when `EPHEMERAL_CLUSTER` is `kind` cluster and Ironic is
+Ubuntu host when `BOOTSTRAP_CLUSTER` is `kind` cluster and Ironic is
 directly deployed to  the OCI runtime (no K8s pod)
 
 ## Local images
@@ -190,7 +190,7 @@ For testing purposes, verification of the digests will be skipped if
 ## Make options
 
 - `make` will run the installation of all te dependencies and set up the
-   ephemeral controlplane
+   bootstrap controlplane
 - `make nodep` will skip the dependency installation
 - `make ci_run` will run only those make targets that are executed in the
    CI
@@ -224,7 +224,7 @@ The following variables need to be set:
 export IPXE_ENABLE_IPV6=true
 export BUILD_IPXE=true
 export IPXE_BUILDER_LOCAL_IMAGE="<path to local builder image>"
-export EPHEMERAL_CLUSTER="kind"
+export BOOTSTRAP_CLUSTER="kind"
 export IP_STACK=v6
 export EXTERNAL_SUBNET_V6="fd55::/64"
 export BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY=true

@@ -100,7 +100,7 @@ if ! kubectl krew > /dev/null 2>&1; then
     download_and_install_krew
 fi
 
-if [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then
+if [[ "${BOOTSTRAP_CLUSTER}" = "minikube" ]]; then
     # shellcheck disable=SC2312
     if ! command -v minikube &>/dev/null || [[ "$(minikube version --short)" != "${MINIKUBE_VERSION}" ]]; then
         download_and_install_minikube
@@ -116,7 +116,7 @@ else
     if ! command -v kind &>/dev/null || [[ "v$(kind version -q)" != "${KIND_VERSION}" ]]; then
         download_and_install_kind
     fi
-    if [[ "${EPHEMERAL_CLUSTER}" = "tilt" ]]; then
+    if [[ "${BOOTSTRAP_CLUSTER}" = "tilt" ]]; then
         download_and_install_tilt
     fi
 fi
