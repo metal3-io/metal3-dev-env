@@ -1,5 +1,8 @@
 {
     "ipv6": {{ DOCKER_IPV6_SUPPORT }},
     "fixed-cidr-v6": "fd00:d0c4::/32",
-    "insecure-registries" : ["{{ REGISTRY }}"]
+    "insecure-registries" : ["{{ REGISTRY }}"],
+    "features": {
+        "buildkit": true
+    }
 }
