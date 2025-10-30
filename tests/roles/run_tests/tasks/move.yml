@@ -37,7 +37,7 @@
         with_items: "{{ ironic_containers }}"
 
     when: EPHEMERAL_CLUSTER == "kind"
-    become: yes
+    become: true
     become_user: root
 
   - name: Fetch container logs (minikube cluster)
@@ -53,18 +53,24 @@
         shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
         with_items: "{{ general_containers }}"
 
-    become: yes
+    become: true
     become_user: root
     when: EPHEMERAL_CLUSTER == "minikube"
 
-  - name: Remove Ironic from source cluster (minikube cluster)
+  - name: Remove Ironic CR from source cluster (minikube cluster)
     kubernetes.core.k8s:
-      name: "{{ NAMEPREFIX }}-ironic"
-      kind: Deployment
+      name: ironic
+      kind: Ironic
+      api_version: ironic.metal3.io/v1alpha1
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
     when: EPHEMERAL_CLUSTER == "minikube"
-  
+
+  - name: Remove IRSO from source cluster (minikube cluster)
+    shell: "make -C {{ IRSOPATH }} uninstall undeploy"
+    ignore_errors: true
+    when: EPHEMERAL_CLUSTER == "minikube"
+
   - name: Label baremetalhost CRD to pivot.
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
     with_items:
@@ -136,15 +142,84 @@
     args:
       chdir: "{{ BMOPATH }}"
 
-  # Install Ironic
-  - name: Install Ironic
-    shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
-    environment:
-      IRONIC_HOST: "{{ IRONIC_HOST }}"
-      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+  # Install IRSO and Ironic via IRSO
+  - name: Set IPA_BASEURI in IRSO manager config
+    lineinfile:
+      path: "{{ IRSOPATH }}/config/manager/manager.env"
+      line: 'IPA_BASEURI=https://artifactory.nordix.org/artifactory/openstack-remote-cache/ironic-python-agent/dib'
+      create: yes
+
+  - name: Install and deploy IRSO
+    shell: "make install deploy IMG={{ IRSO_IMAGE }}"
     args:
-      chdir: "{{ BMOPATH }}"
+      chdir: "{{ IRSOPATH }}"
+    environment:
+      KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+  - name: Wait for IRSO controller manager to be available
+    kubernetes.core.k8s_info:
+      kind: Deployment
+      name: ironic-standalone-operator-controller-manager
+      namespace: ironic-standalone-operator-system
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      wait: true
+      wait_condition:
+        type: Available
+        status: "True"
+      wait_timeout: 60
+
+  - name: Set Ironic spec
+    set_fact:
+      ironic_spec:
+        apiVersion: ironic.metal3.io/v1alpha1
+        kind: Ironic
+        metadata:
+          name: ironic
+          namespace: "{{ IRONIC_NAMESPACE }}"
+        spec:
+          images:
+            deployRamdiskBranch: "{{ IPA_BRANCH }}"
+            deployRamdiskDownloader: "{{ IPA_DOWNLOADER_IMAGE }}"
+            ironic: "{{ IRONIC_IMAGE }}"
+            keepalived: "{{ IRONIC_KEEPALIVED_IMAGE }}"
+          version: "{{ IRSO_IRONIC_VERSION }}"
+          networking:
+            dhcp:
+              rangeBegin: "{{ CLUSTER_DHCP_RANGE_START }}"
+              rangeEnd: "{{ CLUSTER_DHCP_RANGE_END }}"
+              networkCIDR: "{{ BARE_METAL_PROVISIONER_NETWORK }}"
+            interface: "{{ BARE_METAL_PROVISIONER_INTERFACE }}"
+            ipAddress: "{{ CLUSTER_BARE_METAL_PROVISIONER_IP }}"
+            ipAddressManager: keepalived
+          deployRamdisk:
+            sshKey: "{{ SSH_PUB_KEY_CONTENT }}"
+
+  - name: Add extraKernelParams for libvirt platform
+    set_fact:
+      ironic_spec: "{{ ironic_spec | combine({'spec': {'deployRamdisk': {'extraKernelParams': 'console=ttyS0'}}}, recursive=True) }}"
+    when: NODES_PLATFORM == 'libvirt'
+
+  - name: Deploy Ironic using IRSO (retry if webhook not ready)
+    kubernetes.core.k8s:
+      state: present
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      definition: "{{ ironic_spec }}"
+    register: ironic_create
+    retries: 10
+    delay: 3
+    until: ironic_create is succeeded
+
+  - name: Wait for Ironic to be ready
+    kubernetes.core.k8s_info:
+      kind: Ironic
+      name: ironic
+      namespace: "{{ IRONIC_NAMESPACE }}"
+      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+      wait: true
+      wait_condition:
+        type: Ready
+        status: "True"
+      wait_timeout: "{{ (IRONIC_ROLLOUT_WAIT | default(10) | int * 60) }}"
 
   - name: Label baremetalhost CRD in target cluster to pivot back.
     shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
