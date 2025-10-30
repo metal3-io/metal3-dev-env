@@ -24,14 +24,91 @@
     CONTAINER_RUNTIME: "{{ CONTAINER_RUNTIME }}"
   when: BOOTSTRAP_CLUSTER == "kind"
 
-- name: Install Ironic in Source cluster (Bootstrap Cluster is minikube)
-  shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
-  environment:
-    IRONIC_HOST: "{{ IRONIC_HOST }}"
-    IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+
+  # Install IRSO and Ironic via IRSO
+- name: Set IPA_BASEURI in IRSO manager config
+  lineinfile:
+    path: "{{ IRSOPATH }}/config/manager/manager.env"
+    line: 'IPA_BASEURI=https://artifactory.nordix.org/artifactory/openstack-remote-cache/ironic-python-agent/dib'
+    create: yes
   when: BOOTSTRAP_CLUSTER == "minikube"
+
+- name: Install and deploy IRSO
+  shell: "make install deploy IMG={{ IRSO_IMAGE }}"
   args:
-    chdir: "{{ BMOPATH }}"
+    chdir: "{{ IRSOPATH }}"
+  environment:
+    KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  when: BOOTSTRAP_CLUSTER == "minikube"
+
+- name: Wait for IRSO controller manager to be available
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: ironic-standalone-operator-controller-manager
+    namespace: ironic-standalone-operator-system
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    wait: true
+    wait_condition:
+      type: Available
+      status: "True"
+    wait_timeout: 60
+  when: BOOTSTRAP_CLUSTER == "minikube"
+
+- name: Set Ironic spec
+  when: BOOTSTRAP_CLUSTER == "minikube"
+  set_fact:
+    ironic_spec:
+      apiVersion: ironic.metal3.io/v1alpha1
+      kind: Ironic
+      metadata:
+        name: ironic
+        namespace: "{{ IRONIC_NAMESPACE }}"
+      spec:
+        images:
+          deployRamdiskBranch: "{{ IPA_BRANCH }}"
+          deployRamdiskDownloader: "{{ IPA_DOWNLOADER_IMAGE }}"
+          ironic: "{{ IRONIC_IMAGE }}"
+          keepalived: "{{ IRONIC_KEEPALIVED_IMAGE }}"
+          version: "{{ IRSO_IRONIC_VERSION }}"
+        networking:
+          dhcp:
+            rangeBegin: "{{ CLUSTER_DHCP_RANGE_START }}"
+            rangeEnd: "{{ CLUSTER_DHCP_RANGE_END }}"
+            networkCIDR: "{{ BARE_METAL_PROVISIONER_NETWORK }}"
+          interface: "{{ BARE_METAL_PROVISIONER_INTERFACE }}"
+          ipAddress: "{{ CLUSTER_BARE_METAL_PROVISIONER_IP }}"
+          ipAddressManager: keepalived
+        deployRamdisk:
+          sshKey: "{{ SSH_PUB_KEY_CONTENT }}"
+
+- name: Add extraKernelParams for libvirt platform
+  set_fact:
+    ironic_spec: "{{ ironic_spec | combine({'spec': {'deployRamdisk': {'extraKernelParams': 'console=ttyS0'}}}, recursive=True) }}"
+  when: NODES_PLATFORM == 'libvirt' and BOOTSTRAP_CLUSTER == "minikube"
+
+- name: Deploy Ironic using IRSO (retry if webhook not ready)
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    definition: "{{ ironic_spec }}"
+  register: ironic_create
+  retries: 10
+  delay: 3
+  until: ironic_create is succeeded
+  when: BOOTSTRAP_CLUSTER == "minikube"
+
+- name: Wait for Ironic to be ready
+  when: BOOTSTRAP_CLUSTER == "minikube"
+  kubernetes.core.k8s_info:
+    kind: Ironic
+    name: ironic
+    namespace: "{{ IRONIC_NAMESPACE }}"
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    wait: true
+    wait_condition:
+      type: Ready
+      status: "True"
+    wait_timeout: "{{ (IRONIC_ROLLOUT_WAIT | default(10) | int * 60) }}"
 
 - name: Re-pivot everything back to source cluster
   shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"
