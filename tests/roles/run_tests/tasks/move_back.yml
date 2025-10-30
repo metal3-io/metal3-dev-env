@@ -18,18 +18,18 @@
     args:
       chdir: "{{ BMOPATH }}"
 
-  - name: Install Ironic in Source cluster (Ephemeral Cluster is kind)
+  - name: Install Ironic in Source cluster (Bootstrap Cluster is kind)
     shell: "{{ BMOPATH }}/tools/run_local_ironic.sh"
     environment:
       CONTAINER_RUNTIME: "{{ CONTAINER_RUNTIME }}"
-    when: EPHEMERAL_CLUSTER == "kind"
+    when: BOOTSTRAP_CLUSTER == "kind"
 
-  - name: Install Ironic in Source cluster (Ephemeral Cluster is minikube)
+  - name: Install Ironic in Source cluster (Bootstrap Cluster is minikube)
     shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
     environment:
       IRONIC_HOST: "{{ IRONIC_HOST }}"
       IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-    when: EPHEMERAL_CLUSTER == "minikube"
+    when: BOOTSTRAP_CLUSTER == "minikube"
     args:
       chdir: "{{ BMOPATH }}"
 

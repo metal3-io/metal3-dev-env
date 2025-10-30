@@ -140,7 +140,7 @@ else
 fi
 export CLUSTER_APIENDPOINT_PORT=${CLUSTER_APIENDPOINT_PORT:-"6443"}
 
-if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]] && [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
+if [[ "${BOOTSTRAP_CLUSTER}" == "minikube" ]] && [[ -n "${EXTERNAL_SUBNET_V6}" ]]; then
     network_address MINIKUBE_BMNET_V6_IP "${EXTERNAL_SUBNET_V6}" 9
 fi
 

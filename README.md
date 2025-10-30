@@ -118,7 +118,7 @@ kubectl delete cluster "${CLUSTER_NAME:-"test1"}" -n metal3
 ### Deploying and developing with Tilt
 
 It is possible to use Tilt to run the CAPI, BMO, CAPM3 and IPAM components. Tilt
-ephemeral cluster will utilize Kind and Docker, so it requires an Ubuntu host.
+bootstrap cluster will utilize Kind and Docker, so it requires an Ubuntu host.
 For this, run:
 
 By default, Metal3 components are not built locally. To develop with Tilt, you
@@ -130,11 +130,11 @@ development branch content. Same for IPAM, BMO and CAPI.
 See `vars.md` for more information.
 
 After specifying the components and paths to your liking, bring the cluster up
-by setting the ephemeral cluster type to Tilt and image OS to Ubuntu.
+by setting the bootstrap cluster type to Tilt and image OS to Ubuntu.
 
 ```sh
 export IMAGE_OS=ubuntu
-export EPHEMERAL_CLUSTER="tilt"
+export BOOTSTRAP_CLUSTER="tilt"
 make
 ```
 

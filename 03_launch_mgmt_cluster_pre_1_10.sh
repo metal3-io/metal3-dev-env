@@ -52,7 +52,7 @@ launch_baremetal_operator()
     pushd "${BMOPATH}"
 
     # Deploy BMO using deploy.sh script
-    if [[ "${EPHEMERAL_CLUSTER}" != "tilt" ]]; then
+    if [[ "${BOOTSTRAP_CLUSTER}" != "tilt" ]]; then
         # Update container images to use local ones
         if [[ -n "${BARE_METAL_OPERATOR_LOCAL_IMAGE:-}" ]]; then
             update_component_image BMO "${BARE_METAL_OPERATOR_LOCAL_IMAGE}"
@@ -229,7 +229,7 @@ EOF
         update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
     fi
 
-    if [[ "${EPHEMERAL_CLUSTER}" != "minikube" ]]; then
+    if [[ "${BOOTSTRAP_CLUSTER}" != "minikube" ]]; then
         update_images
         ${RUN_LOCAL_IRONIC_SCRIPT}
         # Wait for ironic to become ready
@@ -345,7 +345,7 @@ launch_fake_ipa()
 {
     # Create a folder to host fakeIPA config and certs
     mkdir -p "${WORKING_DIR}/fake-ipa"
-    if [[ "${EPHEMERAL_CLUSTER}" = "kind" ]] && [[ "${IRONIC_TLS_SETUP}" = "true" ]]; then
+    if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]] && [[ "${IRONIC_TLS_SETUP}" = "true" ]]; then
         cp "${IRONIC_CACERT_FILE}" "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
     elif [[ "${IRONIC_TLS_SETUP}" = "true" ]]; then
         # wait for ironic to be running to ensure ironic-cert is created
@@ -640,9 +640,9 @@ start_management_cluster()
 {
     local minikube_error
 
-    if [[ "${EPHEMERAL_CLUSTER}" = "kind" ]]; then
+    if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]]; then
         launch_kind
-    elif [[ "${EPHEMERAL_CLUSTER}" = "minikube" ]]; then
+    elif [[ "${BOOTSTRAP_CLUSTER}" = "minikube" ]]; then
         # This method, defined in lib/common.sh, will either ensure sockets are up'n'running
         # for CS9 and RHEL9, or restart the libvirtd.service for other DISTRO
         manage_libvirtd
@@ -731,7 +731,7 @@ build_ipxe_firmware()
 "${BMOPATH}"/tools/remove_local_ironic.sh
 create_clouds_yaml
 
-if [[ "${EPHEMERAL_CLUSTER}" = "tilt" ]]; then
+if [[ "${BOOTSTRAP_CLUSTER}" = "tilt" ]]; then
     # shellcheck disable=SC1091
     . tilt-setup/deploy_tilt_env.sh
     exit 0

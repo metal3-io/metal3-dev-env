@@ -124,7 +124,7 @@ init_minikube()
     fi
 }
 
-if [[ "${EPHEMERAL_CLUSTER}" == "minikube" ]]; then
+if [[ "${BOOTSTRAP_CLUSTER}" == "minikube" ]]; then
     init_minikube
 fi
 
@@ -257,7 +257,7 @@ if [[ "${OS}" == "ubuntu" ]]; then
     source disable_apparmor_driver_libvirtd.sh
 else
     if [[ "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
-        if [[ ${EPHEMERAL_CLUSTER} == "kind" ]]; then
+        if [[ ${BOOTSTRAP_CLUSTER} == "kind" ]]; then
             configure_kind_network
         else
             configure_minikube_network

@@ -380,11 +380,11 @@ export KUBERNETES_VERSION="${KUBERNETES_VERSION:-v1.34.1}"
 export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
 export KUBERNETES_BINARIES_CONFIG_VERSION=${KUBERNETES_BINARIES_CONFIG_VERSION:-"v0.15.1"}
 
-# Ephemeral Cluster
+# Bootstrap Cluster
 if [[ "${CONTAINER_RUNTIME}" = "docker" ]]; then
-  export EPHEMERAL_CLUSTER=${EPHEMERAL_CLUSTER:-"kind"}
+  export BOOTSTRAP_CLUSTER=${BOOTSTRAP_CLUSTER:-"kind"}
 else
-  export EPHEMERAL_CLUSTER="minikube"
+  export BOOTSTRAP_CLUSTER="minikube"
 fi
 
 # Kubectl version - SHA256 is downloaded and verified
@@ -397,10 +397,10 @@ export KREW_SHA256="${KREW_SHA256:-5df32eaa0e888a2566439c4ccb2ef3a3e6e89522f2f21
 # Kustomize version
 export KUSTOMIZE_VERSION="${KUSTOMIZE_VERSION:-v5.4.1}"
 
-# Minikube version (if EPHEMERAL_CLUSTER=minikube)
+# Minikube version (if BOOTSTRAP_CLUSTER=minikube)
 export MINIKUBE_VERSION="${MINIKUBE_VERSION:-v1.37.0}"
 
-# Kind, kind node image versions (if EPHEMERAL_CLUSTER=kind)
+# Kind, kind node image versions (if BOOTSTRAP_CLUSTER=kind)
 export KIND_VERSION="${KIND_VERSION:-v0.30.0}"
 export KIND_NODE_IMAGE_VERSION="${KIND_NODE_IMAGE_VERSION:-v1.34.0}"
 export KIND_NODE_IMAGE="${KIND_NODE_IMAGE:-${DOCKER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}}"

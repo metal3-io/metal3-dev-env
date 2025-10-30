@@ -36,7 +36,7 @@
           state: absent
         with_items: "{{ ironic_containers }}"
 
-    when: EPHEMERAL_CLUSTER == "kind"
+    when: BOOTSTRAP_CLUSTER == "kind"
     become: yes
     become_user: root
 
@@ -55,7 +55,7 @@
 
     become: yes
     become_user: root
-    when: EPHEMERAL_CLUSTER == "minikube"
+    when: BOOTSTRAP_CLUSTER == "minikube"
 
   - name: Remove Ironic from source cluster (minikube cluster)
     kubernetes.core.k8s:
@@ -63,8 +63,8 @@
       kind: Deployment
       state: absent
       namespace: "{{ IRONIC_NAMESPACE }}"
-    when: EPHEMERAL_CLUSTER == "minikube"
-  
+    when: BOOTSTRAP_CLUSTER == "minikube"
+
   - name: Label baremetalhost CRD to pivot.
     shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
     with_items:
