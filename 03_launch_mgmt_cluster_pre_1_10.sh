@@ -751,18 +751,18 @@ if [[ "${USE_IRSO}" = true ]]; then
 else
     launch_ironic
 fi
-
 if [[ "${BMO_RUN_LOCAL}" != true ]]; then
     if ! kubectl rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout="${BMO_ROLLOUT_WAIT}"m; then
         echo "baremetal-operator-controller-manager deployment can not be rollout"
         exit 1
     fi
 else
-    # There is no certificate to run validation webhook on local.
-    # Thus we are deleting validatingwebhookconfiguration resource if exists
-    # to let BMO is working properly on local runs.
-    kubectl delete validatingwebhookconfiguration/"${BMO_NAME_PREFIX}"-validating-webhook-configuration --ignore-not-found=true
+        # There is no certificate to run validation webhook on local.
+        # Thus we are deleting validatingwebhookconfiguration resource if exists
+        # to let BMO is working properly on local runs.
+        kubectl delete validatingwebhookconfiguration/"${BMO_NAME_PREFIX}"-validating-webhook-configuration --ignore-not-found=true
 fi
+
 
 # Tests might want to apply bmh inside the test scipt
 # then dev-env will create the bmh files but do not apply them
