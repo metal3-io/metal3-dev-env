@@ -117,34 +117,8 @@ kubectl delete cluster "${CLUSTER_NAME:-"test1"}" -n metal3
 
 ### Deploying and developing with Tilt
 
-It is possible to use Tilt to run the CAPI, BMO, CAPM3 and IPAM components. Tilt
-bootstrap cluster will utilize Kind and Docker, so it requires an Ubuntu host.
-For this, run:
-
-By default, Metal3 components are not built locally. To develop with Tilt, you
-must `export BUILD_[CAPM3|BMO|IPAM|CAPI]_LOCALLY=true`, and then you can edit
-the code in `~/go/src/github.com/metal3-io/...` and it will be picked up by
-Tilt. You can also specify repository URL, branch and commit with `CAPM3REPO`,
-`CAPM3BRANCH` and `CAPM3COMMIT` to make dev-env start the component with your
-development branch content. Same for IPAM, BMO and CAPI.
-See `vars.md` for more information.
-
-After specifying the components and paths to your liking, bring the cluster up
-by setting the bootstrap cluster type to Tilt and image OS to Ubuntu.
-
-```sh
-export IMAGE_OS=ubuntu
-export BOOTSTRAP_CLUSTER="tilt"
-make
-```
-
-If you are running tilt on a remote machine, you can forward the web interface
-by adding the following parameter to the ssh command `-L 10350:127.0.0.1:10350`
-
-Then you can access the Tilt dashboard locally [here](http://127.0.0.1:10350)
-
-*Note*: It is easiest if you configure all these in `config_<username>.sh` file,
-which is automatically sourced if it exists.
+Tilt can be used to run the CAPI, BMO, CAPM3, and IPAM components
+for local development. For detailed instructions, see [Tiltfile.md](Tiltfile.md).
 
 ### Recreating local ironic containers
 
