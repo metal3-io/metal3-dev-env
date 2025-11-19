@@ -103,9 +103,18 @@
   community.crypto.openssl_privatekey:
     path: "{{ working_dir }}/virtualbmc/sushy-tools/key.pem"
 
+- name: Create CSR for redfish TLS
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ working_dir }}/virtualbmc/sushy-tools/key.pem"
+    common_name: metal3.io
+    subject_alt_name:
+      - "IP:{{ vbmc_address }}"
+  register: vbmc_csr
+
 - name: Create self-signed certificate for redfish TLS
   community.crypto.x509_certificate:
     path: "{{ working_dir }}/virtualbmc/sushy-tools/cert.pem"
+    csr_content: "{{ vbmc_csr.csr }}"
     privatekey_path: "{{ working_dir }}/virtualbmc/sushy-tools/key.pem"
     provider: selfsigned
 
