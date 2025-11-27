@@ -4,10 +4,10 @@
   connection: local
   gather_facts: true
   tasks:
-    - import_role:
-        name: common
-    - import_role:
-        name: libvirt
-    - import_role:
-        name: virtbmc
-      when: vm_platform|default("libvirt") in ["libvirt", "fake"]
+  - import_role:
+      name: common
+  - import_role:
+      name: libvirt
+  - import_role:
+      name: virtbmc
+    when: vm_platform|default("libvirt") in ["libvirt", "fake"]

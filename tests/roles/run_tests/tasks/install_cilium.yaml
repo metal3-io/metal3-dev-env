@@ -29,8 +29,8 @@
     path: "/tmp/cilium-linux-{{ CLI_ARCH }}.tar.gz{{ item }}"
     state: absent
   loop:
-    - ""
-    - ".sha256sum"
+  - ""
+  - ".sha256sum"
 
 - name: Check if Cilium is already installed
   ansible.builtin.command:
@@ -57,9 +57,8 @@
     namespace: kube-system
     kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
     field_selectors:
-      - status.phase!=Running
+    - status.phase!=Running
   retries: 60
   delay: 10
   register: cilium_pods
-  until: (cilium_pods is succeeded) and
-          (cilium_pods.resources | length == 0)
+  until: (cilium_pods is succeeded) and (cilium_pods.resources | length == 0)

@@ -4,5 +4,5 @@
   connection: local
   gather_facts: true
   tasks:
-    - import_role:
-        name: firewall
+  - import_role:
+      name: firewall

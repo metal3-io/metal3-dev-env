@@ -11,9 +11,9 @@
     state: "{{ firewalld_rule_state }}"
     immediate: yes
   loop:
-    - "{{ provisioning_interface }}"
-    - "{{ bare_metal_provisioner_interface }}"
-    - "{{ external_interface }}"
+  - "{{ provisioning_interface }}"
+  - "{{ bare_metal_provisioner_interface }}"
+  - "{{ external_interface }}"
 
 - name: "firewalld: Provisioning host ports"
   ansible.posix.firewalld:

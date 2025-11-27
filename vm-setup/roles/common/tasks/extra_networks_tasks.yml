@@ -1,5 +1,4 @@
 ---
-
 - name: "Processing extra network {{network_name}}"
   debug:
     var: network_name
@@ -20,24 +19,24 @@
 
 - name: Calculate v4 extra_network data
   block:
-    - set_fact:
-        extra_network_v4: "{{ [{
-        'address_v4': cidr|ansible.utils.nthhost(1),
-        'netmask_v4': cidr|ansible.utils.ipaddr('netmask'),
-        'dhcp_range_v4': [ cidr|ansible.utils.nthhost(20), cidr|ansible.utils.nthhost(60)],
-        }]}}"
+  - set_fact:
+      extra_network_v4: "{{ [{
+      'address_v4': cidr|ansible.utils.nthhost(1),
+      'netmask_v4': cidr|ansible.utils.ipaddr('netmask'),
+      'dhcp_range_v4': [ cidr|ansible.utils.nthhost(20), cidr|ansible.utils.nthhost(60)],
+      }]}}"
   when: "{{ lookup('vars', network_name + '_cidr_v4') != '' }}"
   vars:
     cidr: "{{lookup('vars', network_name + '_cidr_v4')}}"
 
 - name: Calculate v6 extra_network data
   block:
-    - set_fact:
-        extra_network_v6: "{{ [{
-        'address_v6': cidr|ansible.utils.nthhost(1),
-        'prefix_v6': cidr|ansible.utils.ipaddr('prefix'),
-        'dhcp_range_v6': [ cidr|ansible.utils.nthhost(20), cidr|ansible.utils.nthhost(60)],
-        }]}}"
+  - set_fact:
+      extra_network_v6: "{{ [{
+      'address_v6': cidr|ansible.utils.nthhost(1),
+      'prefix_v6': cidr|ansible.utils.ipaddr('prefix'),
+      'dhcp_range_v6': [ cidr|ansible.utils.nthhost(20), cidr|ansible.utils.nthhost(60)],
+      }]}}"
   when: "{{ lookup('vars', network_name + '_cidr_v6') != '' }}"
   vars:
     cidr: "{{lookup('vars', network_name + '_cidr_v6')}}"

@@ -1,54 +1,51 @@
 ---
-  - name: Verify that all machines are provisioned and running.
-    include_tasks: verify_resources_states.yml
-    vars:
-      kubeconfig: "{{ HOME }}/.kube/config"
+- name: Verify that all machines are provisioned and running.
+  include_tasks: verify_resources_states.yml
+  vars:
+    kubeconfig: "{{ HOME }}/.kube/config"
 
-  - name: Fetch target cluster kubeconfig
-    kubernetes.core.k8s_info:
-      api_version: v1
-      kind: Secret
-      name: "{{ CLUSTER_NAME }}-kubeconfig"
-      namespace: "{{ NAMESPACE }}"
-    register: kubeconfig_secret
+- name: Fetch target cluster kubeconfig
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "{{ CLUSTER_NAME }}-kubeconfig"
+    namespace: "{{ NAMESPACE }}"
+  register: kubeconfig_secret
 
-  - name: Store target cluster kubeconfig
-    blockinfile:
-      path: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
-      create: yes
-      block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
+- name: Store target cluster kubeconfig
+  blockinfile:
+    path: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    create: yes
+    block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
 
-  - name: Install CNI based on CNI_NAME
-    include_tasks: "{{ cni_task_file }}"
-    vars:
-      cni_task_file: "{{ 'install_calico.yaml' if (CNI_NAME == 'calico') else 'install_cilium.yaml' }}"
+- name: Install CNI based on CNI_NAME
+  include_tasks: "{{ cni_task_file }}"
+  vars:
+    cni_task_file: "{{ 'install_calico.yaml' if (CNI_NAME == 'calico') else 'install_cilium.yaml' }}"
 
-  # Check for pods & nodes on the target cluster
-  - name: Wait for all pods to be in running state
-    kubernetes.core.k8s_info:
-      api_version: v1
-      kind: Pod
-      namespace: "{{ NAMESPACE }}"
-      kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
-      field_selectors:
-        - status.phase!=Running
-    retries: 150
-    delay: 20
-    register: not_running_pods
-    until: (not_running_pods is succeeded) and
-           (not_running_pods.resources | length == 0)
+# Check for pods & nodes on the target cluster
+- name: Wait for all pods to be in running state
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ NAMESPACE }}"
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    field_selectors:
+    - status.phase!=Running
+  retries: 150
+  delay: 20
+  register: not_running_pods
+  until: (not_running_pods is succeeded) and (not_running_pods.resources | length == 0)
 
-  - name: Wait for nodes to be in ready state
-    kubernetes.core.k8s_info:
-      api_version: v1
-      kind: Node
-      kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
-    retries: 150
-    delay: 3
-    register: nodes
-    vars:
-      # For all Nodes, select those that have the Ready condition set to True
-      query: "[*].status.conditions[? type=='Ready' && status=='True']"
-    until: (nodes is succeeded) and
-           (nodes.resources | length > 0) and
-           (nodes.resources | json_query(query) | length == (NUMBER_OF_BMH | int))
+- name: Wait for nodes to be in ready state
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Node
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+  retries: 150
+  delay: 3
+  register: nodes
+  vars:
+    # For all Nodes, select those that have the Ready condition set to True
+    query: "[*].status.conditions[? type=='Ready' && status=='True']"
+  until: (nodes is succeeded) and (nodes.resources | length > 0) and (nodes.resources | json_query(query) | length == (NUMBER_OF_BMH | int))

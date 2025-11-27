@@ -1,153 +1,153 @@
 ---
 - name: Install required Ubuntu packages
   block:
-    - name: Update all packages to their latest version
+  - name: Update all packages to their latest version
+    apt:
+      name: "*"
+      state: latest
+
+  # TODO: (Sunnatillo) Remove this task after fully removing apt-key
+  - name: Remove OS old repository (without gpg key file location)
+    apt_repository:
+      repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+      state: absent
+
+  - name: Remove Ubuntu Noble old repository (without gpg key file location)
+    apt_repository:
+      repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+      state: absent
+    when: ansible_distribution_release == "noble"
+
+  - name: Fetch OS release key
+    get_url:
+      url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/Release.key"
+      dest: /usr/share/keyrings/libcontainers-archive-keyring.asc
+      mode: '0644'
+      force: true
+    when: ansible_distribution_release != "noble"
+
+  - name: Fetch Ubuntu Noble release key
+    get_url:
+      url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/Release.key"
+      dest: /usr/share/keyrings/libcontainers-archive-keyring.asc
+      mode: '0644'
+      force: true
+    when: ansible_distribution_release == "noble"
+
+  - name: Dearmor Release key
+    shell: |
+      cat /usr/share/keyrings/libcontainers-archive-keyring.asc | sudo gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg --yes
+
+  - name: Add OS repository
+    lineinfile:
+      path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+      line: "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+      create: yes
+      owner: root
+      group: root
+      mode: '0644'
+    when: ansible_distribution_release != "noble"
+
+  - name: Add Ubuntu Noble repository
+    lineinfile:
+      path: /etc/apt/sources.list.d/devel:kubic:libcontainers:unstable.list
+      line: "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+      create: yes
+      owner: root
+      group: root
+      mode: '0644'
+    when: ansible_distribution_release == "noble"
+
+  - name: Update all packages to their latest version
+    apt:
+      name: "*"
+      state: latest
+
+  - name: Podman
+    block:
+    - name: Install podman
       apt:
-        name: "*"
-        state: latest
+        name: podman
+        state: present
+
+    - name: Registries configuration for podman
+      blockinfile:
+        path: /etc/containers/registries.conf
+        block: |
+          [registries.insecure]
+          registries = ['{{ REGISTRY }}']
+    become: yes
+    when: CONTAINER_RUNTIME == "podman"
+
+  - name: Install docker
+    block:
+    - name: Create /etc/apt/keyrings folder
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+
+    - name: Add Docker’s GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+        force: true
+
+    - name: Dearmor GPG key
+      shell: |
+        cat /etc/apt/keyrings/docker.asc | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
 
     # TODO: (Sunnatillo) Remove this task after fully removing apt-key
-    - name: Remove OS old repository (without gpg key file location) 
+    - name: Remove Docker old repository (without gpg key file location)
       apt_repository:
-        repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: absent
-    
-    - name: Remove Ubuntu Noble old repository (without gpg key file location)
+
+    # TODO: (Sunnatillo) Remove this task after fully removing apt-key
+    - name: Remove Docker old repository (without gpg key file location)
       apt_repository:
-        repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/ /"
+        repo: "deb  https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: absent
-      when: ansible_distribution_release == "noble"
 
-    - name: Fetch OS release key
-      get_url:
-        url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/Release.key"
-        dest: /usr/share/keyrings/libcontainers-archive-keyring.asc
-        mode: '0644'
-        force: true
-      when: ansible_distribution_release != "noble"
-
-    - name: Fetch Ubuntu Noble release key
-      get_url:
-        url: "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/Release.key"
-        dest: /usr/share/keyrings/libcontainers-archive-keyring.asc
-        mode: '0644'
-        force: true
-      when: ansible_distribution_release == "noble"
-
-    - name: Dearmor Release key
-      shell: | 
-        cat /usr/share/keyrings/libcontainers-archive-keyring.asc | sudo gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg --yes
-    
-    - name: Add OS repository
-      lineinfile:
-        path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-        line: "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
-        create: yes
-        owner: root
-        group: root
-        mode: '0644'
-      when: ansible_distribution_release != "noble"
-
-    - name: Add Ubuntu Noble repository
-      lineinfile:
-        path: /etc/apt/sources.list.d/devel:kubic:libcontainers:unstable.list
-        line: "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/ /"
-        create: yes
-        owner: root
-        group: root
-        mode: '0644'
-      when: ansible_distribution_release == "noble"
+    - name: Add Docker Repository
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
 
     - name: Update all packages to their latest version
       apt:
         name: "*"
         state: latest
 
-    - name: Podman
-      block:
-        - name: Install podman
-          apt: 
-            name: podman
-            state: present
+    - name: Install docker and docker plugins
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: [ 'docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-buildx-plugin', 'docker-compose-plugin' ]
 
-        - name: Registries configuration for podman
-          blockinfile:
-            path: /etc/containers/registries.conf
-            block: |
-                [registries.insecure]
-                registries = ['{{ REGISTRY }}']
-      become: yes
-      when: CONTAINER_RUNTIME == "podman"
+    - name: Create docker configuration dir
+      file:
+        path: /etc/docker
+        state: directory
+        owner: root
+        group: root
 
-    - name: Install docker
-      block:
-        - name: Create /etc/apt/keyrings folder
-          file:
-            path: /etc/apt/keyrings
-            state: directory
+    - name: Template daemon.json to /etc/docker/daemon.json
+      template:
+        src: "{{ DAEMON_JSON_PATH }}/daemon.json"
+        dest: /etc/docker/daemon.json
+        owner: root
+        group: root
 
-        - name: Add Docker’s GPG key
-          get_url:
-            url: https://download.docker.com/linux/ubuntu/gpg
-            dest: /etc/apt/keyrings/docker.asc
-            mode: '0644'
-            force: true
-          
-        - name: Dearmor GPG key
-          shell: | 
-            cat /etc/apt/keyrings/docker.asc | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg --yes
-                
-        # TODO: (Sunnatillo) Remove this task after fully removing apt-key
-        - name: Remove Docker old repository (without gpg key file location) 
-          apt_repository:
-            repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-            state: absent
+    - name: Restart docker systemd service
+      service:
+        name: docker
+        state: restarted
+        daemon_reload: yes
 
-        # TODO: (Sunnatillo) Remove this task after fully removing apt-key
-        - name: Remove Docker old repository (without gpg key file location) 
-          apt_repository:
-            repo: "deb  https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-            state: absent
-
-        - name: Add Docker Repository
-          apt_repository:
-            repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-            state: present
-
-        - name: Update all packages to their latest version
-          apt:
-            name: "*"
-            state: latest
-
-        - name: Install docker and docker plugins
-          apt: name={{ item }} state=latest update_cache=yes
-          loop: [ 'docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-buildx-plugin', 'docker-compose-plugin']
-
-        - name: Create docker configuration dir
-          file:
-            path: /etc/docker
-            state: directory
-            owner: root
-            group: root
-
-        - name: Template daemon.json to /etc/docker/daemon.json
-          template:
-            src: "{{ DAEMON_JSON_PATH }}/daemon.json"
-            dest: /etc/docker/daemon.json
-            owner: root
-            group: root
-
-        - name: Restart docker systemd service
-          service:
-            name: docker
-            state: restarted
-            daemon_reload: yes
-
-        - name: Add current user to the docker group
-          user:
-            name: "{{ lookup('env','USER') }}"
-            groups: docker
-            append: yes
-      when: CONTAINER_RUNTIME == "docker"
-      become: yes
+    - name: Add current user to the docker group
+      user:
+        name: "{{ lookup('env','USER') }}"
+        groups: docker
+        append: yes
+    when: CONTAINER_RUNTIME == "docker"
+    become: yes
   become: yes

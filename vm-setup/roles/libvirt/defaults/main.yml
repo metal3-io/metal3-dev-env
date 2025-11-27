@@ -23,7 +23,7 @@ libvirt_log_path: "/var/log/libvirt/qemu"
 
 # how many disks should be created when using extradisks
 extradisks_list:
-  - vdb
+- vdb
 
 # size of the disks to create when using extradisks
 extradisks_size: 8G

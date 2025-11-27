@@ -1,37 +1,37 @@
 ############### Pivot back to source cluster ##############
 
-  # Remove Ironic from target cluster
-  - name: Remove Ironic from target cluster
-    kubernetes.core.k8s:
-      name: "{{ NAMEPREFIX }}-ironic"
-      kind: Deployment
-      state: absent
-      namespace: "{{ IRONIC_NAMESPACE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+# Remove Ironic from target cluster
+- name: Remove Ironic from target cluster
+  kubernetes.core.k8s:
+    name: "{{ NAMEPREFIX }}-ironic"
+    kind: Deployment
+    state: absent
+    namespace: "{{ IRONIC_NAMESPACE }}"
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  # Install BMO in Source cluster
-  - name: Install Baremetal Operator in Source cluster
-    shell: "{{ BMOPATH }}/tools/deploy.sh -b  {{ BMO_IRONIC_ARGS }}"
-    environment:
-      IRONIC_HOST: "{{ IRONIC_HOST }}"
-      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-    args:
-      chdir: "{{ BMOPATH }}"
+# Install BMO in Source cluster
+- name: Install Baremetal Operator in Source cluster
+  shell: "{{ BMOPATH }}/tools/deploy.sh -b  {{ BMO_IRONIC_ARGS }}"
+  environment:
+    IRONIC_HOST: "{{ IRONIC_HOST }}"
+    IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+  args:
+    chdir: "{{ BMOPATH }}"
 
-  - name: Install Ironic in Source cluster (Bootstrap Cluster is kind)
-    shell: "{{ BMOPATH }}/tools/run_local_ironic.sh"
-    environment:
-      CONTAINER_RUNTIME: "{{ CONTAINER_RUNTIME }}"
-    when: BOOTSTRAP_CLUSTER == "kind"
+- name: Install Ironic in Source cluster (Bootstrap Cluster is kind)
+  shell: "{{ BMOPATH }}/tools/run_local_ironic.sh"
+  environment:
+    CONTAINER_RUNTIME: "{{ CONTAINER_RUNTIME }}"
+  when: BOOTSTRAP_CLUSTER == "kind"
 
-  - name: Install Ironic in Source cluster (Bootstrap Cluster is minikube)
-    shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
-    environment:
-      IRONIC_HOST: "{{ IRONIC_HOST }}"
-      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-    when: BOOTSTRAP_CLUSTER == "minikube"
-    args:
-      chdir: "{{ BMOPATH }}"
+- name: Install Ironic in Source cluster (Bootstrap Cluster is minikube)
+  shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
+  environment:
+    IRONIC_HOST: "{{ IRONIC_HOST }}"
+    IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+  when: BOOTSTRAP_CLUSTER == "minikube"
+  args:
+    chdir: "{{ BMOPATH }}"
 
-  - name: Re-pivot everything back to source cluster
-    shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"
+- name: Re-pivot everything back to source cluster
+  shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"

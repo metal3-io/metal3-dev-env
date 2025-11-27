@@ -1,208 +1,205 @@
 ---
-  - name: Define number of BMH's
-    set_fact:
-      NUMBER_OF_BMH: "{{ CONTROL_PLANE_MACHINE_COUNT|int +  WORKER_MACHINE_COUNT|int }}"
-      general_containers:
-          - httpd-infra
-          - registry
-          - sushy-tools
-          - vbmc
-      ironic_containers:
-          - ironic
-          - ironic-endpoint-keepalived
-          - ironic-log-watch
-          - dnsmasq
+- name: Define number of BMH's
+  set_fact:
+    NUMBER_OF_BMH: "{{ CONTROL_PLANE_MACHINE_COUNT|int +  WORKER_MACHINE_COUNT|int }}"
+    general_containers:
+    - httpd-infra
+    - registry
+    - sushy-tools
+    - vbmc
+    ironic_containers:
+    - ironic
+    - ironic-endpoint-keepalived
+    - ironic-log-watch
+    - dnsmasq
 
-  - name: Fetch container logs (kind cluster)
-    block:
+- name: Fetch container logs (kind cluster)
+  block:
 
-      - name: Create directories for storing container logs (kind cluster)
-        file:
-          path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
-          state: directory
-        with_items:
-          - "{{ ironic_containers }}"
-          - "{{ general_containers }}"
+  - name: Create directories for storing container logs (kind cluster)
+    file:
+      path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
+      state: directory
+    with_items:
+    - "{{ ironic_containers }}"
+    - "{{ general_containers }}"
 
-      - name: Fetch container logs before pivoting (kind cluster)
-        shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
-        with_items:
-          - "{{ ironic_containers }}"
-          - "{{ general_containers }}"
+  - name: Fetch container logs before pivoting (kind cluster)
+    shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
+    with_items:
+    - "{{ ironic_containers }}"
+    - "{{ general_containers }}"
 
-      - name: Remove ironic container from source cluster (kind cluster)
-        docker_container:
-          name: "{{ item }}"
-          state: absent
-        with_items: "{{ ironic_containers }}"
-
-    when: BOOTSTRAP_CLUSTER == "kind"
-    become: yes
-    become_user: root
-
-  - name: Fetch container logs (minikube cluster)
-    block:
-
-      - name: Create directories for storing container logs (minikube cluster)
-        file:
-          path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
-          state: directory
-        with_items: "{{ general_containers }}"
-
-      - name: Fetch container logs before pivoting (minikube cluster)
-        shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
-        with_items: "{{ general_containers }}"
-
-    become: yes
-    become_user: root
-    when: BOOTSTRAP_CLUSTER == "minikube"
-
-  - name: Remove Ironic from source cluster (minikube cluster)
-    kubernetes.core.k8s:
-      name: "{{ NAMEPREFIX }}-ironic"
-      kind: Deployment
+  - name: Remove ironic container from source cluster (kind cluster)
+    docker_container:
+      name: "{{ item }}"
       state: absent
-      namespace: "{{ IRONIC_NAMESPACE }}"
-    when: BOOTSTRAP_CLUSTER == "minikube"
+    with_items: "{{ ironic_containers }}"
 
-  - name: Label baremetalhost CRD to pivot.
-    shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
-    with_items:
-       - clusterctl.cluster.x-k8s.io=""
-       - clusterctl.cluster.x-k8s.io/move=""
-       - clusterctl.cluster.x-k8s.io/move-hierarchy=""
+  when: BOOTSTRAP_CLUSTER == "kind"
+  become: yes
+  become_user: root
 
-  - name: Label hardwareData CRD to pivot.
-    shell: "kubectl label --overwrite crds hardwaredata.metal3.io {{ item }}"
-    with_items:
-       - clusterctl.cluster.x-k8s.io=""
-       - clusterctl.cluster.x-k8s.io/move=""
+- name: Fetch container logs (minikube cluster)
+  block:
 
-  - name: Obtain target cluster kubeconfig
-    kubernetes.core.k8s_info:
-      kind: secrets
-      name: "{{ CLUSTER_NAME }}-kubeconfig"
-      namespace: "{{ NAMESPACE }}"
-    register: metal3_kubeconfig
+  - name: Create directories for storing container logs (minikube cluster)
+    file:
+      path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
+      state: directory
+    with_items: "{{ general_containers }}"
 
-  - name: Decode and save cluster kubeconfig
-    copy:
-      content: "{{ metal3_kubeconfig.resources[0].data.value | b64decode }}"
-      dest: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  - name: Fetch container logs before pivoting (minikube cluster)
+    shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
+    with_items: "{{ general_containers }}"
 
-  - name: Create namespace
-    kubernetes.core.k8s:
-      name: "{{ NAMESPACE }}"
-      kind: Namespace
-      state: present
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  become: yes
+  become_user: root
+  when: BOOTSTRAP_CLUSTER == "minikube"
 
-  - name: Initialize Provider component in target cluster
-    vars:
-      ipam_release: "{{ lookup('env', 'IPAMRELEASE') }}"
-    shell: " clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
-    when: ipam_release == 'v1.7.99' or ipam_release == 'v1.8.99' or ipam_release == 'v1.9.99'
+- name: Remove Ironic from source cluster (minikube cluster)
+  kubernetes.core.k8s:
+    name: "{{ NAMEPREFIX }}-ironic"
+    kind: Deployment
+    state: absent
+    namespace: "{{ IRONIC_NAMESPACE }}"
+  when: BOOTSTRAP_CLUSTER == "minikube"
 
-  # Making IPAM a provider for capi is merged in 1.10
-  # TODO: Remove this check when 1.9 is no longer tested. Remember to edit above
-  # block as well.
-  - name: Initialize Provider component in target cluster
-    vars:
-      ipam_release: "{{ lookup('env', 'IPAMRELEASE') }}"
-    shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5 --ipam metal3:{{ IPAMRELEASE }}"
-    when: ipam_release != 'v1.7.99' and ipam_release != 'v1.8.99' and ipam_release != 'v1.9.99'
+- name: Label baremetalhost CRD to pivot.
+  shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
+  with_items:
+  - clusterctl.cluster.x-k8s.io=""
+  - clusterctl.cluster.x-k8s.io/move=""
+  - clusterctl.cluster.x-k8s.io/move-hierarchy=""
 
-  # Check for cert-manager pods on the target cluster
-  - name: Check if cert-manager  pods in running state
-    kubernetes.core.k8s_info:
-      kind: pods
-      namespace: cert-manager
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-      field_selectors:
-        - status.phase!=Running
-    register: target_running_pods
-    retries: 20
-    delay: 20
-    until: (target_running_pods is succeeded) and
-           (target_running_pods.resources | length == 0)
+- name: Label hardwareData CRD to pivot.
+  shell: "kubectl label --overwrite crds hardwaredata.metal3.io {{ item }}"
+  with_items:
+  - clusterctl.cluster.x-k8s.io=""
+  - clusterctl.cluster.x-k8s.io/move=""
 
-  # Install BMO
-  - name: Install Baremetal Operator
-    shell: "{{ BMOPATH }}/tools/deploy.sh -b {{ BMO_IRONIC_ARGS }}"
-    environment:
-      IRONIC_HOST: "{{ IRONIC_HOST }}"
-      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
-    args:
-      chdir: "{{ BMOPATH }}"
+- name: Obtain target cluster kubeconfig
+  kubernetes.core.k8s_info:
+    kind: secrets
+    name: "{{ CLUSTER_NAME }}-kubeconfig"
+    namespace: "{{ NAMESPACE }}"
+  register: metal3_kubeconfig
 
-  # Install Ironic
-  - name: Install Ironic
-    shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
-    environment:
-      IRONIC_HOST: "{{ IRONIC_HOST }}"
-      IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-      KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
-    args:
-      chdir: "{{ BMOPATH }}"
+- name: Decode and save cluster kubeconfig
+  copy:
+    content: "{{ metal3_kubeconfig.resources[0].data.value | b64decode }}"
+    dest: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  - name: Label baremetalhost CRD in target cluster to pivot back.
-    shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
-    with_items:
-      - clusterctl.cluster.x-k8s.io=""
-      - clusterctl.cluster.x-k8s.io/move=""
-      - clusterctl.cluster.x-k8s.io/move-hierarchy=""
+- name: Create namespace
+  kubernetes.core.k8s:
+    name: "{{ NAMESPACE }}"
+    kind: Namespace
+    state: present
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
 
-  - name: Label hardwareData CRD in target cluster to pivot back.
-    shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds hardwaredata.metal3.io {{ item }} --overwrite "
-    with_items:
-       - clusterctl.cluster.x-k8s.io=""
-       - clusterctl.cluster.x-k8s.io/move=""
+- name: Initialize Provider component in target cluster
+  vars:
+    ipam_release: "{{ lookup('env', 'IPAMRELEASE') }}"
+  shell: " clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
+  when: ipam_release == 'v1.7.99' or ipam_release == 'v1.8.99' or ipam_release == 'v1.9.99'
 
-  # Check for pods & nodes on the target cluster
-  - name: Check if pods in running state
-    kubernetes.core.k8s_info:
-      kind: pods
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-      field_selectors:
-        - status.phase!=Running
-    register: target_running_pods
-    retries: 150
-    delay: 20
-    until: (target_running_pods is succeeded) and
-           (target_running_pods.resources | length == 0)
+# Making IPAM a provider for capi is merged in 1.10
+# TODO: Remove this check when 1.9 is no longer tested. Remember to edit above
+# block as well.
+- name: Initialize Provider component in target cluster
+  vars:
+    ipam_release: "{{ lookup('env', 'IPAMRELEASE') }}"
+  shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5 --ipam metal3:{{ IPAMRELEASE }}"
+  when: ipam_release != 'v1.7.99' and ipam_release != 'v1.8.99' and ipam_release != 'v1.9.99'
 
-  - name: Check if all deployments replicas are available
-    kubernetes.core.k8s_info:
-      kind: Deployment
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: deployments
-    retries: 150
-    delay: 20
-    until: (deployments is succeeded) and
-           (deployments.resources | filter_unavailable_replicas | length == 0 )
+# Check for cert-manager pods on the target cluster
+- name: Check if cert-manager  pods in running state
+  kubernetes.core.k8s_info:
+    kind: pods
+    namespace: cert-manager
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    field_selectors:
+    - status.phase!=Running
+  register: target_running_pods
+  retries: 20
+  delay: 20
+  until: (target_running_pods is succeeded) and (target_running_pods.resources | length == 0)
 
-  - name: Pivot objects to target cluster
-    shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
+# Install BMO
+- name: Install Baremetal Operator
+  shell: "{{ BMOPATH }}/tools/deploy.sh -b {{ BMO_IRONIC_ARGS }}"
+  environment:
+    IRONIC_HOST: "{{ IRONIC_HOST }}"
+    IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+    KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+  args:
+    chdir: "{{ BMOPATH }}"
 
-  - name: Remove BMO deployment from source cluster
-    kubernetes.core.k8s:
-      name: "{{ NAMEPREFIX }}-controller-manager"
-      kind: Deployment
-      state: absent
-      namespace: "{{ IRONIC_NAMESPACE }}"
+# Install Ironic
+- name: Install Ironic
+  shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
+  environment:
+    IRONIC_HOST: "{{ IRONIC_HOST }}"
+    IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+    KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+  args:
+    chdir: "{{ BMOPATH }}"
 
-  - name: Verify that all machines are provisioned and running.
-    include_tasks: verify_resources_states.yml
-    vars:
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+- name: Label baremetalhost CRD in target cluster to pivot back.
+  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
+  with_items:
+  - clusterctl.cluster.x-k8s.io=""
+  - clusterctl.cluster.x-k8s.io/move=""
+  - clusterctl.cluster.x-k8s.io/move-hierarchy=""
 
-  # Normally as non authenticated user we should
-  # fail here(get 401) to reach Ironic.
-  - name: Expect 401 from /v1/nodes ednpoint
-    uri:
-      url: "{{ IRONIC_URL }}nodes"
-      return_content: no
-      validate_certs: no
-      method: GET
-      status_code: [401]
+- name: Label hardwareData CRD in target cluster to pivot back.
+  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds hardwaredata.metal3.io {{ item }} --overwrite "
+  with_items:
+  - clusterctl.cluster.x-k8s.io=""
+  - clusterctl.cluster.x-k8s.io/move=""
+
+# Check for pods & nodes on the target cluster
+- name: Check if pods in running state
+  kubernetes.core.k8s_info:
+    kind: pods
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    field_selectors:
+    - status.phase!=Running
+  register: target_running_pods
+  retries: 150
+  delay: 20
+  until: (target_running_pods is succeeded) and (target_running_pods.resources | length == 0)
+
+- name: Check if all deployments replicas are available
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  register: deployments
+  retries: 150
+  delay: 20
+  until: (deployments is succeeded) and (deployments.resources | filter_unavailable_replicas | length == 0 )
+
+- name: Pivot objects to target cluster
+  shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
+
+- name: Remove BMO deployment from source cluster
+  kubernetes.core.k8s:
+    name: "{{ NAMEPREFIX }}-controller-manager"
+    kind: Deployment
+    state: absent
+    namespace: "{{ IRONIC_NAMESPACE }}"
+
+- name: Verify that all machines are provisioned and running.
+  include_tasks: verify_resources_states.yml
+  vars:
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+# Normally as non authenticated user we should
+# fail here(get 401) to reach Ironic.
+- name: Expect 401 from /v1/nodes ednpoint
+  uri:
+    url: "{{ IRONIC_URL }}nodes"
+    return_content: no
+    validate_certs: no
+    method: GET
+    status_code: [ 401 ]

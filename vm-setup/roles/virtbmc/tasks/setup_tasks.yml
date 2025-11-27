@@ -8,11 +8,11 @@
     owner: root
     group: root
   with_items:
-    - "{{ working_dir }}/virtualbmc"
-    - "{{ working_dir }}/virtualbmc/vbmc"
-    - "{{ working_dir }}/virtualbmc/vbmc/conf"
-    - "{{ working_dir }}/virtualbmc/vbmc/log"
-    - "{{ working_dir }}/virtualbmc/sushy-tools"
+  - "{{ working_dir }}/virtualbmc"
+  - "{{ working_dir }}/virtualbmc/vbmc"
+  - "{{ working_dir }}/virtualbmc/vbmc/conf"
+  - "{{ working_dir }}/virtualbmc/vbmc/log"
+  - "{{ working_dir }}/virtualbmc/sushy-tools"
   become: true
 
 - name: Create VirtualBMC configuration file
@@ -108,7 +108,7 @@
     privatekey_path: "{{ working_dir }}/virtualbmc/sushy-tools/key.pem"
     common_name: metal3.io
     subject_alt_name:
-      - "IP:{{ vbmc_address }}"
+    - "IP:{{ vbmc_address }}"
   register: vbmc_csr
 
 - name: Create self-signed certificate for redfish TLS

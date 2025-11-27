@@ -1,14 +1,14 @@
 language: go
 
 services:
-  - docker
+- docker
 
 env:
   global:
-    - CONTAINER_RUNTIME=docker
+  - CONTAINER_RUNTIME=docker
   jobs:
-    - TARGET=shellcheck
-    - TARGET=markdownlint
+  - TARGET=shellcheck
+  - TARGET=markdownlint
 
 script:
 - ./hack/${TARGET}.sh
