@@ -48,6 +48,7 @@ packages:
         - libvirt-daemon-system
         - libssl-dev
         - netcat-traditional
+        - "ovmf=2024.02-2ubuntu0.5"
     pip3:
     - python-apt
     - kubernetes==25.3.0

@@ -1,17 +1,23 @@
 ---
 - name: Install required Ubuntu packages
   block:
-    - name: Update all packages to their latest version
+    - name: Enable Ubuntu noble-proposed repository
+      apt_repository:
+        repo: "deb http://archive.ubuntu.com/ubuntu/ noble-proposed main"
+        state: present
+        update_cache: yes
+
+    - name: Make sure required distro packages are present
       apt:
         name: "*"
-        state: latest
+        state: present
 
     # TODO: (Sunnatillo) Remove this task after fully removing apt-key
-    - name: Remove OS old repository (without gpg key file location) 
+    - name: Remove OS old repository (without gpg key file location)
       apt_repository:
         repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ OS_VERSION_ID }}/ /"
         state: absent
-    
+
     - name: Remove Ubuntu Noble old repository (without gpg key file location)
       apt_repository:
         repo: "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_{{ OS_VERSION_ID }}/ /"
@@ -37,7 +43,7 @@
     - name: Dearmor Release key
       shell: | 
         cat /usr/share/keyrings/libcontainers-archive-keyring.asc | sudo gpg --dearmor -o /usr/share/keyrings/libcontainers-archive-keyring.gpg --yes
-    
+
     - name: Add OS repository
       lineinfile:
         path: /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
