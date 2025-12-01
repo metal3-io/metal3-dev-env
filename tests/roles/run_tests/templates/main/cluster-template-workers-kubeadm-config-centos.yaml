@@ -1,5 +1,9 @@
 # CentOS specific worker kubeadm config
 preKubeadmCommands:
+{% if IP_STACK == "v6" %}
+  - sysctl -w net.ipv6.conf.all.forwarding=1
+  - sysctl -w net.ipv6.conf.default.forwarding=1
+{% endif %}
   - rm /etc/cni/net.d/*
   - systemctl restart NetworkManager.service
   - nmcli connection load /etc/NetworkManager/system-connections/{{ IRONIC_ENDPOINT_BRIDGE }}.nmconnection
@@ -57,6 +61,15 @@ files:
       [bridge]
       stp=false
 
+{% if IP_STACK == "v6" %}
+      [ipv4]
+      method=disabled
+
+      [ipv6]
+      address1={{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
+      addr-gen-mode=eui64
+      method=manual
+{% else %}
       [ipv4]
       address1={{ "{{ ds.meta_data.provisioningIP }}" }}/{{ "{{ ds.meta_data.provisioningCIDR }}" }}
       method=manual
@@ -64,6 +77,17 @@ files:
       [ipv6]
       addr-gen-mode=eui64
       method=ignore
+{% endif %}
+  - path: /etc/yum.repos.d/kubernetes.repo
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [kubernetes]
+      name=Kubernetes
+      baseurl=https://pkgs.k8s.io/core:/stable:/v1.34/rpm/
+      enabled=1
+      gpgcheck=1
+      gpgkey=https://pkgs.k8s.io/core:/stable:/v1.34/rpm/repodata/repomd.xml.key
   - path : /etc/containers/registries.conf
     owner: root:root
     permissions: '0644'
