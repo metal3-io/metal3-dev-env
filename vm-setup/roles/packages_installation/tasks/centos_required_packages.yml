@@ -32,4 +32,3 @@
     state: present
   become: yes
   when: CONTAINER_RUNTIME == "podman"
-

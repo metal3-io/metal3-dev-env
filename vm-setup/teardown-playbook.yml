@@ -4,14 +4,13 @@
   connection: local
   gather_facts: true
   tasks:
-    - import_role:
-        name: common
-    - import_role:
-        name: libvirt
-      vars:
-        libvirt_action: "teardown"
-    - import_role:
-        name: virtbmc
-      vars:
-        virtbmc_action: "teardown"
-
+  - import_role:
+      name: common
+  - import_role:
+      name: libvirt
+    vars:
+      libvirt_action: "teardown"
+  - import_role:
+      name: virtbmc
+    vars:
+      virtbmc_action: "teardown"

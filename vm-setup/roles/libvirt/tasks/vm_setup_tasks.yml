@@ -10,21 +10,21 @@
     mode: 0755
 
 - block:
-    - name: Detect virtualization if libvirt_domain_type is not provided
-      command: systemd-detect-virt
-      ignore_errors: true
-      become: true
-      register: virt_result
+  - name: Detect virtualization if libvirt_domain_type is not provided
+    command: systemd-detect-virt
+    ignore_errors: true
+    become: true
+    register: virt_result
 
-    - name: Default to qemu if inside a VM
-      set_fact:
-        libvirt_domain_type: qemu
-      when: virt_result is succeeded
+  - name: Default to qemu if inside a VM
+    set_fact:
+      libvirt_domain_type: qemu
+    when: virt_result is succeeded
 
-    - name: Default to kvm if a VM is not detected
-      set_fact:
-        libvirt_domain_type: kvm
-      when: virt_result is failed
+  - name: Default to kvm if a VM is not detected
+    set_fact:
+      libvirt_domain_type: kvm
+    when: virt_result is failed
   when: libvirt_domain_type is undefined
 
 - name: Check volume pool
@@ -59,8 +59,7 @@
 # In this case it is required to dump the xml and redefine the pool.
 - name: ensure tripleo-quickstart volume pool is defined
   shell: >
-    virsh pool-dumpxml {{ libvirt_volume_pool }} |
-    virsh pool-define /dev/stdin
+    virsh pool-dumpxml {{ libvirt_volume_pool }} | virsh pool-define /dev/stdin
   changed_when: true
   environment:
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
@@ -76,79 +75,77 @@
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
   block:
 
-    # Create libvirt volumes for the vm hosts.
-    - name: Check if vm volumes exist
-      command: >
-        virsh vol-info --pool '{{ libvirt_volume_pool }}' '{{ item.name }}.qcow2'
-      register: vm_vol_check
-      ignore_errors: true
-      with_items: "{{ vm_nodes }}"
+  # Create libvirt volumes for the vm hosts.
+  - name: Check if vm volumes exist
+    command: >
+      virsh vol-info --pool '{{ libvirt_volume_pool }}' '{{ item.name }}.qcow2'
+    register: vm_vol_check
+    ignore_errors: true
+    with_items: "{{ vm_nodes }}"
 
-    - name: Create vm vm storage
-      command: >
-        virsh vol-create-as '{{ libvirt_volume_pool }}'
-        '{{ item.item.name }}'.qcow2 '{{ flavors[item.item.flavor].disk }}'G
-        --format qcow2
-      when:
-        - item is failed
-      with_items: "{{ vm_vol_check.results }}"
+  - name: Create vm vm storage
+    command: >
+      virsh vol-create-as '{{ libvirt_volume_pool }}' '{{ item.item.name }}'.qcow2 '{{ flavors[item.item.flavor].disk }}'G --format qcow2
+    when:
+    - item is failed
+    with_items: "{{ vm_vol_check.results }}"
 
-    # Define (but do not start) the vm nodes.  These will be
-    # booted later by ironic during the provisioning process.
-    - name: Define vm vms
-      virt:
-        name: "{{ item.name }}"
-        command: define
-        xml: "{{ lookup('template', 'baremetalvm.xml.j2') }}"
-        uri: "{{ libvirt_uri }}"
-      with_items: "{{ vm_nodes }}"
+  # Define (but do not start) the vm nodes.  These will be
+  # booted later by ironic during the provisioning process.
+  - name: Define vm vms
+    virt:
+      name: "{{ item.name }}"
+      command: define
+      xml: "{{ lookup('template', 'baremetalvm.xml.j2') }}"
+      uri: "{{ libvirt_uri }}"
+    with_items: "{{ vm_nodes }}"
 
-    # Create additional blockdevices for each objectstorage flavor node
-    # These are sparse files, not using space if unused
-    - name: Create additional blockdevice for objectstorage nodes
-      command: >
-        dd if=/dev/zero of={{ libvirt_volume_path }}/{{ item[0].name }}_{{ item[1] }}.img bs=1 count=0 seek={{ extradisks_size }}
-      when: flavors[item[0].flavor].extradisks|default(false)|bool
-      with_nested:
-        - "{{ vm_nodes }}"
-        - "{{ extradisks_list }}"
+  # Create additional blockdevices for each objectstorage flavor node
+  # These are sparse files, not using space if unused
+  - name: Create additional blockdevice for objectstorage nodes
+    command: >
+      dd if=/dev/zero of={{ libvirt_volume_path }}/{{ item[0].name }}_{{ item[1] }}.img bs=1 count=0 seek={{ extradisks_size }}
+    when: flavors[item[0].flavor].extradisks|default(false)|bool
+    with_nested:
+    - "{{ vm_nodes }}"
+    - "{{ extradisks_list }}"
 
-    - name: Check if additional blockdevices are attached
-      command: >
-        virsh domblkinfo {{ item[0].name }} {{ libvirt_volume_path }}/{{ item[0].name }}_{{ item[1] }}.img
-      when: flavors[item[0].flavor].extradisks|default(false)|bool
-      changed_when: false
-      ignore_errors: true
-      register: vm_extradisks_check
-      with_nested:
-        - "{{ vm_nodes }}"
-        - "{{ extradisks_list }}"
+  - name: Check if additional blockdevices are attached
+    command: >
+      virsh domblkinfo {{ item[0].name }} {{ libvirt_volume_path }}/{{ item[0].name }}_{{ item[1] }}.img
+    when: flavors[item[0].flavor].extradisks|default(false)|bool
+    changed_when: false
+    ignore_errors: true
+    register: vm_extradisks_check
+    with_nested:
+    - "{{ vm_nodes }}"
+    - "{{ extradisks_list }}"
 
-    - name: Attach additional blockdevices to vm objectstorage VMs
-      command: >
-        virsh attach-disk --config {{ item.item[0].name }} {{ libvirt_volume_path }}/{{ item.item[0].name }}_{{ item.item[1] }}.img {{ item.item[1] }}
-      when: item is failed
-      with_items: "{{ vm_extradisks_check.results }}"
+  - name: Attach additional blockdevices to vm objectstorage VMs
+    command: >
+      virsh attach-disk --config {{ item.item[0].name }} {{ libvirt_volume_path }}/{{ item.item[0].name }}_{{ item.item[1] }}.img {{ item.item[1] }}
+    when: item is failed
+    with_items: "{{ vm_extradisks_check.results }}"
 
-    # Get the uuid of VMs for setting system-id in redfish URL
-    - name: Get vm uuid
-      command: >
-        virsh domuuid "{{ item.name }}"
-      register: vm_uuid
-      with_items: "{{ vm_nodes }}"
+  # Get the uuid of VMs for setting system-id in redfish URL
+  - name: Get vm uuid
+    command: >
+      virsh domuuid "{{ item.name }}"
+    register: vm_uuid
+    with_items: "{{ vm_nodes }}"
 
-    - name: set_fact
-      set_fact:
-        vm_id: "{{ vm_id|default({}) | combine ( {item.item.name: item.stdout} ) }}"
-      with_items: "{{ vm_uuid.results }}"
+  - name: set_fact
+    set_fact:
+      vm_id: "{{ vm_id|default({}) | combine ( {item.item.name: item.stdout} ) }}"
+    with_items: "{{ vm_uuid.results }}"
 
-    - name: set_fact BMC Driver
-      set_fact:
-        vm_driver: "{{ lookup('env', 'BMC_DRIVER') | default('mixed', true) }}"
+  - name: set_fact BMC Driver
+    set_fact:
+      vm_driver: "{{ lookup('env', 'BMC_DRIVER') | default('mixed', true) }}"
 
-    # Generate the ironic node inventory files.  Note that this
-    # task *must* occur after the above vm tasks, because if
-    # `vm_nodes` is defined the template depends on the
-    # `node_mac_map` variable.
-    - name: Write ironic node json files
-      include_tasks: ../../common/tasks/write_ironic_nodes_tasks.yml
+  # Generate the ironic node inventory files.  Note that this
+  # task *must* occur after the above vm tasks, because if
+  # `vm_nodes` is defined the template depends on the
+  # `node_mac_map` variable.
+  - name: Write ironic node json files
+    include_tasks: ../../common/tasks/write_ironic_nodes_tasks.yml

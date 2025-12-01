@@ -6,5 +6,5 @@
   become: yes
   become_user: "{{ lookup('env', 'USER') }}"
   tasks:
-    - import_role:
-        name: "run_tests"
+  - import_role:
+      name: "run_tests"

@@ -5,16 +5,16 @@
     path: "{{ item }}"
     state: absent
   with_items:
-    # From old systemd virtualbmc service
-    - "/etc/virtualbmc"
-    - "/var/log/virtualbmc"
-    - "/root/.vbmc/"
-    # Containerized version working dir
-    - "{{ working_dir }}/virtualbmc"
+  # From old systemd virtualbmc service
+  - "/etc/virtualbmc"
+  - "/var/log/virtualbmc"
+  - "/root/.vbmc/"
+  # Containerized version working dir
+  - "{{ working_dir }}/virtualbmc"
   become: true
 
 - name: Stop/disable the Virtual BMCs (virtualbmc >= 1.4.0+) on Ubuntu
   when:
-    - ansible_distribution == 'Ubuntu' 
+  - ansible_distribution == 'Ubuntu'
   shell: pkill vbmcd || true
   become: true

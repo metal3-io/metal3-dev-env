@@ -5,10 +5,7 @@
 - set_fact:
     vm_nodes_index: "{{vm_nodes_index|default(0)|int}}"
 - set_fact:
-    vm_nodes: "{{vm_nodes + [
-                 {'name': ironic_prefix + '%s_%s'|format(flavor.key, item),
-                  'flavor': flavor.key,
-                  'virtualbmc_port': virtualbmc_base_port|int+vm_nodes_index|int+item} ]}}"
+    vm_nodes: "{{vm_nodes + [ {'name': ironic_prefix + '%s_%s'|format(flavor.key, item), 'flavor': flavor.key, 'virtualbmc_port': virtualbmc_base_port|int+vm_nodes_index|int+item} ]}}"
   loop: "{{ range(0, lookup('vars', 'num_' + flavor.key + 's')|int)|list }}"
 - set_fact:
     vm_nodes_index: "{{vm_nodes_index|int + lookup('vars', 'num_' + flavor.key + 's')|int }}"

@@ -19,33 +19,33 @@ sushy_port: 8000
 cluster_api_port: "{{ lookup('env', 'CLUSTER_APIENDPOINT_PORT') | default('6443', true) }}"
 firewall_rule_state: present
 ironic_ports:
-  - "{{ http_port }}"
-  - "443"
-  - "{{ ironic_inspector_port }}"
-  - "{{ ironic_api_port }}"
-  - "9999"
-  - "80"
+- "{{ http_port }}"
+- "443"
+- "{{ ironic_inspector_port }}"
+- "{{ ironic_api_port }}"
+- "9999"
+- "80"
 vm_host_ports:
-  # Caching HTTP Server
-  - "80"
-  # Container image registry
-  - "{{ registry_port }}"
-  # DNS for registry naming resolution
-  - "53"
-  - "443"
+# Caching HTTP Server
+- "80"
+# Container image registry
+- "{{ registry_port }}"
+# DNS for registry naming resolution
+- "53"
+- "443"
 pxe_udp_ports:
-  # Multicast DNS
-  - "5353"
-  # DHCP
-  - "67"
-  - "68"
-  # DHCPv6
-  - "546"
-  - "547"
-  # TFTP
-  - "69"
+# Multicast DNS
+- "5353"
+# DHCP
+- "67"
+- "68"
+# DHCPv6
+- "546"
+- "547"
+# TFTP
+- "69"
 ironic_keepalived_proto:
-  - "112"
-  - "icmp"
+- "112"
+- "icmp"
 
 BOOTSTRAP_CLUSTER: "{{ lookup('env', 'BOOTSTRAP_CLUSTER') | default('kind', true)}}"

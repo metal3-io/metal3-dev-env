@@ -1,47 +1,42 @@
 ---
-  - name: Get BMH facts
-    k8s_info:
-      api_version: metal3.io/v1alpha1
-      kind: BareMetalHost
-      namespace: "{{ NAMESPACE }}"
-    register: bmhs # A list of BMHs
+- name: Get BMH facts
+  k8s_info:
+    api_version: metal3.io/v1alpha1
+    kind: BareMetalHost
+    namespace: "{{ NAMESPACE }}"
+  register: bmhs # A list of BMHs
 
-  - name: Set fact for NIC names for the first BMH found
-    set_fact:
-      # We assume that the NIC names for different nodes are the same.
-      bmh_nic_names: "{{ bmhs['resources'] | first | bmh_nic_names }}"
+- name: Set fact for NIC names for the first BMH found
+  set_fact:
+    # We assume that the NIC names for different nodes are the same.
+    bmh_nic_names: "{{ bmhs['resources'] | first | bmh_nic_names }}"
 
-  - name: Create a temporary manifest directory if it does not exist
-    file:
-      path: "{{ TEMP_GEN_DIR }}"
-      state: directory
-      mode: '0755'
+- name: Create a temporary manifest directory if it does not exist
+  file:
+    path: "{{ TEMP_GEN_DIR }}"
+    state: directory
+    mode: '0755'
 
-  - name: Deploy clusterctl variables to clusterctl config
-    ansible.builtin.blockinfile:
-      block: "{{lookup('ansible.builtin.template', '{{ CRS_PATH }}/{{ CAPM3RELEASEBRANCH }}/clusterctl-vars.yaml')}}"
-      path: "{{ CAPI_CONFIG_DIR }}/clusterctl.yaml"
-      create: yes
-      state: present
+- name: Deploy clusterctl variables to clusterctl config
+  ansible.builtin.blockinfile:
+    block: "{{lookup('ansible.builtin.template', '{{ CRS_PATH }}/{{ CAPM3RELEASEBRANCH }}/clusterctl-vars.yaml')}}"
+    path: "{{ CAPI_CONFIG_DIR }}/clusterctl.yaml"
+    create: yes
+    state: present
 
-  - name: Generate clusterctl cluster template
-    template:
-      src: "{{ CRS_PATH }}/{{ CAPM3RELEASEBRANCH }}/cluster-template-{{ item }}.yaml"
-      dest: "{{CAPI_CONFIG_DIR }}/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml"
-    with_items:
-      - cluster
-      - controlplane
-      - workers
+- name: Generate clusterctl cluster template
+  template:
+    src: "{{ CRS_PATH }}/{{ CAPM3RELEASEBRANCH }}/cluster-template-{{ item }}.yaml"
+    dest: "{{CAPI_CONFIG_DIR }}/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml"
+  with_items:
+  - cluster
+  - controlplane
+  - workers
 
-  - name: Generate templates
-    shell: >
-      clusterctl generate cluster {{ CLUSTER_NAME }}
-      --from {{CAPI_CONFIG_DIR }}/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml
-      --kubernetes-version {{ KUBERNETES_VERSION }}
-      --control-plane-machine-count={{ CONTROL_PLANE_MACHINE_COUNT }}
-      --worker-machine-count={{ WORKER_MACHINE_COUNT }}
-      --target-namespace={{ NAMESPACE }} > {{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_{{ item }}_{{ IMAGE_OS }}.yaml
-    with_items:
-      - cluster
-      - controlplane
-      - workers
+- name: Generate templates
+  shell: >
+    clusterctl generate cluster {{ CLUSTER_NAME }} --from {{CAPI_CONFIG_DIR }}/overrides/infrastructure-metal3/{{ CAPM3RELEASE }}/cluster-template-{{ item }}.yaml --kubernetes-version {{ KUBERNETES_VERSION }} --control-plane-machine-count={{ CONTROL_PLANE_MACHINE_COUNT }} --worker-machine-count={{ WORKER_MACHINE_COUNT }} --target-namespace={{ NAMESPACE }} > {{ TEMP_GEN_DIR }}/{{ CAPM3_VERSION }}_{{ item }}_{{ IMAGE_OS }}.yaml
+  with_items:
+  - cluster
+  - controlplane
+  - workers

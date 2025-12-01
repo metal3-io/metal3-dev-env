@@ -78,39 +78,38 @@
 - when: not net_autostart.changed
   block:
 
-    - name: Check if "virsh net-autostart" was successful
-      debug: msg="Some libvirt networks were not set to autostart. Please see
-             https://bugs.launchpad.net/tripleo-quickstart/+bug/1581676"
+  - name: Check if "virsh net-autostart" was successful
+    debug: msg="Some libvirt networks were not set to autostart. Please see https://bugs.launchpad.net/tripleo-quickstart/+bug/1581676"
 
-    # get the network xml from the running network
-    - name: Get libvirt networks xml
-      virt_net:
-        command: get_xml
-        name: "{{ item.name }}"
-      with_items: "{{ networks }}"
-      register: net_xml
-      become: true
+  # get the network xml from the running network
+  - name: Get libvirt networks xml
+    virt_net:
+      command: get_xml
+      name: "{{ item.name }}"
+    with_items: "{{ networks }}"
+    register: net_xml
+    become: true
 
-    # copy the xml to a file
-    - name: copy network-xml to file
-      copy: content={{ item.get_xml }} dest=/tmp/network-{{ item.item.name }}.xml
-      with_items: "{{ net_xml.results }}"
-      become: true
+  # copy the xml to a file
+  - name: copy network-xml to file
+    copy: content={{ item.get_xml }} dest=/tmp/network-{{ item.item.name }}.xml
+    with_items: "{{ net_xml.results }}"
+    become: true
 
-    # redefine the network w/ virsh, this will write the xml file to
-    # /etc/libvirt/qemu/networks/ and it will no longer be transient
-    - name: redefine the libvirt networks so the config is written to /etc/libvirt
-      command: virsh net-define /tmp/network-{{ item.name }}.xml
-      with_items: "{{ networks }}"
-      become: true
+  # redefine the network w/ virsh, this will write the xml file to
+  # /etc/libvirt/qemu/networks/ and it will no longer be transient
+  - name: redefine the libvirt networks so the config is written to /etc/libvirt
+    command: virsh net-define /tmp/network-{{ item.name }}.xml
+    with_items: "{{ networks }}"
+    become: true
 
-    # Now we're ready to mark the network autostart
-    - name: Mark libvirt networks as autostarted
-      virt_net:
-        name: "{{ item.name }}"
-        autostart: "yes"
-      with_items: "{{ networks }}"
-      become: true
+  # Now we're ready to mark the network autostart
+  - name: Mark libvirt networks as autostarted
+    virt_net:
+      name: "{{ item.name }}"
+      autostart: "yes"
+    with_items: "{{ networks }}"
+    become: true
 
 # Whitelist the bridges associated with these networks for
 # access using qemu [helper networking][helper].  Later on we
@@ -124,7 +123,7 @@
     line: "allow {{ item.bridge }}"
   with_items: "{{ networks }}"
   when:
-    - ansible_os_family == "RedHat"
+  - ansible_os_family == "RedHat"
   become: true
 
 - name: Whitelist bridges for unprivileged access on Ubuntu or Fedora
@@ -134,7 +133,7 @@
     create: yes
   with_items: "{{ networks }}"
   when:
-    - ansible_facts['distribution'] == "Ubuntu"
+  - ansible_facts['distribution'] == "Ubuntu"
   become: true
 
 # We're going to want to store things in `working_dir` so ensure it

@@ -1,48 +1,48 @@
-  - name: Reboot "{{ BMH_NODE }}"
-    k8s:
-      state: present
-      namespace: "{{ NAMESPACE }}"
-      definition:
-        apiVersion: metal3.io/v1alpha1
-        kind: BareMetalHost
-        metadata:
-          name: "{{ BMH_NODE }}"
-          annotations:
-            reboot.metal3.io: ""
+- name: Reboot "{{ BMH_NODE }}"
+  k8s:
+    state: present
+    namespace: "{{ NAMESPACE }}"
+    definition:
+      apiVersion: metal3.io/v1alpha1
+      kind: BareMetalHost
+      metadata:
+        name: "{{ BMH_NODE }}"
+        annotations:
+          reboot.metal3.io: ""
 
-  - name: Wait for "{{ LIBVIRT_VM }}" virtual machine to go into shutdown state
-    virt:
-      command: list_vms
-      state: shutdown
-    register: shutdown_vms
-    retries: 170
-    delay: 3
-    until: LIBVIRT_VM in shutdown_vms.list_vms
-    become: yes
-    become_user: root
+- name: Wait for "{{ LIBVIRT_VM }}" virtual machine to go into shutdown state
+  virt:
+    command: list_vms
+    state: shutdown
+  register: shutdown_vms
+  retries: 170
+  delay: 3
+  until: LIBVIRT_VM in shutdown_vms.list_vms
+  become: yes
+  become_user: root
 
-  - name: Wait for "{{ LIBVIRT_VM }}" virtual machine to go into running state
-    virt:
-      command: list_vms
-      state: running
-    register: running_vms
-    retries: 170
-    delay: 3
-    until: LIBVIRT_VM in running_vms.list_vms
-    become: yes
-    become_user: root
+- name: Wait for "{{ LIBVIRT_VM }}" virtual machine to go into running state
+  virt:
+    command: list_vms
+    state: running
+  register: running_vms
+  retries: 170
+  delay: 3
+  until: LIBVIRT_VM in running_vms.list_vms
+  become: yes
+  become_user: root
 
-  - name: Wait until rebooted worker "{{ K8S_NODE }}" becomes Ready
-    k8s_info:
-      api_version: v1
-      kind: nodes
-      name: "{{ K8S_NODE }}"
-      kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
-    register: nodes
-    retries: 150
-    delay: 3
-    vars:
-      q: "[? metadata.name == '{{K8S_NODE}}' && status.conditions[? type=='Ready' && status=='True']]"
-    until:
-      - nodes is succeeded
-      - nodes.resources | json_query(q) | length > 0
+- name: Wait until rebooted worker "{{ K8S_NODE }}" becomes Ready
+  k8s_info:
+    api_version: v1
+    kind: nodes
+    name: "{{ K8S_NODE }}"
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  register: nodes
+  retries: 150
+  delay: 3
+  vars:
+    q: "[? metadata.name == '{{K8S_NODE}}' && status.conditions[? type=='Ready' && status=='True']]"
+  until:
+  - nodes is succeeded
+  - nodes.resources | json_query(q) | length > 0

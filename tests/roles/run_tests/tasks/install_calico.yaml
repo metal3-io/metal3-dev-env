@@ -29,9 +29,9 @@
     path: /tmp/calico.yaml
     insertafter: "{{ POD_CIDR }}"
     block: |
-        # for indentation
-                    - name: IP_AUTODETECTION_METHOD
-                      value: "cidr={{ EXTERNAL_SUBNET_V4_HOST }}/{{ EXTERNAL_SUBNET_V4_PREFIX }}"
+      # for indentation
+                  - name: IP_AUTODETECTION_METHOD
+                    value: "cidr={{ EXTERNAL_SUBNET_V4_HOST }}/{{ EXTERNAL_SUBNET_V4_PREFIX }}"
 
 - name: Apply Calico manifest
   kubernetes.core.k8s:
@@ -47,9 +47,8 @@
     namespace: kube-system
     kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
     field_selectors:
-      - status.phase!=Running
+    - status.phase!=Running
   retries: 60
   delay: 10
   register: calico_pods
-  until: (calico_pods is succeeded) and
-          (calico_pods.resources | length == 0)
+  until: (calico_pods is succeeded) and (calico_pods.resources | length == 0)

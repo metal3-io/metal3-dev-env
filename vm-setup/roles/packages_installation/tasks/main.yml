@@ -1,99 +1,99 @@
 - name: Install packages on Ubuntu
   block:
-    - name: Install required packages for Ubuntu
-      include_tasks: ubuntu_required_packages.yml
-    - name: Install common packages using standard package manager for Ubuntu
-      package:
-        name: "{{ packages.ubuntu.common.packages}}"
-        state: present
-    - name: Install packages using standard package manager for Ubuntu 20.04 or Ubuntu 22.04
-      when: ansible_distribution_version == "20.04" or ansible_distribution_version == "22.04"
-      package:
-        name: "{{ packages.ubuntu.focal_jammy.packages}}"
+  - name: Install required packages for Ubuntu
+    include_tasks: ubuntu_required_packages.yml
+  - name: Install common packages using standard package manager for Ubuntu
+    package:
+      name: "{{ packages.ubuntu.common.packages}}"
+      state: present
+  - name: Install packages using standard package manager for Ubuntu 20.04 or Ubuntu 22.04
+    when: ansible_distribution_version == "20.04" or ansible_distribution_version == "22.04"
+    package:
+      name: "{{ packages.ubuntu.focal_jammy.packages}}"
+      state: present
+    become: yes
+  - name: Install packages using standard package manager for Ubuntu 24.04
+    when: ansible_distribution_version == "24.04"
+    package:
+      name: "{{ packages.ubuntu.noble.packages}}"
+      state: present
+    become: yes
+  - name: Install packages specific to Podman
+    package:
+      name: "{{ packages.ubuntu.podman.packages}}"
+      state: present
+    when: CONTAINER_RUNTIME == "podman"
+    become: yes
+  - name: Install packages using pip3
+    pip:
+      executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
+      name: "{{ packages.ubuntu.pip3 }}"
+      state: present
+    when: ansible_distribution_version != "24.04"
+  - name: Install packages using pip3 on Ubuntu Noble
+    pip:
+      break_system_packages: true
+      executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
+      name: "{{ packages.ubuntu.pip3 }}"
+      state: present
+    when: ansible_distribution_version == "24.04"
+  - name: Add TPM emulator
+    block:
+    - name: Add TPM emulator PPA
+      apt_repository:
+        repo: 'ppa:smoser/swtpm'
         state: present
       become: yes
-    - name: Install packages using standard package manager for Ubuntu 24.04
-      when: ansible_distribution_version == "24.04"
+    - name: Install TPM emulator packages
       package:
-        name: "{{ packages.ubuntu.noble.packages}}"
+        name:
+        - swtpm
+        - libtpms
         state: present
       become: yes
-    - name: Install packages specific to Podman
-      package:
-        name: "{{ packages.ubuntu.podman.packages}}"
-        state: present
-      when: CONTAINER_RUNTIME == "podman"
-      become: yes
-    - name: Install packages using pip3
-      pip:
-        executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
-        name: "{{ packages.ubuntu.pip3 }}"
-        state: present
-      when: ansible_distribution_version != "24.04"
-    - name: Install packages using pip3 on Ubuntu Noble
-      pip:
-        break_system_packages: true
-        executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
-        name: "{{ packages.ubuntu.pip3 }}"
-        state: present
-      when: ansible_distribution_version == "24.04" 
-    - name: Add TPM emulator
-      block:
-        - name: Add TPM emulator PPA
-          apt_repository:
-            repo: 'ppa:smoser/swtpm'
-            state: present
-          become: yes
-        - name: Install TPM emulator packages
-          package:
-            name:
-              - swtpm
-              - libtpms
-            state: present
-          become: yes
-      when: tpm_emulator|default(false)|bool
+    when: tpm_emulator|default(false)|bool
   become: yes
   when: ansible_facts['distribution'] == "Ubuntu"
 
 - name: Install packages on CentOS/RHEL
   block:
-    - name: Install packages on CentOS/RHEL
-      package:
-          name: "{{ packages.centos.common.packages }}"
-          state: present
-          nobest: true
-    - name: Install packages using pip3
-      pip:
-        executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
-        name: "{{ packages.centos.pip3 }}"
-        state: present
-    - name: Perform CentOS/RHEL required configurations
-      include_tasks: centos_required_packages.yml
-    - name: Install TPM emulator packages
-      when: tpm_emulator|default(false)|bool
-      package:
-        name:
-          - swtpm
-          - swtpm-tools
-        state: present
-      become: yes
+  - name: Install packages on CentOS/RHEL
+    package:
+      name: "{{ packages.centos.common.packages }}"
+      state: present
+      nobest: true
+  - name: Install packages using pip3
+    pip:
+      executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
+      name: "{{ packages.centos.pip3 }}"
+      state: present
+  - name: Perform CentOS/RHEL required configurations
+    include_tasks: centos_required_packages.yml
+  - name: Install TPM emulator packages
+    when: tpm_emulator|default(false)|bool
+    package:
+      name:
+      - swtpm
+      - swtpm-tools
+      state: present
+    become: yes
   become: yes
   when: ansible_os_family == "RedHat"
 
 - name: Install packages on openSUSE Leap 15 SP6
   block:
-    - name: Install packages on openSUSE Leap 15
-      package:
-        name: "{{ packages.suse.common.packages }}"
-        state: present
+  - name: Install packages on openSUSE Leap 15
+    package:
+      name: "{{ packages.suse.common.packages }}"
+      state: present
 
-    - name: Install packages using pip3
-      pip:
-        virtualenv: "{{ ANSIBLE_VENV }}"
-        name: "{{ packages.suse.pip3 }}"
-        state: present
+  - name: Install packages using pip3
+    pip:
+      virtualenv: "{{ ANSIBLE_VENV }}"
+      name: "{{ packages.suse.pip3 }}"
+      state: present
 
-    - name: Perform Suse required configurations
-      include_tasks: suse_required_packages.yml
+  - name: Perform Suse required configurations
+    include_tasks: suse_required_packages.yml
   become: yes
   when: ansible_os_family == "Suse"
