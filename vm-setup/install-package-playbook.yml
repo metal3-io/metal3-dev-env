@@ -8,7 +8,8 @@
   - import_role:
       name: fubarhouse.golang
     vars:
-      go_version: 1.24.3
+      go_version: 1.24.10
       go_install_clean: true
+      go_custom_mirror: https://go.dev/dl/
       GOOS: linux
       GOARCH: amd64
