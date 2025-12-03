@@ -97,3 +97,55 @@
     include_tasks: suse_required_packages.yml
   become: yes
   when: ansible_os_family == "Suse"
+
+- name: Install Go from official source
+  block:
+  - name: Check if Go is already installed
+    command: /usr/local/go/bin/go version
+    ignore_errors: true
+    register: go_version_result
+    changed_when: false
+
+  - name: Remove current installation
+    file:
+      state: absent
+      path: /usr/local/go
+    when:
+    - go_version_result is succeeded
+    - go_version not in go_version_result.stdout
+
+  - name: Ensure /usr/local/src directory exists
+    ansible.builtin.file:
+      path: /usr/local/src
+      state: directory
+      mode: '0755'
+
+  - name: Download Go tarball from official source
+    get_url:
+      url: "{{ go_download_url }}"
+      dest: /usr/local/src/{{ go_tarball }}
+      checksum: "sha256:{{ go_checksum }}"
+    when: go_version_result is failed or go_version not in go_version_result.stdout
+
+  - name: Extract Go tarball
+    unarchive:
+      src: /usr/local/src/{{ go_tarball }}
+      dest: /usr/local
+      remote_src: yes
+    when: go_version_result is failed or go_version not in go_version_result.stdout
+
+  - name: Add Go to system-wide $PATH
+    copy:
+      dest: /etc/profile.d/go-path.sh
+      content: |
+        export PATH=$PATH:/usr/local/go/bin
+      mode: '0644'
+
+  - name: Verify Go installation
+    command: /usr/local/go/bin/go version
+    register: go_version_output
+    changed_when: false
+
+  - name: Display Go version
+    debug:
+      msg: "{{ go_version_output.stdout }}"
