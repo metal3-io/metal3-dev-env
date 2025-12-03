@@ -849,6 +849,7 @@ else
     kubectl delete validatingwebhookconfiguration/"${BMO_NAME_PREFIX}"-validating-webhook-configuration --ignore-not-found=true
 fi
 
+
 # Tests might want to apply bmh inside the test scipt
 # then dev-env will create the bmh files but do not apply them
 if [[ "${SKIP_APPLY_BMH:-false}" = "true" ]]; then
