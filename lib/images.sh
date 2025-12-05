@@ -5,7 +5,7 @@ IMAGE_OS="$(echo "${IMAGE_OS:-centos}" | tr '[:upper:]' '[:lower:]')"
 export "${IMAGE_OS?}"
 if [[ "${IMAGE_OS}" == "ubuntu" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-UBUNTU_24.04_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/metal3/images/k8s_${KUBERNETES_VERSION}}
+  export IMAGE_LOCATION=${IMAGE_LOCATION:-http://10.20.0.4/}
 elif [[ "${IMAGE_OS}" == "FCOS" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-fedora-coreos-32.20200923.2.0-openstack.x86_64.qcow2.xz}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://builds.coreos.fedoraproject.org/prod/streams/testing/builds/32.20200923.2.0/x86_64}
@@ -14,7 +14,7 @@ elif [[ "${IMAGE_OS}" == "FCOS-ISO" ]]; then
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://builds.coreos.fedoraproject.org/prod/streams/testing/builds/33.20201201.2.1/x86_64}
 elif [[ "${IMAGE_OS}" == "centos" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-CENTOS_10_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2}
-  export IMAGE_LOCATION=${IMAGE_LOCATION:-https://artifactory.nordix.org/artifactory/metal3/images/k8s_${KUBERNETES_VERSION}}
+  export IMAGE_LOCATION=${IMAGE_LOCATION:-http://10.20.0.4/}
 elif [[ "${IMAGE_OS}" == "flatcar" ]]; then
   export IMAGE_NAME=${IMAGE_NAME:-flatcar_production_qemu_image.img.bz2}
   export IMAGE_LOCATION=${IMAGE_LOCATION:-https://stable.release.flatcar-linux.net/amd64-usr/current/}
