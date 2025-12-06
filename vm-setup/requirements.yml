@@ -2,6 +2,6 @@ collections:
 - name: kubernetes.core
   version: 6.2.0
 - name: ansible.netcommon
-  version: 7.2.0
+  version: 8.2.0
 - name: ansible.utils
   version: 5.1.2
