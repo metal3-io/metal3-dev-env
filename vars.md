@@ -7,7 +7,7 @@ recommended modifying or adding variables in `config_${user}.sh` config
 file instead of exporting them in the shell. By doing that, it is
 assured that they are persisted.
 
-<!-- markdownlint-disable MD013 MD034 -->
+<!-- markdownlint-disable MD034 -->
 
 | Name | Option | Allowed values | Default |
 | :------ | :------- | :--------------- | :-------- |
@@ -143,7 +143,7 @@ assured that they are persisted.
 | IRSOREPO | Ironic Standalone Operator git repository URL | | https://github.com/metal3-io/ironic-standalone-operator.git |
 | IRSOBRANCH | Ironic Standalone Operator git repository branch to checkout | | main |
 | IRSOCOMMIT | Ironic Standalone Operator git commit to checkout on IRSOBRANCH | | HEAD |
-<!-- markdownlint-enable MD013 MD034 -->
+<!-- markdownlint-enable MD034 -->
 
 **NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the
 `BRANCH` variables so make sure that RELEASE and BRANCH variables are
