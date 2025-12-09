@@ -64,7 +64,7 @@
       }],
       "properties": {
         "local_gb": "{{ flavors[node.flavor].disk }}",
-        "cpu_arch": "{{ libvirt_arch }}"
+        "cpu_arch": "{{ flavors[node.flavor].architecture }}"
       }
     }
     {% if not loop.last %}

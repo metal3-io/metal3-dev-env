@@ -21,6 +21,7 @@ flavors:
     disk: '{{node_disk|default(default_disk)}}'
     vcpu: '{{node_vcpu|default(default_vcpu)}}'
     extradisks: '{{extradisks|bool}}'
+    architecture: '{{ libvirt_arch }}'
 
 # An optional prefix for node names
 ironic_prefix: ""
