@@ -107,7 +107,7 @@
     virt:
       name: "{{ item.name }}"
       command: define
-      xml: "{{ lookup('template', 'baremetalvm.xml.j2') }}"
+      xml: "{{ lookup('template', baremetal_vm_template | default('baremetalvm.xml.j2')) }}"
       uri: "{{ libvirt_uri }}"
     with_items: "{{ vm_nodes }}"
 
