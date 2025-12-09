@@ -42,7 +42,6 @@ kubectl --kubeconfig=hosted-kubeconfig.yaml get nodes
 
 Example commands:
 
-<!-- markdownlint-disable MD013 -->
 ```console
 ❯ kubectl --kubeconfig=kubeconfig.yaml get nodes
 NAME        STATUS   ROLES           AGE   VERSION
@@ -70,7 +69,6 @@ kube-system   coredns-796d84c46b-2wd44                   1/1     Running   0    
 kube-system   coredns-796d84c46b-qstbs                   1/1     Running   0          79m
 kube-system   kube-proxy-6rx9p                           1/1     Running   0          62m
 ```
-<!-- markdownlint-enable MD013 -->
 
 ## Cleanup
 
