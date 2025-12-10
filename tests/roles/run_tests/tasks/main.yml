@@ -25,6 +25,12 @@
   changed_when: "'configured' in kubectl_apply_workers.stdout"
   when: v1aX_integration_test_action in provision_workers_actions
 
+# Force BMO to reconcile all BMHs to avoid cache race conditions
+# where the controller's cached view becomes stale after resource creation
+- name: Force reconcile on BMHs after provisioning
+  include_tasks: force_reconcile_bmh.yml
+  when: v1aX_integration_test_action in provision_workers_actions or v1aX_integration_test_action in provision_controlplane_actions
+
 - name: verify deployment
   include_tasks: verify.yml
   when: v1aX_integration_test_action in verify_actions

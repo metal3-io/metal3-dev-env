@@ -1,0 +1,30 @@
+---
+# Force BMO controller to reconcile all BMHs by adding/updating an annotation.
+# This helps avoid cache race conditions where the controller's cached view
+# becomes stale after resource creation/modification.
+
+- name: Get all BMH names in namespace
+  kubernetes.core.k8s_info:
+    api_version: metal3.io/v1alpha1
+    kind: BareMetalHost
+    namespace: "{{ NAMESPACE }}"
+    kubeconfig: "{{ kubeconfig | default(HOME + '/.kube/config') }}"
+  register: bmh_list
+
+- name: Force reconcile on all BMHs via annotation update
+  shell: |
+    kubectl annotate bmh "{{ item.metadata.name }}" \
+      -n "{{ NAMESPACE }}" \
+      --kubeconfig "{{ kubeconfig | default(HOME + '/.kube/config') }}" \
+      --overwrite \
+      metal3.io/force-reconcile="{{ ansible_date_time.iso8601_micro }}"
+  loop: "{{ bmh_list.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"
+  when: bmh_list.resources | length > 0
+  ignore_errors: yes
+
+- name: Wait for controller cache to sync
+  pause:
+    seconds: 5
+  when: bmh_list.resources | length > 0

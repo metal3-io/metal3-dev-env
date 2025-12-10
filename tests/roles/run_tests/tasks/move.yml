@@ -189,6 +189,12 @@
     state: absent
     namespace: "{{ IRONIC_NAMESPACE }}"
 
+# Force BMO to reconcile all BMHs after pivot to avoid cache race conditions
+- name: Force reconcile on BMHs after pivot
+  include_tasks: force_reconcile_bmh.yml
+  vars:
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
 - name: Verify that all machines are provisioned and running.
   include_tasks: verify_resources_states.yml
   vars:
