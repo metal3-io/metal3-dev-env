@@ -1,0 +1,27 @@
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+## main branch config starts here
+- package-ecosystem: "github-actions"
+  directory: "/" # Location of package manifests
+  schedule:
+    interval: "monthly"
+    day: "thursday"
+    time: "03:00" # 3am utc
+  target-branch: main
+  ## group all action bumps into single PR
+  groups:
+    github-actions:
+      patterns: ["*"]
+  ignore:
+  # Ignore major bumps in main, as it breaks the group bump process
+  - dependency-name: "*"
+    update-types: ["version-update:semver-major"]
+  commit-message:
+    prefix: ":seedling:"
+  labels:
+  - "ok-to-test"
+
+## main branch config ends here
