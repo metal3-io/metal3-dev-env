@@ -1,46 +1,93 @@
 {
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
   "enabled": true,
-  "baseBranches": [
+  "baseBranchPatterns": [
     "main"
   ],
+  "enabledManagers": [
+    "custom.regex",
+    "github-actions"
+  ],
+  "prCreation": "immediate",
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "labels": [
+    "ok-to-test"
+  ],
+  "semanticCommits": "disabled",
   "packageRules": [
     {
-      "depTypeList": [
+      "matchBaseBranches": [
+        "main"
+      ],
+      "description": "run before 6am on Mondays",
+      "schedule": [
+        "* 0-5 * * 1"
+      ]
+    },
+    {
+      "matchDepTypes": [
         "devDependencies"
       ],
       "matchUpdateTypes": [
-        "minor"
+        "minor",
+        "patch"
       ],
       "automerge": false
     },
     {
-      "datasources": [
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "GitHub Actions",
+      "automerge": false,
+      "schedule": [
+        "* 3 * * 4"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ]
+    },
+    {
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDatasources": [
         "docker"
       ],
-      "packageNames": [
+      "matchPackageNames": [
         "kindest/node"
       ],
       "automerge": false,
       "commitMessageTopic": "kindest/node"
     },
     {
-      "datasources": [
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDatasources": [
         "docker"
       ],
-      "packageNames": [
+      "matchPackageNames": [
         "registry"
       ],
       "automerge": false,
       "commitMessageTopic": "Docker registry"
     },
     {
-      "datasources": [
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDatasources": [
         "pypi"
       ],
-      "packageNames": [
+      "matchPackageNames": [
         "ansible",
         "kubernetes"
       ],
@@ -65,36 +112,37 @@
       "allowedVersions": "<=1.34"
     }
   ],
-  "prHourlyLimit": 5,
-  "prConcurrentLimit": 5,
   "rangeStrategy": "bump",
-  "renovateFork": true,
-  "includeForks": false,
-  "stabilityDays": 5,
-  "regexManagers": [
+  "forkProcessing": "disabled",
+  "minimumReleaseAge": "5 days",
+  "automerge": false,
+  "customManagers": [
     {
-      "fileMatch": [
-        "^lib/common.sh$"
+      "customType": "regex",
+      "managerFilePatterns": [
+        "^lib/common\\.sh$"
       ],
       "matchStrings": [
-        "KIND_VERSION:-\"(?<currentValue>.*?)\"}"
+        "KIND_VERSION:-(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)"
       ],
       "depNameTemplate": "kubernetes-sigs/kind",
       "datasourceTemplate": "github-releases"
     },
     {
-      "fileMatch": [
-        "^lib/common.sh$"
+      "customType": "regex",
+      "managerFilePatterns": [
+        "^lib/common\\.sh$"
       ],
       "matchStrings": [
-        "ANSIBLE_VERSION:-\"(?<currentValue>.*?)\"}"
+        "ANSIBLE_VERSION:-(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)"
       ],
       "depNameTemplate": "ansible",
       "datasourceTemplate": "pypi"
     },
     {
-      "fileMatch": [
-        "^vm-setup/roles/packages_installation/defaults/main.yml$"
+      "customType": "regex",
+      "managerFilePatterns": [
+        "^vm-setup/roles/packages_installation/defaults/main\\.yml$"
       ],
       "matchStrings": [
         "kubernetes==(?<currentValue>.*?)"
@@ -103,11 +151,12 @@
       "datasourceTemplate": "pypi"
     },
     {
-      "fileMatch": [
-        "^lib/common.sh$"
+      "customType": "regex",
+      "managerFilePatterns": [
+        "^lib/common\\.sh$"
       ],
       "matchStrings": [
-        "DOCKER_REGISTRY_IMAGE:-\"registry:(?<currentValue>.*?)\"}"
+        "REGISTRY_IMAGE_VERSION=\"(?<currentValue>.*?)\""
       ],
       "depNameTemplate": "registry",
       "datasourceTemplate": "docker"
