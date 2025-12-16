@@ -152,6 +152,6 @@ The following table describes which branches are tested for different test trigg
 | test suffix  | CAPM3 branch | IPAM branch  | BMO branch/tag  | Keepalived tag | Ironic-image tag | IPA branch    |
 | ------------ | ------------ | ------------ | --------------- | -------------- | ------------ | ------------- |
 | main         | main         | main         | main            | latest         | latest       | master        |
+| release-1-12 | release-1.12 | release-1.12 | release-0.12    | release-0.9    | release-33.0 | bugfix/11.3   |
 | release-1-11 | release-1.11 | release-1.11 | release-0.11    | release-0.9    | release-31.0 | bugfix/11.1   |
 | release-1-10 | release-1.10 | release-1.10 | release-0.10    | release-0.9    | release-29.0 | stable/2025.1 |
-| release-1-9  | release-1.9  | release-1.9  | release-0.9     | release-0.9    | release-27.0 | bugfix/10.0   |
