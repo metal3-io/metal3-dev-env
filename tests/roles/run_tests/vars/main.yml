@@ -60,7 +60,7 @@ IMAGE_USERNAME: "{{ lookup('env', 'IMAGE_USERNAME') | default('metal3', true) }}
 REGISTRY: "{{ lookup('env', 'REGISTRY') | default('192.168.111.1:5000', true) }}"
 CALICO_VERSION: "{{ lookup('env', 'CALICO_VERSION') | default('v3.31.0', true) }}"
 CILIUM_VERSION: "{{ lookup('env', 'CILIUM_VERSION') | default('v1.18.0', true) }}"
-CNI_NAME: "{{ lookup('env', 'CNI_NAME') | default('calico', true) }}"
+CNI_PROVIDER: "{{ lookup('env', 'CNI_PROVIDER') | default('calico', true) }}"
 DOCKER_HUB_PROXY: "{{ lookup('env', 'DOCKER_HUB_PROXY') }}"
 WORKING_DIR: "{{ lookup('env', 'WORKING_DIR') | default('/opt/metal3-dev-env', true) }}"
 
