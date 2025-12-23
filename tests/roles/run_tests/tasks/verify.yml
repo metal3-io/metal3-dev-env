@@ -18,10 +18,10 @@
     create: yes
     block: "{{ kubeconfig_secret.resources[0].data.value | b64decode }}"
 
-- name: Install CNI based on CNI_NAME
+- name: Install CNI based on CNI_PROVIDER
   include_tasks: "{{ cni_task_file }}"
   vars:
-    cni_task_file: "{{ 'install_calico.yaml' if (CNI_NAME == 'calico') else 'install_cilium.yaml' }}"
+    cni_task_file: "{{ 'install_calico.yaml' if (CNI_PROVIDER == 'calico') else 'install_cilium.yaml' }}"
 
 # Check for pods & nodes on the target cluster
 - name: Wait for all pods to be in running state
