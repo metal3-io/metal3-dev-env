@@ -100,17 +100,7 @@
 - name: Initialize Provider component in target cluster
   vars:
     ipam_release: "{{ lookup('env', 'IPAMRELEASE') }}"
-  shell: " clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5"
-  when: ipam_release == 'v1.7.99' or ipam_release == 'v1.8.99' or ipam_release == 'v1.9.99'
-
-# Making IPAM a provider for capi is merged in 1.10
-# TODO: Remove this check when 1.9 is no longer tested. Remember to edit above
-# block as well.
-- name: Initialize Provider component in target cluster
-  vars:
-    ipam_release: "{{ lookup('env', 'IPAMRELEASE') }}"
   shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5 --ipam metal3:{{ IPAMRELEASE }}"
-  when: ipam_release != 'v1.7.99' and ipam_release != 'v1.8.99' and ipam_release != 'v1.9.99'
 
 # Check for cert-manager pods on the target cluster
 - name: Check if cert-manager  pods in running state
