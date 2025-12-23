@@ -206,19 +206,11 @@ if [[ "${BOOTSTRAP_CLUSTER}" == "minikube" ]]; then
   fi
 fi
 
-# TODO: Once testing of 1.9 and older releases stop this if can be removed
-if [[ "${IPAMRELEASE}" =~ ("v1.7.99"|"v1.8.99"|"v1.9.99")$ ]]; then
-EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:2 \
-  cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
-  cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
-  cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1"
-else
 EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:1 \
   cluster.x-k8s.io/provider:cluster-api:capi-system:1 \
   cluster.x-k8s.io/provider:bootstrap-kubeadm:capi-kubeadm-bootstrap-system:1 \
   cluster.x-k8s.io/provider:control-plane-kubeadm:capi-kubeadm-control-plane-system:1 \
   cluster.x-k8s.io/provider:ipam-metal3:metal3-ipam-system:1"
-fi
 BRIDGES="provisioning external"
 EXPTD_CONTAINERS="httpd-infra registry vbmc sushy-tools"
 
