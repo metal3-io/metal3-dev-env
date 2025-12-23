@@ -1,13 +1,23 @@
-<domain type='{{ libvirt_domain_type }}'>
+{% set is_arm = flavors[item.flavor].architecture == 'aarch64' %}
+<domain type='{% if flavors[item.flavor].architecture != libvirt_arch %}qemu{% else %}{{ libvirt_domain_type }}{% endif %}'>
   <name>{{ item.name }}</name>
   <memory unit='MiB'>{{ flavors[item.flavor].memory }}</memory>
   <vcpu>{{ flavors[item.flavor].vcpu }}</vcpu>
 
   {{baremetal_vm_xml|default('')}}
 
-{% if libvirt_arch != 'aarch64' %}
+{% if is_arm %}
+  <os{% if libvirt_firmware == 'uefi' %} firmware='efi'{% endif %}>
+    <type arch='aarch64' machine='virt'>hvm</type>
+{% if libvirt_firmware == 'uefi' %}
+    <loader readonly='yes' type='pflash' format='raw'>/usr/share/edk2/aarch64/QEMU_EFI-pflash.raw</loader>
+    <nvram template='/usr/share/edk2/aarch64/vars-template-pflash.raw' templateFormat='raw' format='raw'/>
+{% endif %}
+    <boot dev='network'/>
+  </os>
+{% elif flavors[item.flavor].architecture == 'x86_64' or libvirt_arch == 'x86_64' %}
   <os>
-    <type arch='{{ libvirt_arch }}' machine='q35'>hvm</type>
+    <type arch='x86_64' machine='q35'>hvm</type>
 {% if libvirt_firmware  == 'uefi' %}
 {% if libvirt_secure_boot|bool %}
      <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.secboot.fd</loader>
@@ -25,18 +35,20 @@
     <bootmenu enable='no'/>
     <bios useserial='yes' rebootTimeout='10000'/>
   </os>
-{% else %}
-<os firmware='efi'>
-  <type arch='aarch64' machine='virt'>hvm</type>
-</os>
 {% endif %}
 
   <features>
     <acpi/>
+{% if not is_arm %}
     <apic/>
     <pae/>
+{% endif %}
   </features>
-{% if libvirt_domain_type == 'qemu' %}
+{% if is_arm %}
+  <cpu mode='custom' match='exact' check='none'>
+    <model fallback='forbid'>{{ libvirt_aarch64_cpu_model }}</model>
+  </cpu>
+{% elif libvirt_domain_type == 'qemu' %}
   <cpu mode='host-model'/>
 {% else %}
   <cpu mode='host-passthrough'/>
@@ -79,10 +91,12 @@
     <console type='pty'/>
 
 {% if enable_vnc_console|bool %}
+{% if not is_arm %}
     <input type='mouse' bus='ps2'/>
-    <graphics type='vnc' port='-1' autoport='yes'/>
+{% endif %}
+    <graphics type='vnc' port='-1' autoport='yes' />
     <video>
-      <model type='virtio' vram='9216' heads='1'/>
+      <model type='{% if is_arm %}ramfb{% else %}virtio{% endif %}' vram='9216' heads='1'/>
     </video>
 {% endif %}
 
