@@ -11,13 +11,6 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
-# TODO: Once testing of 1.9 and older releases stop this and the file named
-# 03_launch_mgmt_cluster_pre1.10.sh can be removed
-if [[ "${IPAMRELEASE}" =~ ("v1.7.99"|"v1.8.99"|"v1.9.99")$ ]]; then
-    ./03_launch_mgmt_cluster_pre_1_10.sh
-    exit 0
-fi
-
 # Default CAPI_CONFIG_DIR to $HOME/.config directory if XDG_CONFIG_HOME not set
 CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}"
 export CAPI_CONFIG_DIR="${CONFIG_DIR}/cluster-api"
