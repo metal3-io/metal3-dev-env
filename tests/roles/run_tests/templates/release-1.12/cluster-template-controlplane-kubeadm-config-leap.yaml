@@ -1,4 +1,4 @@
-# CentOS specific controlplane kubeadm config
+# Leap specific controlplane kubeadm config
 preKubeadmCommands:
 - systemctl stop wicked
 - systemctl disable wicked
