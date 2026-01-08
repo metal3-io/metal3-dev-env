@@ -13,38 +13,42 @@ mkdir -p "${IRONIC_IMAGE_DIR}"
 pushd "${IRONIC_IMAGE_DIR}"
 
 # Download and prepare node images (unless skipped)
-if [[ "${SKIP_NODE_IMAGE_PREPULL}" = "true" ]]; then
-    echo "Skipping node image download (SKIP_NODE_IMAGE_PREPULL is set to true)"  
-else
-    if [[ ! -f "${IMAGE_NAME}" ]]; then
-        if [[ -f "${IMAGE_LOCATION}/${IMAGE_NAME}" ]]; then
-          # Copy local image  
-          cp "${IMAGE_LOCATION}/${IMAGE_NAME}" .
-        elif [[ "${IMAGE_LOCATION}" =~ ^http.* ]]; then
+if [[ ! -f "${IMAGE_NAME}" ]]; then
+    if [[ -f "${IMAGE_LOCATION}/${IMAGE_NAME}" ]]; then
+      # Copy local image  
+      cp "${IMAGE_LOCATION}/${IMAGE_NAME}" .
+    elif [[ "${IMAGE_LOCATION}" =~ ^http.* ]]; then
+      if [[ "${SKIP_NODE_IMAGE_PREPULL}" = "true" ]]; then
+          echo "Skipping node image download (SKIP_NODE_IMAGE_PREPULL is set to true)"
+      else
           # Downloading image if it does not exist locally
           wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
-        else
-          echo "Image not found at ${IMAGE_LOCATION}/${IMAGE_NAME}"
-          exit 1
-        fi
-        IMAGE_SUFFIX="${IMAGE_NAME##*.}"
-        if [[ "${IMAGE_SUFFIX}" = "xz" ]]; then
-          unxz -v "${IMAGE_NAME}"
-          IMAGE_NAME="$(basename "${IMAGE_NAME}" .xz)"
-          export IMAGE_NAME
-          IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
-          export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
-        fi
-        if [[ "${IMAGE_SUFFIX}" = "bz2" ]]; then
-            bunzip2 "${IMAGE_NAME}"
-            IMAGE_NAME="$(basename "${IMAGE_NAME}" .bz2)"
-            export IMAGE_NAME
-            IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
-            export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
-        fi
-        if [[ "${IMAGE_SUFFIX}" != "iso" ]]; then
-            qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
-        fi
+      fi
+    else
+      echo "Image not found at ${IMAGE_LOCATION}/${IMAGE_NAME}"
+      exit 1
+    fi
+fi
+
+# Prepare the image if it exists
+if [[ -f "${IMAGE_NAME}" ]]; then
+    IMAGE_SUFFIX="${IMAGE_NAME##*.}"
+    if [[ "${IMAGE_SUFFIX}" = "xz" ]]; then
+      unxz -v "${IMAGE_NAME}"
+      IMAGE_NAME="$(basename "${IMAGE_NAME}" .xz)"
+      export IMAGE_NAME
+      IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
+      export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
+    fi
+    if [[ "${IMAGE_SUFFIX}" = "bz2" ]]; then
+        bunzip2 "${IMAGE_NAME}"
+        IMAGE_NAME="$(basename "${IMAGE_NAME}" .bz2)"
+        export IMAGE_NAME
+        IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
+        export IMAGE_RAW_NAME="${IMAGE_BASE_NAME}-raw.img"
+    fi
+    if [[ "${IMAGE_SUFFIX}" != "iso" ]]; then
+        qemu-img convert -O raw "${IMAGE_NAME}" "${IMAGE_RAW_NAME}"
     fi
     # Generating image checksum if right checksum does not exist locally
     if [[ ! -f "${IMAGE_RAW_NAME}.${IMAGE_RAW_CHECKSUM##*.}" ]]; then
