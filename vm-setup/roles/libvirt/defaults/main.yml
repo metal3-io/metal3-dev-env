@@ -17,6 +17,7 @@ libvirt_arch: x86_64
 libvirt_cpu_mode: host-model
 libvirt_firmware: uefi
 libvirt_secure_boot: false
+libvirt_aarch64_cpu_model: cortex-a57
 
 # Where to log serial console output
 libvirt_log_path: "/var/log/libvirt/qemu"

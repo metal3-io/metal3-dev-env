@@ -27,6 +27,10 @@
     when: virt_result is failed
   when: libvirt_domain_type is undefined
 
+- name: Detect actual host architecture for VM domain type decisions
+  set_fact:
+    host_architecture: "{{ ansible_architecture }}"
+
 - name: Check volume pool
   command: >
     virsh pool-uuid "{{ libvirt_volume_pool }}"
@@ -92,11 +96,18 @@
 
   # Define (but do not start) the vm nodes.  These will be
   # booted later by ironic during the provisioning process.
+  - name: Validate VM architecture
+    assert:
+      that:
+      - flavors[item.flavor].architecture in ['x86_64', 'aarch64']
+      fail_msg: "Unsupported architecture '{{ flavors[item.flavor].architecture }}' for VM '{{ item.name }}'. Only 'x86_64' and 'aarch64' are supported."
+    with_items: "{{ vm_nodes }}"
+
   - name: Define vm vms
     virt:
       name: "{{ item.name }}"
       command: define
-      xml: "{{ lookup('template', 'baremetalvm.xml.j2') }}"
+      xml: "{{ lookup('template', baremetal_vm_template | default('baremetalvm.xml.j2')) }}"
       uri: "{{ libvirt_uri }}"
     with_items: "{{ vm_nodes }}"
 
