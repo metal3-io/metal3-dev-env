@@ -529,6 +529,24 @@ EOF
 EOF
     fi
 
+    if [[ "${GINKGO_FOCUS:-}" == "in-place-upgrade" ]]; then
+        export TEST_EXTENSION_MANIFEST_IMG="${REGISTRY}/metal3-io/test-extension:latest"
+        make docker-build-test-extension TEST_EXTENSION_IMG="${TEST_EXTENSION_MANIFEST_IMG}"
+        "${CONTAINER_RUNTIME}" push --tls-verify=false "${TEST_EXTENSION_MANIFEST_IMG}"
+        make set-manifest-image-test-extension TEST_EXTENSION_IMG="${TEST_EXTENSION_MANIFEST_IMG}"
+        make test-extension-manifests
+
+        rm -rf "${CAPI_CONFIG_DIR}"/overrides/runtime-extension-test-extension/"${CAPM3RELEASE}"
+        mkdir -p "${CAPI_CONFIG_DIR}"/overrides/runtime-extension-test-extension/"${CAPM3RELEASE}"
+        cp out/runtime-extension-test-extension/*.yaml "${CAPI_CONFIG_DIR}"/overrides/runtime-extension-test-extension/"${CAPM3RELEASE}"
+
+        cat << EOF >> "${CAPI_CONFIG_DIR}"/clusterctl.yaml
+- name: test-extension
+  type: RuntimeExtensionProvider
+  url: "${CAPI_CONFIG_DIR}/overrides/runtime-extension-test-extension/${CAPM3RELEASE}/components.yaml"
+EOF
+    fi
+
     # At this point the images variables have been updated with update_images
     # Reflect the change in components files
     if [[ -n "${CAPM3_LOCAL_IMAGE:-}" ]]; then
@@ -613,8 +631,14 @@ launch_cluster_api_provider_metal3()
     pushd "${CAPM3PATH}"
 
     # shellcheck disable=SC2153
-    clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
-      --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}"  -v5 --ipam=metal3:"${IPAMRELEASE}"
+    if [[ "${GINKGO_FOCUS:-}" == "in-place-upgrade" ]]; then
+        clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
+          --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5 --ipam=metal3:"${IPAMRELEASE}" \
+          --runtime-extension=test-extension:"${CAPM3RELEASE}"
+    else
+        clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
+          --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5 --ipam=metal3:"${IPAMRELEASE}"
+    fi
 
     if [[ "${CAPM3_RUN_LOCAL}" = true ]]; then
         touch capm3.out.log
