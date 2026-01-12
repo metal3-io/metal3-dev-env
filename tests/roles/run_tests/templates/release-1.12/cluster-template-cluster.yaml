@@ -1,4 +1,4 @@
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: Cluster
 metadata:
   name: ${ CLUSTER_NAME }
@@ -10,12 +10,12 @@ spec:
     pods:
       cidrBlocks: [${ POD_CIDR }]
   infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
+    apiGroup: infrastructure.cluster.x-k8s.io
     kind: Metal3Cluster
     name: ${ CLUSTER_NAME }
   controlPlaneRef:
     kind: KubeadmControlPlane
-    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    apiGroup: controlplane.cluster.x-k8s.io
     name: ${ CLUSTER_NAME }
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/{{ CAPM3_VERSION }}
