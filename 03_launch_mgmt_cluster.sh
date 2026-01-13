@@ -242,8 +242,44 @@ EOF
     popd
 }
 
+setup_kind_networking_for_ironic()
+{
+    if ! docker network list | grep kind; then
+        # These options are used by kind itself. It uses docker default mtu and
+        # generates ipv6 subnet ULA, but we can fix the ULA. Only addition to kind
+        # options is the network bridge name.
+        docker network create -d=bridge \
+            -o com.docker.network.bridge.enable_ip_masquerade=true \
+            -o com.docker.network.driver.mtu=1500 \
+            -o com.docker.network.bridge.name="kind-bridge" \
+            --ipv6 --subnet "fc00:f853:ccd:e793::/64" \
+            kind
+    fi
+    docker network list
+
+    # Next create the veth pair
+    if ! ip a | grep metalend; then
+        sudo ip link add metalend type veth peer name kindend
+        sudo ip link set metalend master "${PROVISIONING_INTERFACE}"
+        sudo ip link set kindend master kind-bridge
+        sudo ip link set metalend up
+        sudo ip link set kindend up
+    fi
+    ip a
+
+    # Then we need to set routing rules as well
+    if ! sudo iptables -L FORWARD -v -n | grep kind-bridge; then
+        sudo iptables -I FORWARD -i kind-bridge -o metal3 -j ACCEPT
+        sudo iptables -I FORWARD -i metal3 -o kind-bridge -j ACCEPT
+    fi
+    sudo iptables -L FORWARD -n -v
+}
+
 launch_ironic_standalone_operator()
 {
+    if [[ "${BOOTSTRAP_CLUSTER}" != "minikube" ]]; then
+        setup_kind_networking_for_ironic
+    fi
     # shellcheck disable=SC2311
     echo 'IPA_BASEURI=https://artifactory.nordix.org/artifactory/openstack-remote-cache/ironic-python-agent/dib' > "${IRSOPATH}/config/manager/manager.env"
     make -C "${IRSOPATH}" install deploy IMG="$(get_component_image "${IRSO_LOCAL_IMAGE:-${IRSO_IMAGE}}")"
