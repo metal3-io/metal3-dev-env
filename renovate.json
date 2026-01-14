@@ -120,7 +120,7 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
-        "^lib/common\\.sh$"
+        "/^lib/common\\.sh$/"
       ],
       "matchStrings": [
         "KIND_VERSION:-(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)"
@@ -131,7 +131,18 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
-        "^lib/common\\.sh$"
+        "/^lib/common\\.sh$/"
+      ],
+      "matchStrings": [
+        "KIND_NODE_IMAGE_VERSION:-(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)"
+      ],
+      "depNameTemplate": "kindest/node",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^lib/common\\.sh$/"
       ],
       "matchStrings": [
         "ANSIBLE_VERSION:-(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)"
@@ -142,7 +153,7 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
-        "^vm-setup/roles/packages_installation/defaults/main\\.yml$"
+        "/^vm-setup/roles/packages_installation/defaults/main\\.yml$/"
       ],
       "matchStrings": [
         "kubernetes==(?<currentValue>.*?)"
@@ -153,7 +164,7 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
-        "^lib/common\\.sh$"
+        "/^lib/common\\.sh$/"
       ],
       "matchStrings": [
         "REGISTRY_IMAGE_VERSION=\"(?<currentValue>.*?)\""
