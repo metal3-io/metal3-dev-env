@@ -4,6 +4,7 @@
     "config:recommended"
   ],
   "enabled": true,
+  "configMigration": true,
   "baseBranchPatterns": [
     "main"
   ],
