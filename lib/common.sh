@@ -417,7 +417,7 @@ export TILT_SHA256="${TILT_SHA256:-b30ebbba68d4fd04f8afa11efc439515241dbcc2582ea
 if [[ "${DISTRO}" = "ubuntu24" ]] || [[ "${DISTRO}" = "centos10" ]]; then
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-10.6.0}"
 else
-    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-8.0.0}"
+    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-8.7.0}"
 fi
 
 # Test and verification related variables
