@@ -289,7 +289,7 @@ export IRSO_IRONIC_VERSION="${IRSO_IRONIC_VERSION:-latest}"
 # Docker Hub proxy registry (or docker.io if no proxy)
 export DOCKER_HUB_PROXY="${DOCKER_HUB_PROXY:-docker.io}"
 
-export REGISTRY_IMAGE_VERSION="2.7.1"
+export REGISTRY_IMAGE_VERSION="3.0.0"
 
 export DOCKER_REGISTRY_IMAGE_DEFAULT_PATH="library/registry:${REGISTRY_IMAGE_VERSION}"
 # Docker registry for local images
