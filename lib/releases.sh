@@ -1,5 +1,47 @@
 #!/bin/bash
 
+# Check if a GitHub release asset exists for a given version
+# Returns 0 if the release exists, 1 otherwise
+# Example usage:
+# check_github_release_exists "v1.12.1"
+check_github_release_exists() {
+  local version="${1:?version is required}"
+  local url="https://github.com/kubernetes-sigs/cluster-api/releases/download/${version}/clusterctl-linux-amd64"
+
+  # Use curl with HEAD request to check if the asset exists (follows redirects)
+  curl --head --silent --fail --location "${url}" > /dev/null 2>&1
+}
+
+# Get the latest release from goproxy that has a valid GitHub release
+# This iterates through versions until it finds one with available binaries
+# Example usage:
+# get_validated_release_from_goproxy "https://proxy.golang.org/sigs.k8s.io/cluster-api/@v/list" "v1.12." "beta|rc|pre|alpha"
+get_validated_release_from_goproxy() {
+  local proxyUrl="${1:?no release path is given}"
+  local release="${2:?no release given}"
+  local exclude="${3:-}"
+  local versions
+
+  # Get sorted list of versions from goproxy
+  if [[ -z "${exclude}" ]]; then
+    versions=$(curl -s "${proxyUrl}" | sed '/-/!{s/$/_/}' | sort -rV | sed 's/_$//' | grep "^${release}")
+  else
+    versions=$(curl -s "${proxyUrl}" | sort -rV | grep -vE "${exclude}" | grep "${release}")
+  fi
+
+  # Iterate through versions and return the first one with a valid GitHub release
+  while IFS= read -r version; do
+    if [[ -n "${version}" ]] && check_github_release_exists "${version}"; then
+      echo "${version}"
+      return 0
+    fi
+    echo "info: GitHub release not found for ${version}, trying next version..." >&2
+  done <<< "${versions}"
+
+  echo "Error: no valid GitHub release found for ${release}* from ${proxyUrl}" >&2
+  return 1
+}
+
 # Requires parameters url and version. An optional parameter can be given to
 # exclude some versions.
 # Example usage:
@@ -57,7 +99,7 @@ else
   export IPAMRELEASE="${IPAMRELEASE:-"v1.13.99"}"
   CAPI_RELEASE_PREFIX="${CAPI_RELEASE_PREFIX:-"v1.12."}"
 fi
-export CAPIRELEASE="${CAPIRELEASE:-$(get_latest_release_from_goproxy "${CAPIGOPROXY}" "${CAPI_RELEASE_PREFIX}")}"
+export CAPIRELEASE="${CAPIRELEASE:-$(get_validated_release_from_goproxy "${CAPIGOPROXY}" "${CAPI_RELEASE_PREFIX}")}"
 CAPIBRANCH="${CAPIBRANCH:-${CAPIRELEASE}}"
 
 if [[ -z "${CAPIRELEASE}" ]]; then
