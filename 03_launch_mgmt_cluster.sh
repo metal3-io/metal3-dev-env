@@ -609,7 +609,7 @@ install_clusterctl()
 
     # Can't use version numbers ending in .99 in so fetch latest stable version
     if [[ "${CAPIRELEASE}" =~ ^v([0-9]+\.[0-9]+)\.99$ ]]; then
-        DOWNLOAD_CAPIRELEASE=$(get_latest_release_from_goproxy "${CAPIGOPROXY}" "${CAPI_RELEASE_PREFIX}" "beta|rc|pre|alpha")
+        DOWNLOAD_CAPIRELEASE=$(get_validated_release_from_goproxy "${CAPIGOPROXY}" "${CAPI_RELEASE_PREFIX}" "beta|rc|pre|alpha")
     fi
     wget --no-verbose -O clusterctl "https://github.com/kubernetes-sigs/cluster-api/releases/download/${DOWNLOAD_CAPIRELEASE}/clusterctl-linux-amd64"
     chmod +x ./clusterctl
