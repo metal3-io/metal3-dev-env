@@ -57,11 +57,27 @@
 
 - name: Install packages on CentOS/RHEL
   block:
+  - name: Clean DNF cache to avoid stale metadata
+    command: dnf clean all
+    changed_when: false
+
+  - name: Refresh DNF cache
+    dnf:
+      update_cache: yes
+    retries: 3
+    delay: 10
+    register: cache_result
+    until: cache_result is succeeded
+
   - name: Install packages on CentOS/RHEL
     package:
       name: "{{ packages.centos.common.packages }}"
       state: present
       nobest: true
+    retries: 3
+    delay: 30
+    register: pkg_result
+    until: pkg_result is succeeded
   - name: Install packages using pip3
     pip:
       executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
