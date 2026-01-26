@@ -15,7 +15,6 @@
 
 - name: Fetch container logs (kind cluster)
   block:
-
   - name: Create directories for storing container logs (kind cluster)
     file:
       path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
@@ -23,36 +22,65 @@
     with_items:
     - "{{ ironic_containers }}"
     - "{{ general_containers }}"
-
   - name: Fetch container logs before pivoting (kind cluster)
     shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
     with_items:
     - "{{ ironic_containers }}"
     - "{{ general_containers }}"
 
-  - name: Remove ironic container from source cluster (kind cluster)
-    docker_container:
-      name: "{{ item }}"
-      state: absent
-    with_items: "{{ ironic_containers }}"
-
+- name: Remove ironic container from source cluster (kind cluster)
+  docker_container:
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{ ironic_containers }}"
   when: BOOTSTRAP_CLUSTER == "kind"
-  become: yes
+  become: true
   become_user: root
 
 - name: Fetch container logs (minikube cluster)
   block:
-
   - name: Create directories for storing container logs (minikube cluster)
     file:
       path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
       state: directory
     with_items: "{{ general_containers }}"
-
   - name: Fetch container logs before pivoting (minikube cluster)
     shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
     with_items: "{{ general_containers }}"
+  become: true
+  become_user: root
+  when: BOOTSTRAP_CLUSTER == "minikube"
 
+- name: Remove Ironic CR from source cluster (minikube cluster)
+  kubernetes.core.k8s:
+    name: ironic
+    kind: Ironic
+    api_version: ironic.metal3.io/v1alpha1
+    state: absent
+  with_items: "{{ ironic_containers }}"
+
+- name: Remove IRSO from source cluster (minikube cluster)
+  shell: "make -C {{ IRSOPATH }} uninstall undeploy"
+  ignore_errors: true
+  when: BOOTSTRAP_CLUSTER == "minikube"
+
+- name: Label baremetalhost CRD to pivot.
+  shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
+  with_items:
+  - clusterctl.cluster.x-k8s.io=""
+  - clusterctl.cluster.x-k8s.io/move=""
+  - clusterctl.cluster.x-k8s.io/move-hierarchy=""
+
+- name: Fetch container logs (minikube cluster)
+  block:
+  - name: Create directories for storing container logs (minikube cluster)
+    file:
+      path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
+      state: directory
+    with_items: "{{ general_containers }}"
+  - name: Fetch container logs before pivoting (minikube cluster)
+    shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
+    with_items: "{{ general_containers }}"
   become: yes
   become_user: root
   when: BOOTSTRAP_CLUSTER == "minikube"
@@ -78,17 +106,124 @@
   - clusterctl.cluster.x-k8s.io=""
   - clusterctl.cluster.x-k8s.io/move=""
 
-- name: Obtain target cluster kubeconfig
-  kubernetes.core.k8s_info:
-    kind: secrets
-    name: "{{ CLUSTER_NAME }}-kubeconfig"
-    namespace: "{{ NAMESPACE }}"
-  register: metal3_kubeconfig
+  # Install BMO
+- name: Install Baremetal Operator in target cluster
+  shell: "{{ BMOPATH }}/tools/deploy.sh -b {{ BMO_IRONIC_ARGS }}"
+  environment:
+    IRONIC_HOST: "{{ IRONIC_HOST }}"
+    IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+    KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+  args:
+    chdir: "{{ BMOPATH }}"
 
-- name: Decode and save cluster kubeconfig
-  copy:
-    content: "{{ metal3_kubeconfig.resources[0].data.value | b64decode }}"
-    dest: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  # Install IRSO and Ironic via IRSO
+- name: Set IPA_BASEURI in IRSO manager config
+  lineinfile:
+    path: "{{ IRSOPATH }}/config/manager/manager.env"
+    line: 'IPA_BASEURI=https://artifactory.nordix.org/artifactory/openstack-remote-cache/ironic-python-agent/dib'
+    create: yes
+
+- name: Install IRSO in target cluster
+  shell: "make install deploy IMG={{ IRSO_IMAGE }}"
+  args:
+    chdir: "{{ IRSOPATH }}"
+  environment:
+    KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+
+- name: Wait for IRSO controller manager to be available
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: ironic-standalone-operator-controller-manager
+    namespace: ironic-standalone-operator-system
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    wait: true
+    wait_condition:
+      type: Available
+      status: "True"
+    wait_timeout: 60
+
+- name: Create ironic CA cert secret in target cluster
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ironic-cacert
+        namespace: "{{ IRONIC_NAMESPACE }}"
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ lookup('file', IRONIC_CACERT_FILE) | b64encode }}"
+        tls.key: "{{ lookup('file', IRONIC_CAKEY_FILE) | b64encode }}"
+
+- name: Create ironic-credentials secret in target cluster
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ironic-credentials
+        namespace: "{{ IRONIC_NAMESPACE }}"
+      type: Opaque
+      stringData:
+        username: "{{ lookup('env','IRONIC_USERNAME') | trim }}"
+        password: "{{ lookup('env','IRONIC_PASSWORD') | trim }}"
+
+- name: Create Ironic CR
+  set_fact:
+    ironic_spec:
+      apiVersion: ironic.metal3.io/v1alpha1
+      kind: Ironic
+      metadata:
+        name: ironic
+        namespace: "{{ IRONIC_NAMESPACE }}"
+      spec:
+        images:
+          deployRamdiskBranch: "{{ IPA_BRANCH }}"
+          deployRamdiskDownloader: "{{ IPA_DOWNLOADER_IMAGE }}"
+          ironic: "{{ IRONIC_IMAGE }}"
+          keepalived: "{{ IRONIC_KEEPALIVED_IMAGE }}"
+        version: "{{ IRSO_IRONIC_VERSION }}"
+        networking:
+          dhcp:
+            rangeBegin: "{{ CLUSTER_DHCP_RANGE_START }}"
+            rangeEnd: "{{ CLUSTER_DHCP_RANGE_END }}"
+            networkCIDR: "{{ BARE_METAL_PROVISIONER_NETWORK }}"
+          interface: "{{ BARE_METAL_PROVISIONER_INTERFACE }}"
+          ipAddress: "{{ CLUSTER_BARE_METAL_PROVISIONER_IP }}"
+          ipAddressManager: keepalived
+        deployRamdisk:
+          sshKey: "{{ SSH_PUB_KEY_CONTENT }}"
+
+- name: Add extraKernelParams for libvirt platform
+  set_fact:
+    ironic_spec: "{{ ironic_spec | combine({'spec': {'deployRamdisk': {'extraKernelParams': 'console=ttyS0'}}}, recursive=True) }}"
+  when: NODES_PLATFORM == 'libvirt'
+
+- name: Deploy Ironic CR in target cluster (retry if webhook not ready)
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    definition: "{{ ironic_spec }}"
+  register: ironic_create
+  retries: 10
+  delay: 3
+  until: ironic_create is succeeded
+
+- name: Wait for Ironic to be ready
+  kubernetes.core.k8s_info:
+    kind: Ironic
+    name: ironic
+    namespace: "{{ IRONIC_NAMESPACE }}"
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    wait: true
+    wait_condition:
+      type: Ready
+      status: "True"
+    wait_timeout: "{{ (IRONIC_ROLLOUT_WAIT | default(10) | int * 60) }}"
 
 - name: Create namespace
   kubernetes.core.k8s:
