@@ -25,10 +25,18 @@
     state: latest
     nobest: true
   become: yes
+  retries: 3
+  delay: 30
+  register: upgrade_result
+  until: upgrade_result is succeeded
 
 - name: Install podman
   dnf:
     name: podman
     state: present
   become: yes
+  retries: 3
+  delay: 30
+  register: podman_result
+  until: podman_result is succeeded
   when: CONTAINER_RUNTIME == "podman"
