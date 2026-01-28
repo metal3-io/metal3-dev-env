@@ -16,9 +16,13 @@ spec:
     ipAddressesFromIPPool:
       - key: provisioningIP
         name: provisioning-pool
+        apiGroup: ""
+        kind: ""
     prefixesFromIPPool:
       - key: provisioningCIDR
         name: provisioning-pool
+        apiGroup: ""
+        kind: ""
   networkData:
     links:
       ethernets:
