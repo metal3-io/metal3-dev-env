@@ -148,8 +148,8 @@ export FORCE_REPO_UPDATE="${FORCE_REPO_UPDATE:-true}"
 
 export M3PATH="${M3PATH:-${GOPATH}/src/github.com/metal3-io}"
 export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
-export BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
+export BMOREPO="${BMOREPO:-https://github.com/Nordix/baremetal-operator.git}"
+export BMO_BASE_URL="${BMO_BASE_URL:-Nordix/baremetal-operator}"
 
 export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
 
@@ -197,6 +197,8 @@ else
   export IPAMBRANCH="${IPAMBRANCH:-main}"
 fi
 
+export CAPM3REPO="https://github.com/Nordix/cluster-api-provider-metal3.git"
+export CAPM3BRANCH="remove/bmh-ownerRef"
 export IPAMPATH="${IPAMPATH:-${M3PATH}/ip-address-manager}"
 export IPAM_BASE_URL="${IPAM_BASE_URL:-metal3-io/ip-address-manager}"
 export IPAMREPO="${IPAMREPO:-https://github.com/${IPAM_BASE_URL}}"
@@ -338,7 +340,7 @@ else
   export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:main"}
   export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:main"}
   export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:main"}
-  export BMOBRANCH="${BMOBRANCH:-${BMORELEASEBRANCH:-main}}"
+  export BMOBRANCH="add-status-annotation-logs"
 
 fi
 
