@@ -1,7 +1,10 @@
 collections:
-- name: kubernetes.core
+- name: https://github.com/ansible-collections/kubernetes.core.git
+  type: git
   version: 6.2.0
-- name: ansible.netcommon
-  version: 7.2.0
-- name: ansible.utils
-  version: 5.1.2
+- name: https://github.com/ansible-collections/ansible.netcommon.git
+  type: git
+  version: v7.2.0
+- name: https://github.com/ansible-collections/ansible.utils.git
+  type: git
+  version: v5.1.2
