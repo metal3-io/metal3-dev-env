@@ -523,6 +523,9 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --name vbmc ${POD_NAME_INFRA} \
 # shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --name sushy-tools ${POD_NAME_INFRA} \
     -v "${WORKING_DIR}/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
+    -v /usr/share/OVMF:/usr/share/OVMF \
+    -v /usr/share/edk2:/usr/share/edk2 \
+    -v /usr/share/qemu:/usr/share/qemu \
     "${SUSHY_TOOLS_IMAGE}"
 
 # Installing the openstack/ironic clients on the host is optional
