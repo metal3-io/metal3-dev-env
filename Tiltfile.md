@@ -14,9 +14,9 @@ which is automatically sourced if it exists.
 The Tiltfile installs four Metal3 components in this order:
 
 1. **IRSO** - Ironic Standalone Operator
-2. **BMO** - Baremetal Operator  
-3. **IPAM** - IP Address Manager
-4. **CAPM3** - Cluster API Provider Metal3
+1. **BMO** - Baremetal Operator  
+1. **IPAM** - IP Address Manager
+1. **CAPM3** - Cluster API Provider Metal3
 
 ## Prerequisites
 
