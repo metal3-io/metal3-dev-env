@@ -1,0 +1,22 @@
+# Registrar Service
+# Exposes registrar via NodePort for cross-cluster access
+apiVersion: v1
+kind: Service
+metadata:
+  name: keylime-registrar
+  namespace: keylime
+  labels:
+    app: keylime-registrar
+spec:
+  type: NodePort
+  selector:
+    app: keylime-registrar
+  ports:
+  - name: http
+    port: 8890
+    targetPort: 8890
+    nodePort: 30890
+  - name: https
+    port: 8891
+    targetPort: 8891
+    nodePort: 30891

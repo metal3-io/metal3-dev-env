@@ -1,0 +1,5 @@
+# Keylime namespace for agents cluster
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: keylime
