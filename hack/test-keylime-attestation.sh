@@ -531,6 +531,98 @@ verify_attestation() {
     fi
 }
 
+# --- Negative test: disable Secure Boot, confirm attestation fails ---
+
+negative_test() {
+    log "=== Negative test: attestation must fail without Secure Boot ==="
+
+    # Find the worker BMH and its Redfish endpoint
+    local worker_node
+    worker_node=$(kubectl --kubeconfig="${WORKLOAD_KUBECONFIG}" get pod \
+        -n "${KEYLIME_NS}" -l app=keylime-agent \
+        -o jsonpath='{.items[0].spec.nodeName}')
+    local bmh_name
+    bmh_name=$(kubectl get bmh -n "${NAMESPACE}" \
+        -o jsonpath="{range .items[?(@.spec.consumerRef.name==\"${worker_node}\")]}{.metadata.name}{end}")
+    local bmc_url
+    bmc_url=$(kubectl get bmh "${bmh_name}" -n "${NAMESPACE}" \
+        -o jsonpath='{.spec.bmc.address}')
+    # Extract base URL: strip redfish-virtualmedia+ prefix
+    local redfish_base
+    redfish_base="${bmc_url#redfish-virtualmedia+}"
+    # Extract system path
+    local system_path
+    system_path=$(echo "${redfish_base}" | grep -oE '/redfish/v1/Systems/.*')
+    local host_port
+    host_port=$(echo "${redfish_base}" | sed 's|https://||;s|/.*||')
+
+    log "Worker BMH: ${bmh_name}, Redfish: ${host_port}${system_path}"
+
+    # Disable Secure Boot
+    log "Disabling Secure Boot via Redfish..."
+    curl -sk -u admin:password \
+        -X PATCH "https://${host_port}${system_path}/SecureBoot" \
+        -H 'Content-Type: application/json' \
+        -d '{"SecureBootEnable": false}' >/dev/null
+
+    # Reboot the system
+    log "Rebooting node..."
+    curl -sk -u admin:password \
+        -X POST "https://${host_port}${system_path}/Actions/ComputerSystem.Reset" \
+        -H 'Content-Type: application/json' \
+        -d '{"ResetType": "ForceRestart"}' >/dev/null
+
+    # Wait for node to come back
+    log "Waiting for node to rejoin cluster..."
+    local waited=0
+    while [[ ${waited} -lt 300 ]]; do
+        local ready
+        ready=$(kubectl --kubeconfig="${WORKLOAD_KUBECONFIG}" get node "${worker_node}" \
+            --no-headers 2>/dev/null | grep -c " Ready" || true)
+        if [[ "${ready}" -ge 1 ]]; then
+            break
+        fi
+        sleep 10
+        waited=$((waited + 10))
+    done
+
+    # Wait for agent to attempt attestation with new boot measurements
+    log "Waiting for attestation with Secure Boot disabled..."
+    sleep 60
+
+    # Check attestation status — should no longer be PASS
+    local uuid
+    uuid=$(kk exec keylime-tenant -n "${KEYLIME_NS}" -- \
+        keylime_tenant -c reglist 2>/dev/null | \
+        grep '"uuids"' | \
+        grep -oE '[0-9a-f]{64}' | head -1 || true)
+
+    if [[ -z "${uuid}" ]]; then
+        fail "No agent found in registrar for negative test"
+        return
+    fi
+
+    local status
+    status=$(kk exec keylime-tenant -n "${KEYLIME_NS}" -- \
+        keylime_tenant -c status -u "${uuid}" --push-model 2>/dev/null || true)
+    local att_status
+    att_status=$(echo "${status}" | grep -o '"attestation_status": "[^"]*"' | \
+        grep -o '"[^"]*"$' | tr -d '"' || echo "UNKNOWN")
+
+    if [[ "${att_status}" != "PASS" ]]; then
+        pass "Negative test: attestation status is ${att_status} (expected non-PASS)"
+    else
+        fail "Negative test: attestation still PASS with Secure Boot disabled"
+    fi
+
+    # Re-enable Secure Boot for cleanup
+    log "Re-enabling Secure Boot..."
+    curl -sk -u admin:password \
+        -X PATCH "https://${host_port}${system_path}/SecureBoot" \
+        -H 'Content-Type: application/json' \
+        -d '{"SecureBootEnable": true}' >/dev/null
+}
+
 # --- Main ---
 
 main() {
@@ -545,6 +637,7 @@ main() {
     deploy_agents
     register_agents
     verify_attestation
+    negative_test
 
     log ""
     log "=== Results ==="
