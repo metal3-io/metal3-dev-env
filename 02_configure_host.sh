@@ -16,6 +16,16 @@ source lib/image_prepull.sh
 # cleanup ci config file if it exists from earlier run
 rm -f "${CI_CONFIG_FILE}"
 
+# add registry config for skopeo
+
+cat > "${WORKING_DIR}/registries.conf" <<'EOF'
+unqualified-search-registries = []
+
+[[registry]]
+location = "192.168.111.1:5000"
+insecure = true
+EOF
+
 # Add usr/local/go/bin to the PATH environment variable
 GOBINARY="${GOBINARY:-/usr/local/go/bin}"
 if [[ ! "${PATH}" =~ .*(:|^)(${GOBINARY})(:|$).* ]]; then
@@ -450,6 +460,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
             -t "${IMAGE_URL}:latest" -t "${IMAGE_URL}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
 
     else
+        sudo "${CONTAINER_RUNTIME}" rmi "${IMAGE_URL}" || true
         sudo "${CONTAINER_RUNTIME}" build -t "${IMAGE_URL}" . -f ./Dockerfile
     fi
 
@@ -457,7 +468,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
     if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
         sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${IMAGE_URL}"
     else
-        sudo "${CONTAINER_RUNTIME}" push "${IMAGE_URL}"
+        sudo "${CONTAINER_RUNTIME}" push --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE_URL}"
     fi
 
     # store the locally built images to config, so they're passed to "make test"
@@ -493,12 +504,19 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
     IMAGE_NAME="${IMAGE##*/}"
     # shellcheck disable=SC2086
     LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME%@*}"
-    sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
-
+    if [[ "${LOCAL_IMAGE}" != "${IMAGE}" ]]; then
+        sudo "${CONTAINER_RUNTIME}" rmi "${LOCAL_IMAGE}" || true
+    fi
     if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
+        sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
         sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
     else
-        sudo "${CONTAINER_RUNTIME}" push "${LOCAL_IMAGE}"
+        sudo "${CONTAINER_RUNTIME}" run --rm --network host \
+            -v "/${WORKING_DIR}/registries.conf:/etc/containers/registries.conf:ro" \
+            quay.io/skopeo/stable:latest \
+            copy \
+            --dest-tls-verify=false \
+            "docker://${IMAGE}" "docker://${LOCAL_IMAGE}"
     fi
 done
 
