@@ -350,8 +350,7 @@ if [[ -n "${EXT_IF}" ]]; then
 fi
 
 # Local registry for images
-reg_state=$(sudo "${CONTAINER_RUNTIME}" inspect registry --format "{{.State.Status}}" || echo "error")
-
+reg_state=$(sudo "${CONTAINER_RUNTIME}" inspect registry --format "{{.State.Status}}" 2>/dev/null || echo "error")
 # ubuntu_install_requirements.sh script restarts docker daemon which causes local registry container to be in exited state.
 if [[ "${reg_state}" == "exited" ]]; then
     sudo "${CONTAINER_RUNTIME}" start registry
