@@ -92,7 +92,8 @@
         "ansible",
         "kubernetes"
       ],
-      "automerge": false
+      "automerge": false,
+      "separateMultipleMajor": true
     },
     {
       "matchPackageNames": [
