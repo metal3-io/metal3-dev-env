@@ -17,12 +17,11 @@ source lib/image_prepull.sh
 rm -f "${CI_CONFIG_FILE}"
 
 # add registry config for skopeo
-
-cat > "${WORKING_DIR}/registries.conf" <<'EOF'
+cat > "${WORKING_DIR}/registries.conf" <<EOF
 unqualified-search-registries = []
 
 [[registry]]
-location = "192.168.111.1:5000"
+location = "${REGISTRY}"
 insecure = true
 EOF
 
