@@ -125,6 +125,7 @@ deprovision_workers_actions:
 verify_actions:
 - "ci_test_provision"
 - "pivoting"
+- "verify"
 pivot_actions:
 - "pivoting"
 repivot_actions:
