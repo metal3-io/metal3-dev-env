@@ -12,3 +12,4 @@ ipv6-*/
 vm-setup/roles/run_tests/files/manifests
 __pycache__
 .claude
+local-dev/
