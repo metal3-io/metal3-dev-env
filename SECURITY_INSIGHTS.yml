@@ -1,0 +1,57 @@
+header:
+  schema-version: 2.2.0
+  last-updated: '2026-02-24'
+  last-reviewed: '2026-02-24'
+  url: https://raw.githubusercontent.com/metal3-io/metal3-dev-env/main/SECURITY_INSIGHTS.yml
+  project-si-source: https://raw.githubusercontent.com/metal3-io/community/main/SECURITY_INSIGHTS.yml
+repository:
+  url: https://github.com/metal3-io/metal3-dev-env
+  status: active
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  core-team:
+  - name: elfosardo
+    primary: false
+  - name: kashifest
+    primary: false
+  - name: lentzi90
+    primary: false
+  - name: Rozzii
+    primary: true
+  - name: smoshiur1237
+    primary: false
+  - name: tuminoid
+    primary: false
+  documentation:
+    contributing-guide: https://github.com/metal3-io/metal3-dev-env/blob/main/CONTRIBUTING.md
+    security-policy: https://github.com/metal3-io/.github/blob/main/SECURITY.md
+    governance: https://github.com/metal3-io/community/blob/main/GOVERNANCE.md
+  license:
+    url: https://github.com/metal3-io/metal3-dev-env/blob/main/LICENSE
+    expression: Apache-2.0
+  security:
+    assessments:
+      self:
+        name: Metal3 Security Self-Assessment
+        date: '2024-11-19'
+        evidence: https://github.com/metal3-io/metal3-docs/blob/main/security/self-assessment.md
+        comment: Project-wide self-assessment covering all Metal3 components.
+    tools:
+    - name: Renovate
+      type: SCA
+      rulesets: [default]
+      comment: Automated dependency updates for shell script variables and container image versions.
+      integration:
+        adhoc: false
+        ci: true
+        release: false
+      results: {}
+    - name: ShellCheck
+      type: SAST
+      rulesets: [default]
+      comment: Shell script linter. Runs in Prow presubmit.
+      integration:
+        adhoc: false
+        ci: true
+        release: false
+      results: {}
