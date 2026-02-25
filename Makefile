@@ -13,6 +13,7 @@ configure_host:
 launch_mgmt_cluster:
 	./03_launch_mgmt_cluster.sh
 
+# Verifies the initial environment setup and BMH configuration.
 verify:
 	./04_verify.sh
 
@@ -43,5 +44,10 @@ provision:
 
 deprovision:
 	./tests/scripts/deprovision.sh
+
+# Verifies the provisioned target cluster and installs CNI to make the cluster
+# ready.
+verify_provision:
+	./tests/scripts/verify.sh
 
 .PHONY: all ci_run install_requirements configure_host launch_mgmt_cluster clean delete_mgmt_cluster host_cleanup verify test lint  prepull_images pivot repivot provision deprovision
