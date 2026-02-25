@@ -70,9 +70,5 @@ fi
 # Pulling all the images except any local image.
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
   IMAGE="${!IMAGE_VAR}"
-  if [[ "${CONTAINER_RUNTIME}" == "docker" ]]; then
-    sudo "${CONTAINER_RUNTIME}" pull --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE}"
-  else
-    sudo "${CONTAINER_RUNTIME}" pull "${IMAGE}"
-  fi
+  sudo "${CONTAINER_RUNTIME}" pull --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE}"
  done

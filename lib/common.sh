@@ -301,7 +301,6 @@ export DOCKER_REGISTRY_IMAGE="${DOCKER_REGISTRY_IMAGE:-${DOCKER_HUB_PROXY}/${DOC
 # Registry to pull metal3 container images from
 export CONTAINER_REGISTRY="${CONTAINER_REGISTRY:-quay.io}"
 export LOCAL_CONTAINER_PLATFORM="${LOCAL_CONTAINER_PLATFORM:-linux/amd64}"
-export DOCKER_DEFAULT_PLATFORM="${DOCKER_DEFAULT_PLATFORM:-linux/amd64}"
 
 # BMC emulator images
 export VBMC_IMAGE="${VBMC_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/vbmc}"
