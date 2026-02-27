@@ -100,7 +100,7 @@ fi
 
 if [[ "${BOOTSTRAP_CLUSTER}" = "minikube" ]]; then
     # shellcheck disable=SC2312
-    if ! command -v minikube &>/dev/null || [[ "$(minikube version --short)" != "${MINIKUBE_VERSION}" ]]; then
+    if ! [[ -x "${MINIKUBE}" ]] || [[ "$("${MINIKUBE}" version --short)" != "${MINIKUBE_VERSION}" ]]; then
         download_and_install_minikube
         download_and_install_kvm2_driver
     fi
