@@ -2,6 +2,7 @@
 
 set -x
 
+KUBECTL="${KUBECTL:-/usr/local/bin/kubectl}"
 # Initial manifest directory
 DIR_NAME="/tmp/manifests/bootstrap-before-pivot"
 DIR_NAME_AFTER_PIVOT="/tmp/manifests/target-after-pivot"
@@ -50,12 +51,12 @@ manifests=(
 
 set +x
 
-NAMESPACES="$(kubectl --kubeconfig="${kconfig}" get namespace -o jsonpath='{.items[*].metadata.name}')"
+NAMESPACES="$("${KUBECTL}" --kubeconfig="${kconfig}" get namespace -o jsonpath='{.items[*].metadata.name}')"
 for NAMESPACE in ${NAMESPACES}; do
   for kind in "${manifests[@]}"; do
     mkdir -p "${DIR_NAME}/${NAMESPACE}/${kind}"
-    for name in $(kubectl --kubeconfig="${kconfig}" get -n "${NAMESPACE}" -o name "${kind}" || true); do
-      kubectl --kubeconfig="${kconfig}" get -n "${NAMESPACE}" -o yaml "${name}" | tee "${DIR_NAME}/${NAMESPACE}/${kind}/$(basename "${name}").yaml" || true
+    for name in $("${KUBECTL}" --kubeconfig="${kconfig}" get -n "${NAMESPACE}" -o name "${kind}" || true); do
+      "${KUBECTL}" --kubeconfig="${kconfig}" get -n "${NAMESPACE}" -o yaml "${name}" | tee "${DIR_NAME}/${NAMESPACE}/${kind}/$(basename "${name}").yaml" || true
     done
   done
 done

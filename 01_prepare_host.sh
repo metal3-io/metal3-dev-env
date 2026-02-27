@@ -94,13 +94,13 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -b vm-setup/install-package-playbook.yml
 
 ## Install krew
-if ! kubectl krew > /dev/null 2>&1; then
+if ! "${KUBECTL}" krew > /dev/null 2>&1; then
     download_and_install_krew
 fi
 
 if [[ "${BOOTSTRAP_CLUSTER}" = "minikube" ]]; then
     # shellcheck disable=SC2312
-    if ! command -v minikube &>/dev/null || [[ "$(minikube version --short)" != "${MINIKUBE_VERSION}" ]]; then
+    if ! [[ -x "${MINIKUBE}" ]] || [[ "$("${MINIKUBE}" version --short)" != "${MINIKUBE_VERSION}" ]]; then
         download_and_install_minikube
         download_and_install_kvm2_driver
     fi
@@ -120,7 +120,7 @@ else
 fi
 
 # shellcheck disable=SC2312
-if ! command -v kubectl &>/dev/null || [[ "$(kubectl version --client -o json|jq -r '.clientVersion.gitVersion')" != "${KUBECTL_VERSION}" ]]; then
+if ! [[ -x "${KUBECTL}" ]] || [[ "$("${KUBECTL}" version --client -o json|jq -r '.clientVersion.gitVersion')" != "${KUBECTL_VERSION}" ]]; then
     download_and_install_kubectl
 fi
 
@@ -131,7 +131,7 @@ fi
 BASH_COMPLETION="/etc/bash_completion.d/kubectl"
 if [[ ! -r "${BASH_COMPLETION}" ]]; then
     # shellcheck disable=SC2312
-    kubectl completion bash | sudo tee "${BASH_COMPLETION}"
+    "${KUBECTL}" completion bash | sudo tee "${BASH_COMPLETION}"
 fi
 
 # TODO (mboukhalfa) fake images

@@ -391,6 +391,7 @@ fi
 
 # Kubectl version - SHA256 is downloaded and verified
 export KUBECTL_VERSION="${KUBECTL_VERSION:-${KUBERNETES_BINARIES_VERSION}}"
+export KUBECTL="${KUBECTL:-/usr/local/bin/kubectl}"
 
 # Krew version - krew install script cannot be downloaded and verified -> hardcoded binary pin
 export KREW_VERSION="${KREW_VERSION:-v0.4.3}"
@@ -401,6 +402,10 @@ export KUSTOMIZE_VERSION="${KUSTOMIZE_VERSION:-v5.4.1}"
 
 # Minikube version (if BOOTSTRAP_CLUSTER=minikube)
 export MINIKUBE_VERSION="${MINIKUBE_VERSION:-v1.37.0}"
+export MINIKUBE="${MINIKUBE:-/usr/local/bin/minikube}"
+
+# Clusterctl binary path
+export CLUSTERCTL="${CLUSTERCTL:-/usr/local/bin/clusterctl}"
 
 # Kind, kind node image versions (if BOOTSTRAP_CLUSTER=kind)
 export KIND_VERSION="${KIND_VERSION:-v0.31.0}"

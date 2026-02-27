@@ -15,6 +15,7 @@
   environment:
     IRONIC_HOST: "{{ IRONIC_HOST }}"
     IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
   args:
     chdir: "{{ BMOPATH }}"
 
@@ -29,9 +30,10 @@
   environment:
     IRONIC_HOST: "{{ IRONIC_HOST }}"
     IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
   when: BOOTSTRAP_CLUSTER == "minikube"
   args:
     chdir: "{{ BMOPATH }}"
 
 - name: Re-pivot everything back to source cluster
-  shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"
+  shell: "{{ CLUSTERCTL }} move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"

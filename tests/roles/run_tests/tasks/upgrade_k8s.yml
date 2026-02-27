@@ -65,7 +65,7 @@
 
 - name: Verify that controlplane nodes using the new node image
   shell: |
-    kubectl get bmh -n {{NAMESPACE}} |
+    {{ KUBECTL }} get bmh -n {{NAMESPACE}} |
     grep -i provisioned | grep -c 'new-controlplane-image-{{item}}'
   environment:
     KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
@@ -77,15 +77,15 @@
 
 - name: Untaint all CP nodes after upgrade of controlplane nodes
   shell: |
-    kubectl taint nodes --all node-role.kubernetes.io/control-plane-
-    kubectl taint nodes --all node-role.kubernetes.io/master-
+    {{ KUBECTL }} taint nodes --all node-role.kubernetes.io/control-plane-
+    {{ KUBECTL }} taint nodes --all node-role.kubernetes.io/master-
   environment:
     KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
   ignore_errors: yes
 
 - name: Verify number of new control plane machines
   shell: |
-    kubectl get machines -n "{{ NAMESPACE }}" -l cluster.x-k8s.io/control-plane -o json |
+    {{ KUBECTL }} get machines -n "{{ NAMESPACE }}" -l cluster.x-k8s.io/control-plane -o json |
     jq -r '[ .items[] | select(.spec.version == "{{ item}}") | .status.nodeRef.name ] | length'
   environment:
     KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"

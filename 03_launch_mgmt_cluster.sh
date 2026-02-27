@@ -79,7 +79,7 @@ EOF
     fi
 
     # Deploy BMO using deploy.sh script
-    "${BMOPATH}/tools/deploy.sh" -b "${BMO_IRONIC_ARGS[@]}"
+    PATH="$(dirname "${KUBECTL}"):${PATH}" "${BMOPATH}/tools/deploy.sh" -b "${BMO_IRONIC_ARGS[@]}"
 
     # If BMO should run locally, scale down the deployment and run BMO
     if [[ "${BMO_RUN_LOCAL}" = "true" ]]; then
@@ -107,7 +107,7 @@ EOF
 
         touch bmo.out.log
         touch bmo.err.log
-        kubectl scale deployment baremetal-operator-controller-manager -n "${IRONIC_NAMESPACE}" --replicas=0
+        "${KUBECTL}" scale deployment baremetal-operator-controller-manager -n "${IRONIC_NAMESPACE}" --replicas=0
         nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
     fi
     popd
@@ -237,7 +237,7 @@ EOF
         retry sudo "${CONTAINER_RUNTIME}" exec ironic /bin/ironic-readiness
     else
         # Deploy Ironic using deploy.sh script
-        "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
+        PATH="$(dirname "${KUBECTL}"):${PATH}" "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
     fi
     popd
 }
@@ -247,7 +247,7 @@ launch_ironic_standalone_operator()
     # shellcheck disable=SC2311
     echo 'IPA_BASEURI=https://artifactory.nordix.org/artifactory/openstack-remote-cache/ironic-python-agent/dib' > "${IRSOPATH}/config/manager/manager.env"
     make -C "${IRSOPATH}" install deploy IMG="$(get_component_image "${IRSO_LOCAL_IMAGE:-${IRSO_IMAGE}}")"
-    kubectl wait --for=condition=Available --timeout=60s \
+    "${KUBECTL}" wait --for=condition=Available --timeout=60s \
         -n ironic-standalone-operator-system deployment/ironic-standalone-operator-controller-manager
 }
 
@@ -258,7 +258,7 @@ launch_ironic_via_irso()
         exit 1
     fi
 
-    kubectl create secret generic ironic-auth -n "${IRONIC_NAMESPACE}" \
+    "${KUBECTL}" create secret generic ironic-auth -n "${IRONIC_NAMESPACE}" \
         --from-file=username="${IRONIC_AUTH_DIR}ironic-username"  \
         --from-file=password="${IRONIC_AUTH_DIR}ironic-password"
 
@@ -297,7 +297,7 @@ EOF
     fi
 
     if [[ -r "${IRONIC_CERT_FILE}" ]] && [[ -r "${IRONIC_KEY_FILE}" ]]; then
-        kubectl create secret tls ironic-cert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_KEY_FILE}" --cert="${IRONIC_CERT_FILE}"
+        "${KUBECTL}" create secret tls ironic-cert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_KEY_FILE}" --cert="${IRONIC_CERT_FILE}"
         cat >> "${ironic}" <<EOF
   tls:
     certificateName: ironic-cert
@@ -306,7 +306,7 @@ EOF
 
     # This is not used by Ironic currently but is needed by BMO
     if [[ -r "${IRONIC_CACERT_FILE}" ]] && [[ -r "${IRONIC_CAKEY_FILE}" ]]; then
-        kubectl create secret tls ironic-cacert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_CAKEY_FILE}" --cert="${IRONIC_CACERT_FILE}"
+        "${KUBECTL}" create secret tls ironic-cacert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_CAKEY_FILE}" --cert="${IRONIC_CACERT_FILE}"
     fi
 
     if [[ "${IRONIC_USE_MARIADB:-false}" = "true" ]]; then
@@ -324,15 +324,15 @@ EOF
   fi
 
     # NOTE(dtantsur): the webhook may not be ready immediately, retry if needed
-    while ! kubectl create -f "${ironic}"; do
+    while ! "${KUBECTL}" create -f "${ironic}"; do
         sleep 3
     done
 
-    if ! kubectl wait --for=condition=Ready --timeout="${IRONIC_ROLLOUT_WAIT}m" -n "${IRONIC_NAMESPACE}" ironic/ironic; then
+    if ! "${KUBECTL}" wait --for=condition=Ready --timeout="${IRONIC_ROLLOUT_WAIT}m" -n "${IRONIC_NAMESPACE}" ironic/ironic; then
         # FIXME(dtantsur): remove this when Ironic objects are collected in the CI
-        kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironic/ironic
+        "${KUBECTL}" get -n "${IRONIC_NAMESPACE}" -o yaml ironic/ironic
         if [[ "${IRONIC_USE_MARIADB:-false}" = "true" ]]; then
-            kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironicdatabase/ironic-db
+            "${KUBECTL}" get -n "${IRONIC_NAMESPACE}" -o yaml ironicdatabase/ironic-db
         fi
         exit 1
     fi
@@ -349,9 +349,9 @@ launch_fake_ipa()
         cp "${IRONIC_CACERT_FILE}" "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
     elif [[ "${IRONIC_TLS_SETUP}" = "true" ]]; then
         # wait for ironic to be running to ensure ironic-cert is created
-        kubectl -n baremetal-operator-system wait --for=condition=available deployment/baremetal-operator-ironic --timeout=900s
+        "${KUBECTL}" -n baremetal-operator-system wait --for=condition=available deployment/baremetal-operator-ironic --timeout=900s
         # Extract ironic-cert to be used inside fakeIPA for TLS
-        kubectl get secret -n baremetal-operator-system ironic-cert -o json -o=jsonpath="{.data.ca\.crt}" | base64 -d > "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
+        "${KUBECTL}" get secret -n baremetal-operator-system ironic-cert -o json -o=jsonpath="{.data.ca\.crt}" | base64 -d > "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
     fi
 
     # Create fake IPA custom config
@@ -415,7 +415,7 @@ apply_bm_hosts()
       local BMH_FILE="${WORKING_DIR}/bmhosts_crs.yaml"
       if [[ -s "${BMH_FILE}" ]]; then
         cat "${BMH_FILE}"
-        kubectl apply -f "${BMH_FILE}" -n "${namespace}" && break
+        "${KUBECTL}" apply -f "${BMH_FILE}" -n "${namespace}" && break
       else
         echo "bmhosts_crs.yaml does not exist or is empty"
       fi
@@ -613,13 +613,13 @@ install_clusterctl()
     fi
     wget --no-verbose -O clusterctl "https://github.com/kubernetes-sigs/cluster-api/releases/download/${DOWNLOAD_CAPIRELEASE}/clusterctl-linux-amd64"
     chmod +x ./clusterctl
-    sudo mv ./clusterctl /usr/local/bin/
+    sudo mv ./clusterctl "${CLUSTERCTL}"
 }
 
-if ! [[ -x "$(command -v clusterctl)" ]]; then
+if ! [[ -x "${CLUSTERCTL}" ]]; then
     install_clusterctl
-elif [[ "$(clusterctl version | grep -o -P '(?<=GitVersion:").*?(?=",)')" != "${CAPIRELEASE}" ]]; then
-    sudo rm /usr/local/bin/clusterctl
+elif [[ "$("${CLUSTERCTL}" version | grep -o -P '(?<=GitVersion:").*?(?=",)')" != "${CAPIRELEASE}" ]]; then
+    sudo rm "${CLUSTERCTL}"
     install_clusterctl
 fi
 
@@ -632,18 +632,18 @@ launch_cluster_api_provider_metal3()
 
     # shellcheck disable=SC2153
     if [[ "${GINKGO_FOCUS:-}" == "in-place-upgrade" ]]; then
-        clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
+        "${CLUSTERCTL}" init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
           --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5 --ipam=metal3:"${IPAMRELEASE}" \
           --runtime-extension=test-extension:"${CAPM3RELEASE}"
     else
-        clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
+        "${CLUSTERCTL}" init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
           --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5 --ipam=metal3:"${IPAMRELEASE}"
     fi
 
     if [[ "${CAPM3_RUN_LOCAL}" = true ]]; then
         touch capm3.out.log
         touch capm3.err.log
-        kubectl scale -n capm3-system deployment.v1.apps capm3-controller-manager --replicas 0
+        "${KUBECTL}" scale -n capm3-system deployment.v1.apps capm3-controller-manager --replicas 0
         nohup make run >> capm3.out.log 2>> capm3.err.log &
     fi
 
@@ -742,27 +742,27 @@ start_management_cluster()
 
         while /bin/true; do
             minikube_error=0
-            sudo su -l -c 'minikube start' "${USER}" || minikube_error=1
+            sudo su -l -c "${MINIKUBE} start" "${USER}" || minikube_error=1
             if [[ "${minikube_error}" -eq 0 ]]; then
                 break
             fi
         done
 
         if [[ -n "${MINIKUBE_BMNET_V6_IP:-}" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${MINIKUBE_BMNET_V6_IP}/64 dev eth3" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo ip addr add ${MINIKUBE_BMNET_V6_IP}/64 dev eth3" "${USER}"
         fi
 
-        sudo su -l -c "minikube ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
+        sudo su -l -c "${MINIKUBE} ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+        sudo su -l -c "${MINIKUBE} ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
+        sudo su -l -c "${MINIKUBE} ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
 
         if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" = "true" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
         else
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
         fi
     fi
 }
@@ -835,7 +835,7 @@ fi
 
 build_ipxe_firmware
 start_management_cluster
-kubectl create namespace metal3
+"${KUBECTL}" create namespace metal3
 
 patch_clusterctl
 
@@ -855,7 +855,7 @@ else
 fi
 
 if [[ "${BMO_RUN_LOCAL}" != true ]]; then
-    if ! kubectl rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout="${BMO_ROLLOUT_WAIT}"m; then
+    if ! "${KUBECTL}" rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout="${BMO_ROLLOUT_WAIT}"m; then
         echo "baremetal-operator-controller-manager deployment can not be rollout"
         exit 1
     fi
@@ -863,7 +863,7 @@ else
     # There is no certificate to run validation webhook on local.
     # Thus we are deleting validatingwebhookconfiguration resource if exists
     # to let BMO is working properly on local runs.
-    kubectl delete validatingwebhookconfiguration/"${BMO_NAME_PREFIX}"-validating-webhook-configuration --ignore-not-found=true
+    "${KUBECTL}" delete validatingwebhookconfiguration/"${BMO_NAME_PREFIX}"-validating-webhook-configuration --ignore-not-found=true
 fi
 
 # Tests might want to apply bmh inside the test scipt

@@ -31,7 +31,7 @@ check_bm_hosts() {
     PASSWORD="${4}"
     MAC="${5}"
     VERIFY_CA="${6}"
-    BARE_METAL_HOSTS="$(kubectl --kubeconfig "${KUBECONFIG}" get baremetalhosts\
+    BARE_METAL_HOSTS="$("${KUBECTL}" --kubeconfig "${KUBECONFIG}" get baremetalhosts\
       -n metal3 -o json)"
     BARE_METAL_VMS="$(sudo virsh list --all)"
     BARE_METAL_VMNAME="${NAME//-/_}"
@@ -70,7 +70,7 @@ check_bm_hosts() {
       # Verify credentials exist
       RESULT_STR="${NAME} Baremetalhost credentials secret exist"
       CRED_NAME="$(echo "${BARE_METAL_HOST}" | jq -r '.spec.bmc.credentialsName')"
-      CRED_SECRET="$(kubectl get secret "${CRED_NAME}" -n metal3 -o json | \
+      CRED_SECRET="$("${KUBECTL}" get secret "${CRED_NAME}" -n metal3 -o json | \
         jq '.data')"
       process_status $?
 
@@ -122,7 +122,7 @@ check_k8s_entity() {
     RESULT_STR="${TYPE} ${name} created"
     NS="$(echo "${name}" | cut -d ':' -f1)"
     NAME="$(echo "${name}" | cut -d ':' -f2)"
-    ENTITY="$(kubectl --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${NAME}" \
+    ENTITY="$("${KUBECTL}" --kubeconfig "${KUBECONFIG}" get "${TYPE}" "${NAME}" \
       -n "${NS}" -o json)"
     process_status $?
 
@@ -149,7 +149,7 @@ check_k8s_rs() {
     NAME="$(echo "$name" | cut -f2 -d:)"
     NS="$(echo "${name}" | cut -d ':' -f3)"
     NB="$(echo "${name}" | cut -d ':' -f4)"
-    ENTITIES="$(kubectl --kubeconfig "${KUBECONFIG}" get replicasets \
+    ENTITIES="$("${KUBECTL}" --kubeconfig "${KUBECONFIG}" get replicasets \
       -l "${LABEL}"="${NAME}" -n "${NS}" -o json)"
     NB_ENTITIES="$(echo "$ENTITIES" | jq -r '.items | length')"
     RESULT_STR="Replica sets with label ${LABEL}=${NAME} created"
@@ -229,13 +229,13 @@ done
 
 # Verify Kubernetes cluster is reachable
 RESULT_STR="Kubernetes cluster reachable"
-kubectl version > /dev/null
+"${KUBECTL}" version > /dev/null
 process_status $?
 echo ""
 
 # Verify that the CRDs exist
 RESULT_STR="Fetch CRDs"
-CRDS="$(kubectl --kubeconfig "${KUBECONFIG}" get crds)"
+CRDS="$("${KUBECTL}" --kubeconfig "${KUBECONFIG}" get crds)"
 process_status $? "Fetch CRDs"
 
 LIST_OF_CRDS=("${EXPTD_V1ALPHAX_V1BETAX_CRDS}")
@@ -261,7 +261,7 @@ fi
 # Verify the baremetal hosts
 ## Fetch the BM CRs
 RESULT_STR="Fetch Baremetalhosts"
-kubectl --kubeconfig "${KUBECONFIG}" get baremetalhosts -n metal3 -o json \
+"${KUBECTL}" --kubeconfig "${KUBECONFIG}" get baremetalhosts -n metal3 -o json \
   > /dev/null
 process_status $?
 

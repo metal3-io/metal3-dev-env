@@ -177,8 +177,6 @@ download_and_install_tilt()
 # KUBERNETES_VERSION
 download_and_install_kubectl()
 {
-    KUBECTL_PATH=$(whereis -b kubectl | cut -d ":" -f2 | awk '{print $1}')
-    KUBECTL_PATH="${KUBECTL_PATH:-/usr/local/bin/kubectl}"
     KUBECTL_URL="https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
     KUBECTL_SHA256_URL="${KUBECTL_URL}.sha256"
 
@@ -188,7 +186,7 @@ download_and_install_kubectl()
     fi
 
     chmod +x kubectl
-    sudo mv kubectl "${KUBECTL_PATH}"
+    sudo mv kubectl "${KUBECTL}"
 }
 
 download_and_install_kustomize()
@@ -222,7 +220,7 @@ download_and_install_clusterctl()
     fi
 
     chmod +x "${CLUSTERCTL_BINARY}"
-    sudo mv "${CLUSTERCTL_BINARY}" /usr/local/bin/
+    sudo mv "${CLUSTERCTL_BINARY}" "${CLUSTERCTL}"
 }
 
 # Run this helper function called by hack/print_checksums.sh

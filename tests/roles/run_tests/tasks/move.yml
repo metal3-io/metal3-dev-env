@@ -66,14 +66,14 @@
   when: BOOTSTRAP_CLUSTER == "minikube"
 
 - name: Label baremetalhost CRD to pivot.
-  shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
+  shell: "{{ KUBECTL }} label --overwrite crds baremetalhosts.metal3.io {{ item }}"
   with_items:
   - clusterctl.cluster.x-k8s.io=""
   - clusterctl.cluster.x-k8s.io/move=""
   - clusterctl.cluster.x-k8s.io/move-hierarchy=""
 
 - name: Label hardwareData CRD to pivot.
-  shell: "kubectl label --overwrite crds hardwaredata.metal3.io {{ item }}"
+  shell: "{{ KUBECTL }} label --overwrite crds hardwaredata.metal3.io {{ item }}"
   with_items:
   - clusterctl.cluster.x-k8s.io=""
   - clusterctl.cluster.x-k8s.io/move=""
@@ -100,7 +100,7 @@
 - name: Initialize Provider component in target cluster
   vars:
     ipam_release: "{{ lookup('env', 'IPAMRELEASE') }}"
-  shell: "clusterctl init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5 --ipam metal3:{{ IPAMRELEASE }}"
+  shell: "{{ CLUSTERCTL }} init --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --core cluster-api:{{ CAPIRELEASE }} --bootstrap kubeadm:{{ CAPIRELEASE }} --control-plane kubeadm:{{ CAPIRELEASE }} --infrastructure metal3:{{ CAPM3RELEASE }} -v 5 --ipam metal3:{{ IPAMRELEASE }}"
 
 # Check for cert-manager pods on the target cluster
 - name: Check if cert-manager  pods in running state
@@ -122,6 +122,7 @@
     IRONIC_HOST: "{{ IRONIC_HOST }}"
     IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
     KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
   args:
     chdir: "{{ BMOPATH }}"
 
@@ -132,18 +133,19 @@
     IRONIC_HOST: "{{ IRONIC_HOST }}"
     IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
     KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
   args:
     chdir: "{{ BMOPATH }}"
 
 - name: Label baremetalhost CRD in target cluster to pivot back.
-  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
+  shell: "{{ KUBECTL }} --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "
   with_items:
   - clusterctl.cluster.x-k8s.io=""
   - clusterctl.cluster.x-k8s.io/move=""
   - clusterctl.cluster.x-k8s.io/move-hierarchy=""
 
 - name: Label hardwareData CRD in target cluster to pivot back.
-  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds hardwaredata.metal3.io {{ item }} --overwrite "
+  shell: "{{ KUBECTL }} --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds hardwaredata.metal3.io {{ item }} --overwrite "
   with_items:
   - clusterctl.cluster.x-k8s.io=""
   - clusterctl.cluster.x-k8s.io/move=""
@@ -170,7 +172,7 @@
   until: (deployments is succeeded) and (deployments.resources | filter_unavailable_replicas | length == 0 )
 
 - name: Pivot objects to target cluster
-  shell: "clusterctl move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
+  shell: "{{ CLUSTERCTL }} move --to-kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml -n {{ NAMESPACE }} -v 10"
 
 - name: Remove BMO deployment from source cluster
   kubernetes.core.k8s:

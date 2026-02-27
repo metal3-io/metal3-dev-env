@@ -21,5 +21,5 @@ if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]] || [[ "${BOOTSTRAP_CLUSTER}" = "tilt" ]
 fi
 
 if [[ "${BOOTSTRAP_CLUSTER}" = "minikube" ]]; then
-    sudo su -l -c "minikube delete" "${USER}"
+    sudo su -l -c "${MINIKUBE} delete" "${USER}"
 fi

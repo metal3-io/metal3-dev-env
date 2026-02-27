@@ -2,6 +2,7 @@
 
 set -xe
 
+KUBECTL="${KUBECTL:-/usr/local/bin/kubectl}"
 echo "Deploy tilt environment"
 
 pushd "${BMOPATH}"
@@ -26,13 +27,13 @@ REL_PATH_TO_DEV_ENV=$(realpath --relative-to="${BMOPATH}" "${SCRIPTDIR}")
 sed -i "s|yaml = str(kustomizesub(context + \"/config\"))|yaml = str(kustomizesub(\"${REL_PATH_TO_DEV_ENV}/config/overlays/tilt\"))|" Tiltfile
 make kind-reset
 kind create cluster --name capm3 --image="${KIND_NODE_IMAGE}"
-kubectl create namespace "${NAMESPACE}"
-kubectl create namespace "${IRONIC_NAMESPACE}"
+"${KUBECTL}" create namespace "${NAMESPACE}"
+"${KUBECTL}" create namespace "${IRONIC_NAMESPACE}"
 mkdir -p "${HOME}/.config/cluster-api/overrides/infrastructure-metal3/${CAPM3RELEASE}"
 make tilt-up &
 # wait for cert-manager to be ready, timeout after 120 seconds
 for i in {1..8}; do
-    kubectl get pods -n cert-manager | grep -E 'webhook.*Running' && break
+    "${KUBECTL}" get pods -n cert-manager | grep -E 'webhook.*Running' && break
     echo "Waiting for cert-manager webhooks to be ready... Attempt $i/8"
     sleep 15
 done
@@ -41,14 +42,14 @@ launch_ironic
 launch_baremetal_operator
 apply_bm_hosts "${NAMESPACE}"
 # remove bmo, so that is deployed and monitored by Tilt
-kubectl delete deployments.apps -n "${IRONIC_NAMESPACE}" baremetal-operator-controller-manager
+"${KUBECTL}" delete deployments.apps -n "${IRONIC_NAMESPACE}" baremetal-operator-controller-manager
 
 # shellcheck disable=SC2155
 # shellcheck disable=SC1001
-export IRONIC_SECRET_NAME=$(kubectl get secrets  -n "${IRONIC_NAMESPACE}" -oname | grep ironic-credentials | cut -f2 -d\/)
+export IRONIC_SECRET_NAME=$("${KUBECTL}" get secrets  -n "${IRONIC_NAMESPACE}" -oname | grep ironic-credentials | cut -f2 -d\/)
 # shellcheck disable=SC2155
 # shellcheck disable=SC1001
-export IRONICINSPECTOR_SECRET_NAME=$(kubectl get secrets  -n "${IRONIC_NAMESPACE}" -oname | grep "ironic-inspector-credentials" | cut -f2 -d\/)
+export IRONICINSPECTOR_SECRET_NAME=$("${KUBECTL}" get secrets  -n "${IRONIC_NAMESPACE}" -oname | grep "ironic-inspector-credentials" | cut -f2 -d\/)
 popd
 
 pushd "${SCRIPTDIR}"

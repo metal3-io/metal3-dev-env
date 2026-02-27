@@ -14,15 +14,15 @@ export ACTION="repivoting"
 # wait until status of Metal3Machine is rebuilt
 while [[ -z "${status:-}" ]]
 do
-    status=$(kubectl get m3m -n "${NAMESPACE}" -o=jsonpath="{.items[*]['status.ready']}")
+    status=$("${KUBECTL}" get m3m -n "${NAMESPACE}" -o=jsonpath="{.items[*]['status.ready']}")
     sleep 1s
 done
 
 # Manifest collection after re-pivot
 "${METAL3_DIR}"/tests/scripts/fetch_manifests.sh
 
-kubectl get secrets "${CLUSTER_NAME}-kubeconfig" -n "${NAMESPACE}" -o json | jq -r '.data.value'| base64 -d > "/tmp/kubeconfig-${CLUSTER_NAME}.yaml"
-NUM_DEPLOYED_NODES="$(kubectl get nodes --kubeconfig "/tmp/kubeconfig-${CLUSTER_NAME}.yaml" | grep -c -w Ready)"
+"${KUBECTL}" get secrets "${CLUSTER_NAME}-kubeconfig" -n "${NAMESPACE}" -o json | jq -r '.data.value'| base64 -d > "/tmp/kubeconfig-${CLUSTER_NAME}.yaml"
+NUM_DEPLOYED_NODES="$("${KUBECTL}" get nodes --kubeconfig "/tmp/kubeconfig-${CLUSTER_NAME}.yaml" | grep -c -w Ready)"
 process_status $? "Fetch number of deployed nodes"
 
 if [ "${NUM_DEPLOYED_NODES}" -ne "$((CONTROL_PLANE_MACHINE_COUNT + WORKER_MACHINE_COUNT))" ]; then
