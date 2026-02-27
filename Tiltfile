@@ -45,6 +45,19 @@ def check_tools(tools):
             fail("%s not found in PATH" % name)
         print_success("%s OK" % name)
 
+def check_envsubst():
+    # Verify envsubst is the a8m version (https://github.com/a8m/envsubst)
+    # and not the limited gettext version shipped with Linux.
+    help_out = str(local("envsubst -help 2>&1 || true", quiet=True, echo_off=True)).strip()
+    if "no-unset" not in help_out:
+        fail(
+         "\n\n" +
+         "  Wrong envsubst detected (GNU gettext)\n\n" +
+         "  The a8m/envsubst binary is required:\n" +
+         "  https://github.com/a8m/envsubst/releases\n"
+        )
+    print_success("envsubst OK (a8m)")
+
 def cleanup_repos():
     print('Cleaning up {}...'.format(local_dev_dir))
     local('rm -rf {}'.format(local_dev_dir), quiet=True, echo_off=True)
@@ -137,6 +150,7 @@ if config.tilt_subcommand == 'up':
                 print(color.red('ERROR: ') + 'Failed to clone the {} repo into {}'.format(repo['display_name'], repo_path))
 
     check_tools(["docker", "kubectl", "clusterctl", "kustomize"])
+    check_envsubst()
     deploy_cert_manager(version=CERT_MANAGER_VERSION)
     
     # Initialize CAPI
