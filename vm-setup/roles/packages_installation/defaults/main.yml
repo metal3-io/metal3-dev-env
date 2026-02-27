@@ -30,7 +30,7 @@ packages:
       - ca-certificates
       - gnupg-agent
       - software-properties-common
-    focal_jammy:
+    jammy:
       packages:
       - apparmor
       - apparmor-profiles-extra

@@ -6,10 +6,10 @@
     package:
       name: "{{ packages.ubuntu.common.packages}}"
       state: present
-  - name: Install packages using standard package manager for Ubuntu 20.04 or Ubuntu 22.04
-    when: ansible_distribution_version == "20.04" or ansible_distribution_version == "22.04"
+  - name: Install packages using standard package manager for Ubuntu 22.04
+    when: ansible_distribution_version == "22.04"
     package:
-      name: "{{ packages.ubuntu.focal_jammy.packages}}"
+      name: "{{ packages.ubuntu.jammy.packages}}"
       state: present
     become: yes
   - name: Install packages using standard package manager for Ubuntu 24.04

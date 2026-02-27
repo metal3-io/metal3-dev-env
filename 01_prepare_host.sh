@@ -21,8 +21,6 @@ if [[ "${OS}" = "ubuntu" ]]; then
 
     # Set update-alternatives to python3
     case "${DISTRO}" in
-        ubuntu20)
-            sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1 ;;
         ubuntu22)
             sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 ;;
         ubuntu24)
