@@ -742,27 +742,27 @@ start_management_cluster()
 
         while /bin/true; do
             minikube_error=0
-            sudo su -l -c 'minikube start' "${USER}" || minikube_error=1
+            sudo su -l -c "${MINIKUBE} start" "${USER}" || minikube_error=1
             if [[ "${minikube_error}" -eq 0 ]]; then
                 break
             fi
         done
 
         if [[ -n "${MINIKUBE_BMNET_V6_IP:-}" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${MINIKUBE_BMNET_V6_IP}/64 dev eth3" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo ip addr add ${MINIKUBE_BMNET_V6_IP}/64 dev eth3" "${USER}"
         fi
 
-        sudo su -l -c "minikube ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
+        sudo su -l -c "${MINIKUBE} ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+        sudo su -l -c "${MINIKUBE} ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
+        sudo su -l -c "${MINIKUBE} ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
 
         if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" = "true" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
         else
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+            sudo su -l -c "${MINIKUBE} ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
         fi
     fi
 }

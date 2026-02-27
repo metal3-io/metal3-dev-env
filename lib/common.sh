@@ -401,6 +401,7 @@ export KUSTOMIZE_VERSION="${KUSTOMIZE_VERSION:-v5.4.1}"
 
 # Minikube version (if BOOTSTRAP_CLUSTER=minikube)
 export MINIKUBE_VERSION="${MINIKUBE_VERSION:-v1.37.0}"
+export MINIKUBE="${MINIKUBE:-/usr/local/bin/minikube}"
 
 # Kind, kind node image versions (if BOOTSTRAP_CLUSTER=kind)
 export KIND_VERSION="${KIND_VERSION:-v0.31.0}"
