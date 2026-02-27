@@ -222,6 +222,8 @@ if config.tilt_subcommand == 'up':
             'hostfirmwarecomponents.metal3.io:customresourcedefinition',
             'hostfirmwaresettings.metal3.io:customresourcedefinition',
             'hostupdatepolicies.metal3.io:customresourcedefinition',
+            'hostclaims.metal3.io:customresourcedefinition',
+            'hostdeploypolicies.metal3.io:customresourcedefinition',
             'preprovisioningimages.metal3.io:customresourcedefinition',
             'baremetal-operator-controller-manager:serviceaccount',
             'baremetal-operator-leader-election-role:role',
