@@ -129,6 +129,29 @@
       SUSHY_EMULATOR_AUTH_FILE = "/root/sushy/htpasswd"
       SUSHY_EMULATOR_SSL_KEY = "/root/sushy/key.pem"
       SUSHY_EMULATOR_SSL_CERT = "/root/sushy/cert.pem"
+      {% if libvirt_secure_boot|default(false)|bool %}
+      SUSHY_EMULATOR_BOOT_LOADER_MAP = {
+          'Uefi': {
+      {% if host_os == 'centos' or host_os == 'rhel' %}
+              'x86_64': '/usr/share/edk2/ovmf/OVMF_CODE.secboot.fd',
+      {% elif host_distro == 'opensuse-leap15' %}
+              'x86_64': '/usr/share/qemu/ovmf-x86_64-smm-ms-code.bin',
+      {% else %}
+              'x86_64': '/usr/share/OVMF/OVMF_CODE_4M.ms.fd',
+      {% endif %}
+          }
+      }
+      {% if host_os == 'centos' or host_os == 'rhel' %}
+      SUSHY_EMULATOR_SECURE_BOOT_ENABLED_NVRAM = '/usr/share/edk2/ovmf/OVMF_VARS.secboot.fd'
+      SUSHY_EMULATOR_SECURE_BOOT_DISABLED_NVRAM = '/usr/share/edk2/ovmf/OVMF_VARS.fd'
+      {% elif host_distro == 'opensuse-leap15' %}
+      SUSHY_EMULATOR_SECURE_BOOT_ENABLED_NVRAM = '/usr/share/qemu/ovmf-x86_64-smm-ms-vars.bin'
+      SUSHY_EMULATOR_SECURE_BOOT_DISABLED_NVRAM = '/usr/share/qemu/ovmf-x86_64-smm-vars.bin'
+      {% else %}
+      SUSHY_EMULATOR_SECURE_BOOT_ENABLED_NVRAM = '/usr/share/OVMF/OVMF_VARS_4M.ms.fd'
+      SUSHY_EMULATOR_SECURE_BOOT_DISABLED_NVRAM = '/usr/share/OVMF/OVMF_VARS_4M.fd'
+      {% endif %}
+      {% endif %}
   become: true
   when: vm_platform|default("libvirt") != "fake"
 

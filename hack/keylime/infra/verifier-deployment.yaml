@@ -1,0 +1,58 @@
+# Verifier Deployment
+# Uses keylime_verifier image built from HEAD
+# Configured for push mode attestation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keylime-verifier
+  namespace: keylime
+  labels:
+    app: keylime-verifier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keylime-verifier
+  template:
+    metadata:
+      labels:
+        app: keylime-verifier
+    spec:
+      enableServiceLinks: false
+      containers:
+      - name: verifier
+        image: keylime_verifier:__KEYLIME_VERSION__
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8881
+          name: https
+        env:
+        - name: KEYLIME_DIR
+          value: "/var/lib/keylime"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/keylime/verifier.conf
+          subPath: verifier.conf
+          readOnly: true
+        - name: certs
+          mountPath: /var/lib/keylime/certs
+          readOnly: true
+        - name: data
+          mountPath: /var/lib/keylime/cv_data
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "curl -k https://localhost:8881/version || exit 1"
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: keylime-config
+      - name: certs
+        secret:
+          secretName: keylime-certs
+      - name: data
+        emptyDir: {}

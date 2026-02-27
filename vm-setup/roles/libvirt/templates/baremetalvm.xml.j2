@@ -21,15 +21,24 @@
     <type arch='x86_64' machine='q35'>hvm</type>
 {% if libvirt_firmware == 'uefi' %}
 {% if libvirt_secure_boot|bool %}
-     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.secboot.fd</loader>
-{% elif host_os == 'centos' or host_os == 'rhel' %}
-     <loader readonly='yes' type='pflash'>/usr/share/edk2/ovmf/OVMF_CODE.fd</loader>
-{% elif host_distro == 'ubuntu24' %}
-     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE_4M.fd</loader>
+{% if host_os == 'centos' or host_os == 'rhel' %}
+    <loader readonly='yes' secure='yes' type='pflash'>/usr/share/edk2/ovmf/OVMF_CODE.secboot.fd</loader>
+    <nvram template='/usr/share/edk2/ovmf/OVMF_VARS.secboot.fd'/>
 {% elif host_distro == 'opensuse-leap15' %}
-     <loader readonly='yes' type='pflash'>/usr/share/qemu/ovmf-x86_64-4m-code.bin</loader>
+    <loader readonly='yes' secure='yes' type='pflash'>/usr/share/qemu/ovmf-x86_64-smm-ms-code.bin</loader>
+    <nvram template='/usr/share/qemu/ovmf-x86_64-smm-ms-vars.bin'/>
 {% else %}
-     <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
+    <loader readonly='yes' secure='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE_4M.ms.fd</loader>
+    <nvram template='/usr/share/OVMF/OVMF_VARS_4M.ms.fd'/>
+{% endif %}
+{% elif host_os == 'centos' or host_os == 'rhel' %}
+    <loader readonly='yes' type='pflash'>/usr/share/edk2/ovmf/OVMF_CODE.fd</loader>
+{% elif host_distro == 'ubuntu24' %}
+    <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE_4M.fd</loader>
+{% elif host_distro == 'opensuse-leap15' %}
+    <loader readonly='yes' type='pflash'>/usr/share/qemu/ovmf-x86_64-4m-code.bin</loader>
+{% else %}
+    <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
 {% endif %}
 {% endif %}
     <boot dev='network'/>
