@@ -158,7 +158,7 @@ export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
 
-export USE_IRSO="${USE_IRSO:-false}"
+export USE_IRSO="true"
 export IRSOPATH="${IRSOPATH:-${M3PATH}/ironic-standalone-operator}"
 export IRSO_BASE_URL="${IRSO_BASE_URL:-metal3-io/ironic-standalone-operator}"
 export IRSOREPO="${IRSOREPO:-https://github.com/${IRSO_BASE_URL}}"
