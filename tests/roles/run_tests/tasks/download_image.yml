@@ -24,7 +24,7 @@
   - name: Download image.
     block:
     - debug:
-        msg: "Local image {{ IMAGE_LOCATION }}/{{ IMAGE_NAME }} is not found, starting to download"
+        msg: "Local image {{ IMAGE_LOCATION }}/{{ IMAGE_NAME }} is not found, starting to download!"
 
     - name: Verify specific image containing newer version of cloud-init is downloaded
       shell: |
@@ -35,6 +35,9 @@
 
   - name: Convert img to raw
     block:
+    - debug:
+        msg: "Local image {{ IMAGE_LOCATION }}/{{ RAW_IMAGE_NAME }} is not found, starting conversion!"
+
     - name: Create raw image
       shell: |
         qemu-img convert -O raw "{{ IRONIC_IMAGE_DIR }}/{{IMAGE_NAME}}" "{{ IRONIC_IMAGE_DIR }}/{{RAW_IMAGE_NAME}}"
