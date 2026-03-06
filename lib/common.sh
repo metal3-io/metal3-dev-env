@@ -40,7 +40,7 @@ source "${CONFIG}"
 export CI_CONFIG_FILE="${TMP_DIR:-/tmp}/config_ci.sh"
 
 # Set variables
-export BOOT_MODE="${BOOT_MODE:-UEFI}"
+export BOOT_MODE="${BOOT_MODE:-UEFISecureBoot}"
 export MARIADB_HOST="mariaDB"
 export MARIADB_HOST_IP="127.0.0.1"
 # Additional DNS
