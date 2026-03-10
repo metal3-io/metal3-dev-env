@@ -99,7 +99,7 @@
       "matchPackageNames": [
         "golang"
       ],
-      "allowedVersions": "<=1.24"
+      "allowedVersions": "<=1.25"
     },
     {
       "matchPackageNames": [
@@ -162,6 +162,17 @@
       ],
       "depNameTemplate": "kubernetes",
       "datasourceTemplate": "pypi"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^vm-setup/roles/packages_installation/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "go_version: \"(?<currentValue>[0-9.]+)\""
+      ],
+      "depNameTemplate": "golang",
+      "datasourceTemplate": "golang-version"
     },
     {
       "customType": "regex",
