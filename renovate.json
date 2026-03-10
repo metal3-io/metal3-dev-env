@@ -99,7 +99,7 @@
       "matchPackageNames": [
         "golang"
       ],
-      "allowedVersions": "<=1.24"
+      "allowedVersions": "<=1.25"
     },
     {
       "matchPackageNames": [
