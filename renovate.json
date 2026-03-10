@@ -166,6 +166,17 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
+        "/^vm-setup/roles/packages_installation/defaults/main\\.yml$/"
+      ],
+      "matchStrings": [
+        "go_version: \"(?<currentValue>[0-9.]+)\""
+      ],
+      "depNameTemplate": "golang",
+      "datasourceTemplate": "golang-version"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
         "/^lib/common\\.sh$/"
       ],
       "matchStrings": [
