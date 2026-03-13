@@ -14,7 +14,7 @@ export ACTION="repivoting"
 # wait until status of Metal3Machine is rebuilt
 while [[ -z "${status:-}" ]]
 do
-    status=$(kubectl get m3m -n "${NAMESPACE}" -o=jsonpath="{.items[*]['status.ready']}")
+    status=$(kubectl get m3m -n "${NAMESPACE}" -o=jsonpath="{.items[*]['status.initialization.provisioned']}")
     sleep 1s
 done
 
