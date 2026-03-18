@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 [[ ! "${PATH}" =~ .*(:|^)(/usr/local/go/bin)(:|$).* ]] && export PATH="$PATH:/usr/local/go/bin"
 
@@ -18,7 +18,11 @@ if [[ ! $(id -Gn "${USER}") == *"${USER}"* ]]; then
     sudo usermod -aG "${USER}" "${USER}"
 fi
 
-eval "$(go env)"
+# Import Go environment variables only if available
+GO=$(command -v go || true)
+if [[ -n "${GO}" ]]; then
+    eval "$("${GO}" env)"
+fi
 export GOPATH="${GOPATH:-/home/$(whoami)/go}"
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
