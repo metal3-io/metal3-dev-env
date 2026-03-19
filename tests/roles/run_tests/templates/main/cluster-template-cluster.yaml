@@ -25,7 +25,7 @@ metadata:
   namespace: ${ NAMESPACE }
 spec:
   controlPlaneEndpoint:
-    host: ${ CLUSTER_APIENDPOINT_HOST }
+    host: ${ CLUSTER_APIENDPOINT_IP }
     port: ${ CLUSTER_APIENDPOINT_PORT }
   noCloudProvider: true
 ---
