@@ -377,9 +377,6 @@ export RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UP
 # Config for OpenStack CLI
 export OPENSTACK_CONFIG="${HOME}/.config/openstack/clouds.yaml"
 
-# Default hosts memory
-export TARGET_NODE_MEMORY="${TARGET_NODE_MEMORY:-4096}"
-
 # Cluster
 export CLUSTER_NAME="${CLUSTER_NAME:-test1}"
 export KUBERNETES_VERSION="${KUBERNETES_VERSION:-v1.35.0}"
