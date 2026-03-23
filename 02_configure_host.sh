@@ -153,7 +153,6 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -e "libvirt_firmware=${LIBVIRT_FIRMWARE}" \
     -e "libvirt_secure_boot=${LIBVIRT_SECURE_BOOT}" \
     -e "libvirt_domain_type=${LIBVIRT_DOMAIN_TYPE}" \
-    -e "default_memory=${TARGET_NODE_MEMORY}" \
     -e "manage_external=${MANAGE_EXT_BRIDGE}" \
     -e "provisioning_url_host=${BARE_METAL_PROVISIONER_URL_HOST}" \
     -e "nodes_file=${NODES_FILE}" \
