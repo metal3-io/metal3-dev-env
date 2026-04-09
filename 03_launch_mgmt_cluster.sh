@@ -260,7 +260,8 @@ launch_ironic_via_irso()
 
     kubectl create secret generic ironic-auth -n "${IRONIC_NAMESPACE}" \
         --from-file=username="${IRONIC_AUTH_DIR}ironic-username"  \
-        --from-file=password="${IRONIC_AUTH_DIR}ironic-password"
+        --from-file=password="${IRONIC_AUTH_DIR}ironic-password" \
+        --labels='environment.metal3.io/ironic-standalone-operator=true'
 
     local ironic="${IRONIC_DATA_DIR}/ironic.yaml"
     cat > "${ironic}" <<EOF
@@ -297,7 +298,8 @@ EOF
     fi
 
     if [[ -r "${IRONIC_CERT_FILE}" ]] && [[ -r "${IRONIC_KEY_FILE}" ]]; then
-        kubectl create secret tls ironic-cert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_KEY_FILE}" --cert="${IRONIC_CERT_FILE}"
+        kubectl create secret tls ironic-cert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_KEY_FILE}" --cert="${IRONIC_CERT_FILE}" \
+            --labels='environment.metal3.io/ironic-standalone-operator=true'
         cat >> "${ironic}" <<EOF
   tls:
     certificateName: ironic-cert
