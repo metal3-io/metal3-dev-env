@@ -131,7 +131,7 @@ REGISTRY: "{{ lookup('env', 'REGISTRY') }}"
 DOCKER_IPV6_SUPPORT: "{{ lookup('env', 'DOCKER_USE_IPV6_INTERNALLY') | default('false', true) }}"
 ANSIBLE_VENV: "{{ lookup('env', 'ANSIBLE_VENV') | default('/usr', true) }}"
 # Go related variables, expected to be updated when new versions are released:
-go_version: "1.25.8"
+go_version: "1.25.9"
 # Construct Go download URL and tarball name
 go_tarball: "go{{ go_version }}.linux-amd64.tar.gz"
 go_download_url: "https://go.dev/dl/{{ go_tarball }}"
