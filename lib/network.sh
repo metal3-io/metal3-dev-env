@@ -54,10 +54,11 @@ if [[ "${BOOT_MODE}" == "legacy" ]]; then
   export LIBVIRT_SECURE_BOOT="false"
 elif [[ "${BOOT_MODE}" == "UEFI" ]]; then
   export LIBVIRT_FIRMWARE="uefi"
-  export LIBVIRT_SECURE_BOOT="false"
+  export LIBVIRT_SECURE_BOOT="${LIBVIRT_SECURE_BOOT:-false}"
 elif [[ "${BOOT_MODE}" == "UEFISecureBoot" ]]; then
   export LIBVIRT_FIRMWARE="uefi"
   export LIBVIRT_SECURE_BOOT="true"
+  export BMC_DRIVER="${BMC_DRIVER:-redfish-virtualmedia}"
 fi
 
 # shellcheck disable=SC2155
