@@ -25,7 +25,7 @@
     state: latest
     nobest: true
   become: yes
-  retries: 3
+  retries: 5
   delay: 30
   register: upgrade_result
   until: upgrade_result is succeeded
@@ -35,7 +35,7 @@
     name: podman
     state: present
   become: yes
-  retries: 3
+  retries: 5
   delay: 30
   register: podman_result
   until: podman_result is succeeded

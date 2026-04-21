@@ -64,8 +64,8 @@
   - name: Refresh DNF cache
     dnf:
       update_cache: yes
-    retries: 3
-    delay: 10
+    retries: 5
+    delay: 30
     register: cache_result
     until: cache_result is succeeded
 
@@ -74,7 +74,7 @@
       name: "{{ packages.centos.common.packages }}"
       state: present
       nobest: true
-    retries: 3
+    retries: 5
     delay: 30
     register: pkg_result
     until: pkg_result is succeeded
