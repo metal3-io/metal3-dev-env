@@ -1,0 +1,13 @@
+# Agent ConfigMap
+# Contains host addresses for reaching infra cluster
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keylime-agent-config
+  namespace: keylime
+data:
+  # Set by Makefile based on host detection
+  # Linux: host's primary IP
+  # macOS/Windows: host.docker.internal
+  registrar_host: "PLACEHOLDER"
+  verifier_url: "https://PLACEHOLDER:30881"
