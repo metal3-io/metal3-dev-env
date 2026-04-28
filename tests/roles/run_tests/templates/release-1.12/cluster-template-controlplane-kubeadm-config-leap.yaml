@@ -69,7 +69,7 @@ files:
         priority 101
         advert_int 1
         virtual_ipaddress {
-            {{ CLUSTER_APIENDPOINT_HOST }}
+            {{ CLUSTER_APIENDPOINT_IP }}
         }
         track_script {
             k8s_api_check
@@ -110,7 +110,7 @@ files:
     registries = ['docker.io']
 
     [registries.insecure]
-    registries = ['{{ REGISTRY }}']
+    registries = ['{{ REGISTRY }}', '{{ K8S_REGISTRY}}']
 {% if EXTERNAL_VLAN_ID != "" %}
 - path: /etc/NetworkManager/system-connections/eth0.{{ EXTERNAL_VLAN_ID }}.nmconnection
   owner: root:root

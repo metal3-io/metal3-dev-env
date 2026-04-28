@@ -456,7 +456,7 @@ get_component_image()
         tmp_image_tag="latest"
     fi
 
-    echo "${REGISTRY}/localimages/${tmp_image_name}:${tmp_image_tag}"
+    echo "${REGISTRY_DOMAIN_NAME}:${REGISTRY_PORT}/localimages/${tmp_image_name}:${tmp_image_tag}"
 }
 
 #
@@ -692,7 +692,7 @@ launch_kind()
         # We need to create config files for the containerd patches.
         # Notice that having '[' and ']' in the key requires containerd 2.0 or newer.
         cat <<EOF | tee /tmp/hosts.toml
-[host."http://${REGISTRY}/v2"]
+[host."http://${REGISTRY_DOMAIN_NAME}:${REGISTRY_PORT}/v2"]
   capabilities = ["pull", "resolve", "push"]
   skip_verify = true
 EOF
@@ -724,8 +724,8 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:
 - |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${REGISTRY}"]
-    endpoint = ["http://${REGISTRY}"]
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${REGISTRY_DOMAIN_NAME}:${REGISTRY_PORT}"]
+    endpoint = ["http://${REGISTRY_IP}:${REGISTRY_PORT}"]
 EOF
     fi
 }
