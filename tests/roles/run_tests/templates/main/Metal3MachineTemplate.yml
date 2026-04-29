@@ -17,5 +17,5 @@ spec:
       image:
         checksum: {{ IMAGE_CHECKSUM }}
         checksumType: {{ IMAGE_CHECKSUM_TYPE }}
-        format: {{ IMAGE_FORMAT }}
+        diskFormat: {{ IMAGE_FORMAT }}
         url: {{ IMAGE_URL }}

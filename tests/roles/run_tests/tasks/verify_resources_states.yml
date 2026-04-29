@@ -38,7 +38,7 @@
   delay: 10
   vars:
     # Note: the 'ready' field is a boolean (not a string)
-    query: "[? status.ready]"
+    query: "[? status.initialization.provisioned]"
   until: (m3m is succeeded) and (m3m.resources | length > 0) and (m3m.resources | json_query(query) | length == (NUMBER_OF_BMH | int))
 
 - name: Wait until "{{ NUMBER_OF_BMH }}" machines become running.
