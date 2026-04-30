@@ -1,0 +1,8 @@
+{
+{% if ENABLE_NAT64|bool %}
+    "dns": [ "{{ DOCKER_LOCAL_DNS_V6 }}" ],
+{% endif %}
+    "ipv6": {{ DOCKER_IPV6_SUPPORT }},
+    "fixed-cidr-v6": "fd00:d0c4::/48",
+    "insecure-registries" : ["{{ REGISTRY }}"]
+}
