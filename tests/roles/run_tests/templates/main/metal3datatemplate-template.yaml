@@ -13,16 +13,12 @@ spec:
         object: machine
       - key: local_hostname
         object: machine
-    ipAddressesFromIPPool:
+    ipAddressesFromPool:
       - key: provisioningIP
         name: provisioning-pool
-        apiGroup: ""
-        kind: ""
-    prefixesFromIPPool:
+    prefixesFromPool:
       - key: provisioningCIDR
         name: provisioning-pool
-        apiGroup: ""
-        kind: ""
   networkData:
     links:
       ethernets:

@@ -74,7 +74,7 @@ spec:
         url: {{ IMAGE_URL }}
         checksum: {{ IMAGE_CHECKSUM }}
         checksumType: {{ IMAGE_CHECKSUM_TYPE }}
-        format: {{ IMAGE_FORMAT }}
+        diskFormat: {{ IMAGE_FORMAT }}
       dataTemplate:
         name: ${ CLUSTER_NAME }-controlplane-template
 ---

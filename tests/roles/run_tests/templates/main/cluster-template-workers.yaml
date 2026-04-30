@@ -33,7 +33,7 @@ spec:
       deletion:
         nodeDrainTimeoutSeconds: ${ NODE_DRAIN_TIMEOUT }
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+apiVersion: infrastructure.cluster.x-k8s.io/{{CAPM3_VERSION}}
 kind: Metal3MachineTemplate
 metadata:
   name: ${ CLUSTER_NAME }-workers
@@ -45,7 +45,7 @@ spec:
         url: {{ IMAGE_URL }}
         checksum: {{ IMAGE_CHECKSUM }}
         checksumType: {{ IMAGE_CHECKSUM_TYPE }}
-        format: {{ IMAGE_FORMAT }}
+        diskFormat: {{ IMAGE_FORMAT }}
       dataTemplate:
         name: ${ CLUSTER_NAME }-workers-template
 ---
