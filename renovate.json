@@ -105,13 +105,13 @@
       "matchPackageNames": [
         "kindest/node"
       ],
-      "allowedVersions": "<=1.35"
+      "allowedVersions": "<=1.36"
     },
     {
       "matchPackageNames": [
         "kubernetes-sigs/cri-tools"
       ],
-      "allowedVersions": "<=1.35"
+      "allowedVersions": "<=1.36"
     }
   ],
   "rangeStrategy": "bump",
