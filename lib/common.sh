@@ -130,6 +130,9 @@ clone_repo() {
 }
 
 # Configure common environment variables
+# Default CAPM3 API version is v1beta2. Older setup instructions and examples
+# may still assume v1beta1; when following those workflows, explicitly export
+# CAPM3_VERSION=v1beta1 to preserve compatibility.
 export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta2"}"
 
 export CAPI_NIGHTLY_BUILD="${CAPI_NIGHTLY_BUILD:-false}"
@@ -190,9 +193,11 @@ fi
 if [[ "${CAPM3RELEASEBRANCH}" == "release-1.11" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.11}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.11}"
+  export CAPM3_VERSION="v1beta1"
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.12" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.12}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.12}"
+  export CAPM3_VERSION="v1beta1"
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.13" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.13}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.13}"
