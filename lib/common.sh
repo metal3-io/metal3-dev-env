@@ -130,7 +130,7 @@ clone_repo() {
 }
 
 # Configure common environment variables
-export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta1"}"
+export CAPM3_VERSION="${CAPM3_VERSION:-"v1beta2"}"
 
 export CAPI_NIGHTLY_BUILD="${CAPI_NIGHTLY_BUILD:-false}"
 if [[ "${CAPI_NIGHTLY_BUILD:-}" = "true" ]]; then
@@ -187,10 +187,7 @@ else
   exit 1
 fi
 
-if [[ "${CAPM3RELEASEBRANCH}" == "release-1.10" ]]; then
-  export CAPM3BRANCH="${CAPM3BRANCH:-release-1.10}"
-  export IPAMBRANCH="${IPAMBRANCH:-release-1.10}"
-elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.11" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" == "release-1.11" ]]; then
   export CAPM3BRANCH="${CAPM3BRANCH:-release-1.11}"
   export IPAMBRANCH="${IPAMBRANCH:-release-1.11}"
 elif [[ "${CAPM3RELEASEBRANCH}" == "release-1.12" ]]; then
@@ -316,15 +313,7 @@ export FAKE_IPA_IMAGE="${FAKE_IPA_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/fake-ip
 export FKAS_IMAGE="${FKAS_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/metal3-fkas}"
 
 # CAPM3 and IPAM controller images
-if [[ "${CAPM3RELEASEBRANCH}" = "release-1.10" ]]; then
-  export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.10"}
-  export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.10"}
-  export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.10"}
-  export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:release-0.9"}
-  export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-29.0"}
-  export IRSO_IRONIC_VERSION="29.0"
-  export BMOBRANCH="${BMOBRANCH:-${BMORELEASEBRANCH:-release-0.10}}"
-elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.11" ]]; then
+if [[ "${CAPM3RELEASEBRANCH}" = "release-1.11" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.11"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.11"}
   export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:release-0.11"}
@@ -355,7 +344,6 @@ else
   export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:main"}
   export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:main"}
   export BMOBRANCH="${BMOBRANCH:-${BMORELEASEBRANCH:-main}}"
-
 fi
 
 # IPXE support image
