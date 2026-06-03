@@ -131,7 +131,7 @@ fi
 BASH_COMPLETION="/etc/bash_completion.d/kubectl"
 if [[ ! -r "${BASH_COMPLETION}" ]]; then
     # shellcheck disable=SC2312
-    kubectl completion bash | sudo tee "${BASH_COMPLETION}"
+    kubectl completion bash | sudo tee "${BASH_COMPLETION}" >/dev/null
 fi
 
 # TODO (mboukhalfa) fake images
