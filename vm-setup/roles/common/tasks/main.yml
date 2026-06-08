@@ -25,7 +25,7 @@
 
 - name: "Check if EXTRA_NETWORK_NAMES is configured"
   set_fact:
-    generate_extra_networks: "{{lookup('env', 'EXTRA_NETWORK_NAMES') and extra_networks is not defined}}"
+    generate_extra_networks: "{{ (lookup('env', 'EXTRA_NETWORK_NAMES', default='') | length > 0) and (extra_networks is not defined) }}"
 
 - name: Calculate extra_networks if EXTRA_NETWORK_NAMES is defined
   include_tasks: extra_networks_tasks.yml
