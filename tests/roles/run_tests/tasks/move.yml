@@ -7,11 +7,6 @@
     - registry
     - sushy-tools
     - vbmc
-    ironic_containers:
-    - ironic
-    - ironic-endpoint-keepalived
-    - ironic-log-watch
-    - dnsmasq
 
 - name: Fetch container logs (kind cluster)
   block:
@@ -21,49 +16,26 @@
       path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
       state: directory
     with_items:
-    - "{{ ironic_containers }}"
     - "{{ general_containers }}"
 
   - name: Fetch container logs before pivoting (kind cluster)
     shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
     with_items:
-    - "{{ ironic_containers }}"
     - "{{ general_containers }}"
-
-  - name: Remove ironic container from source cluster (kind cluster)
-    docker_container:
-      name: "{{ item }}"
-      state: absent
-    with_items: "{{ ironic_containers }}"
 
   when: BOOTSTRAP_CLUSTER == "kind"
   become: yes
   become_user: root
 
-- name: Fetch container logs (minikube cluster)
-  block:
-
-  - name: Create directories for storing container logs (minikube cluster)
-    file:
-      path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
-      state: directory
-    with_items: "{{ general_containers }}"
-
-  - name: Fetch container logs before pivoting (minikube cluster)
-    shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
-    with_items: "{{ general_containers }}"
-
-  become: yes
-  become_user: root
-  when: BOOTSTRAP_CLUSTER == "minikube"
-
-- name: Remove Ironic from source cluster (minikube cluster)
+- name: Remove Ironic CR from source cluster (kind cluster)
   kubernetes.core.k8s:
-    name: "{{ NAMEPREFIX }}-ironic"
-    kind: Deployment
-    state: absent
+    api_version: ironic.metal3.io/v1alpha1
+    kind: Ironic
+    name: ironic
     namespace: "{{ IRONIC_NAMESPACE }}"
-  when: BOOTSTRAP_CLUSTER == "minikube"
+    kubeconfig: "{{ KUBECONFIG_PATH }}"
+    state: absent
+  when: BOOTSTRAP_CLUSTER == "kind" and USE_IRSO | bool
 
 - name: Label baremetalhost CRD to pivot.
   shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
@@ -125,15 +97,70 @@
   args:
     chdir: "{{ BMOPATH }}"
 
-# Install Ironic
-- name: Install Ironic
-  shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
+# Install Ironic via IRSO on target cluster
+- name: Install IRSO operator in target cluster
+  shell: "make -C {{ IRSOPATH }} install deploy IMG={{ IRSO_IMAGE }}"
   environment:
-    IRONIC_HOST: "{{ IRONIC_HOST }}"
-    IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-    KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
-  args:
-    chdir: "{{ BMOPATH }}"
+    KUBECONFIG: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  when: USE_IRSO | bool
+
+- name: Wait for IRSO operator to be available in target cluster
+  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml wait --for=condition=Available --timeout=60s -n ironic-standalone-operator-system deployment/ironic-standalone-operator-controller-manager"
+  when: USE_IRSO | bool
+
+- name: Delete ironic-auth secret if it exists in target cluster
+  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml delete secret ironic-auth -n {{ IRONIC_NAMESPACE }} --ignore-not-found"
+  when: USE_IRSO | bool
+
+- name: Create ironic-auth secret in target cluster
+  shell: >
+    kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml create secret generic ironic-auth
+    -n {{ IRONIC_NAMESPACE }}
+    --from-file=username={{ IRONIC_DATA_DIR }}/auth/ironic-username
+    --from-file=password={{ IRONIC_DATA_DIR }}/auth/ironic-password
+  when: USE_IRSO | bool
+
+- name: Label ironic-auth secret in target cluster
+  shell: >
+    kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label secret ironic-auth -n {{ IRONIC_NAMESPACE }} environment.metal3.io/ironic-standalone-operator=true
+  when: USE_IRSO | bool
+
+- name: Delete ironic-cert secret if it exists in target cluster
+  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml delete secret ironic-cert -n {{ IRONIC_NAMESPACE }} --ignore-not-found"
+  when: USE_IRSO | bool and IRONIC_TLS_SETUP == "true"
+
+- name: Create ironic-cert TLS secret in target cluster
+  shell: >
+    kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml create secret tls ironic-cert
+    -n {{ IRONIC_NAMESPACE }}
+    --key={{ WORKING_DIR }}/certs/ironic.key
+    --cert={{ WORKING_DIR }}/certs/ironic.crt
+  when: USE_IRSO | bool and IRONIC_TLS_SETUP == "true"
+
+- name: Label ironic-cert secret in target cluster
+  shell: >
+    kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label secret ironic-cert -n {{ IRONIC_NAMESPACE }} environment.metal3.io/ironic-standalone-operator=true
+  when: USE_IRSO | bool and IRONIC_TLS_SETUP == "true"
+
+- name: Delete ironic-cacert secret if it exists in target cluster
+  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml delete secret ironic-cacert -n {{ IRONIC_NAMESPACE }} --ignore-not-found"
+  when: USE_IRSO | bool and IRONIC_TLS_SETUP == "true"
+
+- name: Create ironic-cacert TLS secret in target cluster
+  shell: >
+    kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml create secret tls ironic-cacert
+    -n {{ IRONIC_NAMESPACE }}
+    --key={{ WORKING_DIR }}/certs/ironic-ca.key
+    --cert={{ WORKING_DIR }}/certs/ironic-ca.pem
+  when: USE_IRSO | bool and IRONIC_TLS_SETUP == "true"
+
+- name: Install Ironic CR in target cluster
+  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml create -f {{ IRONIC_DATA_DIR }}/ironic.yaml"
+  when: USE_IRSO | bool
+
+- name: Wait for Ironic to be ready in target cluster
+  shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml wait --for=condition=Ready --timeout=300s -n {{ IRONIC_NAMESPACE }} ironic/ironic"
+  when: USE_IRSO | bool
 
 - name: Label baremetalhost CRD in target cluster to pivot back.
   shell: "kubectl --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml label crds baremetalhosts.metal3.io {{ item }} --overwrite "

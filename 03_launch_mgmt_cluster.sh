@@ -144,7 +144,7 @@ update_images()
 }
 
 #
-# Launch Ironic locally for Kind and Tilt, in cluster for Minikube
+# Launch Ironic locally for Kind and Tilt
 #
 launch_ironic()
 {
@@ -229,16 +229,11 @@ EOF
         update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
     fi
 
-    if [[ "${BOOTSTRAP_CLUSTER}" != "minikube" ]]; then
-        update_images
-        ${RUN_LOCAL_IRONIC_SCRIPT}
-        # Wait for ironic to become ready
-        echo "Waiting for Ironic to become ready"
-        retry sudo "${CONTAINER_RUNTIME}" exec ironic /bin/ironic-readiness
-    else
-        # Deploy Ironic using deploy.sh script
-        "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
-    fi
+    update_images
+    ${RUN_LOCAL_IRONIC_SCRIPT}
+    # Wait for ironic to become ready
+    echo "Waiting for Ironic to become ready"
+    retry sudo "${CONTAINER_RUNTIME}" exec ironic /bin/ironic-readiness
     popd
 }
 
@@ -735,40 +730,36 @@ EOF
 #
 start_management_cluster()
 {
-    local minikube_error
-
     if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]]; then
         launch_kind
-    elif [[ "${BOOTSTRAP_CLUSTER}" = "minikube" ]]; then
-        # This method, defined in lib/common.sh, will either ensure sockets are up'n'running
-        # for CS9 and RHEL9, or restart the libvirtd.service for other DISTRO
-        manage_libvirtd
-
-        while /bin/true; do
-            minikube_error=0
-            sudo su -l -c 'minikube start' "${USER}" || minikube_error=1
-            if [[ "${minikube_error}" -eq 0 ]]; then
-                break
-            fi
-        done
-
-        if [[ -n "${MINIKUBE_BMNET_V6_IP:-}" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${MINIKUBE_BMNET_V6_IP}/64 dev eth3" "${USER}"
-        fi
-
-        sudo su -l -c "minikube ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
-
-        if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" = "true" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-        else
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-        fi
     fi
+}
+
+#
+# Connect Kind node to the provisioning network for IRSO
+# When using IRSO, the ironic-service pod runs with hostNetwork=true
+# and needs the ironicendpoint interface to be present on the Kind node
+#
+setup_kind_provisioning_network()
+{
+    local container_pid
+    local veth_name="kind-prov"
+    local veth_br_name="kind-prov-br"
+
+    container_pid=$(docker inspect -f '{{.State.Pid}}' kind-control-plane)
+
+    # Create veth pair to connect Kind to the provisioning network
+    sudo ip link add "${veth_name}" type veth peer name "${veth_br_name}"
+    sudo ip link set "${veth_br_name}" master provisioning
+    sudo ip link set "${veth_br_name}" up
+
+    # Move one end into Kind's network namespace and configure it
+    sudo ip link set "${veth_name}" netns "${container_pid}"
+    sudo nsenter -t "${container_pid}" -n ip link set "${veth_name}" name "${BARE_METAL_PROVISIONER_INTERFACE}"
+    sudo nsenter -t "${container_pid}" -n ip addr add "${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR}" dev "${BARE_METAL_PROVISIONER_INTERFACE}"
+    sudo nsenter -t "${container_pid}" -n ip link set "${BARE_METAL_PROVISIONER_INTERFACE}" up
+
+    echo "Connected Kind node to provisioning network via ${BARE_METAL_PROVISIONER_INTERFACE}"
 }
 
 build_ipxe_firmware()
@@ -839,6 +830,12 @@ fi
 
 build_ipxe_firmware
 start_management_cluster
+
+# When using IRSO with Kind, connect the Kind node to the provisioning network
+if [[ "${USE_IRSO}" = "true" ]] && [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]]; then
+    setup_kind_provisioning_network
+fi
+
 kubectl create namespace metal3
 
 patch_clusterctl
@@ -851,7 +848,7 @@ patch_ipam
 launch_cluster_api_provider_metal3
 BMO_NAME_PREFIX="${NAMEPREFIX}"
 launch_baremetal_operator
-if [[ "${USE_IRSO}" = true ]]; then
+if [[ "${USE_IRSO}" = "true" ]]; then
     launch_ironic_standalone_operator
     launch_ironic_via_irso
 else

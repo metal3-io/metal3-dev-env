@@ -165,7 +165,8 @@ export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
 
-export USE_IRSO="${USE_IRSO:-false}"
+# For testing purpose, once changed in cicd, it should be changed back to getting the value from env variable
+export USE_IRSO="true"
 export IRSOPATH="${IRSOPATH:-${M3PATH}/ironic-standalone-operator}"
 export IRSO_BASE_URL="${IRSO_BASE_URL:-metal3-io/ironic-standalone-operator}"
 export IRSOREPO="${IRSOREPO:-https://github.com/${IRSO_BASE_URL}}"
@@ -390,11 +391,12 @@ export KUBERNETES_VERSION="${KUBERNETES_VERSION:-v1.36.0}"
 export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_VERSION}}"
 export KUBERNETES_BINARIES_CONFIG_VERSION=${KUBERNETES_BINARIES_CONFIG_VERSION:-"v0.15.1"}
 
-# Bootstrap Cluster
-if [[ "${CONTAINER_RUNTIME}" = "docker" ]]; then
-  export BOOTSTRAP_CLUSTER=${BOOTSTRAP_CLUSTER:-"kind"}
-else
-  export BOOTSTRAP_CLUSTER="minikube"
+# Bootstrap Cluster - Kind is the only supported option
+# Minikube support has been removed to simplify the dev-env
+export BOOTSTRAP_CLUSTER=${BOOTSTRAP_CLUSTER:-"kind"}
+if [[ "${BOOTSTRAP_CLUSTER}" == "minikube" ]]; then
+    echo "WARNING: minikube is deprecated and no longer supported. Using kind instead."
+    export BOOTSTRAP_CLUSTER="kind"
 fi
 
 # Kubectl version - SHA256 is downloaded and verified
@@ -407,10 +409,7 @@ export KREW_SHA256="${KREW_SHA256:-5df32eaa0e888a2566439c4ccb2ef3a3e6e89522f2f21
 # Kustomize version
 export KUSTOMIZE_VERSION="${KUSTOMIZE_VERSION:-v5.4.1}"
 
-# Minikube version (if BOOTSTRAP_CLUSTER=minikube)
-export MINIKUBE_VERSION="${MINIKUBE_VERSION:-v1.37.0}"
-
-# Kind, kind node image versions (if BOOTSTRAP_CLUSTER=kind)
+# Kind, kind node image versions
 export KIND_VERSION="${KIND_VERSION:-v0.32.0}"
 export KIND_NODE_IMAGE_VERSION="${KIND_NODE_IMAGE_VERSION:-v1.36.1}"
 export KIND_NODE_IMAGE="${KIND_NODE_IMAGE:-${DOCKER_HUB_PROXY}/kindest/node:${KIND_NODE_IMAGE_VERSION}}"

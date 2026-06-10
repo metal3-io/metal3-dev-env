@@ -111,36 +111,6 @@ download_and_install_krew()
     popd || return 1
 }
 
-download_and_install_minikube()
-{
-    MINIKUBE_URL="https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-amd64"
-    MINIKUBE_SHA256="${MINIKUBE_SHA256:-https://github.com/kubernetes/minikube/releases/download/${MINIKUBE_VERSION}/minikube-linux-amd64.sha256}"
-    MINIKUBE_BINARY="minikube"
-
-    wget_and_verify "${MINIKUBE_URL}" "${MINIKUBE_SHA256}" "${MINIKUBE_BINARY}"
-    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
-        return 0
-    fi
-
-    chmod +x "${MINIKUBE_BINARY}"
-    sudo mv "${MINIKUBE_BINARY}" /usr/local/bin/
-}
-
-download_and_install_kvm2_driver()
-{
-    DRIVER_URL="https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/docker-machine-driver-kvm2"
-    MINIKUBE_DRIVER_SHA256="${MINIKUBE_DRIVER_SHA256:-https://github.com/kubernetes/minikube/releases/download/${MINIKUBE_VERSION}/docker-machine-driver-kvm2-amd64.sha256}"
-    DRIVER_BINARY="docker-machine-driver-kvm2"
-
-    wget_and_verify "${DRIVER_URL}" "${MINIKUBE_DRIVER_SHA256}" "${DRIVER_BINARY}"
-    if [[ "${SKIP_INSTALLATION}" != "false" ]]; then
-        return 0
-    fi
-
-    chmod +x "${DRIVER_BINARY}"
-    sudo mv "${DRIVER_BINARY}" /usr/local/bin/
-}
-
 download_and_install_kind()
 {
     KIND_URL="https://github.com/kubernetes-sigs/kind/releases/download/${KIND_VERSION}/kind-$(uname)-amd64"
@@ -239,7 +209,5 @@ _download_and_print_checksums()
     download_and_install_krew
     download_and_install_kubectl
     download_and_install_kustomize
-    download_and_install_kvm2_driver
-    download_and_install_minikube
     download_and_install_tilt
 }

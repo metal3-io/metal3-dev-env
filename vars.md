@@ -13,7 +13,7 @@ assured that they are persisted.
 | :------ | :------- | :--------------- | :-------- |
 | DOCKER_USE_IPV6_INTERNALLY | Choose whether Docker will use IPv6 internally. | "true", "false" | false |
 | MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1|
-| BOOTSTRAP_CLUSTER | Tool for running management/bootstrap cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
+| BOOTSTRAP_CLUSTER | Tool for running management/bootstrap cluster. | kind, tilt | "kind" |
 | IP_STACK | Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
 | EXTERNAL_VLAN_ID | If the "external" network is tagged, this is the VLAN id for the network, set on the network interface for the bare metal hosts. | "" or 1-4096 | "" |
 | EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "external" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
@@ -28,6 +28,7 @@ assured that they are persisted.
 | LOCAL_IPA_PATH | This has effect only when USE_LOCAL_IPA is set to "true", points to the directory where the IPA archive is located. This variable is handled by BMO. | "arbitrary directory path" | "" |
 | BMO_RUN_LOCAL | Run a local baremetal operator instead of deploying in Kubernetes | "true", "false" | "false" |
 | CAPM3_RUN_LOCAL | Run a local CAPM3 operator instead of deploying in Kubernetes | "true", "false" | "false" |
+| USE_IRSO | Use ironic-standalone-operator to deploy Ironic inside the cluster. Set to "false" to run Ironic locally outside the cluster. | "true", "false" | "true" |
 | SKIP_RETRIES | Do not retry on failure during verifications or tests of the environment. This should be false. It could only be set to false for verifications of a dev env deployment that fully completed. Otherwise failures will appear as resources are not ready. | "true", "false" | "false" |
 | SKIP_APPLY_BMH | Do not apply the BMHs. used usually when the BMHs will be applied later in the tests. | "true", "false" | "false" |
 | TEST_TIME_INTERVAL | Interval between retries after verification or test failure (seconds) | | 10 |
@@ -198,9 +199,8 @@ For testing purposes, verification of the digests will be skipped if
 
 ## IPv6 support
 
-The environment supports IPv6-only networking, but this currently works
-**only with `kind`**. Minikube does not have official IPv6 support at the time
-of writing. IPv6 can also be enabled partially, but for full IPv6
+The environment supports IPv6-only networking with `kind` cluster.
+IPv6 can also be enabled partially, but for full IPv6
 networking, the following additional steps are required:
 
 1. Build iPXE image builder with IPv6 support and with correct name (or rename

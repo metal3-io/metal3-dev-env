@@ -187,7 +187,7 @@ EXPTD_V1ALPHAX_V1BETAX_CRDS="clusters.cluster.x-k8s.io \
   machinesets.cluster.x-k8s.io \
   baremetalhosts.metal3.io"
 
-# Add check for ironic deployment for Centos test
+# Add check for ironic deployment when running in-cluster
 # Different tests were failing in CI because of ironic deployment was not in ready state.
 EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
     capi-system:capi-controller-manager \
@@ -195,15 +195,11 @@ EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
     capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
     baremetal-operator-system:baremetal-operator-controller-manager"
 
-if [[ "${BOOTSTRAP_CLUSTER}" == "minikube" ]]; then
-  if [[ "${USE_IRSO}" == "true" ]]; then
-    EXPTD_DEPLOYMENTS+=" \
-      baremetal-operator-system:ironic-service \
-      ironic-standalone-operator-system:ironic-standalone-operator-controller-manager"
-  else
-    EXPTD_DEPLOYMENTS+=" \
-      baremetal-operator-system:baremetal-operator-ironic"
-  fi
+# When using IRSO, add ironic deployments to the check list
+if [[ "${USE_IRSO}" == "true" ]]; then
+  EXPTD_DEPLOYMENTS+=" \
+    baremetal-operator-system:ironic-service \
+    ironic-standalone-operator-system:ironic-standalone-operator-controller-manager"
 fi
 
 EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:1 \
