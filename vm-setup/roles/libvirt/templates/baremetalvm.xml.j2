@@ -45,14 +45,15 @@
     <pae/>
 {% endif %}
   </features>
-{% if is_aarch64 %}
+{% if is_aarch64 and libvirt_domain_type == 'qemu' %}
   <!--
-       On aarch64 we use a fixed/custom CPU model (typically "cortex-a57",
-       configured via libvirt_aarch64_cpu_model) instead of host-model or
-       host-passthrough. This avoids inconsistencies in how libvirt exposes
-       host CPUs on ARM platforms and provides a stable, migration-friendly
-       CPU feature set to guests. The x86_64 path below can safely use
-       host-model/host-passthrough on common hypervisors.
+       On aarch64 under QEMU emulation (cross-arch from an x86_64 host) we
+       use a fixed/custom CPU model (typically "cortex-a57", configured via
+       libvirt_aarch64_cpu_model) instead of host-model or host-passthrough.
+       This avoids inconsistencies in how libvirt exposes host CPUs on ARM
+       platforms and provides a stable, migration-friendly CPU feature set
+       to guests. Native aarch64 KVM hosts fall through to host-passthrough
+       below.
   -->
   <cpu mode='custom' match='exact' check='none'>
     <model fallback='forbid'>{{ libvirt_aarch64_cpu_model }}</model>
