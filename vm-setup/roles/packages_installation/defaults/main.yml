@@ -133,5 +133,6 @@ ANSIBLE_VENV: "{{ lookup('env', 'ANSIBLE_VENV') | default('/usr', true) }}"
 # Go related variables, expected to be updated when new versions are released:
 go_version: "1.25.10"
 # Construct Go download URL and tarball name
-go_tarball: "go{{ go_version }}.linux-amd64.tar.gz"
+go_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+go_tarball: "go{{ go_version }}.linux-{{ go_arch }}.tar.gz"
 go_download_url: "https://go.dev/dl/{{ go_tarball }}"
