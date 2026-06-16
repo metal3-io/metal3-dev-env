@@ -1,6 +1,7 @@
 {% set is_aarch64 = flavors[item.flavor].architecture == 'aarch64' %}
 {% set is_x86_64 = flavors[item.flavor].architecture == 'x86_64' %}
-<domain type='{% if flavors[item.flavor].architecture != host_architecture %}qemu{% else %}{{ libvirt_domain_type }}{% endif %}'>
+{% set effective_domain_type = 'qemu' if flavors[item.flavor].architecture != host_architecture else libvirt_domain_type %}
+<domain type='{{ effective_domain_type }}'>
   <name>{{ item.name }}</name>
   <memory unit='MiB'>{{ flavors[item.flavor].memory }}</memory>
   <vcpu>{{ flavors[item.flavor].vcpu }}</vcpu>
@@ -45,20 +46,11 @@
     <pae/>
 {% endif %}
   </features>
-{% if is_aarch64 and libvirt_domain_type == 'qemu' %}
-  <!--
-       On aarch64 under QEMU emulation (cross-arch from an x86_64 host) we
-       use a fixed/custom CPU model (typically "cortex-a57", configured via
-       libvirt_aarch64_cpu_model) instead of host-model or host-passthrough.
-       This avoids inconsistencies in how libvirt exposes host CPUs on ARM
-       platforms and provides a stable, migration-friendly CPU feature set
-       to guests. Native aarch64 KVM hosts fall through to host-passthrough
-       below.
-  -->
+{% if is_aarch64 and effective_domain_type == 'qemu' %}
   <cpu mode='custom' match='exact' check='none'>
     <model fallback='forbid'>{{ libvirt_aarch64_cpu_model }}</model>
   </cpu>
-{% elif libvirt_domain_type == 'qemu' %}
+{% elif effective_domain_type == 'qemu' %}
   <cpu mode='host-model'/>
 {% else %}
   <cpu mode='host-passthrough'/>
