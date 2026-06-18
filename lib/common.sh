@@ -45,8 +45,6 @@ export CI_CONFIG_FILE="${TMP_DIR:-/tmp}/config_ci.sh"
 
 # Set variables
 export BOOT_MODE="${BOOT_MODE:-UEFI}"
-export MARIADB_HOST="mariaDB"
-export MARIADB_HOST_IP="127.0.0.1"
 # Additional DNS
 ADDN_DNS="${ADDN_DNS:-}"
 # External interface for routing traffic through the host
@@ -225,17 +223,11 @@ export IRONIC_IMAGE_REPO="${IRONIC_IMAGE_REPO:-https://github.com/metal3-io/iron
 export IRONIC_IMAGE_BRANCH="${IRONIC_IMAGE_BRANCH:-main}"
 export IRONIC_IMAGE_COMMIT="${IRONIC_IMAGE_COMMIT:-HEAD}"
 
-export MARIADB_IMAGE_PATH="${MARIADB_IMAGE_PATH:-/tmp/mariadb-image}"
-export MARIADB_IMAGE_REPO="${MARIADB_IMAGE_REPO:-https://github.com/metal3-io/mariadb-image.git}"
-export MARIADB_IMAGE_BRANCH="${MARIADB_IMAGE_BRANCH:-main}"
-export MARIADB_IMAGE_COMMIT="${MARIADB_IMAGE_COMMIT:-HEAD}"
-
 export BUILD_CAPM3_LOCALLY="${BUILD_CAPM3_LOCALLY:-false}"
 export BUILD_IPAM_LOCALLY="${BUILD_IPAM_LOCALLY:-false}"
 export BUILD_BMO_LOCALLY="${BUILD_BMO_LOCALLY:-false}"
 export BUILD_CAPI_LOCALLY="${BUILD_CAPI_LOCALLY:-false}"
 export BUILD_IRONIC_IMAGE_LOCALLY="${BUILD_IRONIC_IMAGE_LOCALLY:-false}"
-export BUILD_MARIADB_IMAGE_LOCALLY="${BUILD_MARIADB_IMAGE_LOCALLY:-false}"
 export BUILD_IRSO_LOCALLY="${BUILD_IRSO_LOCALLY:-false}"
 
 # If IRONIC_FROM_SOURCE has a "true" value that
@@ -260,9 +252,6 @@ if [[ "${BUILD_CAPI_LOCALLY}" == "true" ]]; then
 fi
 if [[ "${BUILD_IRONIC_IMAGE_LOCALLY}" == "true" ]]; then
   export IRONIC_LOCAL_IMAGE="${IRONIC_LOCAL_IMAGE:-${IRONIC_IMAGE_PATH}}"
-fi
-if [[ "${BUILD_MARIADB_IMAGE_LOCALLY}" == "true" ]]; then
-  export MARIADB_LOCAL_IMAGE="${MARIADB_IMAGE_PATH}"
 fi
 if [[ "${BUILD_IRSO_LOCALLY}" == "true" ]]; then
   export IRSO_LOCAL_IMAGE="${IRSOPATH}"
@@ -291,7 +280,6 @@ export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-1}"
 export IRONIC_TAG="${IRONIC_TAG:-latest}"
 export BARE_METAL_OPERATOR_TAG="${BARE_METAL_OPERATOR_TAG:-latest}"
 export KEEPALIVED_TAG="${KEEPALIVED_TAG:-latest}"
-export MARIADB_TAG="${MARIADB_TAG:-latest}"
 export IRSO_TAG="${IRSO_TAG:-latest}"
 export IRSO_IRONIC_VERSION="${IRSO_IRONIC_VERSION:-latest}"
 
@@ -372,8 +360,6 @@ export IPXE_ENABLE_IPV6="${IPXE_ENABLE_IPV6:-false}"
 export IPXE_RELEASE_BRANCH="${IPXE_RELEASE_BRANCH:-v1.21.1}"
 export IPXE_SOURCE_FORCE_UPDATE="${IPXE_SOURCE_FORCE_UPDATE:-false}"
 export IPXE_SOURCE_DIR="${IRONIC_DATA_DIR}/ipxe-source"
-
-export MARIADB_IMAGE="${MARIADB_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/mariadb:${MARIADB_TAG}}"
 
 # Enable ironic restart feature when the TLS certificate is updated
 export RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED:-${IRONIC_TLS_SETUP}}"

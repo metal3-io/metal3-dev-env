@@ -405,15 +405,12 @@ clone_repo "${CAPIREPO}" "${CAPIBRANCH}" "${CAPIPATH}" "${CAPICOMMIT}"
 detect_mismatch "${IRSO_LOCAL_IMAGE:-}" "${IRSOPATH}"
 clone_repo "${IRSOREPO}" "${IRSOBRANCH}" "${IRSOPATH}" "${IRSOCOMMIT}"
 
-# MariaDB and Ironic source is not needed unless the images are built locally
+# Ironic source is not needed unless the images are built locally
 # If the repo path does not match with the IMAGE location that means the image
 # is built from a repo that is not under dev-env's control thus there is no
 # need to clone the repo.
 # There is no need to keep the PATH and the IMAGE vars in sync as there
 # is no other use of the path variable than cloning
-if [[ "${MARIADB_LOCAL_IMAGE:-}" == "${MARIADB_IMAGE_PATH}" ]]; then
-    clone_repo "${MARIADB_IMAGE_REPO}" "${MARIADB_IMAGE_BRANCH}" "${MARIADB_IMAGE_PATH}" "${MARIADB_IMAGE_COMMIT}"
-fi
 
 if [[ "${IRONIC_LOCAL_IMAGE:-}" == "${IRONIC_IMAGE_PATH}" ]]; then
     clone_repo "${IRONIC_IMAGE_REPO}" "${IRONIC_IMAGE_BRANCH}" "${IRONIC_IMAGE_PATH}" "${IRONIC_IMAGE_COMMIT}"
