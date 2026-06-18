@@ -94,10 +94,6 @@ assured that they are persisted.
 | IRONIC_API_PORT | Ironic Api port | | 6385 |
 | RESTART_CONTAINER_CERTIFICATE_UPDATED | Enable the ironic restart feature when TLS certificates are updated | "true", "false" | "true" |
 | NODE_DRAIN_TIMEOUT | Set the nodeDrainTimeoutSeconds for controlplane and worker template | | '0' |
-| MARIADB_KEY_FILE | Path to the key of MariaDB | | /opt/metal3-dev-env/certs/mariadb.key |
-| MARIADB_CERT_FILE | Path to the cert of MariaDB | | /opt/metal3-dev-env/certs/mariadb.crt |
-| MARIADB_CAKEY_FILE | Path to the CA key of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.key |
-| MARIADB_CACERT_FILE | Path to the CA certificate of MariaDB | | /opt/metal3-dev-env/certs/ironic-ca.pem |
 | M3PATH | Path to clone the Metal3 Development Environment repository | | $HOME/go/src/github.com/metal3-io |
 | BMOPATH | Path to clone the Bare Metal Operator repository | | $HOME/go/src/github.com/metal3-io/baremetal-operator |
 | CAPM3PATH | Path to clone the Cluster API Provider Metal3 repository | | $HOME/go/src/github.com/metal3-io/cluster-api-provider-metal3 |
@@ -119,10 +115,6 @@ assured that they are persisted.
 | IRONIC_IMAGE_REPO | Metal3's ironic-image Git repository address | | https://github.com/metal3-io/ironic-image.git |
 | IRONIC_IMAGE_BRANCH | Metal3's ironic-image Git repository branch | | main |
 | IRONIC_IMAGE_COMMIT | Metal3's ironic-image | | HEAD |
-| MARIADB_IMAGE_PATH | Path to clone the mariadb-image Git repository to | | /tmp/mariadb-image  |
-| MARIADB_IMAGE_REPO | mariadb-image Git repository address | | https://github.com/metal3-io/mariadb-image.git |
-| MARIADB_IMAGE_BRANCH | mariadb-mage branch to checkout | | main |
-| MARIADB_IMAGE_COMMIT | mariadb-image commit to checkout | | HEAD |
 | FORCE_REPO_UPDATE | discard existing directories | "true","false" | "true" |
 | BUILD_CAPM3_LOCALLY | build Cluster API Provider Metal3 based on CAPM3PATH | "true","false" | "false" |
 | BUILD_IPAM_LOCALLY | build IP Address Manager based on IPAMPATH | "true","false" | "false" |
