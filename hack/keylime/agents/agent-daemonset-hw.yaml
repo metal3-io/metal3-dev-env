@@ -1,0 +1,103 @@
+# Push Model Agent DaemonSet (Hardware TPM)
+# Runs one agent per node using /dev/tpmrm0 via device plugin
+# Requires: device-plugin.yaml deployed, containerd configured with
+# device_ownership_from_security_context = true
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: keylime-agent
+  namespace: keylime
+  labels:
+    app: keylime-agent
+spec:
+  selector:
+    matchLabels:
+      app: keylime-agent
+  template:
+    metadata:
+      labels:
+        app: keylime-agent
+    spec:
+      initContainers:
+      - name: fix-permissions
+        image: busybox:latest
+        command: ["sh", "-c", "chown __KEYLIME_UID__:__KEYLIME_GID__ /var/lib/keylime"]
+        volumeMounts:
+        - name: keylime-data
+          mountPath: /var/lib/keylime
+      containers:
+      - name: agent
+        image: keylime-push-agent:__KEYLIME_VERSION__
+        imagePullPolicy: Never
+        securityContext:
+          runAsUser: __KEYLIME_UID__
+          runAsGroup: __KEYLIME_GID__
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: KEYLIME_AGENT_REGISTRAR_IP
+          valueFrom:
+            configMapKeyRef:
+              name: keylime-agent-config
+              key: registrar_host
+        - name: KEYLIME_AGENT_REGISTRAR_PORT
+          value: "30890"
+        - name: KEYLIME_AGENT_VERIFIER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: keylime-agent-config
+              key: verifier_url
+        - name: KEYLIME_AGENT_KEYLIME_DIR
+          value: "/var/lib/keylime"
+        - name: KEYLIME_AGENT_SERVER_CERT
+          value: "/var/lib/keylime/certs/client-cert.crt"
+        - name: KEYLIME_AGENT_SERVER_KEY
+          value: "/var/lib/keylime/certs/client-private.pem"
+        - name: KEYLIME_AGENT_TRUSTED_CLIENT_CA
+          value: "/var/lib/keylime/certs/cacert.crt"
+        - name: KEYLIME_AGENT_ENABLE_AUTHENTICATION
+          value: "true"
+        - name: SSL_CERT_FILE
+          value: "/var/lib/keylime/certs/cacert.crt"
+        - name: RUST_LOG
+          value: "keylime_push_model_agent=info"
+        - name: TCTI
+          value: "device:/dev/tpmrm0"
+        - name: KEYLIME_AGENT_RUN_AS
+          value: ""
+        resources:
+          requests:
+            squat.ai/tpm: "1"
+          limits:
+            squat.ai/tpm: "1"
+        volumeMounts:
+        - name: certs
+          mountPath: /var/lib/keylime/certs
+          readOnly: true
+        - name: agent-config
+          mountPath: /etc/keylime/agent.conf
+          subPath: agent.conf
+          readOnly: true
+        - name: keylime-data
+          mountPath: /var/lib/keylime
+        - name: securityfs
+          mountPath: /sys/kernel/security
+          readOnly: true
+      volumes:
+      - name: certs
+        secret:
+          secretName: keylime-client-certs
+      - name: agent-config
+        configMap:
+          name: keylime-agent-config
+      - name: keylime-data
+        hostPath:
+          path: /var/lib/keylime
+          type: DirectoryOrCreate
+      - name: securityfs
+        hostPath:
+          path: /sys/kernel/security
+          type: Directory

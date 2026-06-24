@@ -1,0 +1,18 @@
+# Verifier Service
+# Exposes verifier via NodePort for cross-cluster access
+apiVersion: v1
+kind: Service
+metadata:
+  name: keylime-verifier
+  namespace: keylime
+  labels:
+    app: keylime-verifier
+spec:
+  type: NodePort
+  selector:
+    app: keylime-verifier
+  ports:
+  - name: https
+    port: 8881
+    targetPort: 8881
+    nodePort: 30881

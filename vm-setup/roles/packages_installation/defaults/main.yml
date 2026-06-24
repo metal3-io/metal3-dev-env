@@ -104,6 +104,7 @@ packages:
       packages:
       - jq
       - qemu-img
+      - qemu-ovmf-x86_64
       - libvirt
       - libvirt-devel
       - dnsmasq

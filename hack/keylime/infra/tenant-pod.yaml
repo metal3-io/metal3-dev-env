@@ -1,0 +1,35 @@
+# Tenant Pod
+# Interactive pod for running keylime_tenant commands
+apiVersion: v1
+kind: Pod
+metadata:
+  name: keylime-tenant
+  namespace: keylime
+  labels:
+    app: keylime-tenant
+spec:
+  enableServiceLinks: false
+  containers:
+  - name: tenant
+    image: keylime_tenant:__KEYLIME_VERSION__
+    imagePullPolicy: Never
+    command: ["/bin/bash", "-c", "sleep infinity"]
+    env:
+    - name: KEYLIME_DIR
+      value: "/var/lib/keylime"
+    volumeMounts:
+    - name: config
+      mountPath: /etc/keylime/tenant.conf
+      subPath: tenant.conf
+      readOnly: true
+    - name: certs
+      mountPath: /var/lib/keylime/certs
+      readOnly: true
+  restartPolicy: Never
+  volumes:
+  - name: config
+    configMap:
+      name: keylime-config
+  - name: certs
+    secret:
+      secretName: keylime-certs

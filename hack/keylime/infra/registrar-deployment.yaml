@@ -1,0 +1,65 @@
+# Registrar Deployment
+# Uses keylime_registrar image built from HEAD
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keylime-registrar
+  namespace: keylime
+  labels:
+    app: keylime-registrar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keylime-registrar
+  template:
+    metadata:
+      labels:
+        app: keylime-registrar
+    spec:
+      enableServiceLinks: false
+      containers:
+      - name: registrar
+        image: keylime_registrar:__KEYLIME_VERSION__
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8890
+          name: http
+        - containerPort: 8891
+          name: https
+        env:
+        - name: KEYLIME_DIR
+          value: "/var/lib/keylime"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/keylime/registrar.conf
+          subPath: registrar.conf
+          readOnly: true
+        - name: certs
+          mountPath: /var/lib/keylime/certs
+          readOnly: true
+        - name: data
+          mountPath: /var/lib/keylime/cv_data
+        livenessProbe:
+          httpGet:
+            path: /version
+            port: 8890
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /version
+            port: 8890
+            scheme: HTTP
+          initialDelaySeconds: 3
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: keylime-config
+      - name: certs
+        secret:
+          secretName: keylime-certs
+      - name: data
+        emptyDir: {}
