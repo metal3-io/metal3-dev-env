@@ -53,10 +53,11 @@
     vbmc_address: "{% if vbmc_address_v4|ansible.utils.ipv4 != False %}{{ vbmc_address_v4 }}{% else %}{{ vbmc_address_v6 }}{% endif %}"
 
 # The connection uri is slightly different when using qemu:///system
-# and requires the root user.
+# Use a direct local socket connection to avoid SSH-related transient failures
+# that can cause vbmc to ack power-on without libvirt executing it.
 - name: set qemu uri for qemu:///system usage
   set_fact:
-    vbmc_libvirt_uri: "qemu+ssh://root@{{ vbmc_address | ansible.utils.ipwrap }}/system?&keyfile=/root/ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
+    vbmc_libvirt_uri: "qemu:///system"
   when: libvirt_uri == "qemu:///system"
 
 - name: set qemu uri for qemu:///session usage

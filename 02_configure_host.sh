@@ -532,14 +532,20 @@ else
 fi
 
 # Start vbmc and sushy containers
+# Mount the libvirt socket directly to avoid SSH-based qemu+ssh:// connections
+# which are prone to transient failures causing power-on commands to be acked
+# by vbmc but not executed by libvirt (observed as VMs stuck powered off after
+# cleaning in CI, e.g. pivoting test flakiness).
 # shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --name vbmc ${POD_NAME_INFRA} \
     -v "${WORKING_DIR}/virtualbmc/vbmc":/root/.vbmc -v "/root/.ssh":/root/ssh \
+    -v /var/run/libvirt:/var/run/libvirt \
     "${VBMC_IMAGE}"
 
 # shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --name sushy-tools ${POD_NAME_INFRA} \
     -v "${WORKING_DIR}/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
+    -v /var/run/libvirt:/var/run/libvirt \
     "${SUSHY_TOOLS_IMAGE}"
 
 # Installing the openstack/ironic clients on the host is optional
