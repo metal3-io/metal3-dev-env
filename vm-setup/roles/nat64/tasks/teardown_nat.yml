@@ -1,0 +1,23 @@
+- name: Stop NAT64 service tayga
+  ansible.builtin.systemd_service:
+    state: stopped
+    name: tayga
+  become: yes
+
+- name: Clean NAT64 interface
+  shell: |
+    ip link del nat64
+  become: yes
+  ignore_errors: true
+
+- name: Delete DNS-server IPv4-address from loopback interface
+  shell:
+    cmd: "ip addr del {{ LOCAL_DNS_V4 }}/32 dev lo"
+  become: yes
+  ignore_errors: true
+
+- name: Delete DNS-server IPv6-address from loopback interface
+  shell:
+    cmd: "ip addr del {{ LOCAL_DNS_V6 }}/128 dev lo"
+  become: yes
+  ignore_errors: true
