@@ -81,7 +81,8 @@ fi
 configure_minikube()
 {
     minikube config set driver kvm2
-    minikube config set memory 4096
+    minikube config set cpus 4
+    minikube config set memory 6144
 }
 
 #
