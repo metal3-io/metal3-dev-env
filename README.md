@@ -34,8 +34,7 @@ And when deploying **Centos** target hosts:
 * 16GB of memory
 * 4 cpus
 
-The Minikube machine is deployed with 4GB of RAM, and 2 vCPUs, and the target
-hosts with 4 vCPUs and 4GB of RAM.
+The target hosts are deployed with 4 vCPUs and 4GB of RAM.
 
 ### Environment variables
 

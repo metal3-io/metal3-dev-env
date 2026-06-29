@@ -1,13 +1,15 @@
 ############### Pivot back to source cluster ##############
 
 # Remove Ironic from target cluster
-- name: Remove Ironic from target cluster
+- name: Remove Ironic CR from target cluster
   kubernetes.core.k8s:
-    name: "{{ NAMEPREFIX }}-ironic"
-    kind: Deployment
-    state: absent
+    api_version: ironic.metal3.io/v1alpha1
+    kind: Ironic
+    name: ironic
     namespace: "{{ IRONIC_NAMESPACE }}"
+    state: absent
     kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  when: USE_IRSO | bool
 
 # Install BMO in Source cluster
 - name: Install Baremetal Operator in Source cluster
@@ -18,20 +20,46 @@
   args:
     chdir: "{{ BMOPATH }}"
 
-- name: Install Ironic in Source cluster (Bootstrap Cluster is kind)
-  shell: "{{ BMOPATH }}/tools/run_local_ironic.sh"
-  environment:
-    CONTAINER_RUNTIME: "{{ CONTAINER_RUNTIME }}"
-  when: BOOTSTRAP_CLUSTER == "kind"
+- name: Recreate ironic-auth secret in Source cluster
+  shell: >
+    kubectl delete secret ironic-auth -n {{ IRONIC_NAMESPACE }} --ignore-not-found &&
+    kubectl create secret generic ironic-auth
+    -n {{ IRONIC_NAMESPACE }}
+    --from-file=username={{ IRONIC_DATA_DIR }}/auth/ironic-username
+    --from-file=password={{ IRONIC_DATA_DIR }}/auth/ironic-password &&
+    kubectl label secret ironic-auth
+    -n {{ IRONIC_NAMESPACE }}
+    environment.metal3.io/ironic-standalone-operator=true
+  when: BOOTSTRAP_CLUSTER == "kind" and USE_IRSO | bool
 
-- name: Install Ironic in Source cluster (Bootstrap Cluster is minikube)
-  shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
-  environment:
-    IRONIC_HOST: "{{ IRONIC_HOST }}"
-    IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-  when: BOOTSTRAP_CLUSTER == "minikube"
-  args:
-    chdir: "{{ BMOPATH }}"
+- name: Recreate ironic-cert secret in Source cluster
+  shell: >
+    kubectl delete secret ironic-cert -n {{ IRONIC_NAMESPACE }} --ignore-not-found &&
+    kubectl create secret tls ironic-cert
+    -n {{ IRONIC_NAMESPACE }}
+    --key={{ WORKING_DIR }}/certs/ironic.key
+    --cert={{ WORKING_DIR }}/certs/ironic.crt &&
+    kubectl label secret ironic-cert
+    -n {{ IRONIC_NAMESPACE }}
+    environment.metal3.io/ironic-standalone-operator=true
+  when: BOOTSTRAP_CLUSTER == "kind" and USE_IRSO | bool and IRONIC_TLS_SETUP == "true"
+
+- name: Recreate ironic-cacert secret in Source cluster
+  shell: >
+    kubectl delete secret ironic-cacert -n {{ IRONIC_NAMESPACE }} --ignore-not-found &&
+    kubectl create secret tls ironic-cacert
+    -n {{ IRONIC_NAMESPACE }}
+    --key={{ WORKING_DIR }}/certs/ironic-ca.key
+    --cert={{ WORKING_DIR }}/certs/ironic-ca.pem
+  when: BOOTSTRAP_CLUSTER == "kind" and USE_IRSO | bool and IRONIC_TLS_SETUP == "true"
+
+- name: Install Ironic CR in Source cluster
+  shell: "kubectl create -f {{ IRONIC_DATA_DIR }}/ironic.yaml"
+  when: BOOTSTRAP_CLUSTER == "kind" and USE_IRSO | bool
+
+- name: Wait for Ironic to be ready in Source cluster
+  shell: "kubectl wait --for=condition=Ready --timeout=300s -n {{ IRONIC_NAMESPACE }} ironic/ironic"
+  when: BOOTSTRAP_CLUSTER == "kind" and USE_IRSO | bool
 
 - name: Re-pivot everything back to source cluster
   shell: "clusterctl move --kubeconfig /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml --to-kubeconfig /home/$USER/.kube/config -n {{ NAMESPACE }} -v 10"

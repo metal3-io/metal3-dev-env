@@ -33,7 +33,7 @@ always safe.
 |------|---------|
 | `01_prepare_host.sh` | Install dependencies (libvirt, kubectl, etc.) |
 | `02_configure_host.sh` | Setup networks, create VMs |
-| `03_launch_mgmt_cluster.sh` | Create management cluster (kind/minikube) |
+| `03_launch_mgmt_cluster.sh` | Create management cluster (kind) |
 | `04_verify.sh` | Verify deployment |
 | `Makefile` | Primary interface |
 
@@ -54,7 +54,7 @@ Essential variables (see `vars.md` for complete list):
 
 - `IMAGE_OS` - Target OS: `ubuntu`, `centos`, `flatcar` (default: `ubuntu`)
 - `CAPM3_VERSION`, `CAPI_VERSION` - Component versions
-- `EPHEMERAL_CLUSTER` - Cluster type: `kind`, `minikube`, `tilt`
+- `BOOTSTRAP_CLUSTER` - Cluster type: `kind`, `tilt` (default: `kind`)
 - `BMC_DRIVER` - BMC protocol: `ipmi`, `redfish`, `redfish-virtualmedia`
 
 **Testing local changes:**
