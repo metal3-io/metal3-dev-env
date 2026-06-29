@@ -51,6 +51,21 @@ libvirt_volume_path: "{{ working_dir }}/pool"
 libvirt_uri: qemu:///system
 ssh_user: root
 
+# These are our custom domain names for certain IP addresses. They are
+# configured in the libvirt dnsmasq server.
+#
+# `external_extra_hosts` defines the hosts for external network and
+# `provisioning_extra_hosts` can be used to define extra hosts for provisioning
+# network.
+REGISTRY_DOMAIN_NAME: "{{ lookup('env', 'REGISTRY_DOMAIN_NAME') }}"
+external_extra_hosts:
+- ip: "{{ lookup('env', 'REGISTRY_IP') }}"
+  hostnames:
+  - "{{ REGISTRY_DOMAIN_NAME }}"
+- ip: "{{ lookup('env', 'CLUSTER_APIENDPOINT_IP') }}"
+  hostnames:
+  - "{{ lookup('env', 'CLUSTER_APIENDPOINT_HOST') }}"
+
 # Describe our virtual networks.  These networks will be attached to
 # the vm nodes in the order in which they are defined with the following caveats:
 #   *  The first bridge network defined will be used for pxe booting
@@ -71,7 +86,7 @@ provisioning_network_nat:
   - 65535
   domain: "{{ cluster_domain }}"
   dns:
-    hosts: "{{dns_extrahosts | default([])}}"
+    hosts: "{{ provisioning_extra_hosts | default([]) }}"
     forwarders:
     - domain: "apps.{{ cluster_domain }}"
       addr: "127.0.0.1"
@@ -100,7 +115,7 @@ external_network:
   - 65535
   domain: "{{ cluster_domain }}"
   dns:
-    hosts: "{{dns_extrahosts | default([])}}"
+    hosts: "{{ external_extra_hosts | default([]) }}"
     forwarders:
     # Use 127.0.0.1 unless only IPv6 is enabled
     - domain: "apps.{{ cluster_domain }}"

@@ -88,6 +88,7 @@ assured that they are persisted.
 | IRONIC_PASSWORD | Password for Ironic basic auth | | |
 | IRONIC_INSPECTOR_PASSWORD | Password for Ironic inspector basic auth | | |
 | IRONIC_USE_MARIADB | Use MariaDB instead of SQLite. Setting this to "true" does not work with v0.2.0 and older versions of BMO. MariaDB cannot be used without TLS. | "true", "false" | "false" |
+| REGISTRY_IP | Container image registry IP | | "${EXTERNAL_SUBNET_V4_HOST}" or "${EXTERNAL_SUBNET_V6_HOST}" |
 | REGISTRY_PORT | Container image registry port | | 5000 |
 | HTTP_PORT | Httpd server port | | 6180 |
 | IRONIC_INSPECTOR_PORT | Ironic Inspector port | | 5050 |

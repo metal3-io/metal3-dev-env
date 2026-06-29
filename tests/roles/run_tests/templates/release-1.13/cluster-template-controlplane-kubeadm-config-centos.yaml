@@ -107,7 +107,7 @@ files:
       registries = ['docker.io']
 
       [registries.insecure]
-      registries = ['{{ REGISTRY }}']
+      registries = ['{{ REGISTRY }}', '{{ K8S_REGISTRY}}']
 {% if EXTERNAL_VLAN_ID != "" %}
   - path: /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}.nmconnection
     owner: root:root
