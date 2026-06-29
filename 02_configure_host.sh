@@ -144,6 +144,22 @@ if ! sudo test -f /root/.ssh/id_rsa_virt_power; then
     sudo cat /root/.ssh/id_rsa_virt_power.pub | sudo tee -a /root/.ssh/authorized_keys
 fi
 
+# Auto-detect sushy-tools container config directory based on image user
+_sushy_image="${SUSHY_TOOLS_LOCAL_IMAGE:-${SUSHY_TOOLS_IMAGE}}"
+image_user="$(sudo "${CONTAINER_RUNTIME}" inspect "${_sushy_image}" \
+    --format '{{.Config.User}}' 2>/dev/null || true)"
+SUSHY_TOOLS_EXTRA_OPTS=""
+case "${image_user}" in
+    ""|0|0:0|root|root:root)
+        : "${SUSHY_TOOLS_CONF_DIR:=/root/sushy}"
+        ;;
+    *)
+        : "${SUSHY_TOOLS_CONF_DIR:=/conf/sushy}"
+        SUSHY_TOOLS_EXTRA_OPTS="--group-add 0"
+        ;;
+esac
+export SUSHY_TOOLS_CONF_DIR
+
 ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -e "working_dir=${WORKING_DIR}" \
     -e "num_nodes=${NUM_NODES}" \
@@ -544,7 +560,9 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --name vbmc ${POD_NAME_INFRA} \
 
 # shellcheck disable=SC2086
 sudo "${CONTAINER_RUNTIME}" run -d --net host --name sushy-tools ${POD_NAME_INFRA} \
-    -v "${WORKING_DIR}/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
+    ${SUSHY_TOOLS_EXTRA_OPTS} \
+    -v "${WORKING_DIR}/virtualbmc/sushy-tools":"${SUSHY_TOOLS_CONF_DIR}" \
+    -v "/root/.ssh":/root/ssh \
     -v /var/run/libvirt:/var/run/libvirt \
     "${SUSHY_TOOLS_IMAGE}"
 

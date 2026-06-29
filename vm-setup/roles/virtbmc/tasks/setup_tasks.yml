@@ -53,11 +53,10 @@
     vbmc_address: "{% if vbmc_address_v4|ansible.utils.ipv4 != False %}{{ vbmc_address_v4 }}{% else %}{{ vbmc_address_v6 }}{% endif %}"
 
 # The connection uri is slightly different when using qemu:///system
-# Use a direct local socket connection to avoid SSH-related transient failures
-# that can cause vbmc to ack power-on without libvirt executing it.
+# and requires the root user.
 - name: set qemu uri for qemu:///system usage
   set_fact:
-    vbmc_libvirt_uri: "qemu:///system"
+    vbmc_libvirt_uri: "qemu+ssh://root@{{ vbmc_address | ansible.utils.ipwrap }}/system?&keyfile=/root/ssh/id_rsa_virt_power&no_verify=1&no_tty=1"
   when: libvirt_uri == "qemu:///system"
 
 - name: set qemu uri for qemu:///session usage
@@ -99,10 +98,12 @@
     crypt_scheme: bcrypt
     name: "{{ vbmc_username }}"
     password: "{{ vbmc_password }}"
+    mode: "0640"
 
 - name: Create private key (RSA, 4096 bits) for redfish TLS
   community.crypto.openssl_privatekey:
     path: "{{ working_dir }}/virtualbmc/sushy-tools/key.pem"
+    mode: "0640"
 
 - name: Create CSR for redfish TLS
   community.crypto.openssl_csr_pipe:
@@ -118,6 +119,7 @@
     csr_content: "{{ vbmc_csr.csr }}"
     privatekey_path: "{{ working_dir }}/virtualbmc/sushy-tools/key.pem"
     provider: selfsigned
+    mode: "0640"
 
 - name: Create the Redfish Virtual BMCs
   copy:
@@ -127,9 +129,10 @@
       SUSHY_EMULATOR_LIBVIRT_URI = "{{ vbmc_libvirt_uri }}"
       SUSHY_EMULATOR_IGNORE_BOOT_DEVICE = {{ sushy_ignore_boot_device }}
       SUSHY_EMULATOR_VMEDIA_VERIFY_SSL = {{ sushy_vmedia_verify_ssl }}
-      SUSHY_EMULATOR_AUTH_FILE = "/root/sushy/htpasswd"
-      SUSHY_EMULATOR_SSL_KEY = "/root/sushy/key.pem"
-      SUSHY_EMULATOR_SSL_CERT = "/root/sushy/cert.pem"
+      SUSHY_EMULATOR_AUTH_FILE = "{{ sushy_conf_dir }}/htpasswd"
+      SUSHY_EMULATOR_SSL_KEY = "{{ sushy_conf_dir }}/key.pem"
+      SUSHY_EMULATOR_SSL_CERT = "{{ sushy_conf_dir }}/cert.pem"
+
   become: true
   when: vm_platform|default("libvirt") != "fake"
 
@@ -169,11 +172,11 @@
       SUSHY_EMULATOR_LIBVIRT_URI = "{{ vbmc_libvirt_uri }}"
       SUSHY_EMULATOR_IGNORE_BOOT_DEVICE = {{ sushy_ignore_boot_device }}
       SUSHY_EMULATOR_VMEDIA_VERIFY_SSL = {{ sushy_vmedia_verify_ssl }}
-      SUSHY_EMULATOR_AUTH_FILE = "/root/sushy/htpasswd"
+      SUSHY_EMULATOR_AUTH_FILE = "{{ sushy_conf_dir }}/htpasswd"
       SUSHY_EMULATOR_FAKE_DRIVER = True
       SUSHY_EMULATOR_FAKE_IPA = True
-      SUSHY_EMULATOR_SSL_KEY = "/root/sushy/key.pem"
-      SUSHY_EMULATOR_SSL_CERT = "/root/sushy/cert.pem"
+      SUSHY_EMULATOR_SSL_KEY = "{{ sushy_conf_dir }}/key.pem"
+      SUSHY_EMULATOR_SSL_CERT = "{{ sushy_conf_dir }}/cert.pem"
       SUSHY_EMULATOR_FAKE_SYSTEMS = {{ lookup('ansible.builtin.file', fake_nodes_file ) }}
   become: true
   when: vm_platform|default("libvirt") == "fake"
