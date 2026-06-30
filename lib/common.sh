@@ -115,12 +115,14 @@ clone_repo() {
   if [[ ! -d "${REPO_PATH}" ]]; then
     pushd "${M3PATH}" || exit
     if [[ "${REPO_COMMIT}" = "HEAD" ]]; then
-        git clone --depth 1 --branch "${REPO_BRANCH}" "${REPO_URL}" \
+        git -c advice.detachedHead=false clone --depth 1 \
+            --branch "${REPO_BRANCH}" "${REPO_URL}" \
             "${REPO_PATH}"
     else
-        git clone --branch "${REPO_BRANCH}" "${REPO_URL}" "${REPO_PATH}"
+        git -c advice.detachedHead=false clone --branch "${REPO_BRANCH}" \
+            "${REPO_URL}" "${REPO_PATH}"
         pushd "${REPO_PATH}" || exit
-        git checkout "${REPO_COMMIT}"
+        git -c advice.detachedHead=false checkout "${REPO_COMMIT}"
         popd || exit
     fi
     popd || exit

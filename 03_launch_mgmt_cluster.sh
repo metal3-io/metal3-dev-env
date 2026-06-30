@@ -515,7 +515,7 @@ EOF
     if [[ "${GINKGO_FOCUS:-}" = "in-place-upgrade" ]]; then
         export TEST_EXTENSION_MANIFEST_IMG="${REGISTRY}/metal3-io/test-extension:latest"
         make docker-build-test-extension TEST_EXTENSION_IMG="${TEST_EXTENSION_MANIFEST_IMG}"
-        "${CONTAINER_RUNTIME}" push --tls-verify=false "${TEST_EXTENSION_MANIFEST_IMG}"
+        "${CONTAINER_RUNTIME}" push --quiet --tls-verify=false "${TEST_EXTENSION_MANIFEST_IMG}"
         make set-manifest-image-test-extension TEST_EXTENSION_IMG="${TEST_EXTENSION_MANIFEST_IMG}"
         make test-extension-manifests
 
@@ -676,7 +676,7 @@ launch_kind()
   skip_verify = true
 EOF
 
-        cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
+        cat <<EOF | sudo su -l -c "kind create cluster -q --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -698,7 +698,7 @@ EOF
         docker exec kind-control-plane cp /hosts.toml /etc/containerd/certs.d/"${REGISTRY}"/hosts.toml
 
     else
-        cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
+        cat <<EOF | sudo su -l -c "kind create cluster -q --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:
@@ -762,13 +762,15 @@ build_ipxe_firmware()
     fi
 
     if [[ ! -r "${IPXE_SOURCE_DIR}" ]]; then
-        git clone --depth 1 --branch "${IPXE_RELEASE_BRANCH}" \
+        git -c advice.detachedHead=false clone --depth 1 \
+            --branch "${IPXE_RELEASE_BRANCH}" \
             "https://github.com/ipxe/ipxe.git" "${IPXE_SOURCE_DIR}"
         chmod -R 777 "${IPXE_SOURCE_DIR}"
     elif [[ "${IPXE_SOURCE_FORCE_UPDATE}" = "true" ]]; then
         rm -rf "${ipxe_tmp_source}"
         # shellcheck disable=SC2086
-        git clone --depth 1 --branch "${IPXE_RELEASE_BRANCH}" \
+        git -c advice.detachedHead=false clone --depth 1 \
+            --branch "${IPXE_RELEASE_BRANCH}" \
             "https://github.com/ipxe/ipxe.git" "${ipxe_tmp_source}"
         rm -rf "${IPXE_SOURCE_DIR}"
         mv "${ipxe_tmp_source}" "${IPXE_SOURCE_DIR}"
