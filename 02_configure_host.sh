@@ -465,9 +465,9 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
 
     cd - || exit
     if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-        sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${IMAGE_URL}"
+        sudo "${CONTAINER_RUNTIME}" push --quiet --tls-verify=false "${IMAGE_URL}"
     else
-        sudo "${CONTAINER_RUNTIME}" push --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE_URL}"
+        sudo "${CONTAINER_RUNTIME}" push --quiet --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE_URL}"
     fi
 
     # store the locally built images to config, so they're passed to "make test"
@@ -504,16 +504,17 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
     # shellcheck disable=SC2086
     LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME%@*}"
     if [[ "${LOCAL_IMAGE}" != "${IMAGE}" ]]; then
-        sudo "${CONTAINER_RUNTIME}" rmi "${LOCAL_IMAGE}" || true
+        sudo "${CONTAINER_RUNTIME}" rmi "${LOCAL_IMAGE}" > /dev/null 2>&1 || true
     fi
     if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
         sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
-        sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
+        sudo "${CONTAINER_RUNTIME}" push --quiet --tls-verify=false "${LOCAL_IMAGE}"
     else
         sudo "${CONTAINER_RUNTIME}" run --rm --network host \
             -v "/${WORKING_DIR}/registries.conf:/etc/containers/registries.conf:ro" \
             quay.io/skopeo/stable:latest \
             copy \
+            --quiet \
             --dest-tls-verify=false \
             "docker://${IMAGE}" "docker://${LOCAL_IMAGE}"
     fi

@@ -248,6 +248,20 @@ for name in ${LIST_OF_CRDS[@]}; do
 done
 echo ""
 
+#Reset detachedHead to user prefreence
+prev_file="${WORKING_DIR}/.git_advice_detachedHead_prev"
+
+if [ -f "$prev_file" ]; then
+    prev="$(cat "$prev_file")"
+
+    if [ "$prev" = "__UNSET__" ]; then
+        git config --global --unset advice.detachedHead
+    else
+        git config --global advice.detachedHead "$prev"
+    fi
+
+    rm -f "$prev_file"
+fi
 # Verify v1beta1 Operators, Deployments, Replicasets
 iterate check_k8s_entity deployments "${EXPTD_DEPLOYMENTS}"
 iterate check_k8s_rs "${EXPTD_RS}"
