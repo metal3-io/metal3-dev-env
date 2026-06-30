@@ -35,7 +35,7 @@
   command: >
     virsh pool-uuid "{{ libvirt_volume_pool }}"
   register: pool_check
-  ignore_errors: true
+  failed_when: false
   changed_when: false
   environment:
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
@@ -44,11 +44,11 @@
   template:
     src: volume_pool.xml.j2
     dest: "{{ working_dir }}/volume_pool.xml"
-  when: pool_check is failed
+  when: pool_check.rc != 0
 
 - name: Define volume pool
   command: "virsh pool-define {{ working_dir }}/volume_pool.xml"
-  when: pool_check is failed
+  when: pool_check.rc != 0
   environment:
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
 
@@ -84,14 +84,15 @@
     command: >
       virsh vol-info --pool '{{ libvirt_volume_pool }}' '{{ item.name }}.qcow2'
     register: vm_vol_check
-    ignore_errors: true
+    failed_when: false
+    changed_when: false
     with_items: "{{ vm_nodes }}"
 
   - name: Create vm vm storage
     command: >
       virsh vol-create-as '{{ libvirt_volume_pool }}' '{{ item.item.name }}'.qcow2 '{{ flavors[item.item.flavor].disk }}'G --format qcow2
     when:
-    - item is failed
+    - item.rc != 0
     with_items: "{{ vm_vol_check.results }}"
 
   # Define (but do not start) the vm nodes.  These will be
