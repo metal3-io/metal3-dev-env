@@ -251,6 +251,54 @@ launch_ironic_standalone_operator()
         -n ironic-standalone-operator-system deployment/ironic-standalone-operator-controller-manager
 }
 
+#
+# Build optional dnsmasq DHCP settings as YAML list entries for the IRSO Ironic
+# CR (spec.networking.dhcp.hosts/ignore), one entry per ';'-separated item in
+# DHCP_HOSTS/DHCP_IGNORE. These replace the DHCP_HOSTS/DHCP_IGNORE env vars
+# previously written into the ironic configmap when ironic was launched without
+# IRSO. Prints a YAML fragment (leading newline, no trailing newline) to stdout;
+# empty when neither setting applies.
+#
+build_dhcp_yaml()
+{
+    local dhcp_yaml=""
+
+    if [[ -n "${DHCP_HOSTS:-}" ]]; then
+        dhcp_yaml+=$'\n      hosts:'
+        local dhcp_host_list host_entry
+        IFS=';' read -ra dhcp_host_list <<< "${DHCP_HOSTS}"
+        for host_entry in "${dhcp_host_list[@]}"; do
+            [[ -n "${host_entry}" ]] || continue
+            dhcp_yaml+=$'\n        - "'"${host_entry}"'"'
+        done
+    fi
+
+    # DHCP_IGNORE | DHCP_HOSTS | dhcp_ignore result
+    # ------------+------------+----------------------------------------
+    # set         | (any)      | DHCP_IGNORE (explicit override wins)
+    # unset       | set        | tag:!known (allow-list)
+    # unset       | unset      | empty -> no "ignore:" emitted
+    #
+    # Default to ignoring any host not explicitly listed in DHCP_HOSTS
+    # (dnsmasq dhcp-ignore=tag:!known) only when DHCP_HOSTS is set, so that a
+    # plain run with neither variable keeps DHCP permissive. DHCP_IGNORE always
+    # overrides when set.
+    local dhcp_ignore="${DHCP_IGNORE:-${DHCP_HOSTS:+tag:!known}}"
+    if [[ -n "${dhcp_ignore}" ]]; then
+        dhcp_yaml+=$'\n      ignore:'
+        local dhcp_ignore_list ignore_entry
+        IFS=';' read -ra dhcp_ignore_list <<< "${dhcp_ignore}"
+        for ignore_entry in "${dhcp_ignore_list[@]}"; do
+            [[ -n "${ignore_entry}" ]] || continue
+            dhcp_yaml+=$'\n        - "'"${ignore_entry}"'"'
+        done
+    fi
+
+    # Strip the leading newline so the fragment can sit on its own line in the
+    # heredoc (spec.networking.dhcp) already correctly indented.
+    printf '%s' "${dhcp_yaml#$'\n'}"
+}
+
 launch_ironic_via_irso()
 {
     if [[ "${IRONIC_BASIC_AUTH}" != "true" ]]; then
@@ -285,6 +333,7 @@ spec:
       rangeBegin: "${CLUSTER_DHCP_RANGE_START}"
       rangeEnd: "${CLUSTER_DHCP_RANGE_END}"
       networkCIDR: "${BARE_METAL_PROVISIONER_NETWORK}"
+$(build_dhcp_yaml)
     interface: "${BARE_METAL_PROVISIONER_INTERFACE}"
     ipAddress: "${CLUSTER_BARE_METAL_PROVISIONER_IP}"
     ipAddressManager: keepalived
