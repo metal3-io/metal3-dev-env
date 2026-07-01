@@ -411,9 +411,6 @@ clone_repo "${IRSOREPO}" "${IRSOBRANCH}" "${IRSOPATH}" "${IRSOCOMMIT}"
 # need to clone the repo.
 # There is no need to keep the PATH and the IMAGE vars in sync as there
 # is no other use of the path variable than cloning
-if [[ "${MARIADB_LOCAL_IMAGE:-}" == "${MARIADB_IMAGE_PATH}" ]]; then
-    clone_repo "${MARIADB_IMAGE_REPO}" "${MARIADB_IMAGE_BRANCH}" "${MARIADB_IMAGE_PATH}" "${MARIADB_IMAGE_COMMIT}"
-fi
 
 if [[ "${IRONIC_LOCAL_IMAGE:-}" == "${IRONIC_IMAGE_PATH}" ]]; then
     clone_repo "${IRONIC_IMAGE_REPO}" "${IRONIC_IMAGE_BRANCH}" "${IRONIC_IMAGE_PATH}" "${IRONIC_IMAGE_COMMIT}"
