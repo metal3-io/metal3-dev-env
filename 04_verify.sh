@@ -21,6 +21,7 @@ if [ "${BOOTSTRAP_CLUSTER}" == "tilt" ]; then
   exit 0
 fi
 
+# shellcheck disable=SC2329
 check_bm_hosts() {
     local FAILS_CHECK="${FAILS}"
     local NAME ADDRESS USER PASSWORD MAC VERIFY_CA CRED_NAME CRED_SECRET
@@ -112,6 +113,7 @@ check_bm_hosts() {
 
 
 # Verify that a resource exists in a type
+# shellcheck disable=SC2329
 check_k8s_entity() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
@@ -140,6 +142,7 @@ check_k8s_entity() {
 
 
 # Verify that a resource exists in a type
+# shellcheck disable=SC2329
 check_k8s_rs() {
   local FAILS_CHECK="${FAILS}"
   local ENTITY
@@ -170,6 +173,7 @@ check_k8s_rs() {
 }
 
 # Verify a container is running
+# shellcheck disable=SC2329
 check_container(){
   local NAME="$1"
   RESULT_STR="Container ${NAME} running"
