@@ -15,7 +15,7 @@ pushd "${IRONIC_IMAGE_DIR}"
 # Download and prepare node images (unless skipped)
 if [[ ! -f "${IMAGE_NAME}" ]]; then
     if [[ -f "${IMAGE_LOCATION}/${IMAGE_NAME}" ]]; then
-      # Copy local image  
+      # Copy local image
       cp "${IMAGE_LOCATION}/${IMAGE_NAME}" .
     elif [[ "${IMAGE_LOCATION}" =~ ^http.* ]]; then
       if [[ "${SKIP_NODE_IMAGE_PREPULL}" = "true" ]]; then
@@ -60,6 +60,22 @@ if [[ -f "${IMAGE_NAME}" ]]; then
 fi
 
 popd
+
+# Pre-download IPA (Ironic Python Agent) images to serve from local httpd.
+# This avoids slow remote downloads during Ironic deployment that can cause
+# timeouts, especially in CI.
+if [[ "${IPA_DOWNLOAD_ENABLED}" == "true" ]] && [[ "${USE_LOCAL_IPA}" != "true" ]]; then
+    IPA_FILENAME="ipa-${IPA_FLAVOR}-$(echo "${IPA_BRANCH}" | tr / -).tar.gz"
+    if [[ ! -f "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}" ]]; then
+        echo "Pre-downloading IPA image: ${IPA_BASEURI}/${IPA_FILENAME}"
+        wget --no-verbose --no-check-certificate -O "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}" \
+            "${IPA_BASEURI}/${IPA_FILENAME}"
+    fi
+    if [[ ! -f "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}.sha256" ]]; then
+        wget --no-verbose --no-check-certificate -O "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}.sha256" \
+            "${IPA_BASEURI}/${IPA_FILENAME}.sha256"
+    fi
+fi
 
 # NOTE(elfosardo): workaround for https://github.com/moby/moby/issues/44970
 # should be fixed in docker-ce 23.0.2

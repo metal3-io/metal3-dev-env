@@ -35,6 +35,14 @@ fi
 sudo mkdir -p "${IRONIC_DATA_DIR}"
 sudo chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
 
+# Use locally pre-downloaded IPA images served by httpd-infra to avoid slow
+# remote downloads during Ironic deployment (which can cause timeouts in CI).
+IPA_FILENAME="ipa-${IPA_FLAVOR}-$(echo "${IPA_BRANCH}" | tr / -).tar.gz"
+if [[ "${IPA_DOWNLOAD_ENABLED}" == "true" ]] && [[ "${USE_LOCAL_IPA}" != "true" ]] \
+    && [[ -f "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}" ]]; then
+    export IPA_BASEURI="http://${BARE_METAL_PROVISIONER_URL_HOST}/images"
+fi
+
 # shellcheck disable=SC1091
 source lib/ironic_tls_setup.sh
 # shellcheck disable=SC1091
@@ -245,7 +253,7 @@ EOF
 launch_ironic_standalone_operator()
 {
     # shellcheck disable=SC2311
-    echo 'IPA_BASEURI=https://artifactory.nordix.org/artifactory/openstack-remote/ironic-python-agent/dib' > "${IRSOPATH}/config/manager/manager.env"
+    echo "IPA_BASEURI=${IPA_BASEURI}" > "${IRSOPATH}/config/manager/manager.env"
     make -C "${IRSOPATH}" install deploy IMG="$(get_component_image "${IRSO_LOCAL_IMAGE:-${IRSO_IMAGE}}")"
     kubectl wait --for=condition=Available --timeout=60s \
         -n ironic-standalone-operator-system deployment/ironic-standalone-operator-controller-manager
