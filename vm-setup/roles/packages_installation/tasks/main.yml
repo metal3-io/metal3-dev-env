@@ -78,6 +78,26 @@
     delay: 30
     register: pkg_result
     until: pkg_result is succeeded
+  - name: Install EL9-specific packages (genisoimage, python3-bcrypt)
+    when: ansible_distribution_major_version == "9"
+    package:
+      name: "{{ packages.centos.el9.packages }}"
+      state: present
+      nobest: true
+    retries: 5
+    delay: 30
+    register: el9_pkg_result
+    until: el9_pkg_result is succeeded
+  - name: Install EL10-specific packages (xorriso replaces genisoimage)
+    when: ansible_distribution_major_version == "10"
+    package:
+      name: "{{ packages.centos.el10.packages }}"
+      state: present
+      nobest: true
+    retries: 5
+    delay: 30
+    register: el10_pkg_result
+    until: el10_pkg_result is succeeded
   - name: Install packages using pip3
     pip:
       executable: "{{ ANSIBLE_VENV | default('/usr') }}/bin/pip"
