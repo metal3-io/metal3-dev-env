@@ -68,7 +68,6 @@ packages:
       - dnsmasq
       - edk2-ovmf
       - firewalld
-      - genisoimage
       - httpd-tools
       - jq
       - libguestfs-tools
@@ -82,7 +81,6 @@ packages:
       - podman
       - polkit-pkla-compat
       - psmisc
-      - python3-bcrypt
       - python3-libvirt
       - python3-lxml
       - python3-netaddr
@@ -94,6 +92,13 @@ packages:
       - vim-enhanced
       - virt-install
       - wget
+    el9:
+      packages:
+      - genisoimage
+      - python3-bcrypt
+    el10:
+      packages:
+      - xorriso
     pip3:
     - flask_oauthlib==0.9.6
     - jmespath
