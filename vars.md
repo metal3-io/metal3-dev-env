@@ -198,37 +198,32 @@ For testing purposes, verification of the digests will be skipped if
 
 ## IPv6 support
 
-The environment supports IPv6-only networking, but this currently works
-**only with `kind`**. Minikube does not have official IPv6 support at the time
-of writing. IPv6 can also be enabled partially, but for full IPv6
-networking, the following additional steps are required:
+The environment supports IPv6-only networking, but this currently works **only with
+`kind`**. Minikube does not have official IPv6 support at the time of writing. Using
+IPv6 only networking requires the **host machine to have globally routable IPv6
+address**, because the cluster needs access to internet over IPv6.
 
-1. Build iPXE image builder with IPv6 support and with correct name (or rename
-   after building). By default the builder is named after the address it is
-   hosted at. Also, by default it is enough if `IPXE_BUILDER_LOCAL_IMAGE`
-   contains path to the folder with iPXE builder docker file, the dev env will
-   build the buider automatically.
-1. Build iPXE with IPv6 support. This is also done by the dev env with the
-   correct vars and builder.
-1. The Docker engine depends on containerd 1.7. To configure image registries
-   using an IPv6 address, containerd version **2.0 or later** is required. You
-   can download the correct containerd binary and replace the existing one under
-   `/usr/local/bin`. There is a convenience script for this
-   `hack/replace-containerd2.sh`. Notice that kind control plane contains
-   containerd 2.x, so it should not be necessary to replace containerd on host.
-1. You need to replace the default IPv4 addresses with IPv6 addresses in the
-   environment variables.
+At the time of writing (07/2026) pivoting won't work with this setup because the
+dev env uses IPv6 address in the metal3 image references and CRI-O image reference
+parser errors out because it accepts only alphanumeric characters in the image
+reference (and slashes). So the provisioned clusters cannot pull the metal3
+components due to that. One could fix this by using domain names instead of IPv6
+addresses in the image references.
+
+At the time of writing (07/2026) the upstream IPA image can't configure IPv6
+networking properly and hence fails v6 only deployment. This can be fixed by creating
+your own IPA image for example with ironic-python-agent-builder tool and either 1.
+removing the simple-init element completely 2. setting
+`DIB_SIMPLE_INIT_NO_DHCP_FALLBACK=1` env variable during the build.
 
 The following variables need to be set:
 
 ``` sh
-export IPXE_ENABLE_IPV6=true
-export BUILD_IPXE=true
-export IPXE_BUILDER_LOCAL_IMAGE="<path to local builder image>"
-export BOOTSTRAP_CLUSTER="kind"
+export EPHEMERAL_CLUSTER="kind"
 export IP_STACK=v6
 export EXTERNAL_SUBNET_V6="fd55::/64"
 export BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY=true
 export DOCKER_USE_IPV6_INTERNALLY=true
 export POD_CIDR="fd00:6969::/64"
+export SERVICE_CIDR="fd00:9696::/120"
 ```
