@@ -211,12 +211,6 @@ EOF
         update_component_image Ironic "${IRONIC_IMAGE}"
     fi
 
-    if [[ -n "${MARIADB_LOCAL_IMAGE:-}" ]]; then
-        update_component_image Mariadb "${MARIADB_LOCAL_IMAGE}"
-    else
-        update_component_image Mariadb "${MARIADB_IMAGE}"
-    fi
-
     if [[ -n "${IRONIC_KEEPALIVED_LOCAL_IMAGE:-}" ]]; then
         update_component_image Keepalived "${IRONIC_KEEPALIVED_LOCAL_IMAGE}"
     else
@@ -486,9 +480,6 @@ update_component_image()
             ;;
         "Ironic")
             make set-manifest-image-ironic
-            ;;
-        "Mariadb")
-            make set-manifest-image-mariadb
             ;;
         "Keepalived")
             make set-manifest-image-keepalived
