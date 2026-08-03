@@ -2,7 +2,7 @@
 # ignore shellcheck v0.9.0 introduced SC2317 about unreachable code
 # that doesn't understand traps, variables, functions etc causing all
 # code called via iterate() to false trigger SC2317
-# shellcheck disable=SC2317
+# shellcheck disable=SC2317,SC2329
 
 set -u
 
