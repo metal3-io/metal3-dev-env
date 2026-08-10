@@ -72,25 +72,17 @@ assured that they are persisted.
 | NODES_PLATFORM | Select the platform used to simulate the Baremetal hosts. | "libvirt", "fake" | "libvirt" |
 | TARGET_NODE_MEMORY | Set the default memory size in MB for the virtual machines provisioned. | | 4096 |
 | CLUSTER_NAME | Set the name of the target cluster | | test1 |
-| IRONIC_TLS_SETUP | Enable TLS for Ironic and inspector | "true", "false" | "true" |
-| IRONIC_BASIC_AUTH | Enable HTTP basic authentication for Ironic and inspector | "true", "false" | "true" |
+| IRONIC_TLS_SETUP | Enable TLS for Ironic | "true", "false" | "true" |
 | IRONIC_CA_CERT_B64 | Base 64 encoded CA certificate of Ironic | | |
 | IRONIC_CACERT_FILE | Path to the CA certificate of Ironic | | /opt/metal3-dev-env/certs/ironic-ca.pem |
-| IRONIC_INSPECTOR_CACERT_FILE | Path to the CA certificate of Ironic inspector | | /opt/metal3-dev-env/certs/ironic-ca.pem |
 | IRONIC_CAKEY_FILE | Path to the CA key of Ironic | | /opt/metal3-dev-env/certs/ironic-ca.key |
-| IRONIC_INSPECTOR_CAKEY_FILE | Path to the CA key of Ironic inspector | | /opt/metal3-dev-env/certs/ironic-ca.key |
 | IRONIC_CERT_FILE | Path to the certificate of Ironic | | /opt/metal3-dev-env/certs/ironic.crt |
-| IRONIC_INSPECTOR_CERT_FILE | Path to the CA certificate of Ironic inspector | | /opt/metal3-dev-env/certs/ironic-inspector.crt |
 | IRONIC_KEY_FILE | Path to the certificate key of Ironic | | /opt/metal3-dev-env/certs/ironic.key |
-| IRONIC_INSPECTOR_KEY_FILE | Path to the certificate key of Ironic inspector | | /opt/metal3-dev-env/certs/ironic-inspector.key |
 | IRONIC_USERNAME | Username for Ironic basic auth | | |
-| IRONIC_INSPECTOR_USERNAME | Username for Ironic inspector basic auth | | |
 | IRONIC_PASSWORD | Password for Ironic basic auth | | |
-| IRONIC_INSPECTOR_PASSWORD | Password for Ironic inspector basic auth | | |
 | IRONIC_USE_MARIADB | Use MariaDB instead of SQLite. Setting this to "true" does not work with v0.2.0 and older versions of BMO. MariaDB cannot be used without TLS. | "true", "false" | "false" |
 | REGISTRY_PORT | Container image registry port | | 5000 |
 | HTTP_PORT | Httpd server port | | 6180 |
-| IRONIC_INSPECTOR_PORT | Ironic Inspector port | | 5050 |
 | IRONIC_API_PORT | Ironic Api port | | 6385 |
 | RESTART_CONTAINER_CERTIFICATE_UPDATED | Enable the ironic restart feature when TLS certificates are updated | "true", "false" | "true" |
 | NODE_DRAIN_TIMEOUT | Set the nodeDrainTimeoutSeconds for controlplane and worker template | | '0' |
@@ -123,7 +115,6 @@ assured that they are persisted.
 | BUILD_IRONIC_IMAGE_LOCALLY | build the Metal3's ironic-image based on IRONIC_IMAGE_PATH | "true","false" | "false" |
 | IRONIC_FROM_SOURCE | installs ironic from source during container image building, if `true` then the `BUILD_IRONIC_IMAGE_LOCALLY` will be also set to `true` | "true","false" | "false" |
 | IRONIC_SOURCE | absolute path of the ironic source code used to build the ironic services in the ironic container image | | |
-| IRONIC_INSPECTOR_SOURCE | absolute path of the ironic-inspector source code used to build the ironic-inspector services in the ironic container image | | |
 | SUSHY_SOURCE | absolute path of the sushy source code used to build the sushy library in the ironic container image | | |
 | DHCP_HOSTS | A list of `;` separated dhcp-host directives for dnsmasq | e.g. `00:20:e0:3b:13:af;00:20:e0:3b:14:af` | |
 | DHCP_IGNORE | A set of tags on hosts to be ignored by dnsmasq | e.g. `tag:!known` | |

@@ -25,9 +25,6 @@ BMO_IRONIC_ARGS=(-k)
 if [[ "${IRONIC_TLS_SETUP:-true}" = "true" ]]; then
     BMO_IRONIC_ARGS+=("-t")
 fi
-if [[ "${IRONIC_BASIC_AUTH:-true}" = "false" ]]; then
-    BMO_IRONIC_ARGS+=("-n")
-fi
 if [[ "${IRONIC_USE_MARIADB:-false}" = "true" ]]; then
     BMO_IRONIC_ARGS+=("-m")
 fi
@@ -68,10 +65,7 @@ launch_baremetal_operator()
 
     # Update Configmap parameters with correct urls
     cat << EOF | sudo tee "${BMOPATH}/config/default/ironic.env"
-DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
-DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
 IRONIC_ENDPOINT=${IRONIC_URL}
-IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
 EOF
 
     if [[ -n "${DEPLOY_ISO_URL}" ]]; then
@@ -86,24 +80,14 @@ EOF
         if [[ "${IRONIC_TLS_SETUP}" = "true" ]]; then
             sudo mkdir -p /opt/metal3/certs/ca/
             cp "${IRONIC_CACERT_FILE}" /opt/metal3/certs/ca/crt
-            if [[ "${IRONIC_CACERT_FILE}" != "${IRONIC_INSPECTOR_CACERT_FILE}" ]]; then
-                cat "${IRONIC_INSPECTOR_CACERT_FILE}" >> /opt/metal3/certs/ca/crt
-            fi
         fi
 
-        if [[ "${IRONIC_BASIC_AUTH}" = "true" ]]; then
-            sudo mkdir -p /opt/metal3/auth/ironic
-            sudo chown "${USER}":"${USER}" /opt/metal3/auth/ironic
-            cp "${IRONIC_AUTH_DIR}ironic-username" /opt/metal3/auth/ironic/username
-            cp "${IRONIC_AUTH_DIR}ironic-password" /opt/metal3/auth/ironic/password
-            sudo mkdir -p /opt/metal3/auth/ironic-inspector
-            sudo chown "${USER}":"${USER}" /opt/metal3/auth/ironic-inspector
-            cp "${IRONIC_AUTH_DIR}${IRONIC_INSPECTOR_USERNAME}" /opt/metal3/auth/ironic-inspector/username
-            cp "${IRONIC_AUTH_DIR}${IRONIC_INSPECTOR_PASSWORD}" /opt/metal3/auth/ironic-inspector/password
-        fi
+        sudo mkdir -p /opt/metal3/auth/ironic
+        sudo chown "${USER}":"${USER}" /opt/metal3/auth/ironic
+        cp "${IRONIC_AUTH_DIR}ironic-username" /opt/metal3/auth/ironic/username
+        cp "${IRONIC_AUTH_DIR}ironic-password" /opt/metal3/auth/ironic/password
 
         export IRONIC_ENDPOINT=${IRONIC_URL}
-        export IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
 
         touch bmo.out.log
         touch bmo.err.log
@@ -150,9 +134,6 @@ launch_ironic()
 {
     pushd "${BMOPATH}"
 
-    local inspector_default
-    inspector_default=$(grep USE_IRONIC_INSPECTOR "${BMOPATH}/ironic-deployment/default/ironic_bmo_configmap.env" || true)
-
     # Update Configmap parameters with correct urls
     # Variable names inserted into the configmap might have different
     # naming conventions than the dev-env e.g. PROVISIONING_IP and CIDR are
@@ -166,12 +147,10 @@ DHCP_RANGE=${CLUSTER_DHCP_RANGE}
 DEPLOY_KERNEL_URL=${DEPLOY_KERNEL_URL}
 DEPLOY_RAMDISK_URL=${DEPLOY_RAMDISK_URL}
 IRONIC_ENDPOINT=${IRONIC_URL}
-IRONIC_INSPECTOR_ENDPOINT=${IRONIC_INSPECTOR_URL}
 CACHEURL=http://${BARE_METAL_PROVISIONER_URL_HOST}/images
 RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED}"
 IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
 IRONIC_USE_MARIADB=${IRONIC_USE_MARIADB:-false}
-${inspector_default}
 IPA_BASEURI=${IPA_BASEURI}
 IPA_BRANCH=${IPA_BRANCH}
 IPA_FLAVOR=${IPA_FLAVOR}
@@ -247,11 +226,6 @@ launch_ironic_standalone_operator()
 
 launch_ironic_via_irso()
 {
-    if [[ "${IRONIC_BASIC_AUTH}" != "true" ]]; then
-        echo "Not possible to use ironic-standalone-operator without authentication"
-        exit 1
-    fi
-
     kubectl create secret generic ironic-auth -n "${IRONIC_NAMESPACE}" \
         --from-file=username="${IRONIC_AUTH_DIR}ironic-username"  \
         --from-file=password="${IRONIC_AUTH_DIR}ironic-password"

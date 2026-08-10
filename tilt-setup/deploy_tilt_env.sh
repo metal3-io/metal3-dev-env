@@ -15,9 +15,6 @@ cat <<EOF > tilt-settings.json
   "provider_repos": ["../ip-address-manager"],
   "enable_providers": ["metal3-ipam"],
   "kustomize_substitutions": {
-      "DEPLOY_KERNEL_URL": "${DEPLOY_KERNEL_URL}",
-      "DEPLOY_RAMDISK_URL": "${DEPLOY_RAMDISK_URL}",
-      "IRONIC_INSPECTOR_URL": "${IRONIC_INSPECTOR_URL}",
       "IRONIC_URL": "${IRONIC_URL}"
   }
 }
@@ -46,9 +43,6 @@ kubectl delete deployments.apps -n "${IRONIC_NAMESPACE}" baremetal-operator-cont
 # shellcheck disable=SC2155
 # shellcheck disable=SC1001
 export IRONIC_SECRET_NAME=$(kubectl get secrets  -n "${IRONIC_NAMESPACE}" -oname | grep ironic-credentials | cut -f2 -d\/)
-# shellcheck disable=SC2155
-# shellcheck disable=SC1001
-export IRONICINSPECTOR_SECRET_NAME=$(kubectl get secrets  -n "${IRONIC_NAMESPACE}" -oname | grep "ironic-inspector-credentials" | cut -f2 -d\/)
 popd
 
 pushd "${SCRIPTDIR}"
@@ -72,7 +66,7 @@ patches:
 - path: ironic-credentials-patch.yaml
 EOF
 
-# use existing ironic and inspector secrets
+# use existing ironic secret
 # Tilt cannot generate new credentials and certificates as it would mismatch with what ironic is already configured with
 cat <<EOF > config/overlays/tilt/ironic-credentials-patch.yaml
 apiVersion: apps/v1
@@ -89,29 +83,11 @@ spec:
           - mountPath: /opt/metal3/auth/ironic
             name: ironic-credentials
             readOnly: true
-EOF
-
-if [ -n "${IRONICINSPECTOR_SECRET_NAME}" ]; then
-    cat <<EOF >> config/overlays/tilt/ironic-credentials-patch.yaml
-          - mountPath: /opt/metal3/auth/ironic-inspector
-            name: ironic-inspector-credentials
-            readOnly: true
-      volumes:
-      - name: ironic-credentials
-        secret:
-          secretName: ${IRONIC_SECRET_NAME}
-      - name: ironic-inspector-credentials
-        secret:
-          secretName: ${IRONICINSPECTOR_SECRET_NAME}
-EOF
-else
-    cat <<EOF >> config/overlays/tilt/ironic-credentials-patch.yaml
       volumes:
       - name: ironic-credentials
         secret:
           secretName: ${IRONIC_SECRET_NAME}
 EOF
-fi
 
 "${BMOPATH}"/tools/bin/kustomize build config/overlays/tilt
 popd
@@ -123,9 +99,6 @@ cat <<EOF > tilt-settings.json
   "provider_repos": [ "../baremetal-operator", "../ip-address-manager"],
   "enable_providers": [ "metal3-bmo", "metal3-ipam"],
   "kustomize_substitutions": {
-      "DEPLOY_KERNEL_URL": "${DEPLOY_KERNEL_URL}",
-      "DEPLOY_RAMDISK_URL": "${DEPLOY_RAMDISK_URL}",
-      "IRONIC_INSPECTOR_URL": "${IRONIC_INSPECTOR_URL}",
       "IRONIC_URL": "${IRONIC_URL}"
   }
 }
