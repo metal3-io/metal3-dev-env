@@ -433,7 +433,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
     if [[ "${IMAGE_VAR/_LOCAL_IMAGE}" == "IRONIC" ]] && [[ ${IRONIC_FROM_SOURCE:-} == "true" ]]; then
         # NOTE(rpittau): to customize the source origin we need to copy the source code we
         # want to use into the sources directory under the ironic-image repository.
-        for CODE_SOURCE_VAR in $(env | grep -E '^IRONIC_SOURCE=|^IRONIC_INSPECTOR_SOURCE=|^SUSHY_SOURCE=' | grep -o "^[^=]*"); do
+        for CODE_SOURCE_VAR in $(env | grep -E '^IRONIC_SOURCE=|^SUSHY_SOURCE=' | grep -o "^[^=]*"); do
             CODE_SOURCE="${!CODE_SOURCE_VAR}"
             SOURCE_DIR_DEST="${CODE_SOURCE##*/}"
             rm -rf "./sources/${SOURCE_DIR_DEST}"
