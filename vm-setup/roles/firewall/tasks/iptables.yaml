@@ -192,3 +192,14 @@
       jump: ACCEPT
       state: "{{ firewall_rule_state }}"
   when: (BOOTSTRAP_CLUSTER == "kind") and (ip_stack == "v6")
+
+- name: "ip6tables: MASQUERADE IPv6 external network to allow connections from VMs"
+  iptables:
+    ip_version: ipv6
+    table: nat
+    chain: LIBVIRT_PRT
+    source: "{{ external_subnet_v6 }}"
+    destination: "! {{ external_subnet_v6 }}"
+    jump: MASQUERADE
+    state: "{{ firewall_rule_state }}"
+  when: external_subnet_v6 | default('') | length > 0

@@ -57,3 +57,12 @@
     permanent: yes
     state: "{{ firewalld_rule_state }}"
     immediate: yes
+
+- name: "firewalld: Enable IPv6 masquerade on libvirt zone"
+  ansible.posix.firewalld:
+    zone: libvirt
+    masquerade: true
+    permanent: yes
+    state: "{{ firewalld_rule_state }}"
+    immediate: yes
+  when: external_subnet_v6 | default('') | length > 0
