@@ -16,8 +16,8 @@ if [[ "${OS}" = "ubuntu" ]]; then
     # Set apt retry limit to higher than default to
     # make the data retrival more reliable
     sudo sh -c ' echo "Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries '
-    sudo apt-get update
-    sudo apt-get -y install python3-pip python3-dev python3-venv jq curl wget pkg-config bash-completion
+    sudo apt-get -q update
+    sudo apt-get -qy install python3-pip python3-dev python3-venv jq curl wget pkg-config bash-completion
 
     # Set update-alternatives to python3
     case "${DISTRO}" in
@@ -62,6 +62,12 @@ elif [[ "${OS}" = "opensuse-leap" ]]; then
     sudo aa-teardown
 fi
 
+# Save current value so it can be restored during cleanup.
+_prev_detached_head_advice="$(git config --global --get advice.detachedHead 2>/dev/null || true)"
+printf '%s\n' "${_prev_detached_head_advice:-__UNSET__}" > "${WORKING_DIR}/.git_advice_detachedHead_prev"
+
+# Suppress detached HEAD advice for this run.
+git config --global advice.detachedHead false
 # NOTE(tuminoid) lib/releases.sh must be after the jq and python installation
 # TODO: fix all of the lib/ scripts not to actually run code, but only define functions
 # shellcheck disable=SC1091
@@ -80,7 +86,7 @@ rm -rf "${ANSIBLE_VENV}"
 sudo python -m venv --system-site-packages "${ANSIBLE_VENV}"
 # TODO: since ansible 8.0.0, pinning by digest is PITA, due additional ansible
 # dependencies, which would need to be pinned as well, so it is skipped for now
-sudo "${ANSIBLE_VENV}/bin/pip" install --ignore-installed ansible=="${ANSIBLE_VERSION}"
+sudo "${ANSIBLE_VENV}/bin/pip" install -q --ignore-installed ansible=="${ANSIBLE_VERSION}"
 
 # Install requirements
 "${ANSIBLE}-galaxy" install -r vm-setup/requirements.yml
