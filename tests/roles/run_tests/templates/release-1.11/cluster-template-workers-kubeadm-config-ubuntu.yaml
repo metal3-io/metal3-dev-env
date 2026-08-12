@@ -25,4 +25,4 @@ files:
        registries = ['docker.io']
 
        [registries.insecure]
-       registries = ['{{ REGISTRY }}']
+       registries = ['{{ REGISTRY }}', '{{ K8S_REGISTRY}}']
