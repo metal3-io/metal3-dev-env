@@ -92,8 +92,8 @@ EOF
 
         sudo mkdir -p /opt/metal3/auth/ironic
         sudo chown "${USER}":"${USER}" /opt/metal3/auth/ironic
-        cp "${IRONIC_AUTH_DIR}ironic-username" /opt/metal3/auth/ironic/username
-        cp "${IRONIC_AUTH_DIR}ironic-password" /opt/metal3/auth/ironic/password
+        cp "${IRONIC_USERNAME_FILE}" /opt/metal3/auth/ironic/username
+        cp "${IRONIC_PASSWORD_FILE}" /opt/metal3/auth/ironic/password
 
         export IRONIC_ENDPOINT=${IRONIC_URL}
 
@@ -235,8 +235,8 @@ launch_ironic_standalone_operator()
 launch_ironic_via_irso()
 {
     kubectl create secret generic ironic-auth -n "${IRONIC_NAMESPACE}" \
-        --from-file=username="${IRONIC_AUTH_DIR}ironic-username"  \
-        --from-file=password="${IRONIC_AUTH_DIR}ironic-password"
+        --from-file=username="${IRONIC_USERNAME_FILE}"  \
+        --from-file=password="${IRONIC_PASSWORD_FILE}"
     kubectl label secret ironic-auth -n "${IRONIC_NAMESPACE}" \
         environment.metal3.io/ironic-standalone-operator=true
 
