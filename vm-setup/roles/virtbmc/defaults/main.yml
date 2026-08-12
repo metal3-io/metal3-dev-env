@@ -7,3 +7,4 @@ sushy_vmedia_verify_ssl: false
 # BMC credentials
 vbmc_username: "admin"
 vbmc_password: "password"
+sushy_conf_dir: "{{ lookup('env', 'SUSHY_TOOLS_CONF_DIR') | default('/root/sushy', true) }}"
