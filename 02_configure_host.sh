@@ -35,7 +35,7 @@ fi
 # Allow local non-root-user access to libvirt
 # shellcheck disable=SC2312
 if ! id "${USER}" | grep -q libvirt; then
-    sudo usermod -a -G "libvirt" "${USER}"
+    usermod -a -G "libvirt" "${USER}"
 fi
 
 # Clean-up any old ironic containers
@@ -45,10 +45,10 @@ remove_ironic_containers
 case "${CONTAINER_RUNTIME}" in
     podman)
         for pod in ironic-pod infra-pod; do
-            if  sudo "${CONTAINER_RUNTIME}" pod exists "${pod}" ; then
-                sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
+            if  "${CONTAINER_RUNTIME}" pod exists "${pod}" ; then
+                "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
             fi
-            sudo "${CONTAINER_RUNTIME}" pod create -n "${pod}"
+            "${CONTAINER_RUNTIME}" pod create -n "${pod}"
         done
         ;;
     *)
@@ -59,20 +59,20 @@ esac
 # kernel crashes with  NULL pointer dereference
 # note(elfosardo): run this only if we have kvm support
 if grep -q vmx /proc/cpuinfo; then
-    sudo modprobe -r -a kvm_intel kvm
-    sudo modprobe kvm tdp_mmu=0
-    sudo modprobe -a kvm kvm_intel
+    modprobe -r -a kvm_intel kvm
+    modprobe kvm tdp_mmu=0
+    modprobe -a kvm kvm_intel
 elif grep -q svm /proc/cpuinfo; then
-    sudo modprobe -r -a kvm_amd kvm
-    sudo modprobe kvm tdp_mmu=0
-    sudo modprobe -a kvm kvm_amd
+    modprobe -r -a kvm_amd kvm
+    modprobe kvm tdp_mmu=0
+    modprobe -a kvm kvm_amd
 fi
 
 # Clean, copy and extract local IPA
 if [[ "${USE_LOCAL_IPA}" == "true" ]]; then
-    sudo rm -f  "${IRONIC_DATA_DIR}/html/images/ironic-python-agent*"
-    sudo cp "${LOCAL_IPA_PATH}/ironic-python-agent.tar" "${IRONIC_DATA_DIR}/html/images"
-    sudo tar --extract --file "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.tar" \
+    rm -f  "${IRONIC_DATA_DIR}/html/images/ironic-python-agent*"
+    cp "${LOCAL_IPA_PATH}/ironic-python-agent.tar" "${IRONIC_DATA_DIR}/html/images"
+    tar --extract --file "${IRONIC_DATA_DIR}/html/images/ironic-python-agent.tar" \
         --directory "${IRONIC_DATA_DIR}/html/images"
     # avoid duplicating the same process in BMO run_local script
     export USE_LOCAL_IPA="false"
@@ -90,7 +90,7 @@ configure_minikube()
 init_minikube()
 {
     #If the vm exists, it has already been initialized
-    if [[ ! "$(sudo virsh list --name --all)" =~ .*(minikube).* ]]; then
+    if [[ ! "$(virsh list --name --all)" =~ .*(minikube).* ]]; then
         # Loop to ignore minikube issues
         while /bin/true; do
             minikube_error=0
@@ -99,35 +99,35 @@ init_minikube()
             manage_libvirtd
             configure_minikube
             #NOTE(elfosardo): workaround for https://bugzilla.redhat.com/show_bug.cgi?id=2057769
-            sudo mkdir -p "/etc/qemu/firmware"
-            sudo touch "/etc/qemu/firmware/50-edk2-ovmf-amdsev.json"
-            sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "${USER}" || minikube_error=1
+            mkdir -p "/etc/qemu/firmware"
+            touch "/etc/qemu/firmware/50-edk2-ovmf-amdsev.json"
+            su -l -c "minikube start --insecure-registry ${REGISTRY}" "${USER}" || minikube_error=1
             if [[ ${minikube_error} -eq 0 ]]; then
                 break
             fi
-            sudo su -l -c 'minikube delete --all --purge' "${USER}"
+            su -l -c 'minikube delete --all --purge' "${USER}"
             # NOTE (Mohammed): workaround for https://github.com/kubernetes/minikube/issues/9878
             if ip link show virbr0 > /dev/null 2>&1; then
-                sudo ip link delete virbr0
+                ip link delete virbr0
             fi
         done
-        sudo su -l -c "minikube stop" "${USER}"
+        su -l -c "minikube stop" "${USER}"
     fi
 
-    MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"
+    MINIKUBE_IFACES="$(virsh domiflist minikube)"
 
     # The interface doesn't appear in the minikube VM with --live,
     # so just attach it before next boot. As long as the
     # 02_configure_host.sh script does not run, the provisioning network does
     # not exist. Attempting to start Minikube will fail until it is created.
     if ! echo "${MINIKUBE_IFACES}" | grep -w -q provisioning; then
-        sudo virsh attach-interface --domain minikube \
+        virsh attach-interface --domain minikube \
             --model virtio --source provisioning \
             --type network --config
     fi
 
     if ! echo "${MINIKUBE_IFACES}" | grep -w -q external; then
-        sudo virsh attach-interface --domain minikube \
+        virsh attach-interface --domain minikube \
             --model virtio --source external \
             --type network --config
     fi
@@ -139,9 +139,9 @@ fi
 
 # Root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
-if ! sudo test -f /root/.ssh/id_rsa_virt_power; then
-    sudo ssh-keygen -f /root/.ssh/id_rsa_virt_power -P ""
-    sudo cat /root/.ssh/id_rsa_virt_power.pub | sudo tee -a /root/.ssh/authorized_keys
+if ! test -f /root/.ssh/id_rsa_virt_power; then
+    ssh-keygen -f /root/.ssh/id_rsa_virt_power -P ""
+    cat /root/.ssh/id_rsa_virt_power.pub | tee -a /root/.ssh/authorized_keys
 fi
 
 ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
@@ -163,8 +163,8 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
     -b vm-setup/setup-playbook.yml
 
 # Usually virt-manager/virt-install creates this: https://www.redhat.com/archives/libvir-list/2008-August/msg00179.html
-if ! sudo virsh pool-uuid default > /dev/null 2>&1 ; then
-    sudo virsh pool-define /dev/stdin <<EOF
+if ! virsh pool-uuid default > /dev/null 2>&1 ; then
+    virsh pool-define /dev/stdin <<EOF
 <pool type='dir'>
     <name>default</name>
     <target>
@@ -172,8 +172,8 @@ if ! sudo virsh pool-uuid default > /dev/null 2>&1 ; then
     </target>
 </pool>
 EOF
-    sudo virsh pool-start default
-    sudo virsh pool-autostart default
+    virsh pool-start default
+    virsh pool-autostart default
 fi
 
 # When running kind ironic is running on the host, hence we need ironicendpoint
@@ -182,7 +182,7 @@ configure_kind_network() {
     if [[ ! -e /etc/NetworkManager/system-connections/provisioning.nmconnection ]]; then
         # Don't define an IP address to the bridge, put both into ironicendpoint.
         # ironicendpoint needs 2 IP-addresses for keepalived.
-        sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
+        tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
 [connection]
 id=provisioning
 type=bridge
@@ -192,22 +192,22 @@ interface-name=provisioning
 stp=false
 EOF
     fi
-    sudo chmod 600 /etc/NetworkManager/system-connections/provisioning.nmconnection
-    sudo nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
-    sudo nmcli con up provisioning
+    chmod 600 /etc/NetworkManager/system-connections/provisioning.nmconnection
+    nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
+    nmcli con up provisioning
 
-    sudo ip link add ironicendpoint type veth peer name ironic-peer
-    sudo ip link set ironic-peer master provisioning
+    ip link add ironicendpoint type veth peer name ironic-peer
+    ip link set ironic-peer master provisioning
 
     if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" = "true" ]]; then
-        sudo ip -6 addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
-        sudo ip -6 addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+        ip -6 addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
+        ip -6 addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
     else
-        sudo ip addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
-        sudo ip addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+        ip addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
+        ip addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
     fi
-    sudo ip link set ironicendpoint up
-    sudo ip link set ironic-peer up
+    ip link set ironicendpoint up
+    ip link set ironic-peer up
 }
 
 # When running minikube, ironic is running inside the cluster, provisioning named
@@ -217,7 +217,7 @@ configure_minikube_network() {
         # Adding an IP address in the libvirt definition for this network results in
         # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
         # the IP address here
-        sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
+        tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
 [connection]
 id=provisioning
 type=bridge
@@ -235,7 +235,7 @@ address1=${BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR}
 method=manual
 EOF
     else
-        sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
+        tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
 [connection]
 id=provisioning
 type=bridge
@@ -253,9 +253,9 @@ addr-gen-mode=eui64
 method=disabled
 EOF
     fi
-    sudo chmod 600 /etc/NetworkManager/system-connections/provisioning.nmconnection
-    sudo nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
-    sudo nmcli con up provisioning
+    chmod 600 /etc/NetworkManager/system-connections/provisioning.nmconnection
+    nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
+    nmcli con up provisioning
 }
 
 if [[ "${OS}" == "ubuntu" ]]; then
@@ -275,7 +275,7 @@ else
 
     # Need to pass the provision interface for bare metal
     if [[ -n "${PRO_IF}" ]]; then
-        sudo tee -a /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection <<EOF
+        tee -a /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection <<EOF
 [connection]
 id=${PRO_IF}
 type=ethernet
@@ -283,14 +283,14 @@ interface-name=${PRO_IF}
 master=provisioning
 slave-type=bridge
 EOF
-        sudo chmod 600 /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection
-        sudo nmcli con load /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection
-        sudo nmcli con up "${PRO_IF}"
+        chmod 600 /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection
+        nmcli con load /etc/NetworkManager/system-connections/"${PRO_IF}".nmconnection
+        nmcli con up "${PRO_IF}"
     fi
 
     if [[ "${MANAGE_INT_BRIDGE}" == "y" ]]; then
         if [[ "$(nmcli con show)" != *"external"* ]]; then
-            sudo tee /etc/NetworkManager/system-connections/external.nmconnection <<EOF
+            tee /etc/NetworkManager/system-connections/external.nmconnection <<EOF
 [connection]
 id=external
 type=bridge
@@ -304,16 +304,16 @@ stp=false
 addr-gen-mode=stable-privacy
 method=ignore
 EOF
-            sudo chmod 600 /etc/NetworkManager/system-connections/external.nmconnection
-            sudo nmcli con load /etc/NetworkManager/system-connections/external.nmconnection
+            chmod 600 /etc/NetworkManager/system-connections/external.nmconnection
+            nmcli con load /etc/NetworkManager/system-connections/external.nmconnection
         fi
     fi
-    sudo nmcli connection up external
+    nmcli connection up external
 
     # Add the internal interface to it if requests, this may also be the interface providing
     # external access so we need to make sure we maintain dhcp config if its available
     if [[ -n "${INT_IF}" ]]; then
-        sudo tee /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection <<EOF
+        tee /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection <<EOF
 [connection]
 id=${INT_IF}
 type=ethernet
@@ -322,21 +322,21 @@ master=provisioning
 slave-type=bridge
 EOF
 
-        sudo chmod 600 /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection
-        sudo nmcli con load /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection
-        if sudo nmap --script broadcast-dhcp-discover -e "${INT_IF}" | grep "IP Offered" ; then
-            sudo nmcli connection modify external ipv4.method auto
+        chmod 600 /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection
+        nmcli con load /etc/NetworkManager/system-connections/"${INT_IF}".nmconnection
+        if nmap --script broadcast-dhcp-discover -e "${INT_IF}" | grep "IP Offered" ; then
+            nmcli connection modify external ipv4.method auto
         fi
-        sudo nmcli connection up "${INT_IF}"
+        nmcli connection up "${INT_IF}"
     fi
 
     # Restart the libvirt network so it applies an ip to the bridge
     if [[ "${MANAGE_EXT_BRIDGE}" == "y" ]]; then
-        sudo virsh net-destroy external
-        sudo virsh net-start external
+        virsh net-destroy external
+        virsh net-start external
         if [[ -n "${INT_IF}" ]]; then
             # Need to bring UP the NIC after destroying the libvirt network
-            sudo nmcli connection up "${INT_IF}"
+            nmcli connection up "${INT_IF}"
         fi
     fi
 fi
@@ -348,25 +348,25 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
 
 # FIXME(stbenjam): ansbile firewalld module doesn't seem to be doing the right thing
 if [[ "${USE_FIREWALLD}" == "True" ]]; then
-    sudo firewall-cmd --zone=libvirt --change-interface=provisioning
-    sudo firewall-cmd --zone=libvirt --change-interface=external
+    firewall-cmd --zone=libvirt --change-interface=provisioning
+    firewall-cmd --zone=libvirt --change-interface=external
 fi
 
 # Need to route traffic from the provisioning host.
 if [[ -n "${EXT_IF}" ]]; then
-    sudo iptables -t nat -A POSTROUTING --out-interface "${EXT_IF}" -j MASQUERADE
-    sudo iptables -A FORWARD --in-interface external -j ACCEPT
+    iptables -t nat -A POSTROUTING --out-interface "${EXT_IF}" -j MASQUERADE
+    iptables -A FORWARD --in-interface external -j ACCEPT
 fi
 
 # Local registry for images
-reg_state=$(sudo "${CONTAINER_RUNTIME}" inspect registry --format "{{.State.Status}}" || echo "error")
+reg_state=$("${CONTAINER_RUNTIME}" inspect registry --format "{{.State.Status}}" || echo "error")
 
 # ubuntu_install_requirements.sh script restarts docker daemon which causes local registry container to be in exited state.
 if [[ "${reg_state}" == "exited" ]]; then
-    sudo "${CONTAINER_RUNTIME}" start registry
+    "${CONTAINER_RUNTIME}" start registry
 elif [[ "${reg_state}" != "running" ]]; then
-    sudo "${CONTAINER_RUNTIME}" rm registry -f || true
-    sudo "${CONTAINER_RUNTIME}" run -d -p "${REGISTRY}":5000 --name registry "${DOCKER_REGISTRY_IMAGE}"
+    "${CONTAINER_RUNTIME}" rm registry -f || true
+    "${CONTAINER_RUNTIME}" run -d -p "${REGISTRY}":5000 --name registry "${DOCKER_REGISTRY_IMAGE}"
 fi
 sleep 5
 
@@ -442,7 +442,7 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
         done
 
         # shellcheck disable=SC2086
-        sudo "${CONTAINER_RUNTIME}" build --build-arg INSTALL_TYPE=source ${CUSTOM_SOURCE_ARGS:-} \
+        "${CONTAINER_RUNTIME}" build --build-arg INSTALL_TYPE=source ${CUSTOM_SOURCE_ARGS:-} \
             -t "${IMAGE_URL}:latest" -t "${IMAGE_URL}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
 
     # TODO: Do we want to support CAPI in dev-env? CI just pulls it anyways ...
@@ -451,20 +451,20 @@ for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*"); do
         # shellcheck disable=SC2016
         CAPI_BASEIMAGE=$(grep "GO_CONTAINER_IMAGE ?=" Makefile | sed -e 's/GO_CONTAINER_IMAGE ?= //g' -e 's/$(GO_VERSION)//g')
         CAPI_TAGGED_BASE_IMAGE="${CAPI_BASEIMAGE}${CAPI_GO_VERSION}"
-        sudo DOCKER_BUILDKIT=1 "${CONTAINER_RUNTIME}" build \
+        DOCKER_BUILDKIT=1 "${CONTAINER_RUNTIME}" build \
             --build-arg builder_image="${CAPI_TAGGED_BASE_IMAGE}" --build-arg ARCH="amd64" \
             -t "${IMAGE_URL}:latest" -t "${IMAGE_URL}:${IMAGE_GIT_HASH}_${IMAGE_DATE}" . -f ./Dockerfile
 
     else
-        sudo "${CONTAINER_RUNTIME}" rmi "${IMAGE_URL}" || true
-        sudo "${CONTAINER_RUNTIME}" build -t "${IMAGE_URL}" . -f ./Dockerfile
+        "${CONTAINER_RUNTIME}" rmi "${IMAGE_URL}" || true
+        "${CONTAINER_RUNTIME}" build -t "${IMAGE_URL}" . -f ./Dockerfile
     fi
 
     cd - || exit
     if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-        sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${IMAGE_URL}"
+        "${CONTAINER_RUNTIME}" push --tls-verify=false "${IMAGE_URL}"
     else
-        sudo "${CONTAINER_RUNTIME}" push --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE_URL}"
+        "${CONTAINER_RUNTIME}" push --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE_URL}"
     fi
 
     # store the locally built images to config, so they're passed to "make test"
@@ -501,13 +501,13 @@ for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^
     # shellcheck disable=SC2086
     LOCAL_IMAGE="${REGISTRY}/localimages/${IMAGE_NAME%@*}"
     if [[ "${LOCAL_IMAGE}" != "${IMAGE}" ]]; then
-        sudo "${CONTAINER_RUNTIME}" rmi "${LOCAL_IMAGE}" || true
+        "${CONTAINER_RUNTIME}" rmi "${LOCAL_IMAGE}" || true
     fi
     if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
-        sudo "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
-        sudo "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
+        "${CONTAINER_RUNTIME}" tag "${IMAGE}" "${LOCAL_IMAGE}"
+        "${CONTAINER_RUNTIME}" push --tls-verify=false "${LOCAL_IMAGE}"
     else
-        sudo "${CONTAINER_RUNTIME}" run --rm --network host \
+        "${CONTAINER_RUNTIME}" run --rm --network host \
             -v "/${WORKING_DIR}/registries.conf:/etc/containers/registries.conf:ro" \
             quay.io/skopeo/stable:latest \
             copy \
@@ -519,12 +519,12 @@ done
 # Start httpd-infra container
 if [[ "${OS}" == "ubuntu" ]]; then
     # shellcheck disable=SC2086
-    sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra ${POD_NAME_INFRA} \
+    "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd-infra ${POD_NAME_INFRA} \
         -v "${IRONIC_DATA_DIR}":/shared --entrypoint /bin/runhttpd \
         --env "PROVISIONING_INTERFACE=ironicendpoint" "${IRONIC_IMAGE}"
 else
     # shellcheck disable=SC2086
-    sudo "${CONTAINER_RUNTIME}" run -d --net host --name httpd-infra ${POD_NAME_INFRA} \
+    "${CONTAINER_RUNTIME}" run -d --net host --name httpd-infra ${POD_NAME_INFRA} \
         -v "${IRONIC_DATA_DIR}":/shared --entrypoint /bin/runhttpd "${IRONIC_IMAGE}"
 fi
 
@@ -534,13 +534,13 @@ fi
 # by vbmc but not executed by libvirt (observed as VMs stuck powered off after
 # cleaning in CI, e.g. pivoting test flakiness).
 # shellcheck disable=SC2086
-sudo "${CONTAINER_RUNTIME}" run -d --net host --name vbmc ${POD_NAME_INFRA} \
+"${CONTAINER_RUNTIME}" run -d --net host --name vbmc ${POD_NAME_INFRA} \
     -v "${WORKING_DIR}/virtualbmc/vbmc":/root/.vbmc -v "/root/.ssh":/root/ssh \
     -v /var/run/libvirt:/var/run/libvirt \
     "${VBMC_IMAGE}"
 
 # shellcheck disable=SC2086
-sudo "${CONTAINER_RUNTIME}" run -d --net host --name sushy-tools ${POD_NAME_INFRA} \
+"${CONTAINER_RUNTIME}" run -d --net host --name sushy-tools ${POD_NAME_INFRA} \
     -v "${WORKING_DIR}/virtualbmc/sushy-tools":/root/sushy -v "/root/.ssh":/root/ssh \
     -v /var/run/libvirt:/var/run/libvirt \
     "${SUSHY_TOOLS_IMAGE}"
@@ -550,12 +550,12 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --name sushy-tools ${POD_NAME_INFR
 # runs the clients in a container (metal3-io/ironic-client)
 OPENSTACKCLIENT_PATH="${OPENSTACKCLIENT_PATH:-/usr/local/bin/openstack}"
 if ! command -v openstack | grep -v "${OPENSTACKCLIENT_PATH}"; then
-    sudo ln -sf "${SCRIPTDIR}/openstackclient.sh" "${OPENSTACKCLIENT_PATH}"
-    sudo ln -sf "${SCRIPTDIR}/openstackclient.sh" "$(dirname "${OPENSTACKCLIENT_PATH}")/baremetal"
+    ln -sf "${SCRIPTDIR}/openstackclient.sh" "${OPENSTACKCLIENT_PATH}"
+    ln -sf "${SCRIPTDIR}/openstackclient.sh" "$(dirname "${OPENSTACKCLIENT_PATH}")/baremetal"
 fi
 
 # Same for the vbmc CLI when not locally installed
 VBMC_PATH="${VBMC_PATH:-/usr/local/bin/vbmc}"
 if ! command -v vbmc | grep -v "${VBMC_PATH}"; then
-    sudo ln -sf "${SCRIPTDIR}/vbmc.sh" "${VBMC_PATH}"
+    ln -sf "${SCRIPTDIR}/vbmc.sh" "${VBMC_PATH}"
 fi

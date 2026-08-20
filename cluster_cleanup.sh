@@ -7,7 +7,7 @@ source lib/common.sh
 
 # Delete cluster
 if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]] || [[ "${BOOTSTRAP_CLUSTER}" = "tilt" ]]; then
-    sudo su -l -c "kind delete cluster  || true" "${USER}"
+    su -l -c "kind delete cluster  || true" "${USER}"
     # Kill and remove the running ironic containers
     if [[ -x "${BMOPATH}/tools/remove_local_ironic.sh" ]]; then
         "${BMOPATH}"/tools/remove_local_ironic.sh
@@ -21,5 +21,5 @@ if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]] || [[ "${BOOTSTRAP_CLUSTER}" = "tilt" ]
 fi
 
 if [[ "${BOOTSTRAP_CLUSTER}" = "minikube" ]]; then
-    sudo su -l -c "minikube delete" "${USER}"
+    su -l -c "minikube delete" "${USER}"
 fi

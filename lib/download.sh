@@ -18,11 +18,11 @@ pip_install_with_hash()
     local tmpfile
 
     if [[ "${INSECURE_SKIP_DOWNLOAD_VERIFICATION}" == "true" ]]; then
-        sudo python -m pip install "${pkg_and_version}"
+        python -m pip install "${pkg_and_version}"
     else
         tmpfile="$(mktemp)"
         echo "${pkg_and_version} --hash=sha256:${sha256}" > "${tmpfile}"
-        sudo python -m pip install --require-hashes -r "${tmpfile}"
+        python -m pip install --require-hashes -r "${tmpfile}"
         rm -f "${tmpfile}"
     fi
 }
@@ -123,7 +123,7 @@ download_and_install_minikube()
     fi
 
     chmod +x "${MINIKUBE_BINARY}"
-    sudo mv "${MINIKUBE_BINARY}" /usr/local/bin/
+    mv "${MINIKUBE_BINARY}" /usr/local/bin/
 }
 
 download_and_install_kvm2_driver()
@@ -138,7 +138,7 @@ download_and_install_kvm2_driver()
     fi
 
     chmod +x "${DRIVER_BINARY}"
-    sudo mv "${DRIVER_BINARY}" /usr/local/bin/
+    mv "${DRIVER_BINARY}" /usr/local/bin/
 }
 
 download_and_install_kind()
@@ -153,7 +153,7 @@ download_and_install_kind()
     fi
 
     chmod +x "${KIND_BINARY}"
-    sudo mv "${KIND_BINARY}" /usr/local/bin/
+    mv "${KIND_BINARY}" /usr/local/bin/
 }
 
 download_and_install_tilt()
@@ -188,7 +188,7 @@ download_and_install_kubectl()
     fi
 
     chmod +x kubectl
-    sudo mv kubectl "${KUBECTL_PATH}"
+    mv kubectl "${KUBECTL_PATH}"
 }
 
 download_and_install_kustomize()
@@ -205,7 +205,7 @@ download_and_install_kustomize()
     tar -xzvf "${KUSTOMIZE_BINARY}.tar.gz"
     rm "${KUSTOMIZE_BINARY}.tar.gz"
     chmod +x "${KUSTOMIZE_BINARY}"
-    sudo mv "${KUSTOMIZE_BINARY}" /usr/local/bin/
+    mv "${KUSTOMIZE_BINARY}" /usr/local/bin/
 }
 
 # TODO: Currently we just download latest CAPIRELEASE version of clusterctl,
@@ -222,7 +222,7 @@ download_and_install_clusterctl()
     fi
 
     chmod +x "${CLUSTERCTL_BINARY}"
-    sudo mv "${CLUSTERCTL_BINARY}" /usr/local/bin/
+    mv "${CLUSTERCTL_BINARY}" /usr/local/bin/
 }
 
 # Run this helper function called by hack/print_checksums.sh
