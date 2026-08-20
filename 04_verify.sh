@@ -99,12 +99,21 @@ check_bm_hosts() {
         process_status $?
     done
 
-    # Skip introspection verification if no BMH applied
-    if [[ "${SKIP_APPLY_BMH}" != "true" ]]; then
-        # Verify the introspection completed successfully
+    # Skip introspection verification in no BMH applied
+    if [[ "${SKIP_APPLY_BMH:-false}" != "true" ]]; then
+        #Verify the introspection completed successfully
+        PROV_STATE="$(echo "${BARE_METAL_HOST}" | jq -r '.status.provisioning.state')"
         RESULT_STR="${NAME} Baremetalhost introspecting completed"
-        is_in "$(echo "${BARE_METAL_HOST}" | jq -r '.status.provisioning.state')" \
-            "ready available"
+        is_in "${PROV_STATE}" "ready available provisioned"
+
+        # Only assert the VM is powered on when the host is provisioned.
+        # In ready/available the power state depends on history: hosts are
+        # usually left on after inspection, but off after a deprovision.
+        # Only a provisioned host is expected to be on.
+        if [[ "${PROV_STATE}" == "provisioned" ]]; then
+            RESULT_STR="${NAME} Baremetalhost VM is running"
+            equals "$(echo "${BARE_METAL_HOST}" | jq -r '.status.poweredOn')" "true"
+        fi
     fi
 
     echo ""
@@ -222,6 +231,38 @@ BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
 CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 SKIP_APPLY_BMH="${SKIP_APPLY_BMH:-false}"
 
+
+# Verify VMs are defined (skip on fake platform)
+if [[ "${NODES_PLATFORM}" != "fake" ]]; then
+    echo "Verifying VMs are defined..."
+    NODES="$(list_nodes)"
+
+    if [[ -z "${NODES}" ]]; then
+        echo "FATAL: No hosts found in the node inventory (${NODES_FILE}). Cannot verify VMs."
+        echo "Check VM status with: sudo virsh list --all"
+        exit 1
+    fi
+
+    # Assume all VMs are defined then verify one by one.
+    VM_MISSING=false
+    while read -r name _; do
+        VM_NAME="${name//-/_}"
+        RESULT_STR="VM ${VM_NAME} is defined"
+        if sudo virsh dominfo "${VM_NAME}" > /dev/null 2>&1; then
+            process_status 0
+        else
+            process_status 1
+            VM_MISSING=true
+        fi
+    done <<< "${NODES}"
+
+
+    if [[ "${VM_MISSING}" != "false" ]]; then
+        echo "FATAL: Some VMs are not defined. Cannot proceed with verification."
+        echo "Check VM status with: sudo virsh list --all"
+        exit 1
+    fi
+fi
 
 # Verify networking
 for bridge in ${BRIDGES}; do
