@@ -80,11 +80,11 @@ fi
 # NOTE(elfosardo): workaround for https://github.com/moby/moby/issues/44970
 # should be fixed in docker-ce 23.0.2
 if [[ "${OS}" = "ubuntu" ]]; then
-  sudo systemctl restart docker
+  systemctl restart docker
 fi
 
 # Pulling all the images except any local image.
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
   IMAGE="${!IMAGE_VAR}"
-  sudo "${CONTAINER_RUNTIME}" pull --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE}"
+  "${CONTAINER_RUNTIME}" pull --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE}"
  done

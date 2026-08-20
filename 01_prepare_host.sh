@@ -7,59 +7,54 @@ source lib/logging.sh
 # shellcheck disable=SC1091
 source lib/common.sh
 
-if [[ "${EUID}" -eq 0 ]]; then
-    echo "Please run 'make' as a non-root user"
-    exit 1
-fi
-
 if [[ "${OS}" = "ubuntu" ]]; then
     # Set apt retry limit to higher than default to
     # make the data retrival more reliable
-    sudo sh -c ' echo "Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries '
-    sudo apt-get update
-    sudo apt-get -y install python3-pip python3-dev python3-venv jq curl wget pkg-config bash-completion
+    sh -c ' echo "Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries '
+    apt-get update
+    apt-get -y install python3-pip python3-dev python3-venv jq curl wget pkg-config bash-completion
 
     # Set update-alternatives to python3
     case "${DISTRO}" in
         ubuntu22)
-            sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 ;;
+            update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 ;;
         ubuntu24)
-            sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 ;;
+            update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1 ;;
         *) ;;
   esac
 
 elif [[ "${OS}" = "centos" ]] || [[ "${OS}" = "rhel" ]]; then
-    sudo dnf upgrade -y --nobest
+    dnf upgrade -y --nobest
     case "${VERSION_ID}" in
         8)
-            sudo dnf config-manager --set-enabled powertools
-            sudo dnf install -y epel-release
+            dnf config-manager --set-enabled powertools
+            dnf install -y epel-release
             ;;
         9)
-            sudo dnf config-manager --set-enabled crb
-            sudo dnf install -y "https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
+            dnf config-manager --set-enabled crb
+            dnf install -y "https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
             ;;
 	10)
-            sudo dnf config-manager --set-enabled crb
-            sudo dnf install -y "https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm"
+            dnf config-manager --set-enabled crb
+            dnf install -y "https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm"
             ;;
         *)
             echo -n "CentOS or RHEL version not supported"
             exit 1
             ;;
     esac
-    sudo dnf -y install python3-pip jq curl wget pkgconf-pkg-config bash-completion
-    sudo ln -s /usr/bin/python3 /usr/bin/python || true
+    dnf -y install python3-pip jq curl wget pkgconf-pkg-config bash-completion
+    ln -s /usr/bin/python3 /usr/bin/python || true
 
 elif [[ "${OS}" = "opensuse-leap" ]]; then
-    # sudo SUSEConnect --product sle-module-containers/15.6/x86_64
-    sudo zypper refresh
-    sudo zypper -n in python311 python311-pip jq bash-completion apparmor-utils update-alternatives
-    sudo update-alternatives --install /usr/bin/python python3.11 /usr/bin/python3.11 20
+    # SUSEConnect --product sle-module-containers/15.6/x86_64
+    zypper refresh
+    zypper -n in python311 python311-pip jq bash-completion apparmor-utils update-alternatives
+    update-alternatives --install /usr/bin/python python3.11 /usr/bin/python3.11 20
     # Disable apparmor, it causes troubles when running dnsmasq with kind
-    # sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 10
-    # sudo aa-disable dnsmasq
-    sudo aa-teardown
+    # update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 10
+    # aa-disable dnsmasq
+    aa-teardown
 fi
 
 # NOTE(tuminoid) lib/releases.sh must be after the jq and python installation
@@ -77,10 +72,10 @@ source lib/network.sh
 # NOTE(dtantsur): system-site-packages is required because of certain Python
 # packages that cannot be pip-installed (firewalld, selinux, etc).
 rm -rf "${ANSIBLE_VENV}"
-sudo python -m venv --system-site-packages "${ANSIBLE_VENV}"
+python -m venv --system-site-packages "${ANSIBLE_VENV}"
 # TODO: since ansible 8.0.0, pinning by digest is PITA, due additional ansible
 # dependencies, which would need to be pinned as well, so it is skipped for now
-sudo "${ANSIBLE_VENV}/bin/pip" install --ignore-installed ansible=="${ANSIBLE_VERSION}"
+"${ANSIBLE_VENV}/bin/pip" install --ignore-installed ansible=="${ANSIBLE_VERSION}"
 
 # Install requirements
 "${ANSIBLE}-galaxy" install -r vm-setup/requirements.yml
@@ -131,7 +126,7 @@ fi
 BASH_COMPLETION="/etc/bash_completion.d/kubectl"
 if [[ ! -r "${BASH_COMPLETION}" ]]; then
     # shellcheck disable=SC2312
-    kubectl completion bash | sudo tee "${BASH_COMPLETION}" >/dev/null
+    kubectl completion bash | tee "${BASH_COMPLETION}" >/dev/null
 fi
 
 # TODO (mboukhalfa) fake images

@@ -29,8 +29,8 @@ if [[ "${IRONIC_USE_MARIADB:-false}" = "true" ]]; then
     BMO_IRONIC_ARGS+=("-m")
 fi
 
-sudo mkdir -p "${IRONIC_DATA_DIR}"
-sudo chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
+mkdir -p "${IRONIC_DATA_DIR}"
+chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
 
 # Use locally pre-downloaded IPA images served by httpd-infra to avoid slow
 # remote downloads during Ironic deployment (which can cause timeouts in CI).
@@ -72,12 +72,12 @@ launch_baremetal_operator()
     fi
 
     # Update Configmap parameters with correct urls
-    cat << EOF | sudo tee "${BMOPATH}/config/default/ironic.env"
+    cat << EOF | tee "${BMOPATH}/config/default/ironic.env"
 IRONIC_ENDPOINT=${IRONIC_URL}
 EOF
 
     if [[ -n "${DEPLOY_ISO_URL}" ]]; then
-        echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${BMOPATH}/config/default/ironic.env"
+        echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | tee -a "${BMOPATH}/config/default/ironic.env"
     fi
 
     # Deploy BMO using deploy.sh script
@@ -86,12 +86,12 @@ EOF
     # If BMO should run locally, scale down the deployment and run BMO
     if [[ "${BMO_RUN_LOCAL}" = "true" ]]; then
         if [[ "${IRONIC_TLS_SETUP}" = "true" ]]; then
-            sudo mkdir -p /opt/metal3/certs/ca/
+            mkdir -p /opt/metal3/certs/ca/
             cp "${IRONIC_CACERT_FILE}" /opt/metal3/certs/ca/crt
         fi
 
-        sudo mkdir -p /opt/metal3/auth/ironic
-        sudo chown "${USER}":"${USER}" /opt/metal3/auth/ironic
+        mkdir -p /opt/metal3/auth/ironic
+        chown "${USER}":"${USER}" /opt/metal3/auth/ironic
         cp "${IRONIC_USERNAME_FILE}" /opt/metal3/auth/ironic/username
         cp "${IRONIC_PASSWORD_FILE}" /opt/metal3/auth/ironic/password
 
@@ -146,7 +146,7 @@ launch_ironic()
     # Variable names inserted into the configmap might have different
     # naming conventions than the dev-env e.g. PROVISIONING_IP and CIDR are
     # called PROVISIONER_IP and CIDR in dev-env
-    cat << EOF | sudo tee "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
+    cat << EOF | tee "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
 HTTP_PORT=${HTTP_PORT}
 PROVISIONING_IP=${CLUSTER_BARE_METAL_PROVISIONER_IP}
 PROVISIONING_CIDR=${BARE_METAL_PROVISIONER_CIDR}
@@ -165,24 +165,24 @@ IPA_FLAVOR=${IPA_FLAVOR}
 EOF
 
     if [[ -n "${DEPLOY_ISO_URL}" ]]; then
-        echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
+        echo "DEPLOY_ISO_URL=${DEPLOY_ISO_URL}" | tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
     fi
 
     if [[ "${NODES_PLATFORM}" = "libvirt" ]] ; then
-        echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
+        echo "IRONIC_KERNEL_PARAMS=console=ttyS0" | tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
     fi
 
     # TODO (mboukhalfa) enable heartbeating and ironic TLS when sushy-tools release v1.3.1
     if [[ "${NODES_PLATFORM}" = "fake" ]]; then
-        echo "OS_AGENT__REQUIRE_TLS=false" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
+        echo "OS_AGENT__REQUIRE_TLS=false" | tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
     fi
 
     if [[ -n "${DHCP_IGNORE:-}" ]]; then
-        echo "DHCP_IGNORE=${DHCP_IGNORE}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
+        echo "DHCP_IGNORE=${DHCP_IGNORE}" | tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
     fi
 
     if [[ -n "${DHCP_HOSTS:-}" ]]; then
-        echo "DHCP_HOSTS=${DHCP_HOSTS}" | sudo tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
+        echo "DHCP_HOSTS=${DHCP_HOSTS}" | tee -a "${IRONIC_DATA_DIR}/ironic_bmo_configmap.env"
     fi
 
     # Copy the generated configmap for ironic deployment
@@ -215,7 +215,7 @@ EOF
         ${RUN_LOCAL_IRONIC_SCRIPT}
         # Wait for ironic to become ready
         echo "Waiting for Ironic to become ready"
-        retry sudo "${CONTAINER_RUNTIME}" exec ironic /bin/ironic-readiness
+        retry "${CONTAINER_RUNTIME}" exec ironic /bin/ironic-readiness
     else
         # Deploy Ironic using deploy.sh script
         "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
@@ -346,7 +346,7 @@ FAKE_IPA_MAX_BOOT_TIME = ${FAKE_IPA_MAX_BOOT_TIME:-30}
 EOF
 
     # shellcheck disable=SC2086
-    sudo "${CONTAINER_RUNTIME}" run -d --net host --name fake-ipa ${POD_NAME_INFRA} \
+    "${CONTAINER_RUNTIME}" run -d --net host --name fake-ipa ${POD_NAME_INFRA} \
         -v "/opt/metal3-dev-env/fake-ipa":/root/cert -v "/root/.ssh":/root/ssh \
         -e CONFIG='/root/cert/config.py' \
         "${FAKE_IPA_IMAGE}"
@@ -590,13 +590,13 @@ install_clusterctl()
     fi
     wget --no-verbose -O clusterctl "https://github.com/kubernetes-sigs/cluster-api/releases/download/${DOWNLOAD_CAPIRELEASE}/clusterctl-linux-amd64"
     chmod +x ./clusterctl
-    sudo mv ./clusterctl /usr/local/bin/
+    mv ./clusterctl /usr/local/bin/
 }
 
 if ! [[ -x "$(command -v clusterctl)" ]]; then
     install_clusterctl
 elif [[ "$(clusterctl version | grep -o -P '(?<=GitVersion:").*?(?=",)')" != "${CAPIRELEASE}" ]]; then
-    sudo rm /usr/local/bin/clusterctl
+    rm /usr/local/bin/clusterctl
     install_clusterctl
 fi
 
@@ -670,7 +670,7 @@ launch_kind()
   skip_verify = true
 EOF
 
-        cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
+        cat <<EOF | su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -692,7 +692,7 @@ EOF
         docker exec kind-control-plane cp /hosts.toml /etc/containerd/certs.d/"${REGISTRY}"/hosts.toml
 
     else
-        cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
+        cat <<EOF | su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 containerdConfigPatches:
@@ -719,27 +719,27 @@ start_management_cluster()
 
         while /bin/true; do
             minikube_error=0
-            sudo su -l -c 'minikube start' "${USER}" || minikube_error=1
+            su -l -c 'minikube start' "${USER}" || minikube_error=1
             if [[ "${minikube_error}" -eq 0 ]]; then
                 break
             fi
         done
 
         if [[ -n "${MINIKUBE_BMNET_V6_IP:-}" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${MINIKUBE_BMNET_V6_IP}/64 dev eth3" "${USER}"
+            su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
+            su -l -c "minikube ssh -- sudo ip addr add ${MINIKUBE_BMNET_V6_IP}/64 dev eth3" "${USER}"
         fi
 
-        sudo su -l -c "minikube ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
+        su -l -c "minikube ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+        su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
+        su -l -c "minikube ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
 
         if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" = "true" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+            su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
+            su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
+            su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
         else
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+            su -l -c "minikube ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
         fi
     fi
 }
@@ -784,7 +784,7 @@ build_ipxe_firmware()
     fi
 
     # shellcheck disable=SC2086,SC2068
-    sudo "${CONTAINER_RUNTIME}" run \
+    "${CONTAINER_RUNTIME}" run \
         --net host \
         --name ipxe-builder ${POD_NAME} \
         -e "${IPXE_ENABLE_TLS_CENV_ARG}" \
@@ -859,3 +859,7 @@ fi
 if [[ "${NODES_PLATFORM}" = "fake" ]]; then
     launch_fake_ipa
 fi
+
+# Ensure CAPI config dir and user home config are owned by the invoking user
+chown -R "${USER}:${USER}" "${CAPI_CONFIG_DIR}"
+chown -R "${USER}:${USER}" "${HOME}/.config"

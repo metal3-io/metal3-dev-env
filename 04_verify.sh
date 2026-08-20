@@ -34,7 +34,7 @@ check_bm_hosts() {
     VERIFY_CA="${6}"
     BARE_METAL_HOSTS="$(kubectl --kubeconfig "${KUBECONFIG}" get baremetalhosts\
       -n metal3 -o json)"
-    BARE_METAL_VMS="$(sudo virsh list --all)"
+    BARE_METAL_VMS="$(virsh list --all)"
     BARE_METAL_VMNAME="${NAME//-/_}"
 
     # Skip BMH verification if not applied
@@ -91,7 +91,7 @@ check_bm_hosts() {
     process_status $?
 
     #Verify the VMs interfaces
-    BARE_METAL_VM_IFACES="$(sudo virsh domiflist "${BARE_METAL_VMNAME}")"
+    BARE_METAL_VM_IFACES="$(virsh domiflist "${BARE_METAL_VMNAME}")"
     for bridge in ${BRIDGES}; do
       RESULT_STR="${NAME} Baremetalhost VM interface ${bridge} exist"
       echo "${BARE_METAL_VM_IFACES}" | grep -w "${bridge}"  > /dev/null
@@ -177,7 +177,7 @@ check_k8s_rs() {
 check_container(){
   local NAME="$1"
   RESULT_STR="Container ${NAME} running"
-  sudo "${CONTAINER_RUNTIME}" ps | grep -w "$NAME$" > /dev/null
+  "${CONTAINER_RUNTIME}" ps | grep -w "$NAME$" > /dev/null
   process_status $?
   return $?
 }
@@ -271,7 +271,7 @@ process_status $?
 
 ## Fetch the VMs
 RESULT_STR="Fetch Baremetalhosts VMs"
-sudo virsh list --all > /dev/null
+virsh list --all > /dev/null
 process_status $?
 echo ""
 
