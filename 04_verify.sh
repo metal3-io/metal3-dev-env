@@ -101,9 +101,17 @@ check_bm_hosts() {
     # Skip introspection verification in no BMH applied
     if [[ "${SKIP_APPLY_BMH:-false}" != "true" ]]; then
       #Verify the introspection completed successfully
+      PROV_STATE="$(echo "${BARE_METAL_HOST}" | jq -r '.status.provisioning.state')"
       RESULT_STR="${NAME} Baremetalhost introspecting completed"
-      is_in "$(echo "${BARE_METAL_HOST}" | jq -r '.status.provisioning.state')" \
-        "ready available"
+      is_in "${PROV_STATE}" "ready available provisioned"
+
+      # Only assert the VM is powered on when the host is actually provisioned.
+      # In ready/available state Ironic leaves the node powered off, so a
+      # "running" assertion would never converge and would time out.
+      if [[ "${PROV_STATE}" == "provisioned" ]]; then
+        RESULT_STR="${NAME} Baremetalhost VM is running"
+        equals "$(echo "${BARE_METAL_HOST}" | jq -r '.status.poweredOn')" "true"
+      fi
     fi
 
     echo ""
@@ -222,6 +230,42 @@ FAILS=0
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
 CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 
+
+# Verify VMs are defined (skip on fake platform)
+if [[ "${NODES_PLATFORM}" != "fake" ]]; then
+  echo "Verifying VMs are defined..."
+  NODES="$(list_nodes)"
+
+  if [[ -z "${NODES}" ]]; then
+    echo "FATAL: No nodes found in the node list. Cannot verify VMs."
+    echo "Check VM status with: sudo virsh list --all"
+    exit 1
+  fi
+
+  # Start by assuming the VMs are not defined.
+  VM_OK=false
+  VM_MISSING=false
+  while read -r name _; do
+    VM_NAME="${name//-/_}"
+    RESULT_STR="VM ${VM_NAME} is defined"
+    if sudo virsh dominfo "${VM_NAME}" > /dev/null 2>&1; then
+      process_status 0
+    else
+      process_status 1
+      VM_MISSING=true
+    fi
+  done <<< "${NODES}"
+
+  if [[ "${VM_MISSING}" == "false" ]]; then
+    VM_OK=true
+  fi
+
+  if [[ "${VM_OK}" != "true" ]]; then
+    echo "FATAL: Some VMs are not defined. Cannot proceed with verification."
+    echo "Check VM status with: sudo virsh list --all"
+    exit 1
+  fi
+fi
 
 # Verify networking
 for bridge in ${BRIDGES}; do
