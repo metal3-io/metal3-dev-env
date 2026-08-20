@@ -90,6 +90,12 @@ check_bm_hosts() {
     echo "${BARE_METAL_VMS} "| grep -w "${BARE_METAL_VMNAME}"  > /dev/null
     process_status $?
 
+    # Verify the VM is running
+    RESULT_STR="${NAME} Baremetalhost VM is running"
+    VM_STATE="$(sudo virsh domstate "${BARE_METAL_VMNAME}" 2>/dev/null | tr -d '[:space:]')"
+    [[ "${VM_STATE}" == "running" ]]
+    process_status $?
+
     #Verify the VMs interfaces
     BARE_METAL_VM_IFACES="$(sudo virsh domiflist "${BARE_METAL_VMNAME}")"
     for bridge in ${BRIDGES}; do
@@ -222,6 +228,30 @@ FAILS=0
 BMO_RUN_LOCAL="${BMO_RUN_LOCAL:-false}"
 CAPM3_RUN_LOCAL="${CAPM3_RUN_LOCAL:-false}"
 
+
+# Verify VMs are defined (skip on fake platform)
+if [[ "${NODES_PLATFORM}" != "fake" ]]; then
+  VM_FAILS=0
+  echo "Verifying VMs are defined..."
+  if [[ -n "$(list_nodes)" ]]; then
+    while read -r name _; do
+      VM_NAME="${name//-/_}"
+      RESULT_STR="VM ${VM_NAME} is defined"
+      if ! sudo virsh dominfo "${VM_NAME}" > /dev/null 2>&1; then
+        process_status 1
+        VM_FAILS="$((VM_FAILS+1))"
+      else
+        process_status 0
+      fi
+    done <<< "$(list_nodes)"
+  fi
+  echo ""
+  if [[ "${VM_FAILS}" -gt 0 ]]; then
+    echo "FATAL: ${VM_FAILS} VM(s) are not defined. Cannot proceed with verification."
+    echo "Check VM status with: sudo virsh list --all"
+    exit 1
+  fi
+fi
 
 # Verify networking
 for bridge in ${BRIDGES}; do
