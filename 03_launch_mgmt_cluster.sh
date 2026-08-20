@@ -10,6 +10,8 @@ source lib/common.sh
 source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
+# shellcheck disable=SC1091
+source lib/kind.sh
 
 # Default CAPI_CONFIG_DIR to $HOME/.config directory if XDG_CONFIG_HOME not set
 CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}"
@@ -136,7 +138,7 @@ update_images()
 }
 
 #
-# Launch Ironic locally for Kind and Tilt, in cluster for Minikube
+# Launch Ironic locally for Kind and Tilt.
 #
 launch_ironic()
 {
@@ -210,15 +212,15 @@ EOF
         update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
     fi
 
-    if [[ "${BOOTSTRAP_CLUSTER}" != "minikube" ]]; then
-        update_images
+    update_images
+    if [[ "${IRONIC_DEPLOY_IN_CLUSTER}" == "true" ]]; then
+        # Deploy Ironic in-cluster using kustomize manifests
+        "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
+    else
         ${RUN_LOCAL_IRONIC_SCRIPT}
         # Wait for ironic to become ready
         echo "Waiting for Ironic to become ready"
         retry sudo "${CONTAINER_RUNTIME}" exec ironic /bin/ironic-readiness
-    else
-        # Deploy Ironic using deploy.sh script
-        "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
     fi
     popd
 }
@@ -325,13 +327,8 @@ launch_fake_ipa()
 {
     # Create a folder to host fakeIPA config and certs
     mkdir -p "${WORKING_DIR}/fake-ipa"
-    if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]] && [[ "${IRONIC_TLS_SETUP}" = "true" ]]; then
+    if [[ "${IRONIC_TLS_SETUP}" = "true" ]]; then
         cp "${IRONIC_CACERT_FILE}" "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
-    elif [[ "${IRONIC_TLS_SETUP}" = "true" ]]; then
-        # wait for ironic to be running to ensure ironic-cert is created
-        kubectl -n baremetal-operator-system wait --for=condition=available deployment/baremetal-operator-ironic --timeout=900s
-        # Extract ironic-cert to be used inside fakeIPA for TLS
-        kubectl get secret -n baremetal-operator-system ironic-cert -o json -o=jsonpath="{.data.ca\.crt}" | base64 -d > "${WORKING_DIR}/fake-ipa/ironic-ca.crt"
     fi
 
     # Create fake IPA custom config
@@ -688,8 +685,8 @@ EOF
 
         # Copy config to correct place. Mounting it directly does not work
         # because the filepath contains colons.
-        docker exec kind-control-plane mkdir -p /etc/containerd/certs.d/"${REGISTRY}"
-        docker exec kind-control-plane cp /hosts.toml /etc/containerd/certs.d/"${REGISTRY}"/hosts.toml
+        sudo "${CONTAINER_RUNTIME}" exec kind-control-plane mkdir -p /etc/containerd/certs.d/"${REGISTRY}"
+        sudo "${CONTAINER_RUNTIME}" exec kind-control-plane cp /hosts.toml /etc/containerd/certs.d/"${REGISTRY}"/hosts.toml
 
     else
         cat <<EOF | sudo su -l -c "kind create cluster --name kind --image=${KIND_NODE_IMAGE} --config=- " "${USER}"
@@ -708,39 +705,8 @@ EOF
 #
 start_management_cluster()
 {
-    local minikube_error
-
     if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]]; then
         launch_kind
-    elif [[ "${BOOTSTRAP_CLUSTER}" = "minikube" ]]; then
-        # This method, defined in lib/common.sh, will either ensure sockets are up'n'running
-        # for CS9 and RHEL9, or restart the libvirtd.service for other DISTRO
-        manage_libvirtd
-
-        while /bin/true; do
-            minikube_error=0
-            sudo su -l -c 'minikube start' "${USER}" || minikube_error=1
-            if [[ "${minikube_error}" -eq 0 ]]; then
-                break
-            fi
-        done
-
-        if [[ -n "${MINIKUBE_BMNET_V6_IP:-}" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${MINIKUBE_BMNET_V6_IP}/64 dev eth3" "${USER}"
-        fi
-
-        sudo su -l -c "minikube ssh -- sudo brctl addbr ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
-        sudo su -l -c "minikube ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
-
-        if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" = "true" ]]; then
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-        else
-            sudo su -l -c "minikube ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
-        fi
     fi
 }
 
@@ -812,6 +778,11 @@ fi
 
 build_ipxe_firmware
 start_management_cluster
+
+if [[ "${IRONIC_DEPLOY_IN_CLUSTER}" == "true" ]] && [[ "${BOOTSTRAP_CLUSTER}" == "kind" ]]; then
+    connect_kind_to_provisioning_network
+fi
+
 kubectl create namespace metal3
 
 patch_clusterctl
