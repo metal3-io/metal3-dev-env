@@ -12,13 +12,13 @@ source lib/network.sh
 remove_ironic_containers
 
 # Kill and remove fake-ipa container if it exists
-sudo "${CONTAINER_RUNTIME}" rm -f fake-ipa 2>/dev/null
+"${CONTAINER_RUNTIME}" rm -f fake-ipa 2>/dev/null
 
 # Remove existing pod
 if [[ "${CONTAINER_RUNTIME}" = "podman" ]]; then
     for pod in ironic-pod infra-pod; do
-        if sudo "${CONTAINER_RUNTIME}" pod exists "${pod}"; then
-           sudo "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
+        if "${CONTAINER_RUNTIME}" pod exists "${pod}"; then
+           "${CONTAINER_RUNTIME}" pod rm "${pod}" -f
         fi
     done
 fi
@@ -58,33 +58,33 @@ ANSIBLE_FORCE_COLOR=true "${ANSIBLE}-playbook" \
 if [[ "${OS}" = "ubuntu" ]]; then
     if [[ "${MANAGE_PRO_BRIDGE}" = "y" ]]; then
         # these are hardcoded in ./ubuntu_bridge_network_configuration.sh
-        sudo ip link delete ironic-peer
-        sudo ip link delete ironicendpoint
-        sudo ip link delete provisioning
+        ip link delete ironic-peer
+        ip link delete ironicendpoint
+        ip link delete provisioning
     fi
     if [[ "${MANAGE_EXT_BRIDGE}" = "y" ]]; then
-        sudo ip link delete external || true
+        ip link delete external || true
     fi
 else
-    sudo rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
+    rm -rf /etc/NetworkManager/conf.d/dnsmasq.conf
     if [[  "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
-        sudo ip link del ironic-peer
-        sudo ip link del "${BARE_METAL_PROVISIONER_INTERFACE}"
-        sudo nmcli con delete provisioning
+        ip link del ironic-peer
+        ip link del "${BARE_METAL_PROVISIONER_INTERFACE}"
+        nmcli con delete provisioning
     fi
     # External net should have been cleaned already at this stage, but we double
     # check as leaving it around causes issues when the host is rebooted
     if [[ "${MANAGE_EXT_BRIDGE}" = "y" ]]; then
-        sudo nmcli con delete external || true
+        nmcli con delete external || true
     fi
 fi
 
 # Clean up any serial logs
-sudo rm -rf /var/log/libvirt/qemu/*serial0.log*
+rm -rf /var/log/libvirt/qemu/*serial0.log*
 
 # Clean up BMH CRs
-sudo rm -rf "${WORKING_DIR}"/bmhosts_crs.yaml
-sudo rm -rf "${WORKING_DIR}"/bmhs
+rm -rf "${WORKING_DIR}"/bmhosts_crs.yaml
+rm -rf "${WORKING_DIR}"/bmhs
 
 if [[ -n "${XDG_CONFIG_HOME}" ]]; then
     rm -rf "${XDG_CONFIG_HOME}"/cluster-api
