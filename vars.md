@@ -13,7 +13,7 @@ assured that they are persisted.
 | :------ | :------- | :--------------- | :-------- |
 | DOCKER_USE_IPV6_INTERNALLY | Choose whether Docker will use IPv6 internally. | "true", "false" | false |
 | MAX_SURGE_VALUE | This variable defines if controlplane should scale-in or scale-out during upgrade. | 0 (scale-in) or 1 (scale-out) |1|
-| BOOTSTRAP_CLUSTER | Tool for running management/bootstrap cluster. | minikube, kind, tilt | "kind" when using docker as the container runtime (the default on Ubuntu), "minikube" otherwise |
+| BOOTSTRAP_CLUSTER | Tool for running management/bootstrap cluster. | kind, tilt | "kind" |
 | IP_STACK | Choose whether the "external" libvirt network will use IPv4, IPv6, or IPv4+IPv6. This network is the primary network interface for the virtual bare metal hosts. Note that this only sets up the underlying network, and fully provisioning IPv6 kubernetes clusters is not yet automated. If IPv6 is enabled, DHCPv6 will be available to the virtual bare metal hosts. | "v4", "v6", "v4v6" (dual-stack)) | v4 |
 | EXTERNAL_VLAN_ID | If the "external" network is tagged, this is the VLAN id for the network, set on the network interface for the bare metal hosts. | "" or 1-4096 | "" |
 | EXTERNAL_SUBNET_V4 | When using IPv4 stack, this is the subnet used on the "external" libvirt network, created as the primary network interface for the virtual bare metalhosts. | IPv4 CIDR | 192.168.111.0/24 |
@@ -180,10 +180,9 @@ For testing purposes, verification of the digests will be skipped if
 
 ## IPv6 support
 
-The environment supports IPv6-only networking, but this currently works
-**only with `kind`**. Minikube does not have official IPv6 support at the time
-of writing. IPv6 can also be enabled partially, but for full IPv6
-networking, the following additional steps are required:
+The environment supports IPv6-only networking. IPv6 can be enabled
+partially, but for full IPv6 networking, the following additional steps
+are required:
 
 1. Build iPXE image builder with IPv6 support and with correct name (or rename
    after building). By default the builder is named after the address it is

@@ -349,6 +349,7 @@ export IRONIC_CLIENT_IMAGE=${IRONIC_CLIENT_IMAGE:-"${CONTAINER_REGISTRY}/metal3-
 export IRONIC_DATA_DIR="$WORKING_DIR/ironic"
 export IRONIC_IMAGE_DIR="$IRONIC_DATA_DIR/html/images"
 export IRONIC_NAMESPACE="${IRONIC_NAMESPACE:-baremetal-operator-system}"
+export IRONIC_DEPLOY_IN_CLUSTER="${IRONIC_DEPLOY_IN_CLUSTER:-false}"
 export NAMEPREFIX="${NAMEPREFIX:-baremetal-operator}"
 export IRSO_IMAGE=${IRSO_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic-standalone-operator:${IRSO_TAG}"}
 
@@ -376,11 +377,7 @@ export KUBERNETES_BINARIES_VERSION="${KUBERNETES_BINARIES_VERSION:-${KUBERNETES_
 export KUBERNETES_BINARIES_CONFIG_VERSION=${KUBERNETES_BINARIES_CONFIG_VERSION:-"v0.15.1"}
 
 # Bootstrap Cluster
-if [[ "${CONTAINER_RUNTIME}" = "docker" ]]; then
-  export BOOTSTRAP_CLUSTER=${BOOTSTRAP_CLUSTER:-"kind"}
-else
-  export BOOTSTRAP_CLUSTER="minikube"
-fi
+export BOOTSTRAP_CLUSTER=${BOOTSTRAP_CLUSTER:-"kind"}
 
 # Kubectl version - SHA256 is downloaded and verified
 export KUBECTL_VERSION="${KUBECTL_VERSION:-${KUBERNETES_BINARIES_VERSION}}"
@@ -391,9 +388,6 @@ export KREW_SHA256="${KREW_SHA256:-5df32eaa0e888a2566439c4ccb2ef3a3e6e89522f2f21
 
 # Kustomize version
 export KUSTOMIZE_VERSION="${KUSTOMIZE_VERSION:-v5.4.1}"
-
-# Minikube version (if BOOTSTRAP_CLUSTER=minikube)
-export MINIKUBE_VERSION="${MINIKUBE_VERSION:-v1.37.0}"
 
 # Kind, kind node image versions (if BOOTSTRAP_CLUSTER=kind)
 export KIND_VERSION="${KIND_VERSION:-v0.32.0}"

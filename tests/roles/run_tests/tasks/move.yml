@@ -31,39 +31,12 @@
     - "{{ general_containers }}"
 
   - name: Remove ironic container from source cluster (kind cluster)
-    docker_container:
-      name: "{{ item }}"
-      state: absent
+    shell: "sudo {{ CONTAINER_RUNTIME }} rm -f {{ item }}"
     with_items: "{{ ironic_containers }}"
 
   when: BOOTSTRAP_CLUSTER == "kind"
   become: yes
   become_user: root
-
-- name: Fetch container logs (minikube cluster)
-  block:
-
-  - name: Create directories for storing container logs (minikube cluster)
-    file:
-      path: "/tmp/{{ CONTAINER_RUNTIME }}/{{ item }}"
-      state: directory
-    with_items: "{{ general_containers }}"
-
-  - name: Fetch container logs before pivoting (minikube cluster)
-    shell: "sudo {{ CONTAINER_RUNTIME }} logs {{ item }} > /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stdout.log 2> /tmp/{{ CONTAINER_RUNTIME }}/{{ item }}/stderr.log"
-    with_items: "{{ general_containers }}"
-
-  become: yes
-  become_user: root
-  when: BOOTSTRAP_CLUSTER == "minikube"
-
-- name: Remove Ironic from source cluster (minikube cluster)
-  kubernetes.core.k8s:
-    name: "{{ NAMEPREFIX }}-ironic"
-    kind: Deployment
-    state: absent
-    namespace: "{{ IRONIC_NAMESPACE }}"
-  when: BOOTSTRAP_CLUSTER == "minikube"
 
 - name: Label baremetalhost CRD to pivot.
   shell: "kubectl label --overwrite crds baremetalhosts.metal3.io {{ item }}"
