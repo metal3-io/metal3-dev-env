@@ -1,0 +1,286 @@
+---
+# Deploy Goldpinger to the target cluster and verify pod-to-pod connectivity.
+# Goldpinger runs as a DaemonSet (one pod per node) and pings all other
+# instances. After rollout we query /check_all to
+# assert every peer is reachable.
+#
+# The workload cluster nodes cannot always reach docker.io directly, so we
+# pull the image on the host, push it to the local registry, and reference
+# it from there.
+
+- name: Define Goldpinger variables
+  ansible.builtin.set_fact:
+    GOLDPINGER_VERSION: "{{ lookup('env', 'GOLDPINGER_VERSION') | default('3.11.2', true) }}"
+    GOLDPINGER_NAMESPACE: "{{ lookup('env', 'GOLDPINGER_NAMESPACE') | default('goldpinger', true) }}"
+    GOLDPINGER_SOURCE_IMAGE: "{{ DOCKER_HUB_PROXY | default('docker.io', true) }}/bloomberg/goldpinger:{{ lookup('env', 'GOLDPINGER_VERSION') | default('3.11.2', true) }}"
+    GOLDPINGER_LOCAL_IMAGE: "{{ REGISTRY }}/bloomberg/goldpinger:{{ lookup('env', 'GOLDPINGER_VERSION') | default('3.11.2', true) }}"
+
+# -- Push Goldpinger image to local registry ---------------------------------
+
+- name: Pull Goldpinger image on the host
+  ansible.builtin.command:
+    cmd: "sudo docker pull {{ GOLDPINGER_SOURCE_IMAGE }}"
+  changed_when: true
+
+- name: Tag Goldpinger image for local registry
+  ansible.builtin.command:
+    cmd: "sudo docker tag {{ GOLDPINGER_SOURCE_IMAGE }} {{ GOLDPINGER_LOCAL_IMAGE }}"
+  changed_when: true
+
+- name: Push Goldpinger image to local registry
+  ansible.builtin.command:
+    cmd: "sudo docker push {{ GOLDPINGER_LOCAL_IMAGE }}"
+  changed_when: true
+
+# -- Deploy Goldpinger -------------------------------------------------------
+
+- name: Create Goldpinger namespace
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ GOLDPINGER_NAMESPACE }}"
+
+- name: Create Goldpinger ServiceAccount
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: goldpinger
+        namespace: "{{ GOLDPINGER_NAMESPACE }}"
+
+- name: Create Goldpinger ClusterRole
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: goldpinger
+      rules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["list", "get"]
+
+- name: Create Goldpinger ClusterRoleBinding
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: goldpinger
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: goldpinger
+      subjects:
+      - kind: ServiceAccount
+        name: goldpinger
+        namespace: "{{ GOLDPINGER_NAMESPACE }}"
+
+- name: Deploy Goldpinger DaemonSet
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    definition:
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: goldpinger
+        namespace: "{{ GOLDPINGER_NAMESPACE }}"
+        labels:
+          app: goldpinger
+      spec:
+        updateStrategy:
+          type: RollingUpdate
+        selector:
+          matchLabels:
+            app: goldpinger
+        template:
+          metadata:
+            labels:
+              app: goldpinger
+          spec:
+            serviceAccountName: goldpinger
+            tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              effect: NoSchedule
+            - key: node-role.kubernetes.io/master
+              effect: NoSchedule
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              fsGroup: 2000
+            containers:
+            - name: goldpinger
+              image: "{{ GOLDPINGER_LOCAL_IMAGE }}"
+              imagePullPolicy: IfNotPresent
+              env:
+              - name: HOST
+                value: "0.0.0.0"
+              - name: PORT
+                value: "8080"
+              - name: HOSTNAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: spec.nodeName
+              - name: POD_IP
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.podIP
+              - name: LABEL_SELECTOR
+                value: "app=goldpinger"
+              - name: NAMESPACE
+                value: "{{ GOLDPINGER_NAMESPACE }}"
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+              resources:
+                limits:
+                  memory: 80Mi
+                requests:
+                  cpu: 1m
+                  memory: 40Mi
+              ports:
+              - containerPort: 8080
+                name: http
+              readinessProbe:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                initialDelaySeconds: 10
+                periodSeconds: 5
+              livenessProbe:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                initialDelaySeconds: 10
+                periodSeconds: 5
+
+- name: Create Goldpinger NodePort Service
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: goldpinger
+        namespace: "{{ GOLDPINGER_NAMESPACE }}"
+        labels:
+          app: goldpinger
+      spec:
+        type: NodePort
+        ports:
+        - port: 8080
+          targetPort: 8080
+          name: http
+        selector:
+          app: goldpinger
+
+- name: Wait for Goldpinger DaemonSet rollout (max 5 mins)
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: DaemonSet
+    name: goldpinger
+    namespace: "{{ GOLDPINGER_NAMESPACE }}"
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+  retries: 30
+  delay: 10
+  register: goldpinger_ds
+  until: >-
+    (goldpinger_ds is succeeded) and
+    (goldpinger_ds.resources | length > 0) and
+    (goldpinger_ds.resources[0].status.desiredNumberScheduled | default(0) | int > 0) and
+    (goldpinger_ds.resources[0].status.numberReady | default(0) | int
+      == goldpinger_ds.resources[0].status.desiredNumberScheduled | int)
+
+- name: Get a workload cluster node IP
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Node
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+  register: goldpinger_nodes
+
+- name: Set node IP fact
+  ansible.builtin.set_fact:
+    goldpinger_node_ip: "{{ goldpinger_nodes.resources[0].status.addresses | selectattr('type', 'equalto', 'InternalIP') | map(attribute='address') | first }}"
+
+- name: Get Goldpinger NodePort
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Service
+    name: goldpinger
+    namespace: "{{ GOLDPINGER_NAMESPACE }}"
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+  register: goldpinger_svc
+
+- name: Set NodePort fact
+  ansible.builtin.set_fact:
+    goldpinger_nodeport: "{{ goldpinger_svc.resources[0].spec.ports[0].nodePort }}"
+
+- name: Query Goldpinger /check_all endpoint
+  ansible.builtin.uri:
+    url: "http://{{ goldpinger_node_ip }}:{{ goldpinger_nodeport }}/check_all"
+    return_content: true
+  register: goldpinger_check
+  retries: 5
+  delay: 10
+  until: goldpinger_check.status == 200
+
+- name: Show Goldpinger check_all response
+  ansible.builtin.debug:
+    msg: "{{ goldpinger_check.content }}"
+
+- name: Verify all Goldpinger peers are healthy
+  ansible.builtin.assert:
+    that:
+    - "(goldpinger_check.content | from_json).hosts | length > 0"
+    fail_msg: >-
+      Goldpinger pod-to-pod connectivity check failed.
+      Raw output: {{ goldpinger_check.content }}
+    success_msg: "All Goldpinger peers report healthy connectivity."
+
+# -- Cleanup ------------------------------------------------------------------
+
+- name: Clean up Goldpinger namespace
+  kubernetes.core.k8s:
+    state: absent
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ GOLDPINGER_NAMESPACE }}"
+  ignore_errors: true
+
+- name: Clean up Goldpinger ClusterRoleBinding
+  kubernetes.core.k8s:
+    state: absent
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: goldpinger
+  ignore_errors: true
+
+- name: Clean up Goldpinger ClusterRole
+  kubernetes.core.k8s:
+    state: absent
+    kubeconfig: /tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: goldpinger
+  ignore_errors: true

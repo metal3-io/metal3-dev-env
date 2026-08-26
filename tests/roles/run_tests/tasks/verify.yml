@@ -49,3 +49,7 @@
     # For all Nodes, select those that have the Ready condition set to True
     query: "[*].status.conditions[? type=='Ready' && status=='True']"
   until: (nodes is succeeded) and (nodes.resources | length > 0) and (nodes.resources | json_query(query) | length == (NUMBER_OF_BMH | int))
+
+# Verify pod-to-pod network connectivity using Goldpinger
+- name: Run Goldpinger network connectivity check
+  include_tasks: install_goldpinger.yaml
