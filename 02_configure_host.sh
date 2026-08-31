@@ -78,65 +78,6 @@ if [[ "${USE_LOCAL_IPA}" == "true" ]]; then
     export USE_LOCAL_IPA="false"
 fi
 
-configure_minikube()
-{
-    minikube config set driver kvm2
-    minikube config set memory 4096
-}
-
-#
-# Create Minikube VM and add correct interfaces
-#
-init_minikube()
-{
-    #If the vm exists, it has already been initialized
-    if [[ ! "$(sudo virsh list --name --all)" =~ .*(minikube).* ]]; then
-        # Loop to ignore minikube issues
-        while /bin/true; do
-            minikube_error=0
-            # This method, defined in lib/common.sh, will either ensure sockets are up'n'running
-            # for CS9 and RHEL9, or restart the libvirtd.service for other DISTRO
-            manage_libvirtd
-            configure_minikube
-            #NOTE(elfosardo): workaround for https://bugzilla.redhat.com/show_bug.cgi?id=2057769
-            sudo mkdir -p "/etc/qemu/firmware"
-            sudo touch "/etc/qemu/firmware/50-edk2-ovmf-amdsev.json"
-            sudo su -l -c "minikube start --insecure-registry ${REGISTRY}" "${USER}" || minikube_error=1
-            if [[ ${minikube_error} -eq 0 ]]; then
-                break
-            fi
-            sudo su -l -c 'minikube delete --all --purge' "${USER}"
-            # NOTE (Mohammed): workaround for https://github.com/kubernetes/minikube/issues/9878
-            if ip link show virbr0 > /dev/null 2>&1; then
-                sudo ip link delete virbr0
-            fi
-        done
-        sudo su -l -c "minikube stop" "${USER}"
-    fi
-
-    MINIKUBE_IFACES="$(sudo virsh domiflist minikube)"
-
-    # The interface doesn't appear in the minikube VM with --live,
-    # so just attach it before next boot. As long as the
-    # 02_configure_host.sh script does not run, the provisioning network does
-    # not exist. Attempting to start Minikube will fail until it is created.
-    if ! echo "${MINIKUBE_IFACES}" | grep -w -q provisioning; then
-        sudo virsh attach-interface --domain minikube \
-            --model virtio --source provisioning \
-            --type network --config
-    fi
-
-    if ! echo "${MINIKUBE_IFACES}" | grep -w -q external; then
-        sudo virsh attach-interface --domain minikube \
-            --model virtio --source external \
-            --type network --config
-    fi
-}
-
-if [[ "${BOOTSTRAP_CLUSTER}" == "minikube" ]]; then
-    init_minikube
-fi
-
 # Root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
 if ! sudo test -f /root/.ssh/id_rsa_virt_power; then
@@ -210,54 +151,6 @@ EOF
     sudo ip link set ironic-peer up
 }
 
-# When running minikube, ironic is running inside the cluster, provisioning named
-# interface on the host is enough
-configure_minikube_network() {
-    if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" == "true" ]]; then
-        # Adding an IP address in the libvirt definition for this network results in
-        # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
-        # the IP address here
-        sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
-[connection]
-id=provisioning
-type=bridge
-interface-name=provisioning
-
-[bridge]
-stp=false
-
-[ipv4]
-method=disabled
-
-[ipv6]
-addr-gen-mode=eui64
-address1=${BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR}
-method=manual
-EOF
-    else
-        sudo tee -a /etc/NetworkManager/system-connections/provisioning.nmconnection <<EOF
-[connection]
-id=provisioning
-type=bridge
-interface-name=provisioning
-
-[bridge]
-stp=false
-
-[ipv4]
-address1=${BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR}
-method=manual
-
-[ipv6]
-addr-gen-mode=eui64
-method=disabled
-EOF
-    fi
-    sudo chmod 600 /etc/NetworkManager/system-connections/provisioning.nmconnection
-    sudo nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
-    sudo nmcli con up provisioning
-}
-
 if [[ "${OS}" == "ubuntu" ]]; then
     # source ubuntu_bridge_network_configuration.sh
     # shellcheck disable=SC1091
@@ -266,11 +159,7 @@ if [[ "${OS}" == "ubuntu" ]]; then
     source disable_apparmor_driver_libvirtd.sh
 else
     if [[ "${MANAGE_PRO_BRIDGE}" == "y" ]]; then
-        if [[ ${BOOTSTRAP_CLUSTER} == "kind" ]]; then
-            configure_kind_network
-        else
-            configure_minikube_network
-        fi
+        configure_kind_network
     fi
 
     # Need to pass the provision interface for bare metal
