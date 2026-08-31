@@ -105,7 +105,7 @@
       "matchPackageNames": [
         "kindest/node"
       ],
-      "allowedVersions": "<=1.36"
+      "allowedVersions": "<=1.37"
     },
     {
       "matchPackageNames": [
