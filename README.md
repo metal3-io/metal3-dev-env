@@ -149,9 +149,10 @@ these documents:
 
 The following table describes which branches are tested for different test triggers:
 
-| test suffix  | CAPM3 branch | IPAM branch  | BMO branch/tag  | Keepalived tag | Ironic-image tag | IPA branch    |
-| ------------ | ------------ | ------------ | --------------- | -------------- | ---------------- | ------------- |
-| main         | main         | main         | main            | latest         | latest           | master        |
-| release-1-13 | release-1.13 | release-1.13 | release-0.13    | release-0.9    | release-35.0     | stable/2026.1 |
-| release-1-12 | release-1.12 | release-1.12 | release-0.12    | release-0.9    | release-33.0     | bugfix/11.3   |
-| release-1-11 | release-1.11 | release-1.11 | release-0.11    | release-0.9    | release-31.0     | bugfix/11.1   |
+| test suffix  | CAPM3 branch | IPAM branch  | BMO branch/tag  |  Ironic-image tag | IPA branch    |
+| ------------ | ------------ | ------------ | --------------- |  ---------------- | ------------- |
+| main         | main         | main         | main            |  latest           | master        |
+| release-1-14 | release-1.14 | release-1.14 | release-0.14    |  release-37.0     | stable/2026.1 |
+| release-1-13 | release-1.13 | release-1.13 | release-0.13    |  release-35.0     | stable/2026.1 |
+| release-1-12 | release-1.12 | release-1.12 | release-0.12    |  release-33.0     | bugfix/11.3   |
+| release-1-11 | release-1.11 | release-1.11 | release-0.11    |  release-31.0     | bugfix/11.1   |
