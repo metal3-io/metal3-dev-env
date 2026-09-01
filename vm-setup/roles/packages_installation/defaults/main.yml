@@ -137,7 +137,9 @@ DOCKER_IPV6_SUPPORT: "{{ lookup('env', 'DOCKER_USE_IPV6_INTERNALLY') | default('
 ANSIBLE_VENV: "{{ lookup('env', 'ANSIBLE_VENV') | default('/usr', true) }}"
 # Go related variables, expected to be updated when new versions are released:
 go_version: "1.25.14"
+go_custom_mirror: "https://go.dev/dl"
+go_checksum: ""
 # Construct Go download URL and tarball name
 go_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 go_tarball: "go{{ go_version }}.linux-{{ go_arch }}.tar.gz"
-go_download_url: "https://go.dev/dl/{{ go_tarball }}"
+go_download_url: "{{ go_custom_mirror | regex_replace('/+$', '') }}/{{ go_tarball }}"
