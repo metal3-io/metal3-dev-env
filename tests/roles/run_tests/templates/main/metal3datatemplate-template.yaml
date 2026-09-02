@@ -63,8 +63,8 @@ spec:
     services:
       dns:
 {% if IP_STACK == 'v4' or IP_STACK == 'v4v6' %}
-        - 8.8.8.8
+        - "{{ EXTERNAL_SUBNET_V4_HOST }}"
 {% endif %}
 {% if IP_STACK == 'v6' or IP_STACK == 'v4v6' %}
-        - 2001:4860:4860::8888
+        - "{{ EXTERNAL_SUBNET_V6_HOST }}"
 {% endif %}
