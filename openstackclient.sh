@@ -18,6 +18,6 @@ if [[ "${1:-}" = "baremetal" ]]; then
 fi
 
 # shellcheck disable=SC2086
-sudo "${CONTAINER_RUNTIME}" run --net=host \
+"${CONTAINER_RUNTIME}" run --net=host \
     -v "${MOUNTDIR}:/etc/openstack" --rm \
     -e OS_CLOUD="${OS_CLOUD:-metal3}" "${IRONIC_CLIENT_IMAGE}" "$@"

@@ -2,20 +2,21 @@
 
 [[ ! "${PATH}" =~ .*(:|^)(/usr/local/go/bin)(:|$).* ]] && export PATH="$PATH:/usr/local/go/bin"
 
-
-USER="$(whoami)"
+export METAL3_RUN_AS_ROOT=true
+USER="${SUDO_USER:-$(whoami)}"
 export USER
-# Verify that passwordless sudo is configured correctly
-if [[ "$USER" != "root" ]]; then
-    if ! sudo -nl | grep -q '(ALL) NOPASSWD: ALL';then
-        echo "ERROR: metal3-dev-env requires passwordless sudo configuration!"
-        exit 1
-    fi
+# Set HOME to the invoking user's home directory, not root's
+HOME="$(eval echo "~${USER}")"
+export HOME
+# Verify the script is running as root
+if [[ "${EUID}" -ne 0 ]]; then
+    echo "ERROR: metal3-dev-env must be run as root. Call the script with sudo!"
+    exit 1
 fi
 # Verify that user has group with the same name
 if [[ ! $(id -Gn "${USER}") == *"${USER}"* ]]; then
-    sudo groupadd "${USER}"
-    sudo usermod -aG "${USER}" "${USER}"
+    groupadd "${USER}"
+    usermod -aG "${USER}" "${USER}"
 fi
 
 # Import Go environment variables only if available
@@ -23,7 +24,7 @@ GO=$(command -v go || true)
 if [[ -n "${GO}" ]]; then
     eval "$("${GO}" env)"
 fi
-export GOPATH="${GOPATH:-/home/$(whoami)/go}"
+export GOPATH="${GOPATH:-/home/${USER}/go}"
 
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
@@ -452,16 +453,6 @@ export LIBVIRT_DOMAIN_TYPE="${LIBVIRT_DOMAIN_TYPE:-kvm}"
 # Verify requisites/permissions
 # Connect to system libvirt
 export LIBVIRT_DEFAULT_URI=qemu:///system
-if [[ "${USER}" != "root" ]] && [[ "${XDG_RUNTIME_DIR:-}" = "/run/user/0" ]] ; then
-    echo "Please use a non-root user, WITH a login shell (e.g. su - USER)"
-    exit 1
-fi
-
-# Check if sudo privileges without password
-if ! sudo -n uptime &> /dev/null ; then
-  echo "sudo without password is required"
-  exit 1
-fi
 
 # Use firewalld on CentOS/RHEL, iptables everywhere else
 export USE_FIREWALLD=false
@@ -475,7 +466,7 @@ FSTYPE="$(df "${FILESYSTEM}" --output=fstype | tail -n 1)"
 case "${FSTYPE}" in
   ext4|btrfs) ;;
   xfs)
-    if ! sudo xfs_info "${FILESYSTEM}" | grep "ftype=1" &>/dev/null; then
+    if ! xfs_info "${FILESYSTEM}" | grep "ftype=1" &>/dev/null; then
       echo "XFS filesystem must have ftype set to 1"
       exit 1
     fi
@@ -489,12 +480,12 @@ esac
 # Create and grant permissions to Working Dir if it doesn't exist
 if [[ ! -d "${WORKING_DIR}" ]]; then
   echo "Creating Working Dir"
-  sudo mkdir "${WORKING_DIR}"
-  sudo chmod 755 "${WORKING_DIR}"
+  mkdir "${WORKING_DIR}"
+  chmod 755 "${WORKING_DIR}"
 fi
 
 # Ensure all files in the working directory are owned by the current user
-sudo chown -R "${USER}:${USER}" "${WORKING_DIR}"
+chown -R "${USER}:${USER}" "${WORKING_DIR}"
 
 list_nodes() {
     # Includes -machine and -machine-namespace
@@ -644,11 +635,11 @@ differs(){
 remove_ironic_containers() {
   #shellcheck disable=SC2015
   for name in ipa-downloader vbmc sushy-tools httpd-infra ipxe-builder registry; do
-    if sudo "${CONTAINER_RUNTIME}" ps | grep -w -q "${name}$"; then
-        sudo "${CONTAINER_RUNTIME}" kill "${name}" || true
+    if "${CONTAINER_RUNTIME}" ps | grep -w -q "${name}$"; then
+        "${CONTAINER_RUNTIME}" kill "${name}" || true
     fi
-    if sudo "${CONTAINER_RUNTIME}" ps --all | grep -w -q "${name}$"; then
-        sudo "${CONTAINER_RUNTIME}" rm "${name}" -f || true
+    if "${CONTAINER_RUNTIME}" ps --all | grep -w -q "${name}$"; then
+        "${CONTAINER_RUNTIME}" rm "${name}" -f || true
     fi
   done
 }
@@ -660,13 +651,13 @@ manage_libvirtd() {
   case ${DISTRO} in
       centos9|rhel9|centos10|rhel10)
           for i in qemu network nodedev nwfilter secret storage interface; do
-              sudo systemctl enable --now virt${i}d.socket
-              sudo systemctl enable --now virt${i}d-ro.socket
-              sudo systemctl enable --now virt${i}d-admin.socket
+              systemctl enable --now virt${i}d.socket
+              systemctl enable --now virt${i}d-ro.socket
+              systemctl enable --now virt${i}d-admin.socket
           done
           ;;
       *)
-          sudo systemctl restart libvirtd.service
+          systemctl restart libvirtd.service
         ;;
 esac
 }

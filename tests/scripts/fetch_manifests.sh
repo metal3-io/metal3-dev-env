@@ -11,7 +11,7 @@ if [[ -d "${DIR_NAME}" ]] && [[ -d "${DIR_NAME_AFTER_PIVOT}" ]]; then
   DIR_NAME="${DIR_NAME_AFTER_REPIVOT}"
   mkdir -p "${DIR_NAME}"
   # Bootstrap cluster kubeconfig
-  kconfig="/home/metal3ci/.kube/config"
+  kconfig="${KUBECONFIG:-${HOME}/.kube/config}"
 elif [[ -d "${DIR_NAME}" ]] && [[ ! -d "${DIR_NAME_AFTER_PIVOT}" ]]; then
   DIR_NAME="${DIR_NAME_AFTER_PIVOT}"
   mkdir -p "${DIR_NAME}"
@@ -20,7 +20,7 @@ elif [[ -d "${DIR_NAME}" ]] && [[ ! -d "${DIR_NAME_AFTER_PIVOT}" ]]; then
 else
   mkdir -p "${DIR_NAME}"
   # Bootstrap cluster kubeconfig
-  kconfig="/home/metal3ci/.kube/config"
+  kconfig="${KUBECONFIG:-${HOME}/.kube/config}"
 fi
 
 manifests=(
