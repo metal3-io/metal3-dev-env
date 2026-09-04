@@ -160,6 +160,12 @@
     get_url:
       url: "{{ go_download_url }}"
       dest: /usr/local/src/{{ go_tarball }}
+      checksum: "{{ ('sha256:' ~ go_checksum) if (go_checksum | length > 0) else omit }}"
+      timeout: 30
+    register: go_download_result
+    until: go_download_result is succeeded
+    retries: 10
+    delay: 30
     when: go_version_result is failed or go_version not in go_version_result.stdout
 
   - name: Extract Go tarball
