@@ -117,8 +117,9 @@
 
 # Install BMO
 - name: Install Baremetal Operator
-  shell: "{{ BMOPATH }}/tools/deploy.sh -b {{ BMO_IRONIC_ARGS }}"
+  shell: "{{ DEPLOY_SCRIPT }} -b {{ BMO_IRONIC_ARGS }}"
   environment:
+    BMOPATH: "{{ BMOPATH }}"
     IRONIC_HOST: "{{ IRONIC_HOST }}"
     IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
     KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"
@@ -127,8 +128,9 @@
 
 # Install Ironic
 - name: Install Ironic
-  shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
+  shell: "{{ DEPLOY_SCRIPT }} -i {{ BMO_IRONIC_ARGS }}"
   environment:
+    BMOPATH: "{{ BMOPATH }}"
     IRONIC_HOST: "{{ IRONIC_HOST }}"
     IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
     KUBECTL_ARGS: "{{ KUBECTL_ARGS }}"

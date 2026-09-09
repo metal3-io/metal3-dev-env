@@ -81,7 +81,7 @@ EOF
     fi
 
     # Deploy BMO using deploy.sh script
-    "${BMOPATH}/tools/deploy.sh" -b "${BMO_IRONIC_ARGS[@]}"
+    "${DEPLOY_SCRIPT}" -b "${BMO_IRONIC_ARGS[@]}"
 
     # If BMO should run locally, scale down the deployment and run BMO
     if [[ "${BMO_RUN_LOCAL}" = "true" ]]; then
@@ -210,15 +210,17 @@ EOF
         update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
     fi
 
-    if [[ "${BOOTSTRAP_CLUSTER}" != "minikube" ]]; then
+    if [[ "${IRONIC_RUN_LOCAL}" = "true" ]] && [[ "${BOOTSTRAP_CLUSTER}" != "minikube" ]]; then
+        # Run Ironic as local containers (development only). This path is only
+        # taken when USE_IRSO=false and IRONIC_RUN_LOCAL=true.
         update_images
         ${RUN_LOCAL_IRONIC_SCRIPT}
         # Wait for ironic to become ready
         echo "Waiting for Ironic to become ready"
         retry sudo "${CONTAINER_RUNTIME}" exec ironic /bin/ironic-readiness
     else
-        # Deploy Ironic using deploy.sh script
-        "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
+        # Deploy Ironic in-cluster using deploy.sh script
+        "${DEPLOY_SCRIPT}" -i "${BMO_IRONIC_ARGS[@]}"
     fi
     popd
 }
@@ -801,7 +803,7 @@ build_ipxe_firmware()
 # -----------------------------
 
 # Kill and remove the running ironic containers
-"${BMOPATH}"/tools/remove_local_ironic.sh
+"${REMOVE_LOCAL_IRONIC_SCRIPT}"
 create_clouds_yaml
 
 if [[ "${BOOTSTRAP_CLUSTER}" = "tilt" ]]; then

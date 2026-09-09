@@ -9,8 +9,8 @@ source lib/common.sh
 if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]] || [[ "${BOOTSTRAP_CLUSTER}" = "tilt" ]]; then
     sudo su -l -c "kind delete cluster  || true" "${USER}"
     # Kill and remove the running ironic containers
-    if [[ -x "${BMOPATH}/tools/remove_local_ironic.sh" ]]; then
-        "${BMOPATH}"/tools/remove_local_ironic.sh
+    if [[ -x "${REMOVE_LOCAL_IRONIC_SCRIPT}" ]]; then
+        "${REMOVE_LOCAL_IRONIC_SCRIPT}"
     fi
     if [[ "${BOOTSTRAP_CLUSTER}" = "tilt" ]]; then
         pushd "${CAPM3PATH}"

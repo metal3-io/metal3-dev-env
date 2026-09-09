@@ -125,6 +125,8 @@ assured that they are persisted.
 | IPA_FLAVOR | The middle part of the name of the IPA archive | | centos9 |
 | IRSOREPO | Ironic Standalone Operator git repository URL | | https://github.com/metal3-io/ironic-standalone-operator.git |
 | IRSOBRANCH | Ironic Standalone Operator git repository branch to checkout | | main |
+| USE_IRSO | Deploy Ironic in-cluster using the ironic-standalone-operator (IRSO). This is the default and is what CI always uses. Set to "false" only for local development to deploy Ironic via the tools/deploy.sh or tools/run_local_ironic.sh scripts instead | "true","false" | "true" |
+| IRONIC_RUN_LOCAL | Only used when USE_IRSO is "false". When "true", run Ironic as local containers via tools/run_local_ironic.sh (development only, kind/tilt). When "false", deploy Ironic in-cluster via tools/deploy.sh | "true","false" | "false" |
 | IRSOCOMMIT | Ironic Standalone Operator git commit to checkout on IRSOBRANCH | | HEAD |
 <!-- markdownlint-enable MD034 -->
 

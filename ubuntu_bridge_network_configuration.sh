@@ -22,10 +22,17 @@ if [[ "${MANAGE_PRO_BRIDGE}" = "y" ]]; then
     # sudo ifconfig provisioning 172.22.0.1 netmask 255.255.255.0 up
     # Use ip command. ifconfig commands are deprecated now.
     sudo ip link set provisioning up
+    # ironicendpoint needs 2 IP addresses: the base provisioner IP and the
+    # cluster provisioner IP (the Ironic endpoint VIP). With in-cluster Ironic
+    # deployed via IRSO, the keepalived container expects the VIP to be present
+    # on this interface. This mirrors configure_kind_network() in
+    # 02_configure_host.sh.
     if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" = "true" ]]; then
         sudo ip -6 addr add "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}" dev ironicendpoint
+        sudo ip -6 addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
       else
         sudo ip addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
+        sudo ip addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
     fi
     sudo brctl addif provisioning ironic-peer
     sudo ip link set ironicendpoint up

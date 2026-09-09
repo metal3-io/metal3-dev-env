@@ -156,14 +156,25 @@ export BMOPATH="${BMOPATH:-${M3PATH}/baremetal-operator}"
 export BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
 export BMO_BASE_URL="${BMO_BASE_URL:-metal3-io/baremetal-operator}"
 
-export RUN_LOCAL_IRONIC_SCRIPT="${BMOPATH}/tools/run_local_ironic.sh"
+# deploy.sh and run_local_ironic.sh used to live in the baremetal-operator
+# repo. They are now shipped with metal3-dev-env (in tools/) and are only used
+# for local/development deployments (USE_IRSO=false). By default CI deploys
+# Ironic in-cluster via the ironic-standalone-operator (IRSO).
+export DEPLOY_SCRIPT="${DEPLOY_SCRIPT:-${SCRIPTDIR}/tools/deploy.sh}"
+export RUN_LOCAL_IRONIC_SCRIPT="${RUN_LOCAL_IRONIC_SCRIPT:-${SCRIPTDIR}/tools/run_local_ironic.sh}"
+export REMOVE_LOCAL_IRONIC_SCRIPT="${REMOVE_LOCAL_IRONIC_SCRIPT:-${SCRIPTDIR}/tools/remove_local_ironic.sh}"
 
 export CAPM3PATH="${CAPM3PATH:-${M3PATH}/cluster-api-provider-metal3}"
 export CAPM3_BASE_URL="${CAPM3_BASE_URL:-metal3-io/cluster-api-provider-metal3}"
 export CAPM3REPO="${CAPM3REPO:-https://github.com/${CAPM3_BASE_URL}}"
 export CAPM3RELEASEBRANCH="${CAPM3RELEASEBRANCH:-main}"
 
-export USE_IRSO="${USE_IRSO:-false}"
+export USE_IRSO="${USE_IRSO:-true}"
+# When USE_IRSO=false, Ironic is deployed using the local dev tooling instead
+# of the ironic-standalone-operator. In that case IRONIC_RUN_LOCAL controls
+# whether Ironic runs as local containers via run_local_ironic.sh (true) or
+# in-cluster via deploy.sh (false). It has no effect when USE_IRSO=true.
+export IRONIC_RUN_LOCAL="${IRONIC_RUN_LOCAL:-false}"
 export IRSOPATH="${IRSOPATH:-${M3PATH}/ironic-standalone-operator}"
 export IRSO_BASE_URL="${IRSO_BASE_URL:-metal3-io/ironic-standalone-operator}"
 export IRSOREPO="${IRSOREPO:-https://github.com/${IRSO_BASE_URL}}"
