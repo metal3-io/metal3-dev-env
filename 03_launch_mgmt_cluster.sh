@@ -81,7 +81,7 @@ EOF
     fi
 
     # Deploy BMO using deploy.sh script
-    "${BMOPATH}/tools/deploy.sh" -b "${BMO_IRONIC_ARGS[@]}"
+    "${DEPLOY_SCRIPT}" -b "${BMO_IRONIC_ARGS[@]}"
 
     # If BMO should run locally, scale down the deployment and run BMO
     if [[ "${BMO_RUN_LOCAL}" = "true" ]]; then
@@ -210,15 +210,22 @@ EOF
         update_component_image IPA-downloader "${IPA_DOWNLOADER_IMAGE}"
     fi
 
-    if [[ "${BOOTSTRAP_CLUSTER}" != "minikube" ]]; then
+    if [[ "${IRONIC_RUN_LOCAL}" = "true" ]] && [[ "${BOOTSTRAP_CLUSTER}" != "minikube" ]]; then
+        # Run Ironic as local containers (development only). This path is only
+        # taken when USE_IRSO=false and IRONIC_RUN_LOCAL=true.
         update_images
         ${RUN_LOCAL_IRONIC_SCRIPT}
         # Wait for ironic to become ready
         echo "Waiting for Ironic to become ready"
         retry sudo "${CONTAINER_RUNTIME}" exec ironic /bin/ironic-readiness
     else
-        # Deploy Ironic using deploy.sh script
-        "${BMOPATH}/tools/deploy.sh" -i "${BMO_IRONIC_ARGS[@]}"
+        # Deploy Ironic in-cluster using deploy.sh script. On kind this pod runs
+        # with hostNetwork, so it needs the provisioning interface plumbed into
+        # the kind node (same as the IRSO path) for keepalived to work.
+        if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]]; then
+            connect_kind_provisioning_network
+        fi
+        "${DEPLOY_SCRIPT}" -i "${BMO_IRONIC_ARGS[@]}"
     fi
     popd
 }
@@ -315,6 +322,61 @@ EOF
             kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironicdatabase/ironic-db
         fi
         exit 1
+    fi
+}
+
+
+# Connect the kind node to the host provisioning network so 
+# The provisioning interface and the Ironic VIP therefore are 
+# visible to the pod.
+# Use a veth pair from the host provisioning bridge into the
+# kind node's network namespace. keepalived then manages the VIP.
+connect_kind_provisioning_network()
+{
+    local node_container="kind-control-plane"
+    local host_veth="kind-prov-host"
+    local node_veth="kind-prov-node"
+    local netns="kind-provisioning"
+    local node_pid
+
+    # Resolve the kind node container PID and expose its netns to `ip netns`.
+    node_pid="$(sudo "${CONTAINER_RUNTIME}" inspect -f '{{.State.Pid}}' "${node_container}")"
+    sudo mkdir -p /var/run/netns
+    sudo ln -sf "/proc/${node_pid}/ns/net" "/var/run/netns/${netns}"
+
+    # Reconcile rather than skip-on-existence: a previous run may have created
+    # the interface but failed before assigning the base address, which would
+    # leave keepalived in FAULT state. So create the veth only if missing, and
+    # (re)assert the base address only if it is absent.
+    if ! sudo ip netns exec "${netns}" ip link show ironicendpoint > /dev/null 2>&1; then
+        # Remove any stale veth ends left by a previous partial run, so the
+        # recreate below does not fail with "File exists".
+        sudo ip link del "${host_veth}" 2>/dev/null || true
+        sudo ip link del "${node_veth}" 2>/dev/null || true
+        # Create the veth pair and attach the host end to the provisioning bridge.
+        sudo ip link add "${host_veth}" type veth peer name "${node_veth}"
+        sudo ip link set "${host_veth}" master provisioning
+        sudo ip link set "${host_veth}" up
+
+        # Move the node end into the kind node netns, name it ironicendpoint, up.
+        sudo ip link set "${node_veth}" netns "${netns}"
+        sudo ip netns exec "${netns}" ip link set "${node_veth}" name ironicendpoint
+    fi
+    sudo ip netns exec "${netns}" ip link set ironicendpoint up
+
+    # keepalived needs a base IPv4 in the provisioning subnet on the interface
+    # before it will leave FAULT state and manage the VIP. It then assigns the
+    # VIP (CLUSTER_BARE_METAL_PROVISIONER_IP) itself, so we do NOT add it here.
+    # Only add the base address if it is not already present (idempotent rerun).
+    local base_ip="${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}"
+    if ! sudo ip netns exec "${netns}" ip addr show dev ironicendpoint | grep -qw "${base_ip}"; then
+        if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" = "true" ]]; then
+            sudo ip netns exec "${netns}" ip -6 addr add \
+                "${base_ip}"/"${BARE_METAL_PROVISIONER_CIDR}" dev ironicendpoint
+        else
+            sudo ip netns exec "${netns}" ip addr add \
+                "${base_ip}"/"${BARE_METAL_PROVISIONER_CIDR}" dev ironicendpoint
+        fi
     fi
 }
 
@@ -734,10 +796,18 @@ start_management_cluster()
         sudo su -l -c "minikube ssh -- sudo ip link set ${BARE_METAL_PROVISIONER_INTERFACE} up" "${USER}"
         sudo su -l -c "minikube ssh -- sudo brctl addif ${BARE_METAL_PROVISIONER_INTERFACE} eth2" "${USER}"
 
+        # For the IPv6-only minikube setup: with IRSO the keepalived container
+        # owns CLUSTER_BARE_METAL_PROVISIONER_IP, so assign only the base bridge
+        # IP. For non-IRSO deployments keep the pre-IRSO behavior and assign the
+        # cluster VIP directly.
         if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY:-}" = "true" ]]; then
             sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.forwarding=1" "${USER}"
             sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.default.forwarding=1" "${USER}"
-            sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+            if [[ "${USE_IRSO}" = "true" ]]; then
+                sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+            else
+                sudo su -l -c "minikube ssh -- sudo ip -6 addr add ${CLUSTER_BARE_METAL_PROVISIONER_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
+            fi
         else
             sudo su -l -c "minikube ssh -- sudo ip addr add ${INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP}/${BARE_METAL_PROVISIONER_CIDR} dev ${BARE_METAL_PROVISIONER_INTERFACE}" "${USER}"
         fi
@@ -801,7 +871,7 @@ build_ipxe_firmware()
 # -----------------------------
 
 # Kill and remove the running ironic containers
-"${BMOPATH}"/tools/remove_local_ironic.sh
+"${REMOVE_LOCAL_IRONIC_SCRIPT}"
 create_clouds_yaml
 
 if [[ "${BOOTSTRAP_CLUSTER}" = "tilt" ]]; then
@@ -826,6 +896,11 @@ BMO_NAME_PREFIX="${NAMEPREFIX}"
 launch_baremetal_operator
 if [[ "${USE_IRSO}" = true ]]; then
     launch_ironic_standalone_operator
+    # On kind, the in-cluster Ironic pod (hostNetwork) needs the provisioning
+    # interface plumbed into the kind node so keepalived can manage the VIP.
+    if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]]; then
+        connect_kind_provisioning_network
+    fi
     launch_ironic_via_irso
 else
     launch_ironic
