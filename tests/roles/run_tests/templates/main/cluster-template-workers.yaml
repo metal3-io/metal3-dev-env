@@ -61,6 +61,10 @@ metadata:
 spec:
   template:
     spec:
+      clusterConfiguration:
+        imageRepository: "{{ K8S_REGISTRY }}"
+        dns:
+          imageRepository: "{{ K8S_REGISTRY }}/coredns"
       joinConfiguration:
         nodeRegistration:
           name: "{{ '{{ ds.meta_data.name }}' }}"

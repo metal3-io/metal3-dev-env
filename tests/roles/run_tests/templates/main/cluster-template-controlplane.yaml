@@ -19,6 +19,10 @@ spec:
       deletion:
         nodeDrainTimeoutSeconds: ${ NODE_DRAIN_TIMEOUT }
   kubeadmConfigSpec:
+    clusterConfiguration:
+      imageRepository: "{{ K8S_REGISTRY }}"
+      dns:
+        imageRepository: "{{ K8S_REGISTRY }}/coredns"
     joinConfiguration:
       controlPlane: {}
       nodeRegistration:

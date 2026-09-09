@@ -358,8 +358,9 @@ if [[ -n "${EXT_IF}" ]]; then
     sudo iptables -A FORWARD --in-interface external -j ACCEPT
 fi
 
-# Local registry for images
+# Local registries for images
 reg_state=$(sudo "${CONTAINER_RUNTIME}" inspect registry --format "{{.State.Status}}" || echo "error")
+k8s_reg_state=$(sudo "${CONTAINER_RUNTIME}" inspect k8sregistry --format "{{.State.Status}}" || echo "error")
 
 # ubuntu_install_requirements.sh script restarts docker daemon which causes local registry container to be in exited state.
 if [[ "${reg_state}" == "exited" ]]; then
@@ -367,6 +368,15 @@ if [[ "${reg_state}" == "exited" ]]; then
 elif [[ "${reg_state}" != "running" ]]; then
     sudo "${CONTAINER_RUNTIME}" rm registry -f || true
     sudo "${CONTAINER_RUNTIME}" run -d -p "${REGISTRY}":5000 --name registry "${DOCKER_REGISTRY_IMAGE}"
+fi
+if [[ "${k8s_reg_state}" == "exited" ]]; then
+    sudo "${CONTAINER_RUNTIME}" start k8sregistry
+elif [[ "${k8s_reg_state}" != "running" ]]; then
+    sudo "${CONTAINER_RUNTIME}" rm k8sregistry -f || true
+	sudo "${CONTAINER_RUNTIME}" run -d -p "${K8S_REGISTRY}":5000 \
+		--name k8sregistry \
+		-e REGISTRY_PROXY_REMOTEURL=https://registry.k8s.io \
+		"${DOCKER_REGISTRY_IMAGE}"
 fi
 sleep 5
 
