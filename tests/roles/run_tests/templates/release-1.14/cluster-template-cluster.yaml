@@ -27,7 +27,7 @@ spec:
   controlPlaneEndpoint:
     host: ${ CLUSTER_APIENDPOINT_HOST }
     port: ${ CLUSTER_APIENDPOINT_PORT }
-  noCloudProvider: true
+  cloudProviderEnabled: false
 ---
 apiVersion: ipam.metal3.io/v1alpha1
 kind: IPPool
