@@ -16,6 +16,12 @@ WORKER_MACHINE_COUNT: "{{ lookup('env', 'WORKER_MACHINE_COUNT') | default(1, tru
 NUM_NODES: "{{ lookup('env', 'NUM_NODES') | default(2, true) }}"
 NODE_DRAIN_TIMEOUT: "{{ lookup('env', 'NODE_DRAIN_TIMEOUT') | default('0s', true) }}"
 BMOPATH: "{{ lookup('env', 'BMOPATH') }}"
+# deploy.sh, run_local_ironic.sh and remove_local_ironic.sh now ship with
+# metal3-dev-env (in tools/) rather than the baremetal-operator repo. These are
+# exported by lib/common.sh; fall back to the metal3-dev-env tools/ directory.
+DEPLOY_SCRIPT: "{{ lookup('env', 'DEPLOY_SCRIPT') | default(metal3_dir ~ '/tools/deploy.sh', true) }}"
+RUN_LOCAL_IRONIC_SCRIPT: "{{ lookup('env', 'RUN_LOCAL_IRONIC_SCRIPT') | default(metal3_dir ~ '/tools/run_local_ironic.sh', true) }}"
+IRONIC_RUN_LOCAL: "{{ lookup('env', 'IRONIC_RUN_LOCAL') | default('false', true) }}"
 IRONIC_DATA_DIR: "{{ lookup('env', 'IRONIC_DATA_DIR') }}"
 KUBECONFIG_PATH: "/home/ubuntu/.kube/config"
 KUBERNETES_VERSION: "{{ lookup('env', 'KUBERNETES_VERSION') | default('v1.37.0', true) }}"

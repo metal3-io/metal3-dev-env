@@ -122,7 +122,15 @@ for local development. For detailed instructions, see [Tiltfile.md](Tiltfile.md)
 
 ### Recreating local ironic containers
 
-In case, you want recreate the local ironic containers enabled with TLS, you
+Running Ironic as local containers is a development-only workflow, enabled by
+setting `USE_IRSO="false"` and `IRONIC_RUN_LOCAL="true"`. By default Ironic is
+deployed in-cluster using the ironic-standalone-operator (IRSO).
+
+The `run_local_ironic.sh` (and `deploy.sh`) scripts now ship with
+metal3-dev-env in the `tools/` directory (they were previously part of the
+baremetal-operator repository).
+
+In case you want recreate the local ironic containers enabled with TLS, you
 need to use the following instructions:
 
 ```sh
@@ -135,13 +143,11 @@ export IRONIC_HOST_IP="${CLUSTER_BARE_METAL_PROVISIONER_IP}"
 source lib/ironic_tls_setup.sh
 source lib/ironic_basic_auth.sh
 
-cd ${BMOPATH}
 ./tools/run_local_ironic.sh
 ```
 
-Here `${BMOPATH}` points to the baremetal operator directory. For more
-information, regarding the TLS setup and running ironic locally please refer to
-these documents:
+For more information regarding the TLS setup and running ironic locally please
+refer to these documents:
 [TLS](https://github.com/metal3-io/cluster-api-provider-metal3/blob/main/docs/getting-started.md)
 , [Run local ironic](https://github.com/metal3-io/baremetal-operator/blob/main/docs/dev-setup.md).
 

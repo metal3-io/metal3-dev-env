@@ -199,15 +199,13 @@ EXPTD_DEPLOYMENTS="capm3-system:capm3-controller-manager \
     capi-kubeadm-control-plane-system:capi-kubeadm-control-plane-controller-manager \
     baremetal-operator-system:baremetal-operator-controller-manager"
 
-if [[ "${BOOTSTRAP_CLUSTER}" == "minikube" ]]; then
-  if [[ "${USE_IRSO}" == "true" ]]; then
-    EXPTD_DEPLOYMENTS+=" \
-      baremetal-operator-system:ironic-service \
-      ironic-standalone-operator-system:ironic-standalone-operator-controller-manager"
-  else
-    EXPTD_DEPLOYMENTS+=" \
-      baremetal-operator-system:baremetal-operator-ironic"
-  fi
+if [[ "${USE_IRSO}" == "true" ]]; then
+  EXPTD_DEPLOYMENTS+=" \
+    baremetal-operator-system:ironic-service \
+    ironic-standalone-operator-system:ironic-standalone-operator-controller-manager"
+else
+  EXPTD_DEPLOYMENTS+=" \
+    baremetal-operator-system:baremetal-operator-ironic"
 fi
 
 EXPTD_RS="cluster.x-k8s.io/provider:infrastructure-metal3:capm3-system:1 \
