@@ -83,10 +83,9 @@ IMAGE_FORMAT: "{{ lookup('env', 'IMAGE_FORMAT') | default('raw', true) }}"
 IMAGE_CHECKSUM_TYPE: "{{ lookup('env', 'IMAGE_CHECKSUM_TYPE') | default('sha256', true) }}"
 IMAGE_CHECKSUM: "http://{{ BARE_METAL_PROVISIONER_IP }}/images/{{ RAW_IMAGE_NAME }}.{{ IMAGE_CHECKSUM_TYPE }}sum"
 
-# Environment variables to install Ironic with TLS, Basic Auth and MariaDB
+# Environment variables to install Ironic with TLS
 GOPATH: "{{ lookup('env', 'GOPATH')}}"
 IRONIC_TLS_SETUP: "{{ lookup('env', 'IRONIC_TLS_SETUP') | default('true', true) }}"
-IRONIC_USE_MARIADB: "{{ lookup('env', 'IRONIC_USE_MARIADB') | default('false', true) }}"
 
 # Metrics
 CAPM3_DIAGNOSTICS_ADDRESS: "localhost:8080"
@@ -95,8 +94,8 @@ IPAM_DIAGNOSTICS_ADDRESS: "localhost:8080"
 IPAM_INSECURE_DIAGNOSTICS: "true"
 
 # Args to pass to the deploy.sh script when deploying Ironic and BMO
-# [k]eepalived [t]ls or [m]ariadb
-BMO_IRONIC_ARGS: "-k {{ (IRONIC_TLS_SETUP == 'true') | ternary('-t', '') }} {{ (IRONIC_USE_MARIADB == 'true') | ternary('-m', '') }}"
+# [k]eepalived [t]ls
+BMO_IRONIC_ARGS: "-k {{ (IRONIC_TLS_SETUP == 'true') | ternary('-t', '') }}"
 
 provision_cluster_actions:
 - "ci_test_provision"
