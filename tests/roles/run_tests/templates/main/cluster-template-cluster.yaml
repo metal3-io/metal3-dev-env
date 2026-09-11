@@ -25,7 +25,13 @@ metadata:
   namespace: ${ NAMESPACE }
 spec:
   controlPlaneEndpoint:
-    host: ${ CLUSTER_APIENDPOINT_HOST }
+{% if IP_STACK == "v6" %}
+{# With IPv6 we cannot have the endpoint wrapped in brackets. It won't work. #}
+{# To ensure no existing deployment breaks, keep the old behavior for v4. #}
+    host: "${ CLUSTER_APIENDPOINT_IP }"
+{% else %}
+    host: "${ CLUSTER_APIENDPOINT_HOST}"
+{% endif %}
     port: ${ CLUSTER_APIENDPOINT_PORT }
   cloudProviderEnabled: false
 ---
