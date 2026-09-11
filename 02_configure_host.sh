@@ -196,15 +196,25 @@ EOF
     sudo nmcli con load /etc/NetworkManager/system-connections/provisioning.nmconnection
     sudo nmcli con up provisioning
 
-    sudo ip link add ironicendpoint type veth peer name ironic-peer
-    sudo ip link set ironic-peer master provisioning
+    if ! ip link show ironicendpoint > /dev/null 2>&1; then
+        sudo ip link add ironicendpoint type veth peer name ironic-peer
+        sudo ip link set ironic-peer master provisioning
+    fi
 
     if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" = "true" ]]; then
-        sudo ip -6 addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
-        sudo ip -6 addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+        if ! ip -6 addr show dev ironicendpoint | grep -q "${BARE_METAL_PROVISIONER_IP}"; then
+            sudo ip -6 addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
+        fi
+        if ! ip -6 addr show dev ironicendpoint | grep -q "${CLUSTER_BARE_METAL_PROVISIONER_IP}"; then
+            sudo ip -6 addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+        fi
     else
-        sudo ip addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
-        sudo ip addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+        if ! ip addr show dev ironicendpoint | grep -q "${BARE_METAL_PROVISIONER_IP}"; then
+            sudo ip addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
+        fi
+        if ! ip addr show dev ironicendpoint | grep -q "${CLUSTER_BARE_METAL_PROVISIONER_IP}"; then
+            sudo ip addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+        fi
     fi
     sudo ip link set ironicendpoint up
     sudo ip link set ironic-peer up
