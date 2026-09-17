@@ -37,8 +37,8 @@ assured that they are persisted.
 | BMORELEASEBRANCH | BMO Release branch | "main", "release-0.5", "release-0.6", "release-0.8" | Set via jjb for CI, for local dev it gets default value based on CAPM3 branch |
 | BOOT_MODE  | Set libvirt firmware and BMH bootMode | "legacy", "UEFI", "UEFISecureBoot" | "UEFI" |
 | IMAGE_OS | OS of the image to boot the nodes from, overriden by IMAGE\_\* if set | "centos", "cirros", "FCOS", "ubuntu", "flatcar" | "centos" |
-| IMAGE_NAME | Image for target hosts deployment | | "CENTOS_10_NODE_IMAGE_K8S_${KUBERNETES_VERSION}.qcow2" |
-| IMAGE_LOCATION | Location of the image to download | | https://artifactory.nordix.org/artifactory/metal3/images/${KUBERNETES_VERSION} |
+| IMAGE_NAME | Image for target hosts deployment. Fixed per OS, no longer templated by KUBERNETES_VERSION (see note below) | | "CENTOS_10_NODE_IMAGE_K8S_v1.37.0.qcow2" |
+| IMAGE_LOCATION | Location of the image to download. Fixed per OS, no longer templated by KUBERNETES_VERSION (see note below) | | https://idknxc8t3pjc.objectstorage.eu-paris-1.oci.customer-oci.com/p/qBVVBPA7b72OTvcnLaKDkn7N4_YmWeVlBvaIsEnzX9EHGqBXQZyFxG15piXNjYot/n/idknxc8t3pjc/b/public-metal3-node-image-bucket/o |
 | IMAGE_USERNAME | Image username for ssh | | "metal3" |
 | CONTAINER_REGISTRY | Registry to pull metal3 container images from | | "quay.io" |
 | DOCKER_HUB_PROXY | Registry to pull docker hub images from | | "docker.io" |
@@ -131,6 +131,16 @@ assured that they are persisted.
 **NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the
 `BRANCH` variables so make sure that RELEASE and BRANCH variables are
 not conflicting.
+
+**NOTE** `IMAGE_NAME`/`IMAGE_LOCATION` defaults are pinned to a fixed image per
+`IMAGE_OS`, and are no longer templated by `KUBERNETES_VERSION`. This was a
+legacy pattern that only ever worked reliably against the Metal3 upstream CI
+node image naming/layout on Nordix Artifactory. As a caveat,
+`tests/roles/run_tests/tasks/upgrade_k8s.yml` no longer downloads an image
+matching `UPGRADED_K8S_VERSION`; it reuses the same fixed image, so only the
+kubeadm-level version upgrade is exercised, not a matching image swap. A
+follow-up change will revisit this once Metal3 CI infrastructure has fully
+recovered.
 
 ## Local IPA
 
