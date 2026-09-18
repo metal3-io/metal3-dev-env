@@ -75,7 +75,8 @@ This repo is the foundation for Metal3 CI:
 - **CAPM3 E2E tests** run on top of metal3-dev-env
 - **Jenkins pipelines** in
   [project-infra](https://github.com/metal3-io/project-infra) use this
-- **Pre-built node images** from Nordix artifactory (`IMAGE_LOCATION`)
+- **Pre-built node images** from an OCI Object Storage bucket
+  (`IMAGE_LOCATION`), fixed per OS/version
 
 ## Code Review Guidelines
 

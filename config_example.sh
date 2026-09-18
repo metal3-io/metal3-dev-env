@@ -153,7 +153,7 @@
 
 # Location of the image to download
 #
-#export IMAGE_LOCATION="https://artifactory.nordix.org/artifactory/metal3/images/k8s_v1.37.0"
+#export IMAGE_LOCATION="https://idknxc8t3pjc.objectstorage.eu-paris-1.oci.customer-oci.com/p/qBVVBPA7b72OTvcnLaKDkn7N4_YmWeVlBvaIsEnzX9EHGqBXQZyFxG15piXNjYot/n/idknxc8t3pjc/b/public-metal3-node-image-bucket/o"
 
 # Image username for ssh
 #
