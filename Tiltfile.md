@@ -6,7 +6,7 @@ It is possible to use Tilt to run the CAPI, BMO, CAPM3 and IPAM components.
 If you are running tilt on a remote machine, you can forward the web interface
 by adding the following parameter to the ssh command `-L 10350:127.0.0.1:10350`
 
-Then you can access the Tilt dashboard locally [here](http://127.0.0.1:10350)
+Then you can access the [Tilt dashboard](http://127.0.0.1:10350) locally
 
 *Note*: It is easiest if you configure all these in `config_<username>.sh` file,
 which is automatically sourced if it exists.
