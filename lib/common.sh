@@ -575,6 +575,21 @@ retry()
 
 
 #
+# Change into a directory, exiting with a clear error if it is not usable
+#
+# Inputs:
+# - the directory to change into
+#
+safe_pushd()
+{
+    if ! pushd "${1}" >/dev/null; then
+        echo >&2 "ERROR: '${1}' is not a usable directory"
+        exit 1
+    fi
+}
+
+
+#
 # Check the return code
 #
 # Inputs:
