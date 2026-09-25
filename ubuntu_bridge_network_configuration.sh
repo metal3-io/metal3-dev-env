@@ -22,10 +22,21 @@ if [[ "${MANAGE_PRO_BRIDGE}" = "y" ]]; then
     # sudo ifconfig provisioning 172.22.0.1 netmask 255.255.255.0 up
     # Use ip command. ifconfig commands are deprecated now.
     sudo ip link set provisioning up
+    # Always assign the base provisioner IP. For the non-IRSO deployments
+    # (deploy.sh / local containers) the cluster provisioner IP (VIP) must also
+    # be present on the host interface, matching the pre-IRSO behavior. With
+    # IRSO the keepalived container owns the VIP, so it is NOT pinned here (that
+    # would conflict with keepalived's VRRP management).
     if [[ "${BARE_METAL_PROVISIONER_SUBNET_IPV6_ONLY}" = "true" ]]; then
         sudo ip -6 addr add "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}" dev ironicendpoint
+        if [[ "${USE_IRSO}" != "true" ]]; then
+            sudo ip -6 addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+        fi
       else
         sudo ip addr add dev ironicendpoint "${BARE_METAL_PROVISIONER_IP}"/"${BARE_METAL_PROVISIONER_CIDR}"
+        if [[ "${USE_IRSO}" != "true" ]]; then
+            sudo ip addr add dev ironicendpoint "${CLUSTER_BARE_METAL_PROVISIONER_IP}"/32
+        fi
     fi
     sudo brctl addif provisioning ironic-peer
     sudo ip link set ironicendpoint up
