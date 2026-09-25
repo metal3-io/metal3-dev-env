@@ -25,9 +25,6 @@ BMO_IRONIC_ARGS=(-k)
 if [[ "${IRONIC_TLS_SETUP:-true}" = "true" ]]; then
     BMO_IRONIC_ARGS+=("-t")
 fi
-if [[ "${IRONIC_USE_MARIADB:-false}" = "true" ]]; then
-    BMO_IRONIC_ARGS+=("-m")
-fi
 
 sudo mkdir -p "${IRONIC_DATA_DIR}"
 sudo chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
@@ -158,7 +155,6 @@ IRONIC_ENDPOINT=${IRONIC_URL}
 CACHEURL=http://${BARE_METAL_PROVISIONER_URL_HOST}/images
 RESTART_CONTAINER_CERTIFICATE_UPDATED="${RESTART_CONTAINER_CERTIFICATE_UPDATED}"
 IRONIC_RAMDISK_SSH_KEY=${SSH_PUB_KEY_CONTENT}
-IRONIC_USE_MARIADB=${IRONIC_USE_MARIADB:-false}
 IPA_BASEURI=${IPA_BASEURI}
 IPA_BRANCH=${IPA_BRANCH}
 IPA_FLAVOR=${IPA_FLAVOR}
@@ -289,20 +285,6 @@ EOF
         kubectl create secret tls ironic-cacert -n "${IRONIC_NAMESPACE}" --key="${IRONIC_CAKEY_FILE}" --cert="${IRONIC_CACERT_FILE}"
     fi
 
-    if [[ "${IRONIC_USE_MARIADB:-false}" = "true" ]]; then
-        cat >> "${ironic}" <<EOF
-  databaseName: ironic-db
----
-apiVersion: ironic.metal3.io/v1alpha1
-kind: IronicDatabase
-metadata:
-  name: ironic-db
-  namespace: "${IRONIC_NAMESPACE}"
-spec:
-  image: "$(get_component_image "${MARIADB_LOCAL_IMAGE:-${MARIADB_IMAGE}}")"
-EOF
-  fi
-
     # NOTE(dtantsur): the webhook may not be ready immediately, retry if needed
     while ! kubectl create -f "${ironic}"; do
         sleep 3
@@ -311,9 +293,6 @@ EOF
     if ! kubectl wait --for=condition=Ready --timeout="${IRONIC_ROLLOUT_WAIT}m" -n "${IRONIC_NAMESPACE}" ironic/ironic; then
         # FIXME(dtantsur): remove this when Ironic objects are collected in the CI
         kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironic/ironic
-        if [[ "${IRONIC_USE_MARIADB:-false}" = "true" ]]; then
-            kubectl get -n "${IRONIC_NAMESPACE}" -o yaml ironicdatabase/ironic-db
-        fi
         exit 1
     fi
 }
