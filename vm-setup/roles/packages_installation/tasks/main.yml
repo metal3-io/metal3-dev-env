@@ -136,57 +136,96 @@
 
 - name: Install Go from official source
   block:
-  - name: Check if Go is already installed
+  - name: Check if Go is installed at /usr/local/go
     command: /usr/local/go/bin/go version
     ignore_errors: true
-    register: go_version_result
+    register: go_local_result
     changed_when: false
 
-  - name: Remove current installation
+  - name: Check if Go is available on system PATH
+    command: go version
+    ignore_errors: true
+    register: go_path_result
+    changed_when: false
+
+  # Extract "1.X.Y" from "go version go1.X.Y linux/amd64"
+  - name: Set local Go version fact
+    set_fact:
+      go_local_version: "{{ go_local_result.stdout.split()[2][2:] }}"
+    when: go_local_result is succeeded
+
+  - name: Set system PATH Go version fact
+    set_fact:
+      go_path_version: "{{ go_path_result.stdout.split()[2][2:] }}"
+    when: go_path_result is succeeded
+
+  # Accept the existing Go if either location provides a compatible version
+  - name: Check if a compatible Go is already available
+    set_fact:
+      go_compatible: >-
+        {{ (go_local_version is defined and go_local_version is version(go_min_version, '>='))
+           or (go_path_version is defined and go_path_version is version(go_min_version, '>=')) }}
+
+  - name: Remove incompatible local Go installation
     file:
       state: absent
       path: /usr/local/go
     when:
-    - go_version_result is succeeded
-    - go_version not in go_version_result.stdout
+    - go_local_result is succeeded
+    - go_local_version is not version(go_min_version, '>=')
 
-  - name: Ensure /usr/local/src directory exists
-    ansible.builtin.file:
-      path: /usr/local/src
-      state: directory
-      mode: '0755'
+  - name: Download and install Go {{ go_version }}
+    block:
+    - name: Ensure /usr/local/src directory exists
+      ansible.builtin.file:
+        path: /usr/local/src
+        state: directory
+        mode: '0755'
 
-  - name: Download Go tarball from official source
-    get_url:
-      url: "{{ go_download_url }}"
-      dest: /usr/local/src/{{ go_tarball }}
-      checksum: "{{ ('sha256:' ~ go_checksum) if (go_checksum | length > 0) else omit }}"
-      timeout: 30
-    register: go_download_result
-    until: go_download_result is succeeded
-    retries: 10
-    delay: 30
-    when: go_version_result is failed or go_version not in go_version_result.stdout
+    - name: Download Go tarball from official source
+      get_url:
+        url: "{{ go_download_url }}"
+        dest: /usr/local/src/{{ go_tarball }}
+        checksum: "{{ ('sha256:' ~ go_checksum) if (go_checksum | length > 0) else omit }}"
+        timeout: 30
+      register: go_download_result
+      until: go_download_result is succeeded
+      retries: 10
+      delay: 30
 
-  - name: Extract Go tarball
-    unarchive:
-      src: /usr/local/src/{{ go_tarball }}
-      dest: /usr/local
-      remote_src: yes
-    when: go_version_result is failed or go_version not in go_version_result.stdout
+    - name: Extract Go tarball
+      unarchive:
+        src: /usr/local/src/{{ go_tarball }}
+        dest: /usr/local
+        remote_src: yes
 
+    - name: Verify Go installation
+      command: /usr/local/go/bin/go version
+      register: go_version_output
+      changed_when: false
+
+    - name: Display installed Go version
+      debug:
+        msg: "{{ go_version_output.stdout }}"
+
+    when: not go_compatible
+
+  # Ensure /usr/local/go/bin is on PATH whenever Go lives there, regardless
+  # of whether it was just installed or was already compatible on disk.
   - name: Add Go to system-wide $PATH
     copy:
       dest: /etc/profile.d/go-path.sh
       content: |
-        export PATH=$PATH:/usr/local/go/bin
+        export PATH=/usr/local/go/bin:$PATH
       mode: '0644'
+    when: >-
+      not go_compatible or
+      (go_local_version is defined and go_local_version is version(go_min_version, '>='))
 
-  - name: Verify Go installation
-    command: /usr/local/go/bin/go version
-    register: go_version_output
-    changed_when: false
-
-  - name: Display Go version
+  - name: Display existing compatible Go version
     debug:
-      msg: "{{ go_version_output.stdout }}"
+      msg: >-
+        {{ go_local_result.stdout
+           if (go_local_version is defined and go_local_version is version(go_min_version, '>='))
+           else go_path_result.stdout }}
+    when: go_compatible
