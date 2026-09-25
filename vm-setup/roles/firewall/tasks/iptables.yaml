@@ -141,7 +141,7 @@
       destination: "{{ external_subnet_v4 }}"
       jump: ACCEPT
       state: "{{ firewall_rule_state }}"
-  when: (BOOTSTRAP_CLUSTER == "kind") and (ip_stack == "v4")
+  when: (BOOTSTRAP_CLUSTER == "kind") and (ip_stack == "v4" or ip_stack == "v4v6")
 
 - block:
   - name: "ip6tables: Allow access to external network from kind"
@@ -191,4 +191,15 @@
       destination: "{{ external_subnet_v6 }}"
       jump: ACCEPT
       state: "{{ firewall_rule_state }}"
-  when: (BOOTSTRAP_CLUSTER == "kind") and (ip_stack == "v6")
+  when: (BOOTSTRAP_CLUSTER == "kind") and (ip_stack == "v6" or ip_stack == "v4v6")
+
+- name: "ip6tables: MASQUERADE IPv6 external network to allow connections from VMs"
+  iptables:
+    ip_version: ipv6
+    table: nat
+    chain: LIBVIRT_PRT
+    source: "{{ external_subnet_v6 }}"
+    destination: "! {{ external_subnet_v6 }}"
+    jump: MASQUERADE
+    state: "{{ firewall_rule_state }}"
+  when: ip_stack == "v6" or ip_stack == "v4v6"
