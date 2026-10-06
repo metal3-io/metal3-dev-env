@@ -324,7 +324,9 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.12" ]]; then
   export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:main"}
   export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-33.0"}
   export IRSO_IRONIC_VERSION="33.0"
-  export BMOBRANCH="${BMOBRANCH:-${BMORELEASEBRANCH:-release-0.12}}"
+  export IRSOBRANCH="${IRSOBRANCH:-release-0.9}"
+  export IRSO_TAG="${IRSO_TAG:-release-0.9}"
+export BMOBRANCH="${BMOBRANCH:-${BMORELEASEBRANCH:-release-0.12}}"
 elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.13" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.13"}
   export IPAM_IMAGE=${IPAM_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ip-address-manager:release-1.13"}
@@ -332,6 +334,8 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.13" ]]; then
   export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:main"}
   export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-35.0"}
   export IRSO_IRONIC_VERSION="35.0"
+  export IRSOBRANCH="${IRSOBRANCH:-release-0.10}"
+  export IRSO_TAG="${IRSO_TAG:-release-0.10}"
   export BMOBRANCH="${BMOBRANCH:-${BMORELEASEBRANCH:-release-0.13}}"
 elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.14" ]]; then
   export CAPM3_IMAGE=${CAPM3_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:release-1.14"}
@@ -340,6 +344,8 @@ elif [[ "${CAPM3RELEASEBRANCH}" = "release-1.14" ]]; then
   export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:main_2026-08-03_8711a4306496d8c5cf12bbf1dc842e4603fe076d"}
   export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:release-37.0"}
   export IRSO_IRONIC_VERSION="37.0"
+  export IRSOBRANCH="${IRSOBRANCH:-release-0.11}"
+  export IRSO_TAG="${IRSO_TAG:-release-0.11}"
   export BMOBRANCH="${BMOBRANCH:-${BMORELEASEBRANCH:-release-0.14}}"
 else
   export CAPM3_IMAGE="${CAPM3_IMAGE:-${CONTAINER_REGISTRY}/metal3-io/cluster-api-provider-metal3:main}"
@@ -347,6 +353,8 @@ else
   export BARE_METAL_OPERATOR_IMAGE=${BARE_METAL_OPERATOR_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/baremetal-operator:main"}
   export IRONIC_KEEPALIVED_IMAGE=${IRONIC_KEEPALIVED_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/keepalived:main"}
   export IRONIC_IMAGE=${IRONIC_IMAGE:-"${CONTAINER_REGISTRY}/metal3-io/ironic:main"}
+  export IRSOBRANCH="${IRSOBRANCH:-main}"
+  export IRSO_TAG="${IRSO_TAG:-latest}"
   export BMOBRANCH="${BMOBRANCH:-${BMORELEASEBRANCH:-main}}"
 fi
 
