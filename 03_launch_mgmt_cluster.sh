@@ -11,7 +11,7 @@ source lib/releases.sh
 # shellcheck disable=SC1091
 source lib/network.sh
 
-# Default CAPI_CONFIG_DIR to $HOME/.config directory if XDG_CONFIG_HOME not set
+# Default CAPI_CONFIG_DIR to ${HOME}/.config directory if XDG_CONFIG_HOME not set
 CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}"
 export CAPI_CONFIG_DIR="${CONFIG_DIR}/cluster-api"
 export IRONIC_HOST="${CLUSTER_BARE_METAL_PROVISIONER_HOST}"
@@ -35,7 +35,8 @@ sudo chown -R "${USER}:${USER}" "${IRONIC_DATA_DIR}"
 # Use locally pre-downloaded IPA images served by httpd-infra to avoid slow
 # remote downloads during Ironic deployment (which can cause timeouts in CI).
 IPA_FILENAME="ipa-${IPA_FLAVOR}-$(echo "${IPA_BRANCH}" | tr / -).tar.gz"
-if [[ "${IPA_DOWNLOAD_ENABLED}" == "true" ]] && [[ "${USE_LOCAL_IPA}" != "true" ]] \
+if [[ "${IPA_DOWNLOAD_ENABLED}" = "true" ]] \
+    && [[ "${USE_LOCAL_IPA}" != "true" ]] \
     && [[ -f "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}" ]]; then
     export IPA_BASEURI="http://${BARE_METAL_PROVISIONER_URL_HOST}/images"
 fi
@@ -54,7 +55,7 @@ source lib/ironic_basic_auth.sh
 #
 launch_baremetal_operator()
 {
-    pushd "${BMOPATH}"
+    safe_pushd "${BMOPATH}"
 
     # Deploy BMO using deploy.sh script
     if [[ "${BOOTSTRAP_CLUSTER}" != "tilt" ]]; then
@@ -100,7 +101,7 @@ EOF
         touch bmo.out.log
         touch bmo.err.log
         kubectl scale deployment baremetal-operator-controller-manager -n "${IRONIC_NAMESPACE}" --replicas=0
-        nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>>bmo.err.log &
+        nohup "${SCRIPTDIR}/hack/run-bmo-loop.sh" >> bmo.out.log 2>> bmo.err.log &
     fi
     popd
 }
@@ -114,24 +115,23 @@ update_images()
 {
     local image_var image image_name local_image old_image_var
 
-    for image_var in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
+    for image_var in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*" || true) ; do
         image=${!image_var}
-        #shellcheck disable=SC2086
+        # shellcheck disable=SC2086
         image_name="${image##*/}"
         local_image="${REGISTRY}/localimages/${image_name}"
         old_image_var="${image_var%_LOCAL_IMAGE}_IMAGE"
-        eval "${old_image_var}"="${local_image}"
-        export "${old_image_var?}"
+        declare -g -x "${old_image_var}=${local_image}"
     done
 
     # Assign images from local image registry after update image
     # This allows to use cached images for faster downloads
-    for image_var in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
-      image=${!image_var}
-      #shellcheck disable=SC2086
-      image_name="${image##*/}"
-      local_image="${REGISTRY}/localimages/${image_name}"
-      eval "${image_var}"="${local_image}"
+    for image_var in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*" || true) ; do
+        image=${!image_var}
+        # shellcheck disable=SC2086
+        image_name="${image##*/}"
+        local_image="${REGISTRY}/localimages/${image_name}"
+        declare -g "${image_var}=${local_image}"
     done
 }
 
@@ -140,7 +140,7 @@ update_images()
 #
 launch_ironic()
 {
-    pushd "${BMOPATH}"
+    safe_pushd "${BMOPATH}"
 
     # Update Configmap parameters with correct urls
     # Variable names inserted into the configmap might have different
@@ -235,7 +235,7 @@ launch_ironic_standalone_operator()
 launch_ironic_via_irso()
 {
     kubectl create secret generic ironic-auth -n "${IRONIC_NAMESPACE}" \
-        --from-file=username="${IRONIC_USERNAME_FILE}"  \
+        --from-file=username="${IRONIC_USERNAME_FILE}" \
         --from-file=password="${IRONIC_PASSWORD_FILE}"
     kubectl label secret ironic-auth -n "${IRONIC_NAMESPACE}" \
         environment.metal3.io/ironic-standalone-operator=true
@@ -303,8 +303,14 @@ spec:
 EOF
   fi
 
-    # NOTE(dtantsur): the webhook may not be ready immediately, retry if needed
-    while ! kubectl create -f "${ironic}"; do
+    # NOTE(dtantsur): the webhook may not be ready immediately, retry if needed.
+    local create_retry=20
+    while ! kubectl apply --request-timeout=30s -f "${ironic}"; do
+        create_retry=$((create_retry - 1))
+        if [[ "${create_retry}" -le 0 ]]; then
+            echo >&2 "ERROR: failed to apply ironic resource from ${ironic}"
+            exit 1
+        fi
         sleep 3
     done
 
@@ -385,30 +391,30 @@ make_bm_hosts()
 apply_bm_hosts()
 {
     local namespace="$1"
-    pushd "${BMOPATH}"
+    safe_pushd "${BMOPATH}"
 
-    local RETRY=10
-    while [[ "${RETRY}" -gt 0 ]]; do
-      echo "bmhosts_crs.yaml is applying"
-      list_nodes | make_bm_hosts
-      # check if we have a not empty manifests file
-      local BMH_FILE="${WORKING_DIR}/bmhosts_crs.yaml"
-      if [[ -s "${BMH_FILE}" ]]; then
-        cat "${BMH_FILE}"
-        kubectl apply -f "${BMH_FILE}" -n "${namespace}" && break
-      else
-        echo "bmhosts_crs.yaml does not exist or is empty"
-      fi
-      echo "retrying in 1 minute"
-      sleep 60
-      (( RETRY-=1 ))
+    local retry=10
+    local retry_interval=60
+    while [[ "${retry}" -gt 0 ]]; do
+        echo "bmhosts_crs.yaml is applying"
+        list_nodes | make_bm_hosts
+        # check if we have a not empty manifests file
+        local bmh_file="${WORKING_DIR}/bmhosts_crs.yaml"
+        if [[ -s "${bmh_file}" ]]; then
+            kubectl apply -f "${bmh_file}" -n "${namespace}" && break
+        else
+            echo "bmhosts_crs.yaml does not exist or is empty"
+        fi
+        echo "retrying in ${retry_interval} seconds"
+        sleep "${retry_interval}"
+        retry=$((retry - 1))
     done
 
     popd
 
-    if [[ "${RETRY}" -eq 0 ]]; then
-      echo "failed to create and apply BMH manifests"
-      exit 1
+    if [[ "${retry}" -eq 0 ]]; then
+        echo >&2 "ERROR: failed to create and apply BMH manifests"
+        exit 1
     fi
 }
 
@@ -480,7 +486,7 @@ update_component_image()
 #
 patch_clusterctl()
 {
-    pushd "${CAPM3PATH}"
+    safe_pushd "${CAPM3PATH}"
 
     mkdir -p "${CAPI_CONFIG_DIR}"
     if [[ "${CAPI_NIGHTLY_BUILD:-}" = "true" ]]; then
@@ -506,7 +512,7 @@ EOF
 EOF
     fi
 
-    if [[ "${GINKGO_FOCUS:-}" == "in-place-upgrade" ]]; then
+    if [[ "${GINKGO_FOCUS:-}" = "in-place-upgrade" ]]; then
         export TEST_EXTENSION_MANIFEST_IMG="${REGISTRY}/metal3-io/test-extension:latest"
         make docker-build-test-extension TEST_EXTENSION_IMG="${TEST_EXTENSION_MANIFEST_IMG}"
         "${CONTAINER_RUNTIME}" push --tls-verify=false "${TEST_EXTENSION_MANIFEST_IMG}"
@@ -542,7 +548,7 @@ EOF
 
 patch_capi()
 {
-    pushd "${CAPIPATH}"
+    safe_pushd "${CAPIPATH}"
     date=$(date '+%Y%m%d' -d "1 day ago")
 
     rm -f ./clusterctl-settings.json
@@ -561,7 +567,7 @@ EOF
 
 patch_ipam()
 {
-    pushd "${IPAMPATH}"
+    safe_pushd "${IPAMPATH}"
 
     if [[ -n "${IPAM_LOCAL_IMAGE:-}" ]]; then
         update_component_image IPAM "${IPAM_LOCAL_IMAGE}"
@@ -577,7 +583,7 @@ patch_ipam()
 }
 
 # Install clusterctl client
-# TODO: use download_and_verify_clusterctl
+# TODO: use download_and_install_clusterctl (see lib/download.sh)
 # Currently we just download latest CAPIRELEASE version, which means we don't know
 # the expected SHA, and can't pin it
 install_clusterctl()
@@ -605,16 +611,16 @@ fi
 #
 launch_cluster_api_provider_metal3()
 {
-    pushd "${CAPM3PATH}"
+    safe_pushd "${CAPM3PATH}"
 
     # shellcheck disable=SC2153
-    if [[ "${GINKGO_FOCUS:-}" == "in-place-upgrade" ]]; then
+    if [[ "${GINKGO_FOCUS:-}" = "in-place-upgrade" ]]; then
         clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
-          --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5 --ipam=metal3:"${IPAMRELEASE}" \
-          --runtime-extension=test-extension:"${CAPM3RELEASE}"
+            --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5 --ipam=metal3:"${IPAMRELEASE}" \
+            --runtime-extension=test-extension:"${CAPM3RELEASE}"
     else
         clusterctl init --core cluster-api:"${CAPIRELEASE}" --bootstrap kubeadm:"${CAPIRELEASE}" \
-          --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5 --ipam=metal3:"${IPAMRELEASE}"
+            --control-plane kubeadm:"${CAPIRELEASE}" --infrastructure=metal3:"${CAPM3RELEASE}" -v5 --ipam=metal3:"${IPAMRELEASE}"
     fi
 
     if [[ "${CAPM3_RUN_LOCAL}" = true ]]; then
@@ -660,7 +666,7 @@ create_clouds_yaml()
 #
 launch_kind()
 {
-    if [[ "${IP_STACK}" == "v6" ]]; then
+    if [[ "${IP_STACK}" = "v6" ]]; then
         # If registry is IPv6 address, '[', ']' are not allowed in kind configuration.
         # We need to create config files for the containerd patches.
         # Notice that having '[' and ']' in the key requires containerd 2.0 or newer.
@@ -708,8 +714,6 @@ EOF
 #
 start_management_cluster()
 {
-    local minikube_error
-
     if [[ "${BOOTSTRAP_CLUSTER}" = "kind" ]]; then
         launch_kind
     elif [[ "${BOOTSTRAP_CLUSTER}" = "minikube" ]]; then
@@ -717,13 +721,11 @@ start_management_cluster()
         # for CS9 and RHEL9, or restart the libvirtd.service for other DISTRO
         manage_libvirtd
 
-        while /bin/true; do
-            minikube_error=0
-            sudo su -l -c 'minikube start' "${USER}" || minikube_error=1
-            if [[ "${minikube_error}" -eq 0 ]]; then
-                break
-            fi
-        done
+        if ! retry timeout --kill-after=30s "${MINIKUBE_START_TIMEOUT:-600s}" \
+            sudo su -l -c 'minikube start' "${USER}"; then
+            echo >&2 "ERROR: minikube failed to start after multiple attempts"
+            exit 1
+        fi
 
         if [[ -n "${MINIKUBE_BMNET_V6_IP:-}" ]]; then
             sudo su -l -c "minikube ssh -- sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0" "${USER}"
@@ -750,6 +752,7 @@ build_ipxe_firmware()
     # vars with CENV_ARG postfix are container environment variable arguments
     # and only used to pass the env var to the containers
     local ipxe_builder_image="${REGISTRY}/localimages/ipxe-builder:latest"
+    local ipxe_tmp_source="/tmp/ipxe-source"
     export IPXE_ENABLE_TLS_CENV_ARG="IPXE_ENABLE_TLS='false'"
     export IPXE_ENABLE_IPV6_CENV_ARG="IPXE_ENABLE_IPV6='false'"
     declare -a certs_mounts=()
@@ -763,13 +766,13 @@ build_ipxe_firmware()
             "https://github.com/ipxe/ipxe.git" "${IPXE_SOURCE_DIR}"
         chmod -R 777 "${IPXE_SOURCE_DIR}"
     elif [[ "${IPXE_SOURCE_FORCE_UPDATE}" = "true" ]]; then
-        rm -rf "/tmp/ipxe-source"
+        rm -rf "${ipxe_tmp_source}"
         # shellcheck disable=SC2086
         git clone --depth 1 --branch "${IPXE_RELEASE_BRANCH}" \
-            "https://github.com/ipxe/ipxe.git" "/tmp/ipxe-source"
+            "https://github.com/ipxe/ipxe.git" "${ipxe_tmp_source}"
         rm -rf "${IPXE_SOURCE_DIR}"
-        mv "/tmp/ipxe-source" "${IPXE_SOURCE_DIR}"
-        rm -rf "/tmp/ipxe-source"
+        mv "${ipxe_tmp_source}" "${IPXE_SOURCE_DIR}"
+        rm -rf "${ipxe_tmp_source}"
     fi
 
     if [[ "${IPXE_ENABLE_TLS}" = "true" ]]; then
@@ -833,7 +836,7 @@ fi
 
 if [[ "${BMO_RUN_LOCAL}" != true ]]; then
     if ! kubectl rollout status deployment "${BMO_NAME_PREFIX}"-controller-manager -n "${IRONIC_NAMESPACE}" --timeout="${BMO_ROLLOUT_WAIT}"m; then
-        echo "baremetal-operator-controller-manager deployment can not be rollout"
+        echo >&2 "ERROR: baremetal-operator-controller-manager deployment can not be rollout"
         exit 1
     fi
 else
@@ -846,7 +849,7 @@ fi
 # Tests might want to apply bmh inside the test scipt
 # then dev-env will create the bmh files but do not apply them
 if [[ "${SKIP_APPLY_BMH:-false}" = "true" ]]; then
-    pushd "${BMOPATH}"
+    safe_pushd "${BMOPATH}"
     list_nodes | make_bm_hosts
     popd
 else
