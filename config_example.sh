@@ -190,12 +190,11 @@
 #export NODE_HOSTNAME_FORMAT="node-%d"
 
 # Bootstrap cluster used as management cluster for cluster API
-# (can be "kind", "minikube" or "tilt"). Only "minikube" is supported with
-# CentOS
+# (can be "kind", "minikube" or "tilt").
 # Selecting "tilt" does not deploy a management cluster, it is left up to the
 # user
-# Default is "kind" when CONTAINER_RUNTIME="docker", otherwise it is "minikube"
-#export BOOTSTRAP_CLUSTER=minikube
+# Default is "kind" for all platforms
+#export BOOTSTRAP_CLUSTER=kind
 
 # Secure Ironic deployment with TLS ("true" or "false")
 #export IRONIC_TLS_SETUP="true"
