@@ -283,7 +283,6 @@ export MAX_SURGE_VALUE="${MAX_SURGE_VALUE:-1}"
 export IRONIC_TAG="${IRONIC_TAG:-latest}"
 export BARE_METAL_OPERATOR_TAG="${BARE_METAL_OPERATOR_TAG:-latest}"
 export KEEPALIVED_TAG="${KEEPALIVED_TAG:-latest}"
-export IRSO_TAG="${IRSO_TAG:-latest}"
 export IRSO_IRONIC_VERSION="${IRSO_IRONIC_VERSION:-latest}"
 
 # Docker Hub proxy registry (or docker.io if no proxy)
