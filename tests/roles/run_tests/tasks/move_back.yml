@@ -1,35 +1,193 @@
 ############### Pivot back to source cluster ##############
 
-# Remove Ironic from target cluster
-- name: Remove Ironic from target cluster
+# Remove Ironic from the target cluster.
+- name: Remove Ironic CR from target cluster (IRSO)
+  kubernetes.core.k8s:
+    api_version: ironic.metal3.io/v1alpha1
+    kind: Ironic
+    name: ironic
+    state: absent
+    namespace: "{{ IRONIC_NAMESPACE }}"
+    kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+    wait: yes
+    wait_timeout: "{{ (IRONIC_ROLLOUT_WAIT | int) * 60 }}"
+  when: USE_IRSO == "true"
+
+- name: Remove Ironic from target cluster (legacy Deployment)
   kubernetes.core.k8s:
     name: "{{ NAMEPREFIX }}-ironic"
     kind: Deployment
     state: absent
     namespace: "{{ IRONIC_NAMESPACE }}"
     kubeconfig: "/tmp/kubeconfig-{{ CLUSTER_NAME }}.yaml"
+  when: USE_IRSO != "true"
 
 # Install BMO in Source cluster
 - name: Install Baremetal Operator in Source cluster
-  shell: "{{ BMOPATH }}/tools/deploy.sh -b  {{ BMO_IRONIC_ARGS }}"
+  shell: "{{ DEPLOY_SCRIPT }} -b  {{ BMO_IRONIC_ARGS }}"
   environment:
+    BMOPATH: "{{ BMOPATH }}"
     IRONIC_HOST: "{{ IRONIC_HOST }}"
     IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
   args:
     chdir: "{{ BMOPATH }}"
 
-- name: Install Ironic in Source cluster (Bootstrap Cluster is kind)
-  shell: "{{ BMOPATH }}/tools/run_local_ironic.sh"
+# Reinstall Ironic in the Source cluster in the same mode it was originally
+# deployed.
+# IRSO path: recreate credentials and the Ironic CR.
+- name: Create ironic-auth secret in Source cluster (IRSO)
+  no_log: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ironic-auth
+        namespace: "{{ IRONIC_NAMESPACE }}"
+        labels:
+          environment.metal3.io/ironic-standalone-operator: "true"
+      type: Opaque
+      data:
+        username: "{{ lookup('file', IRONIC_USERNAME_FILE) | b64encode }}"
+        password: "{{ lookup('file', IRONIC_PASSWORD_FILE) | b64encode }}"
+  when: USE_IRSO == "true"
+
+- name: Create ironic-cert secret in Source cluster (IRSO, TLS)
+  no_log: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ironic-cert
+        namespace: "{{ IRONIC_NAMESPACE }}"
+        labels:
+          environment.metal3.io/ironic-standalone-operator: "true"
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ lookup('file', IRONIC_CERT_FILE) | b64encode }}"
+        tls.key: "{{ lookup('file', IRONIC_KEY_FILE) | b64encode }}"
+  when:
+  - USE_IRSO == "true"
+  - IRONIC_TLS_SETUP == "true"
+
+- name: Create ironic-cacert secret in Source cluster (IRSO, TLS)
+  no_log: true
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ironic-cacert
+        namespace: "{{ IRONIC_NAMESPACE }}"
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ lookup('file', IRONIC_CACERT_FILE) | b64encode }}"
+        tls.key: "{{ lookup('file', IRONIC_CAKEY_FILE) | b64encode }}"
+  when:
+  - USE_IRSO == "true"
+  - IRONIC_TLS_SETUP == "true"
+
+- name: Resolve Ironic component images for the Source cluster
+  shell: "{{ metal3_dir }}/lib/get_component_image.sh {{ item.src }}"
+  environment:
+    REGISTRY: "{{ REGISTRY }}"
+  loop:
+  - { name: "ironic", src: "{{ IRONIC_LOCAL_IMAGE | default(IRONIC_IMAGE, true) }}" }
+  - { name: "ipa_downloader", src: "{{ IPA_DOWNLOADER_LOCAL_IMAGE | default(IPA_DOWNLOADER_IMAGE, true) }}" }
+  - { name: "keepalived", src: "{{ IRONIC_KEEPALIVED_LOCAL_IMAGE | default(IRONIC_KEEPALIVED_IMAGE, true) }}" }
+  - { name: "mariadb", src: "{{ MARIADB_LOCAL_IMAGE | default(MARIADB_IMAGE, true) }}" }
+  register: source_ironic_images
+  when: USE_IRSO == "true"
+
+- name: Build Ironic component image map for the Source cluster
+  set_fact:
+    source_ironic_image_map: "{{ dict(source_ironic_images.results | map(attribute='item.name') | zip(source_ironic_images.results | map(attribute='stdout'))) }}"
+  when: USE_IRSO == "true"
+
+- name: Create IronicDatabase CR in Source cluster (MariaDB)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: ironic.metal3.io/v1alpha1
+      kind: IronicDatabase
+      metadata:
+        name: ironic-db
+        namespace: "{{ IRONIC_NAMESPACE }}"
+      spec:
+        image: "{{ source_ironic_image_map.mariadb }}"
+  when:
+  - USE_IRSO == "true"
+  - IRONIC_USE_MARIADB == "true"
+
+- name: Create Ironic CR in Source cluster (IRSO)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: ironic.metal3.io/v1alpha1
+      kind: Ironic
+      metadata:
+        name: ironic
+        namespace: "{{ IRONIC_NAMESPACE }}"
+      spec:
+        apiCredentialsName: ironic-auth
+        images:
+          deployRamdiskBranch: "{{ IPA_BRANCH }}"
+          deployRamdiskDownloader: "{{ source_ironic_image_map.ipa_downloader }}"
+          ironic: "{{ source_ironic_image_map.ironic }}"
+          keepalived: "{{ source_ironic_image_map.keepalived }}"
+        version: "{{ IRSO_IRONIC_VERSION }}"
+        networking:
+          dhcp:
+            rangeBegin: "{{ CLUSTER_DHCP_RANGE_START }}"
+            rangeEnd: "{{ CLUSTER_DHCP_RANGE_END }}"
+            networkCIDR: "{{ BARE_METAL_PROVISIONER_NETWORK }}"
+          interface: "{{ BARE_METAL_PROVISIONER_INTERFACE }}"
+          ipAddress: "{{ CLUSTER_BARE_METAL_PROVISIONER_IP }}"
+          ipAddressManager: keepalived
+        deployRamdisk:
+          sshKey: "{{ SSH_PUB_KEY_CONTENT }}"
+        extraKernelParams: "{{ (NODES_PLATFORM == 'libvirt') | ternary('console=ttyS0', omit) }}"
+        tls: "{{ (IRONIC_TLS_SETUP == 'true') | ternary({'certificateName': 'ironic-cert'}, omit) }}"
+        databaseName: "{{ (IRONIC_USE_MARIADB == 'true') | ternary('ironic-db', omit) }}"
+  when: USE_IRSO == "true"
+
+- name: Wait for Ironic CR to become Ready in Source cluster (IRSO)
+  kubernetes.core.k8s_info:
+    api_version: ironic.metal3.io/v1alpha1
+    kind: Ironic
+    name: ironic
+    namespace: "{{ IRONIC_NAMESPACE }}"
+    wait: yes
+    wait_condition:
+      type: Ready
+      status: "True"
+    wait_timeout: "{{ (IRONIC_ROLLOUT_WAIT | int) * 60 }}"
+  when: USE_IRSO == "true"
+
+# Host-container path: only for kind when explicitly requested (development).
+- name: Install Ironic in Source cluster as local containers (kind, IRONIC_RUN_LOCAL=true)
+  shell: "{{ RUN_LOCAL_IRONIC_SCRIPT }}"
   environment:
     CONTAINER_RUNTIME: "{{ CONTAINER_RUNTIME }}"
-  when: BOOTSTRAP_CLUSTER == "kind"
+  when:
+  - USE_IRSO != "true"
+  - BOOTSTRAP_CLUSTER == "kind"
+  - IRONIC_RUN_LOCAL == "true"
 
-- name: Install Ironic in Source cluster (Bootstrap Cluster is minikube)
-  shell: "{{ BMOPATH }}/tools/deploy.sh -i {{ BMO_IRONIC_ARGS }}"
+# In-cluster (deploy.sh) path when IRSO is disabled and not running locally.
+- name: Install Ironic in Source cluster in-cluster (deploy.sh)
+  shell: "{{ DEPLOY_SCRIPT }} -i {{ BMO_IRONIC_ARGS }}"
   environment:
+    BMOPATH: "{{ BMOPATH }}"
     IRONIC_HOST: "{{ IRONIC_HOST }}"
     IRONIC_HOST_IP: "{{ IRONIC_HOST_IP }}"
-  when: BOOTSTRAP_CLUSTER == "minikube"
+  when:
+  - USE_IRSO != "true"
+  - BOOTSTRAP_CLUSTER == "minikube" or (BOOTSTRAP_CLUSTER == "kind" and (IRONIC_RUN_LOCAL != "true"))
   args:
     chdir: "{{ BMOPATH }}"
 
