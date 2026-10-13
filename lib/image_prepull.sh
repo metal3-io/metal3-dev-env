@@ -14,49 +14,49 @@ pushd "${IRONIC_IMAGE_DIR}"
 
 # Download and prepare node images (unless skipped)
 if [[ ! -f "${IMAGE_NAME}" ]]; then
-    if [[ -f "${IMAGE_LOCATION}/${IMAGE_NAME}" ]]; then
-      # Copy local image
-      cp "${IMAGE_LOCATION}/${IMAGE_NAME}" .
-    elif [[ "${IMAGE_LOCATION}" =~ ^http.* ]]; then
-      if [[ "${SKIP_NODE_IMAGE_PREPULL}" = "true" ]]; then
-          echo "Skipping node image download (SKIP_NODE_IMAGE_PREPULL is set to true)"
-      else
-          # Downloading image if it does not exist locally
-          wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
-      fi
-    else
-      echo "Image not found at ${IMAGE_LOCATION}/${IMAGE_NAME}"
-      exit 1
-    fi
+	if [[ -f "${IMAGE_LOCATION}/${IMAGE_NAME}" ]]; then
+		# Copy local image
+		cp "${IMAGE_LOCATION}/${IMAGE_NAME}" .
+	elif [[ "${IMAGE_LOCATION}" =~ ^http.* ]]; then
+		if [[ "${SKIP_NODE_IMAGE_PREPULL}" = "true" ]]; then
+			echo "Skipping node image download (SKIP_NODE_IMAGE_PREPULL is set to true)"
+		else
+			# Downloading image if it does not exist locally
+			wget --no-verbose --no-check-certificate "${IMAGE_LOCATION}/${IMAGE_NAME}"
+		fi
+	else
+		echo "Image not found at ${IMAGE_LOCATION}/${IMAGE_NAME}"
+		exit 1
+	fi
 fi
 
 # Prepare the image if it exists
 if [[ -f "${IMAGE_NAME}" ]]; then
-    IMAGE_SUFFIX="${IMAGE_NAME##*.}"
-    if [[ "${IMAGE_SUFFIX}" = "xz" ]]; then
-      unxz -v "${IMAGE_NAME}"
-      IMAGE_NAME="$(basename "${IMAGE_NAME}" .xz)"
-      export IMAGE_NAME
-      IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
-      export RAW_IMAGE_NAME="${IMAGE_BASE_NAME}-raw.img"
-    fi
-    if [[ "${IMAGE_SUFFIX}" = "bz2" ]]; then
-        bunzip2 "${IMAGE_NAME}"
-        IMAGE_NAME="$(basename "${IMAGE_NAME}" .bz2)"
-        export IMAGE_NAME
-        IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
-        export RAW_IMAGE_NAME="${IMAGE_BASE_NAME}-raw.img"
-    fi
-    if [[ "${IMAGE_SUFFIX}" != "iso" ]]; then
-        qemu-img convert -O raw "${IMAGE_NAME}" "${RAW_IMAGE_NAME}"
-    fi
-    # Generating image checksum if right checksum does not exist locally
-    if [[ ! -f "${RAW_IMAGE_NAME}.${IMAGE_RAW_CHECKSUM##*.}" ]]; then
-        IMAGE_SUFFIX="${IMAGE_NAME##*.}"
-        if [[ "${IMAGE_SUFFIX}" != "iso" ]]; then
-            sha256sum "${RAW_IMAGE_NAME}" | awk '{print $1}' > "${RAW_IMAGE_NAME}.sha256sum"
-        fi
-    fi
+	IMAGE_SUFFIX="${IMAGE_NAME##*.}"
+	if [[ "${IMAGE_SUFFIX}" = "xz" ]]; then
+		unxz -v "${IMAGE_NAME}"
+		IMAGE_NAME="$(basename "${IMAGE_NAME}" .xz)"
+		export IMAGE_NAME
+		IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
+		export RAW_IMAGE_NAME="${IMAGE_BASE_NAME}-raw.img"
+	fi
+	if [[ "${IMAGE_SUFFIX}" = "bz2" ]]; then
+		bunzip2 "${IMAGE_NAME}"
+		IMAGE_NAME="$(basename "${IMAGE_NAME}" .bz2)"
+		export IMAGE_NAME
+		IMAGE_BASE_NAME="${IMAGE_NAME%.*}"
+		export RAW_IMAGE_NAME="${IMAGE_BASE_NAME}-raw.img"
+	fi
+	if [[ "${IMAGE_SUFFIX}" != "iso" ]]; then
+		qemu-img convert -O raw "${IMAGE_NAME}" "${RAW_IMAGE_NAME}"
+	fi
+	# Generating image checksum if right checksum does not exist locally
+	if [[ ! -f "${RAW_IMAGE_NAME}.${IMAGE_RAW_CHECKSUM##*.}" ]]; then
+		IMAGE_SUFFIX="${IMAGE_NAME##*.}"
+		if [[ "${IMAGE_SUFFIX}" != "iso" ]]; then
+			sha256sum "${RAW_IMAGE_NAME}" | awk '{print $1}' > "${RAW_IMAGE_NAME}.sha256sum"
+		fi
+	fi
 fi
 
 popd
@@ -65,26 +65,26 @@ popd
 # This avoids slow remote downloads during Ironic deployment that can cause
 # timeouts, especially in CI.
 if [[ "${IPA_DOWNLOAD_ENABLED}" == "true" ]] && [[ "${USE_LOCAL_IPA}" != "true" ]]; then
-    IPA_FILENAME="ipa-${IPA_FLAVOR}-$(echo "${IPA_BRANCH}" | tr / -).tar.gz"
-    if [[ ! -f "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}" ]]; then
-        echo "Pre-downloading IPA image: ${IPA_BASEURI}/${IPA_FILENAME}"
-        wget --no-verbose --no-check-certificate -O "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}" \
-            "${IPA_BASEURI}/${IPA_FILENAME}"
-    fi
-    if [[ ! -f "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}.sha256" ]]; then
-        wget --no-verbose --no-check-certificate -O "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}.sha256" \
-            "${IPA_BASEURI}/${IPA_FILENAME}.sha256"
-    fi
+	IPA_FILENAME="ipa-${IPA_FLAVOR}-$(echo "${IPA_BRANCH}" | tr / -).tar.gz"
+	if [[ ! -f "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}" ]]; then
+		echo "Pre-downloading IPA image: ${IPA_BASEURI}/${IPA_FILENAME}"
+		wget --no-verbose --no-check-certificate -O "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}" \
+		"${IPA_BASEURI}/${IPA_FILENAME}"
+	fi
+	if [[ ! -f "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}.sha256" ]]; then
+		wget --no-verbose --no-check-certificate -O "${IRONIC_IMAGE_DIR}/${IPA_FILENAME}.sha256" \
+		"${IPA_BASEURI}/${IPA_FILENAME}.sha256"
+	fi
 fi
 
 # NOTE(elfosardo): workaround for https://github.com/moby/moby/issues/44970
 # should be fixed in docker-ce 23.0.2
 if [[ "${OS}" = "ubuntu" ]]; then
-  sudo systemctl restart docker
+	sudo systemctl restart docker
 fi
 
 # Pulling all the images except any local image.
 for IMAGE_VAR in $(env | grep -v "_LOCAL_IMAGE=" | grep "_IMAGE=" | grep -o "^[^=]*") ; do
-  IMAGE="${!IMAGE_VAR}"
-  sudo "${CONTAINER_RUNTIME}" pull --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE}"
- done
+	IMAGE="${!IMAGE_VAR}"
+	sudo "${CONTAINER_RUNTIME}" pull --platform="${LOCAL_CONTAINER_PLATFORM}" "${IMAGE}"
+done
