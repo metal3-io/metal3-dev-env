@@ -33,7 +33,8 @@ for i in {1..8}; do
     echo "Waiting for cert-manager webhooks to be ready... Attempt $i/8"
     sleep 15
 done
-launch_ironic
+# Tilt runs Ironic as local host containers.
+IRONIC_RUN_LOCAL=true launch_ironic
 # deploy bmo in order to generate ironic credentials and tls
 launch_baremetal_operator
 apply_bm_hosts "${NAMESPACE}"
