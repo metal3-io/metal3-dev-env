@@ -8,7 +8,7 @@ CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-podman}"
 
 # all md files, but ignore .github
 if [ "${IS_CONTAINER}" != "false" ]; then
-    markdownlint-cli2 "**/*.md" "#.github" "#CLAUDE.md"
+    markdownlint-cli2 "**/*.md" "#.github"
 else
     "${CONTAINER_RUNTIME}" run --rm \
         --env IS_CONTAINER=TRUE \
