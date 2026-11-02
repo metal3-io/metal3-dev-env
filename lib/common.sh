@@ -425,9 +425,9 @@ export TILT_SHA256="${TILT_SHA256:-b30ebbba68d4fd04f8afa11efc439515241dbcc2582ea
 # Ansible 12 requires Python 3.11+ on the control node. Upgrade the CI-tested
 # Ubuntu 24.04 and CentOS Stream 10 hosts; leave the existing default elsewhere.
 if [[ "${DISTRO}" = "ubuntu24" ]] || [[ "${DISTRO}" = "centos10" ]]; then
-    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-12.3.0}"
+    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-13.8.0}"
 else
-    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-10.7.0}"
+    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-13.8.0}"
 fi
 
 # Test and verification related variables
