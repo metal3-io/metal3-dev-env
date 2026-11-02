@@ -422,12 +422,10 @@ export KIND_NODE_IMAGE="${KIND_NODE_IMAGE:-${DOCKER_HUB_PROXY}/kindest/node:${KI
 export TILT_VERSION="${TILT_VERSION:-v0.32.3}"
 export TILT_SHA256="${TILT_SHA256:-b30ebbba68d4fd04f8afa11efc439515241dbcc2582eac2ced3e9fad09ce8318}"
 
-# Ansible version
-# Older ubuntu version do no support 7.0.0 because of older python versions
-# Ansible 7.0.0 or newer requires python 3.9+
-# TODO: Ansible pinning
+# Ansible 12 requires Python 3.11+ on the control node. Upgrade the CI-tested
+# Ubuntu 24.04 and CentOS Stream 10 hosts; leave the existing default elsewhere.
 if [[ "${DISTRO}" = "ubuntu24" ]] || [[ "${DISTRO}" = "centos10" ]]; then
-    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-10.7.0}"
+    export ANSIBLE_VERSION="${ANSIBLE_VERSION:-12.3.0}"
 else
     export ANSIBLE_VERSION="${ANSIBLE_VERSION:-10.7.0}"
 fi

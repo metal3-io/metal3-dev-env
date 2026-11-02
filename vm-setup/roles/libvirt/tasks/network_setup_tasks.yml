@@ -9,7 +9,7 @@
 
   # Create any OVS Bridges that have been defined
   - name: Create OVS Bridges
-    openvswitch_bridge:
+    openvswitch.openvswitch.openvswitch_bridge:
       bridge: "{{ item.bridge }}"
       state: present
     when: item.virtualport_type is defined and item.virtualport_type == "openvswitch"

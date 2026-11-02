@@ -1,4 +1,7 @@
 collections:
+- name: https://github.com/ansible-collections/openvswitch.openvswitch.git
+  type: git
+  version: 2.1.1
 - name: https://github.com/ansible-collections/kubernetes.core.git
   type: git
   version: 6.2.0
