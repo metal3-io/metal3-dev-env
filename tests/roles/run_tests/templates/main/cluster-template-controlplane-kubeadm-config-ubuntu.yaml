@@ -1,5 +1,7 @@
 # Ubuntu specific controlplane kubeadm config
 preKubeadmCommands:
+  - sysctl -w net.ipv6.conf.all.forwarding=1
+  - sysctl -w net.ipv6.conf.default.forwarding=1
   - rm /etc/cni/net.d/*
   - sed -i "s/MACAddressPolicy=persistent/MACAddressPolicy=none/g" /usr/lib/systemd/network/99-default.link
 {% if VM_EXTRADISKS == "true" %}
@@ -41,7 +43,13 @@ files:
           priority 101
           advert_int 1
           virtual_ipaddress {
-              {{ CLUSTER_APIENDPOINT_HOST }}
+{% if IP_STACK == "v6" %}
+{# According to VRRP, link local address should come first with v6, #}
+{# however, not all clients necessarily enforce it. #}
+{# Use static LL address, not likely to get collisions in dev setup. #}
+              fe80::1234:5678:90ab:cdef
+{% endif %}
+              {{ CLUSTER_APIENDPOINT_IP }}
           }
           track_script {
               k8s_api_check
