@@ -126,6 +126,7 @@ assured that they are persisted.
 | IRSOREPO | Ironic Standalone Operator git repository URL | | https://github.com/metal3-io/ironic-standalone-operator.git |
 | IRSOBRANCH | Ironic Standalone Operator git repository branch to checkout | | main |
 | IRSOCOMMIT | Ironic Standalone Operator git commit to checkout on IRSOBRANCH | | HEAD |
+| VERBOSE_LOGS | Enable verbose logging, best experience if is set into parent shell environment, if used in config_user, it gets parsed in lib/common | "true","false" | "true" |
 <!-- markdownlint-enable MD034 -->
 
 **NOTE** `(BMO/CAPI/CAPM3/IPAM)RELEASE` variables are also affecting the
