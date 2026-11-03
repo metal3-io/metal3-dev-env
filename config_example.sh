@@ -218,5 +218,15 @@
 # export NODES_PLATFORM="fake"
 # export FAKE_IPA_IMAGE=192.168.111.1:5000/localimages/fake-ipa
 
-# Whether to use ironic-standalone-operator to deploy Ironic.
+# Whether to use ironic-standalone-operator (IRSO) to deploy Ironic in-cluster.
+# This is the default and is what CI always uses.
 # export USE_IRSO="true"
+
+# The following two options only take effect for local development when
+# USE_IRSO="false". They rely on the deploy.sh / run_local_ironic.sh scripts
+# that ship with metal3-dev-env in the tools/ directory.
+#
+# When USE_IRSO="false", Ironic is deployed in-cluster using deploy.sh by
+# default. Set IRONIC_RUN_LOCAL="true" to instead run Ironic as local
+# containers using run_local_ironic.sh (development only, kind/tilt only).
+# export IRONIC_RUN_LOCAL="false"
