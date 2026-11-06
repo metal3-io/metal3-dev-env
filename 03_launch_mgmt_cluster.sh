@@ -754,6 +754,7 @@ build_ipxe_firmware()
     local ipxe_builder_image="${REGISTRY}/localimages/ipxe-builder:latest"
     local ipxe_tmp_source="/tmp/ipxe-source"
     export IPXE_ENABLE_TLS_CENV_ARG="IPXE_ENABLE_TLS='false'"
+    export IPXE_TLS_VERSION_MAX_CENV_ARG="IPXE_TLS_VERSION_MAX=''"
     export IPXE_ENABLE_IPV6_CENV_ARG="IPXE_ENABLE_IPV6='false'"
     declare -a certs_mounts=()
 
@@ -762,14 +763,15 @@ build_ipxe_firmware()
     fi
 
     if [[ ! -r "${IPXE_SOURCE_DIR}" ]]; then
-        git clone --depth 1 --branch "${IPXE_RELEASE_BRANCH}" \
-            "https://github.com/ipxe/ipxe.git" "${IPXE_SOURCE_DIR}"
+        git clone --depth 1 "https://github.com/ipxe/ipxe.git" "${IPXE_SOURCE_DIR}"
+        git -C "${IPXE_SOURCE_DIR}" fetch --depth 1 origin "${IPXE_RELEASE_BRANCH}"
+        git -C "${IPXE_SOURCE_DIR}" checkout -q FETCH_HEAD
         chmod -R 777 "${IPXE_SOURCE_DIR}"
     elif [[ "${IPXE_SOURCE_FORCE_UPDATE}" = "true" ]]; then
         rm -rf "${ipxe_tmp_source}"
-        # shellcheck disable=SC2086
-        git clone --depth 1 --branch "${IPXE_RELEASE_BRANCH}" \
-            "https://github.com/ipxe/ipxe.git" "${ipxe_tmp_source}"
+        git clone --depth 1 "https://github.com/ipxe/ipxe.git" "${ipxe_tmp_source}"
+        git -C "${ipxe_tmp_source}" fetch --depth 1 origin "${IPXE_RELEASE_BRANCH}"
+        git -C "${ipxe_tmp_source}" checkout -q FETCH_HEAD
         rm -rf "${IPXE_SOURCE_DIR}"
         mv "${ipxe_tmp_source}" "${IPXE_SOURCE_DIR}"
         rm -rf "${ipxe_tmp_source}"
@@ -777,6 +779,7 @@ build_ipxe_firmware()
 
     if [[ "${IPXE_ENABLE_TLS}" = "true" ]]; then
         export IPXE_ENABLE_TLS_CENV_ARG="IPXE_ENABLE_TLS=true"
+        export IPXE_TLS_VERSION_MAX_CENV_ARG="IPXE_TLS_VERSION_MAX=${IPXE_TLS_VERSION_MAX}"
         certs_mounts+=("-v ${IPXE_CACERT_FILE}:/certs/ca/ipxe/tls.crt")
         certs_mounts+=("-v ${IPXE_CERT_FILE}:/certs/ipxe/tls.crt")
         certs_mounts+=("-v ${IPXE_KEY_FILE}:/certs/ipxe/tls.key ")
@@ -791,8 +794,10 @@ build_ipxe_firmware()
         --net host \
         --name ipxe-builder ${POD_NAME} \
         -e "${IPXE_ENABLE_TLS_CENV_ARG}" \
+        -e "${IPXE_TLS_VERSION_MAX_CENV_ARG}" \
         -e "${IPXE_ENABLE_IPV6_CENV_ARG}" \
         -e "IPXE_CHAIN_HOST=${IRONIC_HOST_IP}" \
+        -e "IPXE_RELEASE_BRANCH=${IPXE_RELEASE_BRANCH}" \
         ${certs_mounts[@]} \
         -v "${IRONIC_DATA_DIR}":/shared \
         "${ipxe_builder_image}"
