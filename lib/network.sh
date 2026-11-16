@@ -208,8 +208,18 @@ fi
 
 network_address INITIAL_BARE_METAL_PROVISIONER_BRIDGE_IP "$BARE_METAL_PROVISIONER_NETWORK" 9
 
-export DEPLOY_KERNEL_URL="${DEPLOY_KERNEL_URL:-http://${CLUSTER_BARE_METAL_PROVISIONER_HOST}:${HTTP_PORT}/images/ironic-python-agent.kernel}"
-export DEPLOY_RAMDISK_URL="${DEPLOY_RAMDISK_URL:-http://${CLUSTER_BARE_METAL_PROVISIONER_HOST}:${HTTP_PORT}/images/ironic-python-agent.initramfs}"
+# With iPXE TLS enabled, httpd denies the IPA kernel/ramdisk over plain HTTP.
+# Serving them over HTTPS would require Ironic to trust its own CA when it
+# validates the image href (it does not by default -> SSLCertVerificationError),
+# so use file:// URLs: Ironic reads them directly off the shared volume, needing
+# no web server and no CA trust. Otherwise keep the plain http URLs.
+if [ "${IPXE_ENABLE_TLS}" == "true" ]; then
+  export DEPLOY_KERNEL_URL="${DEPLOY_KERNEL_URL:-file:///shared/html/images/ironic-python-agent.kernel}"
+  export DEPLOY_RAMDISK_URL="${DEPLOY_RAMDISK_URL:-file:///shared/html/images/ironic-python-agent.initramfs}"
+else
+  export DEPLOY_KERNEL_URL="${DEPLOY_KERNEL_URL:-http://${CLUSTER_BARE_METAL_PROVISIONER_HOST}:${HTTP_PORT}/images/ironic-python-agent.kernel}"
+  export DEPLOY_RAMDISK_URL="${DEPLOY_RAMDISK_URL:-http://${CLUSTER_BARE_METAL_PROVISIONER_HOST}:${HTTP_PORT}/images/ironic-python-agent.initramfs}"
+fi
 export DEPLOY_ISO_URL=${DEPLOY_ISO_URL:-}
 
 if [ "${IRONIC_TLS_SETUP}" == "true" ]; then
