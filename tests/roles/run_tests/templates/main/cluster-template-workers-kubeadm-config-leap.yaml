@@ -72,11 +72,11 @@ files:
   owner: root:root
   permissions: '0644'
   content: |
-    [registries.search]
-    registries = ['docker.io']
+    unqualified-search-registries = ["docker.io"]
 
-    [registries.insecure]
-    registries = ['{{ REGISTRY }}']
+    [[registry]]
+    location = "{{ REGISTRY }}"
+    insecure = true
 {% if EXTERNAL_VLAN_ID != "" %}
 - path: /etc/NetworkManager/system-connections/{{ bmh_nic_names[0] }}.{{ EXTERNAL_VLAN_ID }}.nmconnection
   owner: root:root
