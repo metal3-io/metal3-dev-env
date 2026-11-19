@@ -31,9 +31,7 @@
     - "{{ general_containers }}"
 
   - name: Remove ironic container from source cluster (kind cluster)
-    docker_container:
-      name: "{{ item }}"
-      state: absent
+    shell: "sudo {{ CONTAINER_RUNTIME }} rm -f {{ item }}"
     with_items: "{{ ironic_containers }}"
 
   when: BOOTSTRAP_CLUSTER == "kind"
