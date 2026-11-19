@@ -16,8 +16,8 @@ if [[ "${OS}" = "ubuntu" ]]; then
     # Set apt retry limit to higher than default to
     # make the data retrival more reliable
     sudo sh -c ' echo "Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries '
-    sudo apt-get update
-    sudo apt-get -y install python3-pip python3-dev python3-venv jq curl wget pkg-config bash-completion
+    sudo apt-get -q update
+    sudo apt-get -qy install python3-pip python3-dev python3-venv jq curl wget pkg-config bash-completion
 
     # Set update-alternatives to python3
     case "${DISTRO}" in
@@ -80,7 +80,7 @@ rm -rf "${ANSIBLE_VENV}"
 sudo python -m venv --system-site-packages "${ANSIBLE_VENV}"
 # TODO: since ansible 8.0.0, pinning by digest is PITA, due additional ansible
 # dependencies, which would need to be pinned as well, so it is skipped for now
-sudo "${ANSIBLE_VENV}/bin/pip" install --ignore-installed ansible=="${ANSIBLE_VERSION}"
+sudo "${ANSIBLE_VENV}/bin/pip" install -q --ignore-installed ansible=="${ANSIBLE_VERSION}"
 
 # Install requirements
 "${ANSIBLE}-galaxy" install -r vm-setup/requirements.yml

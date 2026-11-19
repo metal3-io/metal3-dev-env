@@ -31,26 +31,27 @@
   set_fact:
     host_architecture: "{{ ansible_architecture }}"
 
-- name: Check volume pool
-  command: >
-    virsh pool-uuid "{{ libvirt_volume_pool }}"
-  register: pool_check
-  ignore_errors: true
+- name: List volume pools
+  command: virsh pool-list --all --name
+  register: pool_list
   changed_when: false
   environment:
     LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
 
-- name: create the volume pool xml file
-  template:
-    src: volume_pool.xml.j2
-    dest: "{{ working_dir }}/volume_pool.xml"
-  when: pool_check is failed
+- name: Ensure volume pool
+  block:
+  - name: create the volume pool xml file
+    template:
+      src: volume_pool.xml.j2
+      dest: "{{ working_dir }}/volume_pool.xml"
 
-- name: Define volume pool
-  command: "virsh pool-define {{ working_dir }}/volume_pool.xml"
-  when: pool_check is failed
-  environment:
-    LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+  - name: Define volume pool
+    command: "virsh pool-define {{ working_dir }}/volume_pool.xml"
+    environment:
+      LIBVIRT_DEFAULT_URI: "{{ libvirt_uri }}"
+  when: volume_pool_missing
+  vars:
+    volume_pool_missing: "{{ libvirt_volume_pool not in pool_list.stdout_lines }}"
 
 - name: Start volume pool
   virt_pool:
@@ -59,7 +60,7 @@
     name: "{{ libvirt_volume_pool }}"
     uri: "{{ libvirt_uri }}"
 
-# In some cases the pool_check can pass and the pool xml config is absent
+# In some cases the pool can be listed and the pool xml config is absent
 # In this case it is required to dump the xml and redefine the pool.
 - name: ensure tripleo-quickstart volume pool is defined
   shell: >
@@ -84,14 +85,15 @@
     command: >
       virsh vol-info --pool '{{ libvirt_volume_pool }}' '{{ item.name }}.qcow2'
     register: vm_vol_check
-    ignore_errors: true
+    failed_when: false
+    changed_when: false
     with_items: "{{ vm_nodes }}"
 
   - name: Create vm vm storage
     command: >
       virsh vol-create-as '{{ libvirt_volume_pool }}' '{{ item.item.name }}'.qcow2 '{{ flavors[item.item.flavor].disk }}'G --format qcow2
     when:
-    - item is failed
+    - item.rc != 0
     with_items: "{{ vm_vol_check.results }}"
 
   # Define (but do not start) the vm nodes.  These will be
