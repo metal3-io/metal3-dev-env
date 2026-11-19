@@ -1,7 +1,11 @@
+VERBOSE_LOGS ?= true
+export VERBOSE_LOGS
+
 all: install_requirements configure_host launch_mgmt_cluster verify
 
 nodep: configure_host launch_mgmt_cluster verify
 
+ci_run: VERBOSE_LOGS = true
 ci_run: configure_host launch_mgmt_cluster verify
 
 install_requirements:
