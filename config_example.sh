@@ -200,6 +200,22 @@
 # Secure Ironic deployment with TLS ("true" or "false")
 #export IRONIC_TLS_SETUP="true"
 
+# Build a custom iPXE firmware with TLS via the ipxe-builder init container.
+# These are required together:
+#   - BUILD_IPXE=true             build custom firmware during deployment
+#   - IPXE_ENABLE_TLS=true        enable HTTPS/TLS in the firmware
+# IPXE_RELEASE_BRANCH defaults to a pinned upstream master commit (which ships
+# TLS 1.3 by default); v1.21.1 does NOT support TLS 1.3. It accepts a branch,
+# tag or commit SHA.
+# To change the TLS version, set IPXE_TLS_VERSION_MAX to an iPXE TLS_VERSION_XXX
+# constant (e.g. TLS_VERSION_TLS_1_2); leave it unset to keep the source default.
+# Point the builder at the local (modified) utility-images source:
+#   - IPXE_BUILDER_LOCAL_IMAGE=/path/to/utility-images/ipxe-builder
+#export BUILD_IPXE="true"
+#export IPXE_ENABLE_TLS="true"
+#export IPXE_TLS_VERSION_MAX="TLS_VERSION_TLS_1_2"
+#export IPXE_BUILDER_LOCAL_IMAGE="${HOME}/Code/utility-images/ipxe-builder"
+
 # Set nodeDrainTimeoutSeconds for controlplane and worker template, otherwise default value will be  '0'.
 #
 #export NODE_DRAIN_TIMEOUT=${NODE_DRAIN_TIMEOUT:-"0"}
