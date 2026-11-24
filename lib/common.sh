@@ -501,8 +501,10 @@ fi
 # Ensure all files in the working directory are owned by the current user
 sudo chown -R "${USER}:${USER}" "${WORKING_DIR}"
 
+# List the hosts in ${NODES_FILE} (Ironic node inventory, not K8s nodes).
+# Output, one line per host:
+#   <name> <bmc address> <bmc user> <bmc password> <boot mac> <verify_ca>
 list_nodes() {
-    # Includes -machine and -machine-namespace
     # shellcheck disable=SC2002
     cat "${NODES_FILE}" | \
         jq '.nodes[] | {
